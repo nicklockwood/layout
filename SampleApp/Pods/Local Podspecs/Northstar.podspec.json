@@ -1,0 +1,23 @@
+{
+  "name": "Northstar",
+  "version": "0.0.1",
+  "summary": "Controls and views implementing the Northstar look and feel.",
+  "homepage": "http://schibsted.com",
+  "license": {
+    "type": "Proprietary",
+    "text": "Copyright Schibsted All rights reserved.\n\n"
+  },
+  "authors": "Schibsted",
+  "platforms": {
+    "ios": "9.0"
+  },
+  "source": {
+    "path": "."
+  },
+  "source_files": "Source",
+  "resource_bundles": {
+    "Northstar": [
+      "Resources/*"
+    ]
+  }
+}

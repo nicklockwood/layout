@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="12118" systemVersion="16E195" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES">
+    <device id="retina4_7" orientation="portrait">
+        <adaptation id="fullscreen"/>
+    </device>
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="12086"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <scenes>
+        <!--Northstar Web View Controller-->
+        <scene sceneID="eQy-Nb-m6f">
+            <objects>
+                <viewController storyboardIdentifier="NorthstarWebViewController" id="ZUZ-fK-0xj" customClass="NorthstarWebViewController" customModule="RocketApp" customModuleProvider="target" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="tS5-8k-Ryr"/>
+                        <viewControllerLayoutGuide type="bottom" id="A5M-aO-y4c"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="WCG-OV-uOK">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <webView contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Lep-K2-AGv">
+                                <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <connections>
+                                    <outlet property="delegate" destination="ZUZ-fK-0xj" id="IhF-IN-I13"/>
+                                </connections>
+                            </webView>
+                        </subviews>
+                        <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                        <constraints>
+                            <constraint firstAttribute="trailing" secondItem="Lep-K2-AGv" secondAttribute="trailing" id="DcL-ng-lBk"/>
+                            <constraint firstItem="Lep-K2-AGv" firstAttribute="leading" secondItem="WCG-OV-uOK" secondAttribute="leading" id="bYT-QG-sDl"/>
+                            <constraint firstItem="A5M-aO-y4c" firstAttribute="top" secondItem="Lep-K2-AGv" secondAttribute="bottom" id="i8A-5Z-aWW"/>
+                            <constraint firstItem="Lep-K2-AGv" firstAttribute="top" secondItem="WCG-OV-uOK" secondAttribute="top" id="qoq-xM-4rm"/>
+                        </constraints>
+                    </view>
+                    <connections>
+                        <outlet property="webView" destination="Lep-K2-AGv" id="y5z-4L-MfO"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="Dd3-Ad-A3p" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="642" y="55"/>
+        </scene>
+    </scenes>
+</document>

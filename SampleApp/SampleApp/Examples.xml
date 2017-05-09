@@ -1,0 +1,317 @@
+<UITabBarController>
+
+    <!-- Boxes -->
+    <UIViewController
+        outlet="boxesExampleNode"
+        title="Boxes"
+        tabBarItem.image="Boxes"
+        backgroundColor="#fff">
+
+        <UIScrollView
+            contentInset.top="max(topLayoutGuide.length + 10, 15)"
+            scrollIndicatorInsets.bottom="bottomLayoutGuide.length + 50"
+            contentInset.bottom="scrollIndicatorInsets.bottom + 15">
+
+            <!-- First column -->
+            <UIView
+                left="15 + previous.right"
+                width="toggleLayout ? (100% - 45)/2 : (100% - 60)/3"
+                height="width"
+                backgroundColor="#f66"
+            />
+            <UIView
+                top="15 + previous.bottom"
+                left="previous.left"
+                width="previous.width"
+                height="width"
+                backgroundColor="#fa7"
+            />
+            <UILabel
+                top="15 + previous.bottom"
+                left="previous.left"
+                width="toggleLayout ? previous.width : 100% - 30"
+                text="Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+                numberOfLines="0"
+            />
+
+            <!-- Second column -->
+            <UIView
+                left="width + 30"
+                width="toggleLayout ? (100% - 45)/2 : (100% - 60)/3"
+                height="width/2"
+                backgroundColor="#09f"
+            />
+            <UIView
+                top="15 + previous.bottom"
+                left="previous.left"
+                width="previous.width"
+                height="width"
+                backgroundColor="#0f9"
+            />
+            <UIView
+                top="toggleLayout ? 15 + previous.bottom : 0"
+                left="toggleLayout ? previous.left : previous.right + 15"
+                width="previous.width"
+                height="width"
+                backgroundColor="#fcc"
+            />
+        </UIScrollView>
+
+        <!-- Floating button -->
+        <UIView
+            height="50"
+            left="0"
+            width="100%"
+            bottom="previous.bottom - bottomLayoutGuide.length"
+            backgroundColor="#fff9">
+            <UIButton
+                top="10"
+                bottom="100% - 10"
+                left="15"
+                right="100% - 15"
+                title="Toggle"
+                backgroundColor="toggleLayout ? #09f : #f66"
+                layer.cornerRadius="5"
+                touchUpInside="toggle"
+            />
+        </UIView>
+    </UIViewController>
+
+    <!-- Pages -->
+    <UIViewController
+        title="Pages"
+        tabBarItem.image="Pages"
+        backgroundColor="#ddd">
+
+        <UIScrollView
+            outlet="scrollView"
+            isPagingEnabled="true"
+            contentInset.bottom="bottomLayoutGuide.length"
+            showsHorizontalScrollIndicator="false">
+            <UIView
+                width="300%"
+                height="100% - parent.contentInset.bottom">
+
+                <!-- Page 1 -->
+                <UIView
+                    top="max(topLayoutGuide.length + 10, 20)"
+                    left="20"
+                    width="(100/3)% - 40"
+                    bottom="100% - 20"
+                    layer.cornerRadius="10"
+                    backgroundColor="#f33">
+                    <UILabel
+                        width="100%"
+                        height="100%"
+                        textAlignment="center"
+                        text="Page 1"
+                        textColor="#fff"
+                        font="30 bold"
+                    />
+                </UIView>
+
+                <!-- Page 2 -->
+                <UIView
+                    top="previous.top"
+                    left="previous.right + 40"
+                    width="previous.width"
+                    bottom="previous.bottom"
+                    layer.cornerRadius="previous.layer.cornerRadius"
+                    backgroundColor="#3a3">
+                    <UILabel
+                        width="100%"
+                        height="100%"
+                        textAlignment="center"
+                        text="Page 2"
+                        textColor="#fff"
+                        font="30 bold"
+                    />
+                </UIView>
+
+                <!-- Page 3 -->
+                <UIView
+                    top="previous.top"
+                    left="previous.right + 40"
+                    width="previous.width"
+                    bottom="previous.bottom"
+                    layer.cornerRadius="previous.layer.cornerRadius"
+                    backgroundColor="#09f">
+                    <UILabel
+                        width="100%"
+                        height="100%"
+                        textAlignment="center"
+                        text="Page 3"
+                        textColor="#fff"
+                        font="30 bold"
+                    />
+                </UIView>
+
+            </UIView>
+        </UIScrollView>
+        <UIPageControl
+            outlet="pageControl"
+            bottom="100% - bottomLayoutGuide.length - 30"
+            isUserInteractionEnabled="false"
+            numberOfPages="3"
+        />
+    </UIViewController>
+
+    <!-- Text -->
+    <UIViewController
+        title="Text"
+        tabBarItem.image="Text"
+        backgroundColor="#fee">
+
+        <UIScrollView
+            contentInset.bottom="20 + bottomLayoutGuide.length"
+            scrollIndicatorInsets.bottom="bottomLayoutGuide.length">
+
+            <UILabel
+                top="max(topLayoutGuide.length + 10, 20)"
+                left="20"
+                text="Left-aligned bold text"
+                font="bold"
+                backgroundColor="#0001"
+            />
+
+            <UILabel
+                top="previous.bottom + 20"
+                left="20"
+                right="100% - 20"
+                textAlignment="center"
+                text="Center-aligned italic text"
+                font="italic"
+                backgroundColor="#0001"
+            />
+
+            <UILabel
+                top="previous.bottom + 20"
+                left="20"
+                right="100% - 20"
+                textAlignment="right"
+                text="Right-aligned bold italic text"
+                font="bold italic"
+                backgroundColor="#0001"
+            />
+
+            <UILabel
+                top="previous.bottom + 20"
+                width="50%"
+                left="50% - width/2"
+                text="This text is left-aligned, but the paragraph itself is centered. It also uses a custom font"
+                numberOfLines="0"
+                font="courier"
+                backgroundColor="#0001"
+            />
+
+            <UILabel
+                top="previous.bottom + 20"
+                left="20"
+                text="This text is colored"
+                textColor="#09f"
+                backgroundColor="#0001"
+            />
+
+            <UILabel
+                top="previous.bottom + 20"
+                left="20"
+                right="100% - 20"
+                backgroundColor="#0001"
+                numberOfLines="0">
+
+                <p>This text has inline <b>bold</b>, <i>italic</i> and <u>underlined</u>
+                styles, specified using HTML markup.</p>
+
+                <ul>
+                    <li>We can</li>
+                    <li>even do</li>
+                    <li>lists</li>
+                </ul>
+
+                <br/>And embedded {attributedString} constants!
+
+            </UILabel>
+        </UIScrollView>
+    </UIViewController>
+
+    <!-- Northstar -->
+    <UIViewController
+        title="Northstar"
+        tabBarItem.image="Northstar"
+        outlet="northstarExampleNode"
+        backgroundColor="#fff">
+
+        <UIScrollView
+            contentInset.bottom="20 + bottomLayoutGuide.length"
+            scrollIndicatorInsets.bottom="bottomLayoutGuide.length">
+            <Northstar.NorthstarLabel
+                text="Welcome"
+                textStyle="heading1"
+                left="16"
+                right="100% - 16"
+                top="32"
+            />
+            <Northstar.NorthstarLabel
+                text="Email"
+                left="16"
+                right="100% - 16"
+                top="previous.bottom + 24"
+            />
+            <Northstar.NorthstarTextField
+                outlet="numberField"
+                placeholder="(+44) Mobile number"
+                left="16"
+                right="100% - 16"
+                top="previous.bottom + 8"
+                height="48"
+            />
+            <Northstar.NorthstarLabel
+                text="{error}"
+                textStyle="bodyError"
+                left="16"
+                right="100% - 16"
+                height="max(auto, 25)"
+                numberOfLines="0"
+                top="previous.bottom + 4"
+                isHidden="hideError"
+                alpha="hideError ? 0 : 1"
+            />
+            <Northstar.NorthstarLabel
+                text="Use the same email you’ve used for your Kufar account to gain access"
+                numberOfLines="0"
+                left="16"
+                right="100% - 16"
+                top="previous.bottom + 24"
+            />
+            <Northstar.NorthstarCheckboxControl
+                outlet="termsCheckbox"
+                text="I accept the terms and conditions for Kufar and SPiD"
+                left="16"
+                right="100% - 16"
+                top="previous.bottom + 4"
+            />
+            <Northstar.NorthstarCheckboxControl
+                outlet="privacyCheckbox"
+                text="I accept the Privacy Policy for SPiD"
+                left="16"
+                right="100% - 16"
+                top="previous.bottom"
+            />
+            <Northstar.NorthstarClickableLabel
+                text="Terms &amp; privacy"
+                left="16"
+                right="100% - 16"
+                top="previous.bottom"
+            />
+            <Northstar.NorthstarSubmitInputView
+                width="100%"
+                title="Submit"
+                isPrimary="true"
+                isEnabled="true"
+                top="previous.bottom"
+                touchUpInside="submit"
+            />
+        </UIScrollView>
+    </UIViewController>
+
+</UITabBarController>

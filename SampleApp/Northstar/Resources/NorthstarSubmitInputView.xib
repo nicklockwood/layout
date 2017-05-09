@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="12120" systemVersion="16E195" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES">
+    <device id="retina4_7" orientation="portrait">
+        <adaptation id="fullscreen"/>
+    </device>
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="12088"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="NorthstarSubmitInputView" customModule="Northstar" customModuleProvider="target">
+            <connections>
+                <outlet property="dimView" destination="thz-Ps-HeW" id="z5i-JE-bVh"/>
+                <outlet property="submitButton" destination="2I8-Gf-dmU" id="bo9-gc-a4a"/>
+            </connections>
+        </placeholder>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <view opaque="NO" contentMode="scaleToFill" id="iN0-l3-epB">
+            <rect key="frame" x="0.0" y="0.0" width="375" height="72"/>
+            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+            <subviews>
+                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="U4C-dy-NQH" userLabel="Background View">
+                    <rect key="frame" x="16" y="16" width="343" height="40"/>
+                    <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                </view>
+                <button contentMode="scaleToFill" enabled="NO" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="2I8-Gf-dmU" userLabel="Submit Button" customClass="NorthstarButton" customModule="Northstar" customModuleProvider="target">
+                    <rect key="frame" x="16" y="16" width="343" height="40"/>
+                    <color key="backgroundColor" red="1" green="0.65098039220000004" blue="0.1137254902" alpha="0.80000000000000004" colorSpace="calibratedRGB"/>
+                    <state key="normal" title="Submit"/>
+                    <userDefinedRuntimeAttributes>
+                        <userDefinedRuntimeAttribute type="number" keyPath="cornerRadius">
+                            <real key="value" value="4"/>
+                        </userDefinedRuntimeAttribute>
+                        <userDefinedRuntimeAttribute type="boolean" keyPath="primary" value="NO"/>
+                    </userDefinedRuntimeAttributes>
+                </button>
+                <view hidden="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="thz-Ps-HeW" userLabel="Dim View">
+                    <rect key="frame" x="0.0" y="0.0" width="375" height="72"/>
+                    <color key="backgroundColor" red="0.0" green="0.0" blue="0.0" alpha="0.5" colorSpace="calibratedRGB"/>
+                </view>
+            </subviews>
+            <color key="backgroundColor" red="1" green="1" blue="1" alpha="0.80000000000000004" colorSpace="calibratedRGB"/>
+            <constraints>
+                <constraint firstItem="U4C-dy-NQH" firstAttribute="leading" secondItem="2I8-Gf-dmU" secondAttribute="leading" id="15Q-zD-74X"/>
+                <constraint firstItem="2I8-Gf-dmU" firstAttribute="leading" secondItem="iN0-l3-epB" secondAttribute="leading" constant="16" id="3qv-eC-frd"/>
+                <constraint firstItem="2I8-Gf-dmU" firstAttribute="top" secondItem="iN0-l3-epB" secondAttribute="top" constant="16" id="C0W-0d-dYA"/>
+                <constraint firstItem="U4C-dy-NQH" firstAttribute="trailing" secondItem="2I8-Gf-dmU" secondAttribute="trailing" id="LZO-1O-hR1"/>
+                <constraint firstAttribute="trailing" secondItem="thz-Ps-HeW" secondAttribute="trailing" id="O4j-FM-S8d"/>
+                <constraint firstItem="thz-Ps-HeW" firstAttribute="top" secondItem="iN0-l3-epB" secondAttribute="top" id="WD8-Ej-yQ5"/>
+                <constraint firstItem="thz-Ps-HeW" firstAttribute="leading" secondItem="iN0-l3-epB" secondAttribute="leading" id="ZV4-SU-Q7q"/>
+                <constraint firstItem="U4C-dy-NQH" firstAttribute="bottom" secondItem="2I8-Gf-dmU" secondAttribute="bottom" id="gka-uk-UA2"/>
+                <constraint firstAttribute="bottom" secondItem="2I8-Gf-dmU" secondAttribute="bottom" constant="16" id="lWR-HE-X5q"/>
+                <constraint firstAttribute="bottom" secondItem="thz-Ps-HeW" secondAttribute="bottom" id="rdV-BX-b7Y"/>
+                <constraint firstAttribute="trailing" secondItem="2I8-Gf-dmU" secondAttribute="trailing" constant="16" id="sV6-Mf-aLX"/>
+                <constraint firstItem="U4C-dy-NQH" firstAttribute="top" secondItem="2I8-Gf-dmU" secondAttribute="top" id="yBr-ia-lhN"/>
+            </constraints>
+            <nil key="simulatedStatusBarMetrics"/>
+            <freeformSimulatedSizeMetrics key="simulatedDestinationMetrics"/>
+            <point key="canvasLocation" x="110.5" y="359"/>
+        </view>
+    </objects>
+</document>

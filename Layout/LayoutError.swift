@@ -1,0 +1,100 @@
+//
+//  LayoutError.swift
+//  Layout
+//
+//  Created by Nick Lockwood on 27/04/2017.
+//  Copyright © 2017 Nick Lockwood. All rights reserved.
+//
+
+import Foundation
+import Expression
+
+public struct SymbolError: Error, Equatable, CustomStringConvertible {
+    let symbol: String
+    let error: Error
+
+    public var description: String {
+        var description = String(describing: error)
+        if !description.contains(symbol) {
+            description = "\(description) in `\(symbol)`"
+        }
+        return description
+    }
+
+    init(_ error: Error, for symbol: String) {
+        self.symbol = symbol
+        self.error = (error as? SymbolError)?.error ?? error
+    }
+
+    init(_ message: String, for symbol: String) {
+        self.init(Expression.Error.message(message), for: symbol)
+    }
+
+    static func wrap<T>(_ closure: () throws -> T, for symbol: String) throws -> T {
+        do {
+            return try closure()
+        } catch {
+            throw self.init(error, for: symbol)
+        }
+    }
+
+    public static func ==(lhs: SymbolError, rhs: SymbolError) -> Bool {
+        return lhs.symbol == rhs.symbol && lhs.description == rhs.description
+    }
+}
+
+public enum LayoutError: Error, Equatable, CustomStringConvertible {
+    case message(String)
+    case generic(Error, AnyClass?)
+
+    public var description: String {
+        var description = ""
+        switch self {
+        case let .message(message):
+            description = message
+        case let .generic(error, viewClass):
+            description = "\(error)"
+            if let viewClass = viewClass {
+                let className = "\(viewClass)"
+                if !description.contains(className) {
+                    description = "\(description) in \(className)"
+                }
+            }
+        }
+        return description
+    }
+
+    init(_ message: String) {
+        self = .message(message)
+    }
+
+    init(_ error: Error, for viewClass: AnyClass) {
+        switch error {
+        case let LayoutError.generic(error, viewClass):
+            self = .generic(error, viewClass)
+        default:
+            self = .generic(error, viewClass)
+        }
+    }
+
+    init(_ error: Error, for node: LayoutNode? = nil) {
+        switch error {
+        case let LayoutError.generic(error, viewClass):
+            self = .generic(error, viewClass)
+        default:
+            self = .generic(error, node.map { $0.view.classForCoder })
+        }
+    }
+
+    static func wrap<T>(_ closure: () throws -> T, for node: LayoutNode) throws -> T {
+        do {
+            return try closure()
+        } catch {
+            throw self.init(error, for: node)
+        }
+    }
+
+    public static func ==(lhs: LayoutError, rhs: LayoutError) -> Bool {
+        return lhs.description == rhs.description
+    }
+}
