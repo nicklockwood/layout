@@ -14,7 +14,6 @@ class LayoutLoader {
 
     private var _xmlURL: URL?
     private var _dataTask: URLSessionDataTask?
-    private var _projectDirectory: URL?
     private var _state: Any = ()
     private var _constants: [String: Any] = [:]
 
@@ -55,13 +54,23 @@ class LayoutLoader {
         _xmlURL = xmlURL
         if xmlURL.isFileURL {
             if let relativeTo = relativeTo {
-                _projectDirectory = findProjectDirectory(at: "\(relativeTo)")
+                let bundlePath = Bundle.main.bundleURL.absoluteString
+                if xmlURL.absoluteString.hasPrefix(bundlePath),
+                    let projectDirectory = findProjectDirectory(at: "\(relativeTo)") {
+                    let path = xmlURL.absoluteString.substring(from: bundlePath.endIndex)
+                    if let url = findSourceURL(forRelativePath: path, in: projectDirectory) {
+                        _xmlURL = url
+                    } else {
+                        completion(nil, .message("Unable to locate source file for \(path)"))
+                        return
+                    }
+                }
             }
             if Thread.isMainThread {
                 let data: Data?
                 let error: Error?
                 do {
-                    data = try Data(contentsOf: xmlURL)
+                    data = try Data(contentsOf: _xmlURL!)
                     error = nil
                 } catch let _error {
                     data = nil
@@ -76,8 +85,6 @@ class LayoutLoader {
                 )
                 return
             }
-        } else {
-            _projectDirectory = nil
         }
         _dataTask = URLSession.shared.dataTask(with: xmlURL) { data, response, error in
             DispatchQueue.main.async {
@@ -98,19 +105,9 @@ class LayoutLoader {
     }
 
     public func reloadLayout(withCompletion completion: @escaping LayoutLoaderCallback) {
-        guard var xmlURL = _xmlURL, _dataTask == nil else {
+        guard let xmlURL = _xmlURL, _dataTask == nil else {
             completion(nil, nil)
             return
-        }
-        let bundlePath = Bundle.main.bundleURL.absoluteString
-        if let projectDirectory = _projectDirectory,
-            xmlURL.absoluteString.hasPrefix(bundlePath) {
-            let path = xmlURL.absoluteString.substring(from: bundlePath.endIndex)
-            guard let url = findSourceURL(forRelativePath: path, in: projectDirectory) else {
-                completion(nil, .message("Unable to locate source file for \(path)"))
-                return
-            }
-            xmlURL = url
         }
         loadLayout(
             withContentsOfURL: xmlURL,
