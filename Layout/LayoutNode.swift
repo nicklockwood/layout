@@ -276,11 +276,10 @@ public class LayoutNode: NSObject {
         guard type(of: view) == type(of: node.view) else {
             throw LayoutError.message("Cannot replace \(type(of: view)) with \(type(of: node.view))")
         }
-        guard (viewController == nil && node.viewController == nil) ||
-            viewController != nil && node.viewController != nil else {
-                throw LayoutError.message("Cannot replace \(viewController.map { "\(type(of: $0))" } ?? "nil") with \(node.viewController.map { "\(type(of: $0))" } ?? "nil")")
+        guard (viewController == nil) == (node.viewController == nil) else {
+            throw LayoutError.message("Cannot replace \(viewController.map { "\(type(of: $0))" } ?? "nil") with \(node.viewController.map { "\(type(of: $0))" } ?? "nil")")
         }
-        guard type(of: viewController!) == type(of: node.viewController!) else {
+        guard viewController.map({ type(of: $0) == type(of: node.viewController!) }) != false else {
             throw LayoutError.message("Cannot replace \(type(of: viewController!)) with \(type(of: node.viewController!))")
         }
 
@@ -303,6 +302,7 @@ public class LayoutNode: NSObject {
         for child in node.children {
             addChild(child)
         }
+        try update()
     }
 
     // MARK: expressions
