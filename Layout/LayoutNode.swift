@@ -470,7 +470,7 @@ public class LayoutNode: NSObject {
         throw SymbolError("\(symbol) is not a number", for: symbol)
     }
 
-    private var _evaluating = Set<String>()
+    private var _evaluating = [String]()
     private var _getters = [String: () throws -> Any?]()
 
     // Return the best available VC for computing the layout guide
@@ -487,11 +487,20 @@ public class LayoutNode: NSObject {
         }
         if let expression = expression(for: symbol) {
             let getter = { [unowned self] () throws -> Any in
+                if self._evaluating.last == symbol, let value = self.value(forVariableOrConstant: symbol) {
+                    // In the situation that an expression directly references itself
+                    // it may be that this is due to the expression name shadowing
+                    // a constant or variable, so check for that first before throwing
+                    return value
+                }
                 guard !self._evaluating.contains(symbol) else {
                     throw SymbolError("Circular reference", for: symbol)
                 }
-                self._evaluating.insert(symbol)
-                defer { self._evaluating.remove(symbol) }
+                self._evaluating.append(symbol)
+                defer {
+                    assert(self._evaluating.last == symbol)
+                    self._evaluating.removeLast()
+                }
                 do {
                     return try expression.evaluate()
                 } catch {
