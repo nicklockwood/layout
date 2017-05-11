@@ -22,6 +22,8 @@ public class LayoutNode: NSObject {
         return [viewController]
     }
 
+    private var _originalExpressions: [String: String]
+
     public init(
         view: UIView? = nil,
         viewController: UIViewController? = nil,
@@ -44,6 +46,8 @@ public class LayoutNode: NSObject {
         self.constants = constants
         self.expressions = expressions
         self.children = children
+
+        _originalExpressions = expressions
 
         super.init()
 
@@ -287,9 +291,10 @@ public class LayoutNode: NSObject {
             child.removeFromParent()
         }
 
-        for (name, expression) in node.expressions {
-            expressions[name] = expression
+        for (name, expression) in node._originalExpressions where _originalExpressions[name] == nil {
+            _originalExpressions[name] = expression
         }
+        expressions = _originalExpressions
         _getters.removeAll()
         _cachedExpressions.removeAll()
         overrideExpressions()
