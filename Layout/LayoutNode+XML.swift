@@ -65,7 +65,9 @@ private class LayoutParser: NSObject, XMLParserDelegate {
             return
         }
 
-        guard let anyClass = NSClassFromString(elementName) ?? NSClassFromString("Layout.\(elementName)") else {
+        let classPrefix = Bundle.main.object(forInfoDictionaryKey: "CFBundleName") ?? ""
+        guard let anyClass = NSClassFromString(elementName) ??
+            NSClassFromString("\(classPrefix).\(elementName)") else {
             error = LayoutError.message("Unknown class `\(elementName)` in XML")
             parser.abortParsing()
             return

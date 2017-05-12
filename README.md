@@ -21,12 +21,15 @@
 	- [Images](#images)
 	- [Fonts](#fonts)
 	- [Attributed Strings](#attributed-strings)
+- [Custom Components](#custom-components)
+	- [Namespacing](#namespacing)
+	- [Custom Property Types](#custom-property-types)
 - [Advanced Topics](#advanced-topics)
 	- [Manual Integration](#manual-integration)
-	- [Custom Components](#custom-components)
 - [Example Projects](#example-projects)
 	- [SampleApp](#sampleapp)
 	- [UIDesigner](#uidesigner)
+- [FAQ](#faq)
 
 # Introduction
 
@@ -61,7 +64,7 @@ Unlike UIViews (which use NSCoding for serialization), this hierarchy can be des
 
 View properties are specified using *expressions*, which are simple, pure functions stored as strings and evaluated at runtime. Now, I know what you're thinking - stringly typed code is horrible! - but Layout's expressions are strongly-typed, and designed to fail early, with detailed error messages to help you debug.
 
-Layout is designed to work *alongside* ordinary UIKit components, not to replace or reinvent them. Layout-based views can easily be embedded inside storyboards, and nib-based views can be embedded inside Layout-based views and view controllers.
+Layout is designed to work with ordinary UIKit components, not to replace or reinvent them. Layout-based views can be embedded inside nibs ands storyboards, and nib and storyboard-based views can be embedded inside Layout-based views and view controllers, so there is no need to rewrite your entire app if you want to try using Layout.
 
 
 # Usage
@@ -101,7 +104,26 @@ The core API exposed by Layout is the `LayoutNode` class. Create a layout node a
     
 This example code creates a centered `UILabel` inside a `UIView` with a white background that will stretch to fill its superview once mounted.
 
-To mount a `LayoutNode` inside a view or view controller, the Layout framework provides a number of integration solutions from high-level to low-level. The simplest, most high-level approach is to subclass `LayoutViewController` and use one of the following three approaches to load your layout:
+For simple views, creating the layout in code is a convenient solution that avoids the need for an external file. But the real power of the Layout framework comes from the ability to specify layouts using external XML files because it allows for *live reloading* (see below), which can significantly reduce development time.
+
+The equivalent XML markup for the above layout is:
+
+	<UIView
+		width="100%"
+		height="100%"
+		backgroundColor="#fff">
+		<UILabel
+			width="100%"
+    		top="50% - height / 2"
+    		textAlignment="center"
+    		font="Courier bold 30"
+    		text="Hello World"
+		/>
+	</UIView>
+	
+Any built-in iOS view should work when used as an layout XML element. For custom views, see the [Custom Components](#custom-components) section below.
+
+To mount a `LayoutNode` inside a view or view controller, subclass `LayoutViewController` and use one of the following three approaches to load your layout:
 
     class MyViewController: LayoutViewController {
     
@@ -111,7 +133,7 @@ To mount a `LayoutNode` inside a view or view controller, the Layout framework p
         	// Option 1 - create a layout programmatically
         	self.layoutNode = LayoutNode( ... )
         	
-        	// Option 2 - load a layout synchronously from a bundled XML file name
+        	// Option 2 - load a layout synchronously from a bundled XML file
         	self.loadLayout(named: ... )
         	
         	// Option 3 - load a layout asynchronously from an XML file URL
@@ -119,21 +141,23 @@ To mount a `LayoutNode` inside a view or view controller, the Layout framework p
         }
     }
     
-For simple layouts, option 1 is a convenient solution that avoids the need for an external file. For more complex layouts, option 2 is recommended, as it allows for *live reloading*, which can significantly reduce development time. To use option 2, the file must be located inside the application resource bundle.
+Use option 1 for layouts generated in code. Use option 2 for XML layout files located inside the application resource bundle.
 
-Option 3 can be used to load a layout from an arbitrary URL, which can be either a local file or remotely hosted. This is useful if you need to develop directly on a device, because you can host the layout file on your Mac and connect to it from the device. It's also potentially useful in production for hosting layouts in a CMS system, however note that `loadLayout(withContentsOfURL:)` offers limited control over caching, etc. so for production purposes it may be better to download the XML template to a local cache location first and then load it from there.
+Option 3 can be used to load a layout from an arbitrary URL, which can be either a local file or remotely-hosted. This is useful if you need to develop directly on a device, because you can host the layout file on your Mac and then connect to it from the device to allow reloading of changes without recompiling the app. It's also potentially useful in production for hosting layouts in some kind of CMS system.
+
+**Note:** The `loadLayout(withContentsOfURL:)` offers limited control over caching, etc. so if you intend to host your layouts remotely, it may be better to download the XML template to a local cache location first and then load it from there.
 
 ## Live Reloading
 
 The `LayoutViewController` provides a number of helpful features to improve your development productivity, most notably the *red box* debugger and the *live reloading* option.
 
-When running in DEBUG mode, if the Layout framework throws an error during XML parsing, node mounting or updating, the `LayoutViewController` will detect it and display the *red box*, which is a full-screen overlay displaying the error message along with a reload button. Pressing reload will reset the layout state and re-load the layout.
+If the Layout framework throws an error during XML parsing, node mounting or updating, the `LayoutViewController` will detect it and display the *red box*, which is a full-screen overlay displaying the error message along with a reload button. Pressing reload will reset the layout state and re-load the layout.
 
-When running in the simulator, if you press the reload button, `LayoutViewController` will attempt to find the original source XML file for the layout and reload that instead of the static version bundled into the compiled app. This means that you can go ahead and fix the error in your XML file, then reload it *without restarting the simulator, or recompiling the app*.
+When you load an XML layout file in the iOS Simulator, the Layout framework will attempt to find the original source XML file for the layout and load that instead of the static version bundled into the compiled app. This means that you can go ahead and fix the error in your XML file, then reload it *without restarting the simulator, or recompiling the app*.
 
 You can reload at any time, even if there was no error, by pressing Cmd-R in the simulator (not in Xcode itself). `LayoutViewController` will detect that key combination and reload the XML, provided that it is the current first responder on screen.
 
-**Note:** This only works for changes you make to the layout XML file, not to Swift code changes in your view controller, or other resources such as images.
+**Note:** This only works for changes you make to the layout XML file itself, not to Swift code changes in your view controller, or other resources such as images.
 
 This live reloading feature, combined with the gracious handling of errors, means that it should be possible to do most of your interface development without needing to recompile the app. This can be a significant productivity boost.
 
@@ -169,7 +193,7 @@ And how you might reference them in the XML:
 		/>
 	</UIView>
 
-(You may have noticed that the `title` and `font` constants are surrounded by `{...}` braces, but the `titleColor` constant isn't. This is explained in the Expressions section below.)
+(You may have noticed that the `title` and `font` constants are surrounded by `{...}` braces, but the `titleColor` constant isn't. This is explained in the [Expressions](#expressions) section below.)
 
 ## State
 
@@ -509,45 +533,29 @@ And as with regular text attributes, inline HTML can contain embedded expression
 	<UILabel>Hello <b>{name}</b></UILabel>
 	
 
-# Advanced Topics
+# Custom Components
 
-## Manual Integration
+Layout has good support for most built-in UIKit views and view controllers out of the box, but it can also be used with custom UI components that you create yourself. If you follow standard conventions for your view interfaces, then for the most part these should *just work*, however you may need to take some extra steps for full compatibility:
 
-If you would prefer not to subclass `LayoutViewController`, you can mount a `LayoutNode` directly into a view or view controller by using the `mount(in:)` method:
+## Namespacing
+
+As you are probably aware, Swift classes are name-spaced to a particular module. If you have an app called MyApp and it declares a custom `UIView` subclass called `FooView`, then the fully-qualified class name of the view would be `MyApp.FooView`, and not just `FooView` as it would have been in Objective-C.
+
+Layout deals with the common case for you by inserting the main module's namespace automatically if you don't include it yourself. Either of these will work for referenceing a custom view in your XML:
+
+	<MyApp.FooView/>
 	
-	class MyViewController: UIViewController {
-    	
-    	var layoutNode: LayoutNode!
-    	
-        public override func viewDidLoad() {
-        	super.viewDidLoad()
-        	
-        	// Create a layout node from and XML file or data object
-        	self.layoutNode = LayoutNode.with(xmlData: ...)
-        	
-        	// Mount it
-        	try! self.layoutNode.mount(in: self)
-        }
-        
-        public override func viewWillLayoutSubviews() {
-        	super.viewWillLayoutSubviews()
-        	
-        	// Ensure layout is resized after screen rotation, etc
-        	try! self.layoutNode.update()
-        }
-    }
+	<FooView/>
+	
+And generally, in the interests of avoiding boilerplate, you should use the latter form. However, if you package custom components into a separate module (as we have done with the Northstar components in the SampleApp) then you will need to refer to them using their fully-qualifed name in your XML.
 
-Note that both the `mount(in:)` and `update()` methods will throw an error. An error will be thrown if there is an error in your layout expression syntax, logic or XML markup. These errors typically only happen if you have made a mistake in your code, so it should be OK to suppress them with `!` during development. If you are loading XML templates from a external source, you may wish to catch and log them instead.
+## Custom Property Types
 
-This method of integration does not provide the automatic live reloading feature for local XML files, nor the "red box" debugging interface - both of those are implemented internally by the `LayoutViewController`.
+As mentioned above, Layout uses the Objective-C runtime to automatically detect property names and types for use with expressions. The Objective-C runtime only supports a subset of possible Swift types, and even for Objective-C types, some runtime information is lost. For example, it's impossible to autoamtically detect the valid set of values and case names for enum types.
 
-## Custom Components
+There are also some situations where properties may be exposed in a way that doesn't show up as an Objective-C property at runtime, or the property setter may not be compatible with KVC (Key-Value Coding), resulting in a crash when it is accessed using `setValue(forKey:)`.
 
-As mentioned above, Layout uses the Objective-C runtime to automatically detect property names and types for use with expressions. The Objective-C runtime only supports a subset of possible Swift types, and even for Objective-C types, some runtime information is lost. For example, it's impossible to detect the valid set of values and names for UIKit enums.
-
-There are also cases where properties may be exposed in a way that doesn't show up as a property at runtime, or the property setter may not be compatible with KVC (Key-Value-Coding), resulting in a crash when it is accessed using `setValue(forKey:)`.
-
-To solve this, it is possible to manually expose additional properties and custom setters/getters for views using an extension. The Layout framework already uses this feature to expose enum constants for many of the common UIKit enums, but if you are using a 3rd party component, or creating a custom one, you may need to write an extension to properly support configuration via Layout expressions.
+To solve this, it is possible to manually expose additional properties and custom setters/getters for views by using an extension. The Layout framework already uses this feature to expose constants for many of the common UIKit enums, but if you are using a 3rd party component, or creating your own, you may need to write an extension to properly support configuration via Layout expressions.
 
 To generate a property type and setter for a custom view, create an extension as follows:
 
@@ -588,6 +596,41 @@ It can also be used to specify a set of legitimate enum values:
 For an enum, you can choose to use either the enum values themselves or the `rawValue`s if they exist. If the type of the property matches the `rawValue` (as is the case for most Objective-C APIs) then it's typically not necessary to also provide a custom `setValue(forExpression:)` implementation, but you'll have to determine this on a per-case basis.
 
 
+# Advanced Topics 
+
+## Manual Integration
+
+If you would prefer not to subclass `LayoutViewController`, you can mount a `LayoutNode` directly into a view or view controller by using the `mount(in:)` method:
+	
+	class MyViewController: UIViewController {
+    	
+    	var layoutNode: LayoutNode!
+    	
+        public override func viewDidLoad() {
+        	super.viewDidLoad()
+        	
+        	// Create a layout node from and XML file or data object
+        	self.layoutNode = LayoutNode.with(xmlData: ...)
+        	
+        	// Mount it
+        	try! self.layoutNode.mount(in: self)
+        }
+        
+        public override func viewWillLayoutSubviews() {
+        	super.viewWillLayoutSubviews()
+        	
+        	// Ensure layout is resized after screen rotation, etc
+        	try! self.layoutNode.update()
+        }
+    }
+
+This method of integration does not provide the automatic live reloading feature for local XML files, nor the "red box" debugging interface - both of those are implemented internally by the `LayoutViewController`.
+
+Note that both the `mount(in:)` and `update()` methods may throw an error. An error will be thrown if there is a problems with your XML markup, or in an expression's syntax or logic. These errors are not expected to occur in a correctly implemented layout - they typically only happen if you have made a mistake in your code, so it should be OK to suppress them with `!` for release builds (assuming you've tested your app before releasing it!).
+
+If you are loading XML templates from a external source, you may wish to catch and log errors instead of allowing them to crash, as there is a greater likelihood of an error making it into production if templates and native code are updated independently.
+
+
 # Example Projects
 
 There are two example projects includes with the Expression library. These use CocoaPods for integration, however the pod directories are included in the repository, so they should be ready to run.
@@ -606,3 +649,25 @@ The SampleApp project demonstrates a range of Layout features. It is split into 
 The UIDesigner project is an experimental WYSIWYG tool for constructing layouts. It's written as an iPad app which you can run in the simulator or on a device.
 
 UIDesigner is currently in a very early stage of development. It supports most of the features exposed by the Layout XML format, but lacks import/export, and the ability to specify constants or outlet bindings.
+
+# FAQ
+
+*Q. Why isn't Cmd-R reloading my XML file in the simulator?*
+
+> Make sure that the `Hardware > Keyboard > Connect Hardware Keyboard` option is enabled in the simulator.
+
+*Q. Why do I get an error saying my custom view class isn't recognized?*
+
+> Read the [Namespacing](#namespacing) section above.
+
+*Q. Why do I get an error when trying to set a property of my custom component?*
+
+> Read the [Custom Property Types](#custom-property-types) section above.
+
+*Q. Do I have to use a `LayoutViewController` to display my layout?*
+
+> No. See the [Manual Integration](#manual-integration) section above.
+
+*Q. Do I really have to write my layouts in XML?*
+
+> You can create `LayoutNode`s manually in code, but XML is the recommended approach for now. I'm exploring other options such as other formats and GUI tools.
