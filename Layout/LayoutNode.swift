@@ -8,6 +8,10 @@
 
 import UIKit
 
+public protocol LayoutDelegate {
+    func layoutNode(_ layoutNode: LayoutNode, didDetectError error: LayoutError)
+}
+
 public class LayoutNode: NSObject {
     public let view: UIView
     public let viewController: UIViewController?
@@ -142,11 +146,15 @@ public class LayoutNode: NSObject {
         }
     }
 
-    private func logError(_ error: Error) {
-        _unhandledError = LayoutError(error, for: self)
-        #if arch(i386) || arch(x86_64)
-            print("Error: \(_unhandledError!)")
-        #endif
+    internal func logError(_ error: Error) {
+        if let delegate = _owner as? LayoutDelegate {
+            delegate.layoutNode(self, didDetectError: LayoutError(error))
+        } else {
+            _unhandledError = LayoutError(error, for: self)
+            #if arch(i386) || arch(x86_64)
+                print("Error: \(_unhandledError!)")
+            #endif
+        }
     }
 
     private func attempt<T>(_ closure: () throws -> T) -> T? {
@@ -528,7 +536,7 @@ public class LayoutNode: NSObject {
             switch parts[0] {
             case "parent":
                 if parent != nil {
-                    getter = { [unowned self] in try self.parent!.value(forSymbol: tail) }
+                    getter = { [unowned self] in try self.parent?.value(forSymbol: tail) }
                 } else {
                     getter = { [unowned self] in
                         switch tail {

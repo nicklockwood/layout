@@ -157,8 +157,10 @@ private class LayoutParser: NSObject, XMLParserDelegate {
                         do {
                             try layoutNode.update(with: node)
                         } catch {
-                            self.error = LayoutError(error)
+                            layoutNode.logError(error)
                         }
+                    } else if let error = error {
+                        layoutNode.logError(error)
                     }
                 }
             }

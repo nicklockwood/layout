@@ -8,7 +8,7 @@
 
 import UIKit
 
-open class LayoutViewController: UIViewController {
+open class LayoutViewController: UIViewController, LayoutDelegate {
 
     public var layoutNode: LayoutNode? = nil {
         didSet {
@@ -128,6 +128,11 @@ open class LayoutViewController: UIViewController {
 
     open func layoutDidLoad() {
         // Override in subclass
+    }
+
+    open func layoutNode(_ layoutNode: LayoutNode, didDetectError error: LayoutError) {
+        // TODO: should we just get rid of the layoutError() method?
+        layoutError(error)
     }
 
     open func layoutError(_ error: LayoutError) {
