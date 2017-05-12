@@ -14,6 +14,7 @@ public class LayoutNode: NSObject {
     public private(set) var outlet: String?
     public private(set) var expressions: [String: String]
     public internal(set) var constants: [String: Any]
+    private var _originalExpressions: [String: String]
 
     public var viewControllers: [UIViewController] {
         guard let viewController = viewController else {
@@ -21,8 +22,6 @@ public class LayoutNode: NSObject {
         }
         return [viewController]
     }
-
-    private var _originalExpressions: [String: String]
 
     public init(
         view: UIView? = nil,
@@ -80,8 +79,8 @@ public class LayoutNode: NSObject {
 
     // MARK: Validation
 
-    public static func isValidExpressionName(_ name: String,
-                                             for viewOrViewControllerClass: NSObject.Type) -> Bool {
+    public static func isValidExpressionName(
+        _ name: String, for viewOrViewControllerClass: NSObject.Type) -> Bool {
         switch name {
         case "top", "left", "bottom", "right", "width", "height":
             return true
@@ -203,7 +202,6 @@ public class LayoutNode: NSObject {
         didSet {
             _getters.removeAll()
             _cachedExpressions.removeAll()
-            overrideExpressions()
         }
     }
 
@@ -337,15 +335,6 @@ public class LayoutNode: NSObject {
         }
         if expressions["top"] == nil {
             expressions["top"] = expressions["bottom"] != nil ? "bottom - height" : "0"
-        }
-
-        // Override expressions
-        if let parent = parent {
-            if let viewController = parent.viewController {
-                expressions = viewController.overrideExpressionsForChildNode(self)
-            } else {
-                expressions = parent.view.overrideExpressionsForChildNode(self)
-            }
         }
 
         // Handle Autolayout

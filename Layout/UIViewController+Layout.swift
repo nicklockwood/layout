@@ -81,11 +81,6 @@ extension UIViewController {
         node.view.removeFromSuperview()
     }
 
-    /// Called immediately before a child node is added
-    open func overrideExpressionsForChildNode(_ node: LayoutNode) -> [String: String] {
-        return node.expressions
-    }
-
     /// Called immediately after layout has been performed
     open func didUpdateLayout(for node: LayoutNode) {}
 }
