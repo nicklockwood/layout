@@ -1,0 +1,10 @@
+platform :ios, '9.0'
+use_frameworks!
+
+target 'Layout' do
+	pod 'Expression', '~> 0.5.0'
+end
+
+target 'LayoutTests' do
+	pod 'Expression', '~> 0.5.0'
+end

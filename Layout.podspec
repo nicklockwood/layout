@@ -12,6 +12,6 @@ Pod::Spec.new do |s|
   s.source       = { :git => "git@github.schibsted.io:rocket/layout.git", :tag => s.version }
   s.requires_arc = true
   
-  s.source_files  = "Layout/*.swift"
+  s.source_files  = "Layout/Layout/*.swift"
   s.dependency 'Expression', '~> 0.5.0'
 end

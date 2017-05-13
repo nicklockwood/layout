@@ -40,25 +40,32 @@ struct AnyExpression: CustomStringConvertible {
 
     typealias Evaluator = (_ symbol: Expression.Symbol, _ args: [Any]) throws -> Any?
 
+    static let maxValues = 256
+    static let indexOffset = (Int64(2) << 52) - Int64(maxValues)
+
     init(_ expression: String,
-         symbols: [Expression.Symbol: Expression.Symbol.Evaluator],
-         evaluator: @escaping Evaluator)
+         symbols: [Expression.Symbol: Expression.Symbol.Evaluator]? = nil,
+         evaluator: Evaluator? = nil)
     {
         var values = [Any]()
-        let offset: Int64 = 5_000_000_000 // Reduce false-positive matches using values outside normal Int range
-        func store(_ value: Any) -> Double {
+        func store(_ value: Any) throws -> Double {
             if let value = (value as? NSNumber).map({ Double($0) }) {
+                guard value <= Double(AnyExpression.indexOffset) else {
+                    throw Expression.Error.message("Value \(value) is outside of the supported numeric range")
+                }
                 return value
             }
+            if values.count == AnyExpression.maxValues {
+                throw Expression.Error.message("Maximum number of stored values in an expression exceeded")
+            }
             values.append(value)
-            return Double(Int64(values.count) + offset - 1)
+            return Double(Int64(values.count) + AnyExpression.indexOffset - 1)
         }
         func load(_ arg: Double) -> Any {
-            if let offsetIndex = Int64(exactly: arg) {
-                if let index = Int(exactly: offsetIndex - offset), index >= 0, index < values.count {
-                    return values[index]
-                }
-                return offsetIndex
+            if let offsetIndex = Int64(exactly: arg),
+                let index = Int(exactly: offsetIndex - AnyExpression.indexOffset),
+                index >= 0, index < values.count {
+                return values[index]
             }
             return arg
         }
@@ -67,12 +74,12 @@ struct AnyExpression: CustomStringConvertible {
             symbols: symbols
         ) { symbol, args in
             let anyArgs = args.map(load)
-            if let value = try evaluator(symbol, args) {
-                return store(value)
+            if let value = try evaluator?(symbol, anyArgs) {
+                return try store(value)
             }
             switch symbol {
             case .infix("+") where !values.isEmpty:
-                return store("\(anyArgs[0])\(anyArgs[1])")
+                return try store("\(anyArgs[0])\(anyArgs[1])")
             case .infix("=="):
                 guard let hashableArgs = anyArgs as? [AnyHashable] else {
                     return nil
@@ -83,16 +90,13 @@ struct AnyExpression: CustomStringConvertible {
                     return nil
                 }
                 return hashableArgs[0] != hashableArgs[1] ? 1 : 0
-            case .infix("?:"):
-                return nil // Use default implementation
             default:
                 return nil // Fall back to default implementation
             }
         }
         evaluate = {
-            let value = try load(expression.evaluate())
-            values.removeAll()
-            return value
+            defer { values.removeAll() }
+            return try load(expression.evaluate())
         }
         self.symbols = expression.symbols
         description = expression.description

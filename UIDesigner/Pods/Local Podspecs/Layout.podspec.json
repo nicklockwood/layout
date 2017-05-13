@@ -15,7 +15,7 @@
     "tag": "0.1.0"
   },
   "requires_arc": true,
-  "source_files": "Layout/*.swift",
+  "source_files": "Layout/Layout/*.swift",
   "dependencies": {
     "Expression": [
       "~> 0.5.0"
