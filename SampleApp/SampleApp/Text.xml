@@ -1,0 +1,75 @@
+<UIViewController
+    backgroundColor="#fee">
+
+    <UIScrollView
+        contentInset.bottom="20 + bottomLayoutGuide.length"
+        scrollIndicatorInsets.bottom="bottomLayoutGuide.length">
+
+        <UILabel
+            top="max(topLayoutGuide.length + 10, 20)"
+            left="20"
+            text="Left-aligned bold text"
+            font="bold"
+            backgroundColor="#0001"
+        />
+
+        <UILabel
+            top="previous.bottom + 20"
+            left="20"
+            right="100% - 20"
+            textAlignment="center"
+            text="Center-aligned italic text"
+            font="italic"
+            backgroundColor="#0001"
+        />
+
+        <UILabel
+            top="previous.bottom + 20"
+            left="20"
+            right="100% - 20"
+            textAlignment="right"
+            text="Right-aligned bold italic text"
+            font="bold italic"
+            backgroundColor="#0001"
+        />
+
+        <UILabel
+            top="previous.bottom + 20"
+            width="50%"
+            left="50% - width/2"
+            text="This text is left-aligned, but the paragraph itself is centered. It also uses a custom font"
+            numberOfLines="0"
+            font="courier"
+            backgroundColor="#0001"
+        />
+
+        <UILabel
+            top="previous.bottom + 20"
+            left="20"
+            text="This text is colored"
+            textColor="#09f"
+            backgroundColor="#0001"
+        />
+
+        <UILabel
+            top="previous.bottom + 20"
+            left="20"
+            right="100% - 20"
+            backgroundColor="#0001"
+            numberOfLines="0">
+
+            <p>This text has inline <b>bold</b>, <i>italic</i> and <u>underlined</u>
+            styles, specified using HTML markup.</p>
+
+            <ul>
+                <li>We can</li>
+                <li>even do</li>
+                <li>lists</li>
+            </ul>
+
+            <br/>And embedded {attributedString} constants!
+
+        </UILabel>
+
+    </UIScrollView>
+</UIViewController>

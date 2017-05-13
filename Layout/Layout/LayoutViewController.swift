@@ -12,6 +12,10 @@ open class LayoutViewController: UIViewController, LayoutDelegate {
 
     public var layoutNode: LayoutNode? = nil {
         didSet {
+            if layoutNode?.viewController == self {
+                // TODO: should this use case be allowed at all?
+                return
+            }
             oldValue?.unmount()
             if let layoutNode = layoutNode {
                 do {
@@ -85,13 +89,13 @@ open class LayoutViewController: UIViewController, LayoutDelegate {
     @objc private func _reloadLayout() {
 
         // Pass message up the chain to the root LayoutViewController
-        var viewController: UIViewController = self
-        while let nextResponder = viewController.next as? UIViewController {
+        var responder: UIResponder = self
+        while let nextResponder = responder.next {
             if let layoutController = nextResponder as? LayoutViewController {
                 layoutController._reloadLayout()
                 return
             }
-            viewController = nextResponder
+            responder = nextResponder
         }
 
         reloadLayout(withCompletion: nil)
@@ -119,8 +123,12 @@ open class LayoutViewController: UIViewController, LayoutDelegate {
     open override func viewWillLayoutSubviews() {
         super.viewWillLayoutSubviews()
         do {
-            try _errorNode?.update()
-            try layoutNode?.update()
+            if let errorNode = _errorNode {
+                try errorNode.update()
+                view.bringSubview(toFront: errorNode.view)
+            } else {
+                try layoutNode?.update()
+            }
         } catch {
             layoutError(LayoutError(error, for: layoutNode))
         }
@@ -137,17 +145,17 @@ open class LayoutViewController: UIViewController, LayoutDelegate {
 
     open func layoutError(_ error: LayoutError) {
 
-        // Pass error up the chain to the first VC that handles it
-        var viewController: UIViewController = self
-        while let nextResponder = viewController.next as? UIViewController {
+        // Pass error up the chain to the first VC that can handle it
+        var responder: UIResponder = self
+        while let nextResponder = responder.next {
             if let layoutController = nextResponder as? LayoutViewController {
                 layoutController.layoutError(error)
                 return
             }
-            viewController = nextResponder
+            responder = nextResponder
         }
 
-        // If error has not changes, just re-display it
+        // If error has no changes, just re-display it
         if let errorNode = _errorNode, error == _error {
             view.bringSubview(toFront: errorNode.view)
             errorNode.view.alpha = 0.5
@@ -196,8 +204,8 @@ open class LayoutViewController: UIViewController, LayoutDelegate {
                 ),
             ]
         )
-        _errorNode?.view.alpha = 0
-        try! _errorNode?.mount(in: self)
+        _errorNode!.view.alpha = 0
+        try? _errorNode!.mount(in: self)
         UIView.animate(withDuration: 0.25) {
             self._errorNode?.view.alpha = 1
         }

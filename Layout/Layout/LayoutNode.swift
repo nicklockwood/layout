@@ -146,15 +146,42 @@ public class LayoutNode: NSObject {
         }
     }
 
-    internal func logError(_ error: Error) {
+    private func bubbleUnhandledError() {
+        guard let error = _unhandledError else { return }
+
+        if let parent = parent {
+            parent._unhandledError = LayoutError(error, for: parent)
+            _unhandledError = nil
+            parent.bubbleUnhandledError()
+        }
+
         if let delegate = _owner as? LayoutDelegate {
             delegate.layoutNode(self, didDetectError: LayoutError(error))
-        } else {
-            _unhandledError = LayoutError(error, for: self)
-            #if arch(i386) || arch(x86_64)
-                print("Error: \(_unhandledError!)")
-            #endif
+            _unhandledError = nil
+            return
         }
+
+        if var responder: UIResponder = viewController {
+            // Pass error up the chain to the first VC that can handle it
+            while let nextResponder = responder.next {
+                if let delegate = nextResponder as? LayoutDelegate {
+                    delegate.layoutNode(self, didDetectError: LayoutError(error))
+                    _unhandledError = nil
+                    return
+                }
+                responder = nextResponder
+            }
+        }
+    }
+
+    internal func logError(_ error: Error) {
+        _unhandledError = LayoutError(error, for: self)
+
+        #if arch(i386) || arch(x86_64)
+            print("Error: \(_unhandledError!)")
+        #endif
+
+        bubbleUnhandledError()
     }
 
     private func attempt<T>(_ closure: () throws -> T) -> T? {
@@ -210,6 +237,7 @@ public class LayoutNode: NSObject {
         didSet {
             _getters.removeAll()
             _cachedExpressions.removeAll()
+            bubbleUnhandledError()
         }
     }
 
@@ -701,6 +729,9 @@ public class LayoutNode: NSObject {
 
     // Note: thrown error is always a LayoutError
     public func mount(in viewController: UIViewController) throws {
+        guard parent == nil else {
+            throw LayoutError.message("The `mount()` method should only be used on a root node.")
+        }
         try bind(to: viewController)
         for controller in viewControllers {
             viewController.addChildViewController(controller)
@@ -753,20 +784,27 @@ public class LayoutNode: NSObject {
     }
 
     // Note: thrown error is always a LayoutError
-    public func bind(to owner: NSObject) throws {
-        try bind(to: owner, with: type(of: owner).allPropertyTypes())
-    }
-
-    // Note: thrown error is always a LayoutError
     private weak var _owner: NSObject?
-    private func bind(to owner: NSObject, with outlets: [String: RuntimeType]) throws {
+    private func bind(to owner: NSObject) throws {
+        guard _owner == nil || _owner == owner else {
+            throw LayoutError.message("Cannot re-bind an already bound node.")
+        }
+        if let viewController = viewController, owner != viewController {
+            do {
+                try bind(to: viewController)
+                return
+            } catch {}
+        }
         _owner = owner
         if let outlet = outlet {
-            guard let type = outlets[outlet] else {
+            guard let type = type(of: owner).allPropertyTypes()[outlet] else {
                 throw LayoutError.message("`\(type(of: owner))` does not have an outlet named `\(outlet)`")
             }
             var didMatch = false
             var expectedType = "UIView or LayoutNode"
+            if viewController != nil {
+                expectedType = "UIViewController, \(expectedType)"
+            }
             if type.matches(LayoutNode.self) {
                 if type.matches(self) {
                     owner.setValue(self, forKey: outlet)
@@ -781,23 +819,28 @@ public class LayoutNode: NSObject {
                 } else {
                     expectedType = "\(type(of: view))"
                 }
+            } else if let viewController = viewController, type.matches(UIViewController.self) {
+                if type.matches(viewController) {
+                    owner.setValue(viewController, forKey: outlet)
+                    didMatch = true
+                } else {
+                    expectedType = "\(type(of: viewController))"
+                }
             }
             if !didMatch {
                 throw LayoutError.message("outlet `\(outlet)` of `\(type(of: owner))` is not a \(expectedType)")
             }
         }
-        if let type = viewExpressionTypes["delegate"] {
-            if type.matches(owner), view.value(forKey: "delegate") == nil {
+        if let type = viewExpressionTypes["delegate"],
+            view.value(forKey: "delegate") == nil, type.matches(owner) {
                 view.setValue(owner, forKey: "delegate")
-            }
         }
-        if let type = viewExpressionTypes["dataSource"] {
-            if type.matches(owner), view.value(forKey: "dataSource") == nil {
+        if let type = viewExpressionTypes["dataSource"],
+            view.value(forKey: "dataSource") == nil, type.matches(owner) {
                 view.setValue(owner, forKey: "dataSource")
-            }
         }
         for child in children {
-            try child.bind(to: owner, with: outlets)
+            try child.bind(to: owner)
         }
         try throwUnhandledError()
     }

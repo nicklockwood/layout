@@ -12,7 +12,14 @@
 		01129EB61EAB8ED200072E1D /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01129EB51EAB8ED200072E1D /* AppDelegate.swift */; };
 		01129EBD1EAB8ED200072E1D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 01129EBC1EAB8ED200072E1D /* Assets.xcassets */; };
 		01129EC01EAB8ED200072E1D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 01129EBE1EAB8ED200072E1D /* LaunchScreen.storyboard */; };
-		0186B2891EB29661008A6E5A /* Northstar+Layout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0186B2881EB29661008A6E5A /* Northstar+Layout.swift */; };
+		0153724E1EC2E1650025FBF0 /* Northstar.xml in Resources */ = {isa = PBXBuildFile; fileRef = 0153724D1EC2E1650025FBF0 /* Northstar.xml */; };
+		015372541EC30AE90025FBF0 /* Boxes.xml in Resources */ = {isa = PBXBuildFile; fileRef = 015372531EC30AE90025FBF0 /* Boxes.xml */; };
+		015372561EC30B640025FBF0 /* Pages.xml in Resources */ = {isa = PBXBuildFile; fileRef = 015372551EC30B640025FBF0 /* Pages.xml */; };
+		015372581EC30CEC0025FBF0 /* Text.xml in Resources */ = {isa = PBXBuildFile; fileRef = 015372571EC30CEC0025FBF0 /* Text.xml */; };
+		016BC2841EC371E7009759A4 /* NorthstarExampleViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 016BC2831EC371E7009759A4 /* NorthstarExampleViewController.swift */; };
+		01B36D8E1EC7C29700D0DA01 /* Northstar+Layout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01B36D8D1EC7C29700D0DA01 /* Northstar+Layout.swift */; };
+		01B36D901EC7C2FA00D0DA01 /* BoxesViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01B36D8F1EC7C2FA00D0DA01 /* BoxesViewController.swift */; };
+		01B36D921EC7C49200D0DA01 /* PagesViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01B36D911EC7C49200D0DA01 /* PagesViewController.swift */; };
 		01DA958C1EAE004E00868113 /* Expression.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 01DA95891EAE004E00868113 /* Expression.framework */; };
 		01DA958D1EAE004E00868113 /* Layout.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 01DA958A1EAE004E00868113 /* Layout.framework */; };
 		01DA958E1EAE004E00868113 /* Northstar.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 01DA958B1EAE004E00868113 /* Northstar.framework */; };
@@ -27,7 +34,14 @@
 		01129EBC1EAB8ED200072E1D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		01129EBF1EAB8ED200072E1D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		01129EC11EAB8ED200072E1D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		0186B2881EB29661008A6E5A /* Northstar+Layout.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Northstar+Layout.swift"; sourceTree = "<group>"; };
+		0153724D1EC2E1650025FBF0 /* Northstar.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = Northstar.xml; sourceTree = "<group>"; };
+		015372531EC30AE90025FBF0 /* Boxes.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = Boxes.xml; sourceTree = "<group>"; };
+		015372551EC30B640025FBF0 /* Pages.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = Pages.xml; sourceTree = "<group>"; };
+		015372571EC30CEC0025FBF0 /* Text.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = Text.xml; sourceTree = "<group>"; };
+		016BC2831EC371E7009759A4 /* NorthstarExampleViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NorthstarExampleViewController.swift; sourceTree = "<group>"; };
+		01B36D8D1EC7C29700D0DA01 /* Northstar+Layout.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Northstar+Layout.swift"; sourceTree = "<group>"; };
+		01B36D8F1EC7C2FA00D0DA01 /* BoxesViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BoxesViewController.swift; sourceTree = "<group>"; };
+		01B36D911EC7C49200D0DA01 /* PagesViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PagesViewController.swift; sourceTree = "<group>"; };
 		01DA95891EAE004E00868113 /* Expression.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Expression.framework; path = "../../../Library/Developer/Xcode/DerivedData/Layout-cidlxdzqvadfbngzwtfaldjrmjir/Build/Products/Debug-iphonesimulator/Expression.framework"; sourceTree = "<group>"; };
 		01DA958A1EAE004E00868113 /* Layout.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Layout.framework; path = "../../../Library/Developer/Xcode/DerivedData/Layout-cidlxdzqvadfbngzwtfaldjrmjir/Build/Products/Debug-iphonesimulator/Layout.framework"; sourceTree = "<group>"; };
 		01DA958B1EAE004E00868113 /* Northstar.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Northstar.framework; path = "../../../Library/Developer/Xcode/DerivedData/Layout-cidlxdzqvadfbngzwtfaldjrmjir/Build/Products/Debug-iphonesimulator/Northstar.framework"; sourceTree = "<group>"; };
@@ -74,8 +88,15 @@
 			children = (
 				01129EB51EAB8ED200072E1D /* AppDelegate.swift */,
 				01128E3E1EBCCB4F007AEB0D /* ExamplesViewController.swift */,
-				0186B2881EB29661008A6E5A /* Northstar+Layout.swift */,
+				01B36D8F1EC7C2FA00D0DA01 /* BoxesViewController.swift */,
+				01B36D911EC7C49200D0DA01 /* PagesViewController.swift */,
+				016BC2831EC371E7009759A4 /* NorthstarExampleViewController.swift */,
+				01B36D8D1EC7C29700D0DA01 /* Northstar+Layout.swift */,
 				01128E401EBCCB6A007AEB0D /* Examples.xml */,
+				015372531EC30AE90025FBF0 /* Boxes.xml */,
+				015372551EC30B640025FBF0 /* Pages.xml */,
+				015372571EC30CEC0025FBF0 /* Text.xml */,
+				0153724D1EC2E1650025FBF0 /* Northstar.xml */,
 				01129EBC1EAB8ED200072E1D /* Assets.xcassets */,
 				01129EBE1EAB8ED200072E1D /* LaunchScreen.storyboard */,
 				01129EC11EAB8ED200072E1D /* Info.plist */,
@@ -166,7 +187,11 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				015372581EC30CEC0025FBF0 /* Text.xml in Resources */,
+				015372561EC30B640025FBF0 /* Pages.xml in Resources */,
+				015372541EC30AE90025FBF0 /* Boxes.xml in Resources */,
 				01129EC01EAB8ED200072E1D /* LaunchScreen.storyboard in Resources */,
+				0153724E1EC2E1650025FBF0 /* Northstar.xml in Resources */,
 				01128E411EBCCB6A007AEB0D /* Examples.xml in Resources */,
 				01129EBD1EAB8ED200072E1D /* Assets.xcassets in Resources */,
 			);
@@ -227,9 +252,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				016BC2841EC371E7009759A4 /* NorthstarExampleViewController.swift in Sources */,
 				01128E3F1EBCCB4F007AEB0D /* ExamplesViewController.swift in Sources */,
 				01129EB61EAB8ED200072E1D /* AppDelegate.swift in Sources */,
-				0186B2891EB29661008A6E5A /* Northstar+Layout.swift in Sources */,
+				01B36D921EC7C49200D0DA01 /* PagesViewController.swift in Sources */,
+				01B36D901EC7C2FA00D0DA01 /* BoxesViewController.swift in Sources */,
+				01B36D8E1EC7C29700D0DA01 /* Northstar+Layout.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

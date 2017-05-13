@@ -1,0 +1,73 @@
+<BoxesViewController
+    outlet="layoutNode"
+    backgroundColor="#fff">
+
+    <UIScrollView
+        contentInset.top="max(topLayoutGuide.length + 10, 15)"
+        scrollIndicatorInsets.bottom="bottomLayoutGuide.length + 50"
+        contentInset.bottom="scrollIndicatorInsets.bottom + 15">
+
+        <!-- First column -->
+        <UIView
+            left="15 + previous.right"
+            width="toggleLayout ? (100% - 45)/2 : (100% - 60)/3"
+            height="width"
+            backgroundColor="#f66"
+        />
+        <UIView
+            top="15 + previous.bottom"
+            left="previous.left"
+            width="previous.width"
+            height="width"
+            backgroundColor="#fa7"
+        />
+        <UILabel
+            top="15 + previous.bottom"
+            left="previous.left"
+            width="toggleLayout ? previous.width : 100% - 30"
+            text="Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+            numberOfLines="0"
+        />
+
+        <!-- Second column -->
+        <UIView
+            left="width + 30"
+            width="toggleLayout ? (100% - 45)/2 : (100% - 60)/3"
+            height="width/2"
+            backgroundColor="#09f"
+        />
+        <UIView
+            top="15 + previous.bottom"
+            left="previous.left"
+            width="previous.width"
+            height="width"
+            backgroundColor="#0f9"
+        />
+        <UIView
+            top="toggleLayout ? 15 + previous.bottom : 0"
+            left="toggleLayout ? previous.left : previous.right + 15"
+            width="previous.width"
+            height="width"
+            backgroundColor="#fcc"
+        />
+    </UIScrollView>
+
+    <!-- Floating button -->
+    <UIView
+        height="50"
+        left="0"
+        width="100%"
+        bottom="previous.bottom - bottomLayoutGuide.length"
+        backgroundColor="#fff9">
+        <UIButton
+            top="10"
+            bottom="100% - 10"
+            left="15"
+            right="100% - 15"
+            title="Toggle"
+            backgroundColor="toggleLayout ? #09f : #f66"
+            layer.cornerRadius="5"
+            touchUpInside="toggle"
+        />
+    </UIView>
+</BoxesViewController>
