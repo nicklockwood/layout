@@ -10,12 +10,17 @@ import Foundation
 
 public extension LayoutNode {
 
-    static func with(xmlData: Data) throws -> LayoutNode {
-        return try LayoutParser().parse(XMLParser(data: xmlData))
+    static func with(xmlData: Data, relativeTo: StaticString? = #file) throws -> LayoutNode {
+        return try LayoutParser().parse(
+            XMLParser(data: xmlData),
+            relativeTo: relativeTo
+        )
     }
 
-    static func with(xmlFileURL url: URL) throws -> LayoutNode? {
-        return try XMLParser(contentsOf: url).map { try LayoutParser().parse($0) }
+    static func with(xmlFileURL url: URL, relativeTo: StaticString? = #file) throws -> LayoutNode? {
+        return try XMLParser(contentsOf: url).map {
+            try LayoutParser().parse($0, relativeTo: relativeTo)
+        }
     }
 }
 
@@ -23,6 +28,7 @@ private class LayoutParser: NSObject, XMLParserDelegate {
     private var root: LayoutNode!
     private var stack: [XMLNode] = []
     private var top: XMLNode?
+    private var relativePath: StaticString?
     private var error: LayoutError?
     private var text = ""
     private var isHTML = false
@@ -34,11 +40,12 @@ private class LayoutParser: NSObject, XMLParserDelegate {
         var children: [LayoutNode]
     }
 
-    fileprivate func parse(_ parser: XMLParser) throws -> LayoutNode {
+    fileprivate func parse(_ parser: XMLParser, relativeTo: StaticString?) throws -> LayoutNode {
         defer {
             root = nil
             top = nil
         }
+        relativePath = relativeTo
         parser.delegate = self
         parser.parse()
         if let error = error {
@@ -153,8 +160,12 @@ private class LayoutParser: NSObject, XMLParserDelegate {
 
         if let xmlPath = xmlPath, let xmlURL = urlFromString(xmlPath) {
             let loader = LayoutLoader()
+            let relativePath = self.relativePath
             DispatchQueue.main.async { // Workaround for XMLParser not being re-entrant
-                loader.loadLayout(withContentsOfURL: xmlURL) { node, error in
+                loader.loadLayout(
+                    withContentsOfURL: xmlURL,
+                    relativeTo: relativePath
+                ) { node, error in
                     if let node = node {
                         do {
                             try layoutNode.update(with: node)

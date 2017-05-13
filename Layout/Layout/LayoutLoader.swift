@@ -19,6 +19,7 @@ class LayoutLoader {
 
     private func setNodeWithXMLData(
         _ data: Data?,
+        relativeTo: StaticString?,
         error: Error?,
         state: Any,
         constants: [String: Any],
@@ -33,7 +34,7 @@ class LayoutLoader {
             return
         }
         do {
-            let layoutNode = try LayoutNode.with(xmlData: data)
+            let layoutNode = try LayoutNode.with(xmlData: data, relativeTo: relativeTo)
             layoutNode.constants = constants
             layoutNode.state = state
             completion(layoutNode, nil)
@@ -58,12 +59,11 @@ class LayoutLoader {
                 if xmlURL.absoluteString.hasPrefix(bundlePath),
                     let projectDirectory = findProjectDirectory(at: "\(relativeTo)") {
                     let path = xmlURL.absoluteString.substring(from: bundlePath.endIndex)
-                    if let url = findSourceURL(forRelativePath: path, in: projectDirectory) {
-                        _xmlURL = url
-                    } else {
+                    guard let url = findSourceURL(forRelativePath: path, in: projectDirectory) else {
                         completion(nil, .message("Unable to locate source file for \(path)"))
                         return
                     }
+                    _xmlURL = url
                 }
             }
             if Thread.isMainThread {
@@ -78,6 +78,7 @@ class LayoutLoader {
                 }
                 setNodeWithXMLData(
                     data,
+                    relativeTo: relativeTo,
                     error: error,
                     state: state,
                     constants: constants,
@@ -93,6 +94,7 @@ class LayoutLoader {
                 }
                 self.setNodeWithXMLData(
                     data,
+                    relativeTo: relativeTo,
                     error: error,
                     state: state,
                     constants: constants,
