@@ -149,6 +149,7 @@ private let controlEvents: [String: UIControlEvents] = [
     "allEvents": .allEvents,
 ]
 
+private var layoutActionsKey: UInt8 = 0
 extension UIControl {
     open override class var expressionTypes: [String: RuntimeType] {
         var types = super.expressionTypes
@@ -160,8 +161,16 @@ extension UIControl {
 
     open override func setValue(_ value: Any, forExpression name: String) throws {
         if let action = value as? String, let event = controlEvents[name] {
-            self.removeTarget(nil, action: nil, for: event)
-            self.addTarget(nil, action: Selector(action), for: event)
+            var actions = objc_getAssociatedObject(self, &layoutActionsKey) as? [String: String] ?? [String: String]()
+            if let oldAction = actions[name] {
+                if oldAction == action {
+                    return
+                }
+                removeTarget(nil, action: Selector(action), for: event)
+            }
+            addTarget(nil, action: Selector(action), for: event)
+            actions[name] = action
+            objc_setAssociatedObject(self, &layoutActionsKey, actions, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
             return
         }
         try super.setValue(value, forExpression: name)

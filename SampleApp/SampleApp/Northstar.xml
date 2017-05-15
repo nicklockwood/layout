@@ -14,6 +14,7 @@
         />
         <Northstar.NorthstarLabel
             text="Email"
+            textStyle="body"
             left="16"
             right="100% - 16"
             top="previous.bottom + 24"
@@ -39,6 +40,7 @@
         />
         <Northstar.NorthstarLabel
             text="Use the same email you’ve used for your Kufar account to gain access"
+            textStyle="bodySoft"
             numberOfLines="0"
             left="16"
             right="100% - 16"

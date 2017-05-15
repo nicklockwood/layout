@@ -25,6 +25,10 @@ freely, subject to the following restrictions:
    
 3. This notice may not be removed or altered from any source distribution.
 
+## Layout
+
+Copyright (c) 2017 Schibsted Media Group. All rights reserved
+
 ## Northstar
 
 Copyright Schibsted All rights reserved.
