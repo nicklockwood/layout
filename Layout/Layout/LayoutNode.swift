@@ -383,13 +383,16 @@ public class LayoutNode: NSObject {
             _heightConstraint = nil
         }
         if children.isEmpty, !view.constraints.isEmpty {
+            for constraint in view.constraints where constraint.priority == UILayoutPriorityRequired {
+                // Prevent priority conflicts with Layout constraints
+                // TODO: can we limit this only to constraints that affect width/height?
+                constraint.priority -= 1
+            }
             if expressions["width"] != nil {
                 _widthConstraint = view.widthAnchor.constraint(equalToConstant: 0)
-                _widthConstraint?.isActive = true
             }
             if expressions["height"] != nil {
                 _heightConstraint = view.heightAnchor.constraint(equalToConstant: 0)
-                _heightConstraint?.isActive = true
             }
         }
     }
@@ -662,21 +665,22 @@ public class LayoutNode: NSObject {
                 let frame = view.frame
                 view.translatesAutoresizingMaskIntoConstraints = false
                 if let widthConstraint = _widthConstraint, !_evaluating.contains("width") {
+                    widthConstraint.isActive = true
                     widthConstraint.constant = try CGFloat(doubleValue(forSymbol: "width"))
                 } else {
                     _widthConstraint?.isActive = false
                 }
                 if let heightConstraint = _heightConstraint, !_evaluating.contains("height") {
+                    heightConstraint.isActive = true
                     heightConstraint.constant = try CGFloat(doubleValue(forSymbol: "height"))
                 } else {
                     _heightConstraint?.isActive = false
                 }
-                view.setNeedsLayout()
                 view.layoutIfNeeded()
-                view.translatesAutoresizingMaskIntoConstraints = true
-                _widthConstraint?.isActive = true
-                _heightConstraint?.isActive = true
                 let size = view.frame.size
+                _widthConstraint?.isActive = false
+                _heightConstraint?.isActive = false
+                view.translatesAutoresizingMaskIntoConstraints = true
                 view.frame = frame
                 return size
             }
