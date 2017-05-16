@@ -19,7 +19,7 @@ class LayoutLoader {
 
     private func setNodeWithXMLData(
         _ data: Data?,
-        relativeTo: StaticString?,
+        relativeTo: String?,
         error: Error?,
         state: Any,
         constants: [String: Any],
@@ -45,7 +45,7 @@ class LayoutLoader {
 
     public func loadLayout(
         withContentsOfURL xmlURL: URL,
-        relativeTo: StaticString? = #file,
+        relativeTo: String? = #file,
         state: Any = (),
         constants: [String: Any] = [:],
         completion: @escaping LayoutLoaderCallback
@@ -78,7 +78,7 @@ class LayoutLoader {
                 }
                 setNodeWithXMLData(
                     data,
-                    relativeTo: relativeTo,
+                    relativeTo: relativeTo ?? xmlURL.path,
                     error: error,
                     state: state,
                     constants: constants,

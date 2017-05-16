@@ -10,14 +10,14 @@ import Foundation
 
 public extension LayoutNode {
 
-    static func with(xmlData: Data, relativeTo: StaticString? = #file) throws -> LayoutNode {
+    static func with(xmlData: Data, relativeTo: String? = #file) throws -> LayoutNode {
         return try LayoutParser().parse(
             XMLParser(data: xmlData),
             relativeTo: relativeTo
         )
     }
 
-    static func with(xmlFileURL url: URL, relativeTo: StaticString? = #file) throws -> LayoutNode? {
+    static func with(xmlFileURL url: URL, relativeTo: String? = #file) throws -> LayoutNode? {
         return try XMLParser(contentsOf: url).map {
             try LayoutParser().parse($0, relativeTo: relativeTo)
         }
@@ -28,7 +28,7 @@ private class LayoutParser: NSObject, XMLParserDelegate {
     private var root: LayoutNode!
     private var stack: [XMLNode] = []
     private var top: XMLNode?
-    private var relativePath: StaticString?
+    private var relativePath: String?
     private var error: LayoutError?
     private var text = ""
     private var isHTML = false
@@ -40,7 +40,7 @@ private class LayoutParser: NSObject, XMLParserDelegate {
         var children: [LayoutNode]
     }
 
-    fileprivate func parse(_ parser: XMLParser, relativeTo: StaticString?) throws -> LayoutNode {
+    fileprivate func parse(_ parser: XMLParser, relativeTo: String?) throws -> LayoutNode {
         defer {
             root = nil
             top = nil

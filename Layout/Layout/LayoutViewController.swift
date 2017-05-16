@@ -41,7 +41,7 @@ open class LayoutViewController: UIViewController, LayoutDelegate {
     public func loadLayout(
         named: String? = nil,
         bundle: Bundle = Bundle.main,
-        relativeTo: StaticString = #file,
+        relativeTo: String = #file,
         state: Any = (),
         constants: [String: Any] = [:])
     {
@@ -62,7 +62,7 @@ open class LayoutViewController: UIViewController, LayoutDelegate {
 
     public func loadLayout(
         withContentsOfURL xmlURL: URL,
-        relativeTo: StaticString? = #file,
+        relativeTo: String? = #file,
         state: Any = (),
         constants: [String: Any] = [:],
         completion: ((LayoutError?) -> Void)? = nil)
