@@ -661,6 +661,7 @@ public class LayoutNode: NSObject {
 
     public var contentSize: CGSize {
         return attempt({
+            // Try AutoLayout
             if _widthConstraint != nil || _heightConstraint != nil {
                 let frame = view.frame
                 view.translatesAutoresizingMaskIntoConstraints = false
@@ -684,26 +685,31 @@ public class LayoutNode: NSObject {
                 view.frame = frame
                 return size
             }
-            if view.intrinsicContentSize.width != UIViewNoIntrinsicMetric ||
-                view.intrinsicContentSize.height != UIViewNoIntrinsicMetric {
-                var targetSize = CGSize(width: CGFloat.greatestFiniteMagnitude,
-                                        height: CGFloat.greatestFiniteMagnitude)
+            // Try intrinsic size
+            let intrinsicSize = view.intrinsicContentSize
+            var size = intrinsicSize
+            if size.width != UIViewNoIntrinsicMetric || size.height != UIViewNoIntrinsicMetric {
+                var targetSize = CGSize(width: CGFloat.greatestFiniteMagnitude, height: .greatestFiniteMagnitude)
                 if !_evaluating.contains("width") {
                     targetSize.width = try CGFloat(doubleValue(forSymbol: "width"))
                 }
                 if !_evaluating.contains("height") {
                     targetSize.height = try CGFloat(doubleValue(forSymbol: "height"))
                 }
-                return view.systemLayoutSizeFitting(targetSize)
+                if targetSize.width < intrinsicSize.width || targetSize.height < intrinsicSize.height {
+                    size = view.systemLayoutSizeFitting(targetSize)
+                }
+                return size
             }
-            var size = CGSize.zero
+            // Try best fit for subviews
             for child in children where !child.isHidden {
                 let frame = child.frame
                 size.width = max(size.width, frame.maxX)
                 size.height = max(size.height, frame.maxY)
             }
-            if size == .zero {
-                return view.superview?.bounds.size ?? .zero
+            // Fill superview
+            if size.width <= 0, size.height <= 0 {
+                size = view.superview?.bounds.size ?? .zero
             }
             return size
         }) ?? .zero

@@ -44,6 +44,10 @@ public final class NorthstarTextField: UITextField {
         }
     }
 
+    public override var intrinsicContentSize: CGSize {
+        return CGSize(width: UIViewNoIntrinsicMetric, height: .paddingXLarge)
+    }
+
     override init(frame: CGRect) {
         super.init(frame: frame)
 

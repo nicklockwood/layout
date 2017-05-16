@@ -68,6 +68,7 @@
     </UIScrollView>
     <UIPageControl
         outlet="pageControl"
+        left="50% - width / 2"
         bottom="100% - bottomLayoutGuide.length - 30"
         isUserInteractionEnabled="false"
         numberOfPages="3"

@@ -25,7 +25,6 @@
             left="16"
             right="100% - 16"
             top="previous.bottom + 8"
-            height="48"
         />
         <Northstar.NorthstarLabel
             text="{error}"
