@@ -329,6 +329,8 @@ extension UITextField {
             autocapitalizationType = UITextAutocapitalizationType(rawValue: value as! Int)!
         case "autocorrectionType":
             autocorrectionType = UITextAutocorrectionType(rawValue: value as! Int)!
+        case "spellCheckingType":
+            spellCheckingType = UITextSpellCheckingType(rawValue: value as! Int)!
         case "keyboardType":
             keyboardType = UIKeyboardType(rawValue: value as! Int)!
         case "keyboardAppearance":
@@ -364,6 +366,8 @@ extension UITextView {
             autocapitalizationType = UITextAutocapitalizationType(rawValue: value as! Int)!
         case "autocorrectionType":
             autocorrectionType = UITextAutocorrectionType(rawValue: value as! Int)!
+        case "spellCheckingType":
+            spellCheckingType = UITextSpellCheckingType(rawValue: value as! Int)!
         case "keyboardType":
             keyboardType = UIKeyboardType(rawValue: value as! Int)!
         case "keyboardAppearance":

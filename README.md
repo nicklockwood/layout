@@ -51,7 +51,7 @@ Layout seeks to address a number of issues that make StoryBoards unsuitable for 
 
 Layout also includes a replacement for AutoLayout that aims to be:
 
-* Simpler to use for simple layouts
+* Simpler to use for basic layouts
 * More intuitive and readable for complex layouts
 * More deterministic and simpler to debug
 * More performant (at least in theory :-)
@@ -71,9 +71,13 @@ Layout is designed to work with ordinary UIKit components, not to replace or rei
 
 ## Installation
 
-To install Layout using CocoaPods, add the following to your Podfile:
+To install Layout using CocoaPods, add the following to the top of your Podfile:
 
-	pod 'Layout', :git => 'git@github.schibsted.io:Rocket/layout.git'
+	source 'git@github.schibsted.io:Rocket/cocoapod-specs.git'
+	
+Then, add the following to the list of pod dependencies:
+
+	pod 'Layout', '~> 0.1.1'
 
 This will include the Layout framework itself, and the open source Expression library, which is the only dependency.
 
