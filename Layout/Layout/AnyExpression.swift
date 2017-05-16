@@ -69,8 +69,22 @@ struct AnyExpression: CustomStringConvertible {
             }
             return arg
         }
+
+        // Handle string literals
+        // TODO: extend Expression library with support for quotes so we can make this less hacky
+        var expressionString = expression
+        var range = expressionString.startIndex ..< expressionString.endIndex
+        while let subrange = expressionString.range(of: "('[^']*')|(\\\"[^\"]*\\\")", options: .regularExpression, range: range) {
+            var literal = expressionString[subrange]
+            literal = literal.trimmingCharacters(in: CharacterSet(charactersIn: String(literal.characters.first!)))
+            let value = try! store(literal)
+            expressionString.replaceSubrange(subrange, with: "\(Int64(value))")
+            range = subrange.lowerBound ..< expressionString.endIndex
+        }
+        let literals = values
+
         let expression = Expression(
-            expression,
+            expressionString,
             symbols: symbols
         ) { symbol, args in
             let anyArgs = args.map(load)
@@ -95,7 +109,7 @@ struct AnyExpression: CustomStringConvertible {
             }
         }
         evaluate = {
-            defer { values.removeAll() }
+            defer { values = literals }
             return try load(expression.evaluate())
         }
         self.symbols = expression.symbols

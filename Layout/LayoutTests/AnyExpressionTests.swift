@@ -138,4 +138,9 @@ class AnyExpressionTests: XCTestCase {
             }
         }
     }
+
+    func testStringLiterals() {
+        let expression = AnyExpression("'foo' + 'bar'")
+        XCTAssertEqual(try expression.evaluate() as? String, "foobar")
+    }
 }
