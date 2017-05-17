@@ -55,6 +55,7 @@ public class LayoutNode: NSObject {
         super.init()
 
         overrideExpressions()
+        updateVariables()
 
         #if arch(i386) || arch(x86_64)
 
@@ -78,7 +79,6 @@ public class LayoutNode: NSObject {
                 view.didInsertChildNode(child, at: index)
             }
         }
-        updateVariables()
     }
 
     // MARK: Validation
@@ -202,13 +202,13 @@ public class LayoutNode: NSObject {
                 // Merge
                 if var oldState = oldValue as? [String: Any] {
                     for (key, value) in newState {
+                        assert(oldState[key] != nil, "Cannot add new keys to state after initialization")
                         oldState[key] = value
                     }
                     state = oldState
                 }
             } else {
-                assert(type(of: oldValue) == Void.self || type(of: oldValue) == type(of: state),
-                   "Cannot change type of state after initialization")
+                assert(type(of: oldValue) == type(of: state), "Cannot change type of state after initialization")
             }
             updateVariables()
         }
@@ -227,6 +227,7 @@ public class LayoutNode: NSObject {
                 }
             }
         }
+
         // TODO: work out which expressions are actually affected
         attempt(update)
     }
@@ -424,14 +425,17 @@ public class LayoutNode: NSObject {
             // Optimize constant expressions
             func isConstant(_ exp: LayoutExpression) -> Bool {
                 for name in expression.symbols {
+                    guard value(forVariable: name) == nil else {
+                        return false // State variable
+                    }
+                    guard value(forConstant: name) == nil else {
+                        continue // Constant
+                    }
                     guard expressions[name] != nil else {
-                        guard value(forConstant: name) == nil else {
-                            continue // Constant
-                        }
-                        return false // Variable or inherited constant
+                        return false // View property
                     }
                     if _evaluating.contains(name) {
-                        return false // Possible circular reference
+                        return false // Circular reference
                     }
                     _evaluating.append(name)
                     defer { _evaluating.removeLast() }
@@ -467,8 +471,8 @@ public class LayoutNode: NSObject {
         return constants[name] ?? parent?.value(forConstant: name)
     }
 
-    private func value(forConstantOrVariable name: String) -> Any? {
-        return constants[name] ?? _variables[name] ?? parent?.value(forConstantOrVariable: name)
+    private func value(forVariable name: String) -> Any? {
+        return _variables[name] ?? parent?.value(forVariable: name)
     }
 
     public lazy var viewExpressionTypes: [String: RuntimeType] = {
@@ -527,14 +531,13 @@ public class LayoutNode: NSObject {
         if let getter = _getters[symbol] {
             return try SymbolError.wrap(getter, for: symbol)
         }
-        if let expression = expression(for: symbol) {
-            let getter = { [unowned self] () throws -> Any in
-                if self._evaluating.last == symbol, let value = self.value(forConstantOrVariable: symbol) {
-                    // In the situation that an expression directly references itself
-                    // it may be that this is due to the expression name shadowing
-                    // a constant or variable, so check for that first before throwing
-                    return value
-                }
+        let getter: () throws -> Any?
+        if value(forVariable: symbol) != nil {
+            getter = { [unowned self] in self.value(forVariable: symbol) }
+        } else if let value = value(forConstant: symbol) {
+            getter = { value }
+        } else if let expression = expression(for: symbol) {
+            getter = { [unowned self] in
                 guard !self._evaluating.contains(symbol) else {
                     throw SymbolError("Circular reference", for: symbol)
                 }
@@ -549,72 +552,68 @@ public class LayoutNode: NSObject {
                     throw SymbolError(error, for: symbol)
                 }
             }
-            _getters[symbol] = getter
-            return try SymbolError.wrap(getter, for: symbol)
-        }
-        let getter: () throws -> Any?
-        switch symbol {
-        case "left":
-            getter = (parent == nil) ? { [unowned self] in self.view.frame.minX } : { 0 }
-        case "width":
-            getter = { [unowned self] in self.view.frame.width }
-        case "right":
-            getter = { [unowned self] in self.view.frame.maxX }
-        case "top":
-            getter = (parent == nil) ? { [unowned self] in self.view.frame.minY } : { 0 }
-        case "height":
-            getter = { [unowned self] in self.view.frame.height }
-        case "bottom":
-            getter = { [unowned self] in self.view.frame.maxY }
-        case "topLayoutGuide.length":
-            getter = { [unowned self] in self._layoutGuideController?.topLayoutGuide.length ?? 0 }
-        case "bottomLayoutGuide.length":
-            getter = { [unowned self] in self._layoutGuideController?.bottomLayoutGuide.length ?? 0 }
-        default:
-            var parts = symbol.components(separatedBy: ".")
-            let tail = parts.dropFirst().joined(separator: ".")
-            switch parts[0] {
-            case "parent":
-                if parent != nil {
-                    getter = { [unowned self] in try self.parent?.value(forSymbol: tail) }
-                } else {
-                    getter = { [unowned self] in
-                        switch tail {
-                        case "width":
-                            return self.view.superview?.bounds.width ?? 0
-                        case "height":
-                            return self.view.superview?.bounds.height ?? 0
-                        default:
-                            throw SymbolError("Undefined symbol `\(tail)`", for: symbol)
+        } else {
+            switch symbol {
+            case "left":
+                getter = (parent == nil) ? { [unowned self] in self.view.frame.minX } : { 0 }
+            case "width":
+                getter = { [unowned self] in self.view.frame.width }
+            case "right":
+                getter = { [unowned self] in self.view.frame.maxX }
+            case "top":
+                getter = (parent == nil) ? { [unowned self] in self.view.frame.minY } : { 0 }
+            case "height":
+                getter = { [unowned self] in self.view.frame.height }
+            case "bottom":
+                getter = { [unowned self] in self.view.frame.maxY }
+            case "topLayoutGuide.length":
+                getter = { [unowned self] in self._layoutGuideController?.topLayoutGuide.length ?? 0 }
+            case "bottomLayoutGuide.length":
+                getter = { [unowned self] in self._layoutGuideController?.bottomLayoutGuide.length ?? 0 }
+            default:
+                var parts = symbol.components(separatedBy: ".")
+                let tail = parts.dropFirst().joined(separator: ".")
+                switch parts[0] {
+                case "parent":
+                    if parent != nil {
+                        getter = { [unowned self] in try self.parent?.value(forSymbol: tail) }
+                    } else {
+                        getter = { [unowned self] in
+                            switch tail {
+                            case "width":
+                                return self.view.superview?.bounds.width ?? 0
+                            case "height":
+                                return self.view.superview?.bounds.height ?? 0
+                            default:
+                                throw SymbolError("Undefined symbol `\(tail)`", for: symbol)
+                            }
                         }
                     }
-                }
-            case "previous" where LayoutNode.isLayoutSymbol(tail):
-                getter = { [unowned self] in
-                    var previous = self.previous
-                    while previous?.isHidden == true {
-                        previous = previous?.previous
+                case "previous" where LayoutNode.isLayoutSymbol(tail):
+                    getter = { [unowned self] in
+                        var previous = self.previous
+                        while previous?.isHidden == true {
+                            previous = previous?.previous
+                        }
+                        return try previous?.value(forSymbol: tail) ?? 0
                     }
-                    return try previous?.value(forSymbol: tail) ?? 0
-                }
-            case "previous":
-                getter = { [unowned self] in try self.previous?.value(forSymbol: tail) ?? 0 }
-            case "next" where LayoutNode.isLayoutSymbol(tail):
-                getter = { [unowned self] in
-                    var next = self.next
-                    while next?.isHidden == true {
-                        next = next?.next
+                case "previous":
+                    getter = { [unowned self] in try self.previous?.value(forSymbol: tail) ?? 0 }
+                case "next" where LayoutNode.isLayoutSymbol(tail):
+                    getter = { [unowned self] in
+                        var next = self.next
+                        while next?.isHidden == true {
+                            next = next?.next
+                        }
+                        return try next?.value(forSymbol: tail) ?? 0
                     }
-                    return try next?.value(forSymbol: tail) ?? 0
-                }
-            case "next":
-                getter = { [unowned self] in try self.next?.value(forSymbol: tail) ?? 0 }
-            default:
-                getter = { [unowned self] in
-                    // Try constants first, then view/controller symbols, then fall back to standard library
-                    self.value(forConstantOrVariable: symbol) ??
-                        self.viewController?.value(forSymbol: symbol) ??
-                        self.view.value(forSymbol: symbol)
+                case "next":
+                    getter = { [unowned self] in try self.next?.value(forSymbol: tail) ?? 0 }
+                default:
+                    getter = { [unowned self] in
+                        // Try view/controller symbols, then fall back to standard library
+                        self.viewController?.value(forSymbol: symbol) ?? self.view.value(forSymbol: symbol)
+                    }
                 }
             }
         }

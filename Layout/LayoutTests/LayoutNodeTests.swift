@@ -41,4 +41,49 @@ class LayoutNodeTests: XCTestCase {
         let errors = node.validate()
         XCTAssertTrue(errors.isEmpty)
     }
+
+    func testExpressionsShadowsVariables() {
+        let node = LayoutNode(constants: ["top": 10, "left": 5], expressions: ["top": "left", "left": "top"])
+        let errors = node.validate()
+        XCTAssertTrue(errors.isEmpty)
+    }
+
+    func testStateUpdate() {
+        let node = LayoutNode(state: ["foo": 10])
+        XCTAssertEqual(try node.value(forSymbol: "foo") as? Int, 10)
+        node.state = ["foo": 5]
+        XCTAssertEqual(try node.value(forSymbol: "foo") as? Int, 5)
+    }
+
+    func testStateShadowsConstant() {
+        let node = LayoutNode(state: ["foo": 10], constants: ["foo": 5], expressions: ["top": "foo"])
+        XCTAssertTrue(node.validate().isEmpty)
+        XCTAssertEqual(try node.value(forSymbol: "foo") as? Int, 10)
+    }
+
+    func testStateShadowsInheritedConstant() {
+        let child = LayoutNode(
+            state: ["foo": 10],
+            expressions: ["top": "foo"]
+        )
+        let parent = LayoutNode(
+            constants: ["foo": 5],
+            children: [child]
+        )
+        XCTAssertTrue(parent.validate().isEmpty)
+        XCTAssertEqual(try parent.value(forSymbol: "foo") as? Int, 5)
+    }
+
+    func testConstantShadowsInheritedState() {
+        let child = LayoutNode(
+            constants: ["foo": 10],
+            expressions: ["top": "foo"]
+        )
+        let parent = LayoutNode(
+            state: ["foo": 5],
+            children: [child]
+        )
+        XCTAssertTrue(parent.validate().isEmpty)
+        XCTAssertEqual(try parent.value(forSymbol: "foo") as? Int, 5)
+    }
 }

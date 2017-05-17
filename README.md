@@ -169,11 +169,11 @@ This live reloading feature, combined with the gracious handling of errors, mean
 
 Static XML is all very well, but in the real world, app content is dynamic. Strings, images, and even layouts themselves need to change dynamically based on user generated content, locale, etc.
 
-`LayoutNode` provides two mechanisms for passing dynamic data, which can then be referenced inside your layout expressions, *constants* and *state*.
+`LayoutNode` provides two mechanisms for passing dynamic data, which can then be referenced inside your layout expressions; *constants* and *state*.
 
-Constants, as the name implies, are values that remain constant for the lifetime of the `LayoutNode`. The constants dictionary is passed into the `LayoutNode` initializer and can be referenced by any expression in that node or any of its children.
+Constants, as the name implies, are values that remain constant for the lifetime of the `LayoutNode`. The constants dictionary is passed into the `LayoutNode` initializer, and can be referenced by any expression in that node or any of its children.
 
-A good use for constants would be localized strings, or something like colors or fonts used by the current app theme. These are things that never (or rarely) change during the lifecycle of the app, so its acceptable that the view hierarchy must be torn down in order to reset them.
+A good use for constants would be localized strings, or something like colors or fonts used by the app UI theme. These are things that never (or rarely) change during the lifecycle of the app, so its acceptable that the view hierarchy must be torn down in order to reset them.
 
 Here is how you would pass some constants inside `LayoutViewController`:
 
@@ -197,11 +197,11 @@ And how you might reference them in the XML:
 		/>
 	</UIView>
 
-(You may have noticed that the `title` and `font` constants are surrounded by `{...}` braces, but the `titleColor` constant isn't. This is explained in the [Expressions](#expressions) section below.)
+(You may have noticed that the `title` and `titleFont` constants are surrounded by `{...}` braces, but the `titleColor` constant isn't. This is explained in the [Expressions](#expressions) section below.)
 
 ## State
 
-For more dynamic layouts, you may have properties of the view that need to change frequently, perhaps even during an animation, and recreating the entire view hierarchy to change these is neither convenient nor efficient. For that, you can use state. State works exactly the same way as constants, except you can update state after the `LayoutNode` has been initialized:
+For more dynamic layouts, you may have properties of the view that need to change frequently (perhaps even during an animation), and recreating the entire view hierarchy to change these is neither convenient nor efficient. For these properties, you can use *state*. State works the same way as constants, except you can update state after the `LayoutNode` has been initialized:
 
 	self.loadLayout(
 	    named: "MyLayout.xml",
@@ -217,15 +217,19 @@ For more dynamic layouts, you may have properties of the view that need to chang
 		self.layoutNode.state = ["isSelected": true]
 	}
 	
-Note that you can used both constants and state in the same Layout, but you should avoid duplicating keys between the state and constants. Do not be tempted to try to override a constant value using the state object - this will result in an error.
+Note that you can used both constants and state in the same Layout. If a state variable has the same name as a constant, the state variable takese precedence.
 
-As with constants, state values can be passed in at the root node of a hierarchy and accessed by any child node. If children in the hierarchy have their own state properties then these will take priority over values set on their parents. It is generally discouraged to inject state at multiple levels in a node hierarchy however, as it becomes difficult to keep track of where values are coming from, and may reduce opportunities for performance optimizations in the future.
+Although state can be updated dynamically, all state properties must be given default values when the `LayoutNode` is first initialized. Adding or removing state properties later on is not permitted. 
 
-Setting the `state` property of a `LayoutNode` after it has been created will trigger an update. The update causes all expressions in that node and its children to be re-evaluated. In future it may be possible to detect if parent nodes are indirectly affected by the state change of their children and update them too, but currently that is not implemented. This is another reason why you are encouraged to set state only on the root node of a given hierarchy.
+As with constants, state values can be passed in at the root node of a hierarchy and accessed by any child node. If children in the hierarchy have their own state properties then these will take priority over values set on their parents.
 
-In the example above, we've used a dictionary to store the state values, but `LayoutNode` supports the use of arbitrary objects for state. A really good idea for layouts with complex state requirements is to use a `struct` to store the state. When you set the state using a `struct` or `class`, Layout uses Swift's introspection features to compare changes and determine if an update is necessary.
+When setting state, you do not have to pass every single property. If you are only updating one property, it is fine to pass a dictionary with only that key/value pair.
 
-Internally the `LayoutNode` effectively just treats the struct as a dictionary of key/value pairs, but you get to take advantage of compile-time type validation when manipulating your state programmatically in the rest of your program:
+Setting the `state` property of a `LayoutNode` after it has been created will trigger an update. The update causes all expressions in that node and its children to be re-evaluated. In future it may be possible to detect if parent nodes are indirectly affected by the state changes of their children and update them too, but currently that is not implemented.
+
+In the examples above, we've used a dictionary to store the state values, but `LayoutNode` supports the use of arbitrary objects for state. A really good idea for layouts with complex state requirements is to use a `struct` to store the state. When you set the state using a `struct` or `class`, Layout uses Swift's introspection features to compare changes and determine if an update is necessary.
+
+Internally the `LayoutNode` still just treats the struct as a dictionary of key/value pairs, but you get to take advantage of compile-time type validation when manipulating your state programmatically in the rest of your program:
 
 	struct LayoutState {
 		let isSelected: Bool
@@ -242,6 +246,7 @@ Internally the `LayoutNode` effectively just treats the struct as a dictionary o
 	func setSelected() {
 		self.layoutNode.state = LayoutState(isSelected: false)
 	}
+
 
 ## Actions
 

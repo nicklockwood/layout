@@ -72,8 +72,12 @@ public enum LayoutError: Error, Hashable, CustomStringConvertible {
         return description.hashValue
     }
 
-    init(_ message: String) {
-        self = .message(message)
+    init(_ message: String, for node: LayoutNode? = nil) {
+        if let node = node {
+            self = LayoutError(LayoutError.message(message), for: node)
+        } else {
+            self = .message(message)
+        }
     }
 
     init(_ error: Error, for viewOrControllerClass: AnyClass) {
