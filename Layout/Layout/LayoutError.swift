@@ -9,7 +9,7 @@
 import Foundation
 import Expression
 
-public struct SymbolError: Error, Equatable, CustomStringConvertible {
+public struct SymbolError: Error, Hashable, CustomStringConvertible {
     let symbol: String
     let error: Error
 
@@ -19,6 +19,10 @@ public struct SymbolError: Error, Equatable, CustomStringConvertible {
             description = "\(description) in `\(symbol)`"
         }
         return description
+    }
+
+    public var hashValue: Int {
+        return description.hashValue
     }
 
     init(_ error: Error, for symbol: String) {
@@ -43,7 +47,7 @@ public struct SymbolError: Error, Equatable, CustomStringConvertible {
     }
 }
 
-public enum LayoutError: Error, Equatable, CustomStringConvertible {
+public enum LayoutError: Error, Hashable, CustomStringConvertible {
     case message(String)
     case generic(Error, AnyClass?)
 
@@ -62,6 +66,10 @@ public enum LayoutError: Error, Equatable, CustomStringConvertible {
             }
         }
         return description
+    }
+
+    public var hashValue: Int {
+        return description.hashValue
     }
 
     init(_ message: String) {

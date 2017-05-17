@@ -16,7 +16,7 @@
 		0186B2861EB24982008A6E5A /* LayoutViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0186B2851EB24982008A6E5A /* LayoutViewController.swift */; };
 		01B36DC51ECC452100D0DA01 /* FontExpressionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01B36DC41ECC452100D0DA01 /* FontExpressionTests.swift */; };
 		01DA955E1EABC1E400868113 /* Layout.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 01DA95541EABC1E300868113 /* Layout.framework */; };
-		01DA95631EABC1E400868113 /* LayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01DA95621EABC1E400868113 /* LayoutTests.swift */; };
+		01DA95631EABC1E400868113 /* LayoutNodeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01DA95621EABC1E400868113 /* LayoutNodeTests.swift */; };
 		01DA95651EABC1E400868113 /* Layout.h in Headers */ = {isa = PBXBuildFile; fileRef = 01DA95571EABC1E300868113 /* Layout.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		01DA95781EABC27600868113 /* LayoutNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01DA95771EABC27600868113 /* LayoutNode.swift */; };
 		01DA957C1EABF41900868113 /* LayoutExpression.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01DA957B1EABF41900868113 /* LayoutExpression.swift */; };
@@ -50,7 +50,7 @@
 		01DA95571EABC1E300868113 /* Layout.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Layout.h; sourceTree = "<group>"; };
 		01DA95581EABC1E300868113 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		01DA955D1EABC1E400868113 /* LayoutTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LayoutTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		01DA95621EABC1E400868113 /* LayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayoutTests.swift; sourceTree = "<group>"; };
+		01DA95621EABC1E400868113 /* LayoutNodeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayoutNodeTests.swift; sourceTree = "<group>"; };
 		01DA95641EABC1E400868113 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		01DA95771EABC27600868113 /* LayoutNode.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LayoutNode.swift; sourceTree = "<group>"; };
 		01DA957B1EABF41900868113 /* LayoutExpression.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LayoutExpression.swift; sourceTree = "<group>"; };
@@ -131,7 +131,7 @@
 			children = (
 				016BC2971EC6E43C009759A4 /* AnyExpressionTests.swift */,
 				01B36DC41ECC452100D0DA01 /* FontExpressionTests.swift */,
-				01DA95621EABC1E400868113 /* LayoutTests.swift */,
+				01DA95621EABC1E400868113 /* LayoutNodeTests.swift */,
 				01DA95641EABC1E400868113 /* Info.plist */,
 			);
 			path = LayoutTests;
@@ -373,7 +373,7 @@
 			files = (
 				016BC2981EC6E43C009759A4 /* AnyExpressionTests.swift in Sources */,
 				01B36DC51ECC452100D0DA01 /* FontExpressionTests.swift in Sources */,
-				01DA95631EABC1E400868113 /* LayoutTests.swift in Sources */,
+				01DA95631EABC1E400868113 /* LayoutNodeTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

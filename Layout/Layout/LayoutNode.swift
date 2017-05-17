@@ -99,40 +99,41 @@ public class LayoutNode: NSObject {
     }
 
     /// Perform pre-validation on the node and (optionally) its children
-    public func validate(recursive: Bool = true) -> [LayoutError] {
-        var errors = [LayoutError]()
+    public func validate(recursive: Bool = true) -> Set<LayoutError> {
+        var errors = Set<LayoutError>()
         for name in expressions.keys {
             guard let expression = expression(for: name) else {
-                errors.append(LayoutError(SymbolError("Unknown expression name `\(name)`", for: name), for: self))
+                errors.insert(LayoutError(SymbolError("Unknown expression name `\(name)`", for: name), for: self))
                 continue
             }
             do {
+                // TODO: check for recursion here?
                 _ = try expression.evaluate()
             } catch {
-                errors.append(LayoutError(error, for: self))
+                errors.insert(LayoutError(error, for: self))
             }
         }
-        errors += redundantExpressionErrors()
+        errors.formUnion(redundantExpressionErrors())
         if recursive {
             for child in children {
-                errors += child.validate()
+                errors.formUnion(child.validate())
             }
         }
         return errors
     }
 
-    private func redundantExpressionErrors() -> [LayoutError] {
-        var errors = [LayoutError]()
+    private func redundantExpressionErrors() -> Set<LayoutError> {
+        var errors = Set<LayoutError>()
         if !(expressions["bottom"] ?? "").isEmpty,
             !value(forSymbol: "height", dependsOn: "bottom"),
             !value(forSymbol: "top", dependsOn: "bottom") {
-            errors.append(LayoutError(SymbolError("Expression for `bottom` is redundant",
+            errors.insert(LayoutError(SymbolError("Expression for `bottom` is redundant",
                                                   for: "bottom"), for: self))
         }
         if !(expressions["right"] ?? "").isEmpty,
             !value(forSymbol: "width", dependsOn: "right"),
             !value(forSymbol: "left", dependsOn: "right") {
-            errors.append(LayoutError(SymbolError("Expression for `right` is redundant",
+            errors.insert(LayoutError(SymbolError("Expression for `right` is redundant",
                                                   for: "right"), for: self))
         }
         return errors
@@ -397,6 +398,7 @@ public class LayoutNode: NSObject {
         }
     }
 
+    private var _evaluating = [String]()
     private var _cachedExpressions = [String: LayoutExpression]()
     private func expression(for symbol: String) -> LayoutExpression? {
         if let expression = _cachedExpressions[symbol] {
@@ -420,26 +422,35 @@ public class LayoutNode: NSObject {
                 expression = LayoutExpression(expression: string, ofType: type, for: self)
             }
             // Optimize constant expressions
-            func isConstant(_ expression: LayoutExpression) -> Bool {
+            func isConstant(_ exp: LayoutExpression) -> Bool {
                 for name in expression.symbols {
-                    if name == symbol {
-                        // Circular reference, abort!
-                        return false
+                    guard expressions[name] != nil else {
+                        guard value(forConstant: name) == nil else {
+                            continue // Constant
+                        }
+                        return false // Variable or inherited constant
                     }
+                    if _evaluating.contains(name) {
+                        return false // Possible circular reference
+                    }
+                    _evaluating.append(name)
+                    defer { _evaluating.removeLast() }
                     if let expression = self.expression(for: name) {
                         if !isConstant(expression) {
                             return false
                         }
-                    } else if self.value(forConstant: name) == nil {
-                        return false
                     }
                 }
                 return true
             }
-            if isConstant(expression), let value = try? expression.evaluate() {
-                expression = LayoutExpression(evaluate: { value }, symbols: [])
-                // TODO: refactor so that this can be done more cleanly
-                guard let _ = try? setValue(value, forExpression: symbol) else {
+            if isConstant(expression) {
+                _evaluating.append(symbol)
+                defer { _evaluating.removeLast() }
+                do {
+                    let value = try expression.evaluate()
+                    try setValue(value, forExpression: symbol)
+                    expression = LayoutExpression(evaluate: { value }, symbols: [])
+                } catch {
                     // Something went wrong, so don't cache the expression
                     return expression
                 }
@@ -456,8 +467,8 @@ public class LayoutNode: NSObject {
         return constants[name] ?? parent?.value(forConstant: name)
     }
 
-    private func value(forVariableOrConstant name: String) -> Any? {
-        return _variables[name] ?? constants[name] ?? parent?.value(forVariableOrConstant: name)
+    private func value(forConstantOrVariable name: String) -> Any? {
+        return constants[name] ?? _variables[name] ?? parent?.value(forConstantOrVariable: name)
     }
 
     public lazy var viewExpressionTypes: [String: RuntimeType] = {
@@ -503,9 +514,6 @@ public class LayoutNode: NSObject {
         throw SymbolError("\(symbol) is not a number", for: symbol)
     }
 
-    private var _evaluating = [String]()
-    private var _getters = [String: () throws -> Any?]()
-
     // Return the best available VC for computing the layout guide
     private var _layoutGuideController: UIViewController? {
         let controller = view.viewController
@@ -514,13 +522,14 @@ public class LayoutNode: NSObject {
     }
 
     // Note: thrown error is always a SymbolError
+    private var _getters = [String: () throws -> Any?]()
     public func value(forSymbol symbol: String) throws -> Any! {
         if let getter = _getters[symbol] {
             return try SymbolError.wrap(getter, for: symbol)
         }
         if let expression = expression(for: symbol) {
             let getter = { [unowned self] () throws -> Any in
-                if self._evaluating.last == symbol, let value = self.value(forVariableOrConstant: symbol) {
+                if self._evaluating.last == symbol, let value = self.value(forConstantOrVariable: symbol) {
                     // In the situation that an expression directly references itself
                     // it may be that this is due to the expression name shadowing
                     // a constant or variable, so check for that first before throwing
@@ -603,7 +612,7 @@ public class LayoutNode: NSObject {
             default:
                 getter = { [unowned self] in
                     // Try constants first, then view/controller symbols, then fall back to standard library
-                    self.value(forVariableOrConstant: symbol) ??
+                    self.value(forConstantOrVariable: symbol) ??
                         self.viewController?.value(forSymbol: symbol) ??
                         self.view.value(forSymbol: symbol)
                 }
