@@ -381,19 +381,50 @@ struct LayoutExpression {
         )
     }
 
+    // This is the actual default font size on iOS
+    // which is not the same as reported by `UIFont.systemFontSize`
+    static let defaultFontSize: CGFloat = 17
+
     init(fontExpression: String, for node: LayoutNode) {
         let expression = LayoutExpression(interpolatedStringExpression: fontExpression, for: node)
         self.init(
             evaluate: {
-                var font = UIFont.systemFont(ofSize: 17)
+                var font = UIFont.systemFont(ofSize: LayoutExpression.defaultFontSize)
                 var traits = font.fontDescriptor.symbolicTraits
                 for part in try expression.evaluate() as! [Any] {
                     switch part {
                     case let part as UIFont:
                         font = part
                     default:
-                        for part in "\(part)".lowercased().components(separatedBy: " ") where !part.isEmpty {
-                            switch part.trimmingCharacters(in: CharacterSet(charactersIn: "\"'`")) {
+                        // Split into space-delimited parts
+                        // TODO: can we support font names containing spaces without quotes?
+                        var parts = "\(part)".lowercased().components(separatedBy: " ")
+                        // Merge and un-escape quoted parts
+                        // TODO: can this be done as a pre-processing step rather than after evaluation?
+                        var stringEnd: Int?
+                        for i in parts.indices.reversed() {
+                            let part = parts[i]
+                            for c in ["\"", "'"] {
+                                if part.hasSuffix(c) {
+                                    stringEnd = i
+                                }
+                                if part.hasPrefix(c), let end = stringEnd {
+                                    var result = ""
+                                    for part in parts[i ... end] {
+                                        result += part
+                                    }
+                                    result = result.substring(with:
+                                        result.index(after: result.startIndex) ..< result.index(before: result.endIndex)
+                                    )
+                                    parts[i ... end] = [result]
+                                    stringEnd = nil
+                                    break
+                                }
+                            }
+                        }
+                        // Build font
+                        for part in parts where !part.isEmpty {
+                            switch part {
                             case "bold":
                                 traits.insert(.traitBold)
                             case "italic":
