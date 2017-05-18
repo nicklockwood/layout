@@ -42,12 +42,6 @@ class LayoutNodeTests: XCTestCase {
         XCTAssertTrue(errors.isEmpty)
     }
 
-    func testExpressionsShadowsVariables() {
-        let node = LayoutNode(constants: ["top": 10, "left": 5], expressions: ["top": "left", "left": "top"])
-        let errors = node.validate()
-        XCTAssertTrue(errors.isEmpty)
-    }
-
     func testStateUpdate() {
         let node = LayoutNode(state: ["foo": 10])
         XCTAssertEqual(try node.value(forSymbol: "foo") as? Int, 10)
@@ -59,6 +53,17 @@ class LayoutNodeTests: XCTestCase {
         let node = LayoutNode(state: ["foo": 10], constants: ["foo": 5], expressions: ["top": "foo"])
         XCTAssertTrue(node.validate().isEmpty)
         XCTAssertEqual(try node.value(forSymbol: "foo") as? Int, 10)
+    }
+
+    func testConstantShadowsViewProperty() {
+        let view = UIView()
+        view.tag = 10
+        let node = LayoutNode(
+            view: view,
+            constants: ["tag": 5]
+        )
+        XCTAssertTrue(node.validate().isEmpty)
+        XCTAssertEqual(try node.value(forSymbol: "tag") as? Int, 5)
     }
 
     func testStateShadowsInheritedConstant() {

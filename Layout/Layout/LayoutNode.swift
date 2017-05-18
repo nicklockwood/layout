@@ -424,17 +424,17 @@ public class LayoutNode: NSObject {
             // Optimize constant expressions
             func isConstant(_ exp: LayoutExpression) -> Bool {
                 for name in expression.symbols {
-                    guard value(forVariable: name) == nil else {
-                        return false // State variable
-                    }
-                    guard value(forConstant: name) == nil else {
-                        continue // Constant
-                    }
                     guard expressions[name] != nil else {
-                        return false // View property
+                        guard value(forVariable: name) == nil else {
+                            return false // Inherited variable
+                        }
+                        guard value(forConstant: name) == nil else {
+                            continue // Inherited constant
+                        }
+                        return false // View or controller property
                     }
                     if _evaluating.contains(name) {
-                        return false // Circular reference
+                        return false // Possible circular reference
                     }
                     _evaluating.append(name)
                     defer { _evaluating.removeLast() }
@@ -531,12 +531,14 @@ public class LayoutNode: NSObject {
             return try SymbolError.wrap(getter, for: symbol)
         }
         let getter: () throws -> Any?
-        if value(forVariable: symbol) != nil {
-            getter = { [unowned self] in self.value(forVariable: symbol) }
-        } else if let value = value(forConstant: symbol) {
-            getter = { value }
-        } else if let expression = expression(for: symbol) {
+        if let expression = expression(for: symbol) {
             getter = { [unowned self] in
+                if self._evaluating.last == symbol,
+                    let value = self.value(forVariable: symbol) ?? self.value(forConstant: symbol) {
+                    // If an expression directly references itself it may be shadowing
+                    // a constant or variable, so check for that first before throwing
+                    return value
+                }
                 guard !self._evaluating.contains(symbol) else {
                     throw SymbolError("Circular reference", for: symbol)
                 }
@@ -610,8 +612,17 @@ public class LayoutNode: NSObject {
                     getter = { [unowned self] in try self.next?.value(forSymbol: tail) ?? 0 }
                 default:
                     getter = { [unowned self] in
-                        // Try view/controller symbols, then fall back to standard library
-                        self.viewController?.value(forSymbol: symbol) ?? self.view.value(forSymbol: symbol)
+                        // Try local variables/constants first, then
+                        if let value = self.value(forVariable: symbol) ?? self.value(forConstant: symbol) {
+                            return value
+                        }
+                        // Then controller/view symbols
+                        if let value =
+                            self.viewController?.value(forSymbol: symbol) ?? self.view.value(forSymbol: symbol) {
+                            return value
+                        }
+                        // Fall back to standard library
+                        return nil
                     }
                 }
             }
