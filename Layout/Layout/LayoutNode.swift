@@ -45,7 +45,7 @@ public class LayoutNode: NSObject {
         self.view = view
         self.viewController = viewController
         self.outlet = outlet
-        self.state = state
+        self.state = try! unwrap(state)
         self.constants = constants
         self.expressions = expressions
         self.children = children
@@ -196,7 +196,7 @@ public class LayoutNode: NSObject {
 
     // MARK: State
 
-    public var state: Any = () {
+    public var state: Any {
         didSet {
             if let newState = state as? [String: Any], var oldState = oldValue as? [String: Any] {
                 for (key, value) in newState {
@@ -205,6 +205,7 @@ public class LayoutNode: NSObject {
                 }
                 state = oldState
             } else {
+                state = try! unwrap(state)
                 let oldType = type(of: oldValue)
                 assert(oldType == Void.self || oldType == type(of: state),
                        "Cannot change type of state after initialization")

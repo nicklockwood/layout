@@ -42,13 +42,6 @@ class LayoutNodeTests: XCTestCase {
         XCTAssertTrue(errors.isEmpty)
     }
 
-    func testStateUpdate() {
-        let node = LayoutNode(state: ["foo": 10])
-        XCTAssertEqual(try node.value(forSymbol: "foo") as? Int, 10)
-        node.state = ["foo": 5]
-        XCTAssertEqual(try node.value(forSymbol: "foo") as? Int, 5)
-    }
-
     func testStateShadowsConstant() {
         let node = LayoutNode(state: ["foo": 10], constants: ["foo": 5], expressions: ["top": "foo"])
         XCTAssertTrue(node.validate().isEmpty)

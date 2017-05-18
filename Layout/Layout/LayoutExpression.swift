@@ -44,6 +44,23 @@ private let commonSymbols: [Expression.Symbol: Expression.Symbol.Evaluator] = {
     return symbols
 }()
 
+private func stringify(_ value: Any) -> String {
+    guard let value = try? unwrap(value) else {
+        return "nil"
+    }
+    switch value {
+    case let number as NSNumber:
+        guard let int = Int64(exactly: Double(number)) else {
+            return "\(number)"
+        }
+        return "\(int)"
+    case let value as NSAttributedString:
+        return value.string
+    default:
+        return "\(value)"
+    }
+}
+
 struct LayoutExpression {
     let evaluate: () throws -> Any
     let symbols: Set<String>
@@ -317,12 +334,7 @@ struct LayoutExpression {
             evaluate: {
                 var result = ""
                 for part in try expression.evaluate() as! [Any] {
-                    switch part {
-                    case let part as NSAttributedString:
-                        result += part.string
-                    default:
-                        result += "\(part)"
-                    }
+                    result += stringify(part)
                 }
                 return result
             },
@@ -346,7 +358,7 @@ struct LayoutExpression {
                         htmlString += "$\(substrings.count)"
                         substrings.append(part)
                     default:
-                        htmlString += "\(part)"
+                        htmlString += stringify(part)
                     }
                 }
                 let result = try NSMutableAttributedString(
@@ -475,7 +487,7 @@ struct LayoutExpression {
                     case let part as UIImage:
                         image = part
                     default:
-                        string += "\(part)"
+                        string += stringify(part)
                     }
                 }
                 string = string.trimmingCharacters(in: .whitespacesAndNewlines)
