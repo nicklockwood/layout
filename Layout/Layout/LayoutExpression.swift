@@ -504,9 +504,9 @@ struct LayoutExpression {
         )
     }
 
-    init(enumExpression: String, for node: LayoutNode, with values: [String: Any]) {
-        let type = type(of: values.values.first!)
-        let expression = LayoutExpression(anyExpression: enumExpression, type: RuntimeType(type)) {
+    init(enumExpression: String, type: RuntimeType, for node: LayoutNode) {
+        guard case let .enum(_, values, _) = type.type else { preconditionFailure() }
+        let expression = LayoutExpression(anyExpression: enumExpression, type: type) {
             [unowned node] symbol, args in
             switch symbol {
             case let .constant(name):
@@ -556,8 +556,8 @@ struct LayoutExpression {
             default:
                 self.init(anyExpression: expression, type: type, for: node)
             }
-        case let .enum(enumValues):
-            self.init(enumExpression: expression, for: node, with: enumValues)
+        case .enum:
+            self.init(enumExpression: expression, type: type, for: node)
         case .protocol:
             self.init(anyExpression: expression, type: type, for: node)
         }

@@ -33,21 +33,45 @@ extension UIView {
         types["clipsToBounds"] = RuntimeType(Bool.self)
         types["alpha"] = RuntimeType(CGFloat.self)
         types["tintColor"] = RuntimeType(UIColor.self)
-        types["contentMode"] = RuntimeType([
-            "center": UIViewContentMode.center.rawValue,
-            "scaleAspectFit": UIViewContentMode.scaleAspectFit.rawValue,
-            "scaleAspectFill": UIViewContentMode.scaleAspectFill.rawValue,
+        types["contentMode"] = RuntimeType(UIViewContentMode.self, [
+            "scaleToFill": .scaleToFill,
+            "scaleAspectFit": .scaleAspectFit,
+            "scaleAspectFill": .scaleAspectFill,
+            "redraw": .redraw,
+            "center": .center,
+            "top": .top,
+            "bottom": .bottom,
+            "left": .left,
+            "right": .right,
+            "topLeft": .topLeft,
+            "topRight": .topRight,
+            "bottomLeft": .bottomLeft,
+            "bottomRight": .bottomRight,
         ])
+        // Explicitly disabled view properties
+        types["frame"] = nil
+        types["bounds"] = nil
+        types["center"] = nil
+        types["autoresizingMask"] = nil
         // TODO: better approach to layer properties?
         for (name, type) in (layerClass as! NSObject.Type).allPropertyTypes() {
             types["layer.\(name)"] = type
         }
         types["layer.borderColor"] = RuntimeType(CGColor.self)
+        // Explicitly disabled layer properties
+        types["layer.frame"] = nil
+        types["layer.bounds"] = nil
+        types["layer.position"] = nil
+        types["layer.anchorPoint"] = nil
         return types
     }
 
     // Set expression value
     open func setValue(_ value: Any, forExpression name: String) throws {
+        var value = value
+        if let type = type(of: self).expressionTypes[name]?.type, case let .enum(_, _, adaptor) = type {
+            value = adaptor(value) // TODO: something nicer than this
+        }
         try _setValue(value, forKeyPath: name)
     }
 
@@ -189,13 +213,13 @@ extension UIButton {
 
     open override class var expressionTypes: [String: RuntimeType] {
         var types = super.expressionTypes
-        types["type"] = RuntimeType([
-            "custom": UIButtonType.custom.rawValue,
-            "system": UIButtonType.custom.rawValue,
-            "detailDisclosure": UIButtonType.custom.rawValue,
-            "infoLight": UIButtonType.infoLight.rawValue,
-            "infoDark": UIButtonType.infoLight.rawValue,
-            "contactAdd": UIButtonType.infoLight.rawValue,
+        types["type"] = RuntimeType(UIButtonType.self, [
+            "custom": .custom,
+            "system": .system,
+            "detailDisclosure": .detailDisclosure,
+            "infoLight": .infoLight,
+            "infoDark": .infoDark,
+            "contactAdd": .contactAdd,
         ])
         types["buttonType"] = types["type"]
         return types
@@ -204,7 +228,7 @@ extension UIButton {
     open override func setValue(_ value: Any, forExpression name: String) throws {
         switch name {
         case "type", "buttonType":
-            setValue(value, forKey: "buttonType")
+            setValue((value as! UIButtonType).rawValue, forKey: "buttonType")
         default:
             try super.setValue(value, forExpression: name)
         }
@@ -212,59 +236,59 @@ extension UIButton {
 }
 
 private let textInputTraits: [String: RuntimeType] = {
-    var keyboardTypes = [
-        "default": UIKeyboardType.default.rawValue,
-        "asciiCapable": UIKeyboardType.asciiCapable.rawValue,
-        "numbersAndPunctuation": UIKeyboardType.numbersAndPunctuation.rawValue,
-        "URL": UIKeyboardType.URL.rawValue,
-        "url": UIKeyboardType.URL.rawValue,
-        "numberPad": UIKeyboardType.numberPad.rawValue,
-        "phonePad": UIKeyboardType.phonePad.rawValue,
-        "namePhonePad": UIKeyboardType.namePhonePad.rawValue,
-        "emailAddress": UIKeyboardType.emailAddress.rawValue,
-        "decimalPad": UIKeyboardType.decimalPad.rawValue,
-        "twitter": UIKeyboardType.twitter.rawValue,
-        "webSearch": UIKeyboardType.webSearch.rawValue,
+    var keyboardTypes: [String: UIKeyboardType] = [
+        "default": .default,
+        "asciiCapable": .asciiCapable,
+        "numbersAndPunctuation": .numbersAndPunctuation,
+        "URL": .URL,
+        "url": .URL,
+        "numberPad": .numberPad,
+        "phonePad": .phonePad,
+        "namePhonePad": .namePhonePad,
+        "emailAddress": .emailAddress,
+        "decimalPad": .decimalPad,
+        "twitter": .twitter,
+        "webSearch": .webSearch,
     ]
     if #available(iOS 10.0, *) {
-        keyboardTypes["asciiCapableNumberPad"] = UIKeyboardType.asciiCapableNumberPad.rawValue
+        keyboardTypes["asciiCapableNumberPad"] = .asciiCapableNumberPad
     }
     return [
-        "autocapitalizationType": RuntimeType([
-            "none": UITextAutocapitalizationType.none.rawValue,
-            "words": UITextAutocapitalizationType.words.rawValue,
-            "sentences": UITextAutocapitalizationType.sentences.rawValue,
-            "allCharacters": UITextAutocapitalizationType.allCharacters.rawValue,
+        "autocapitalizationType": RuntimeType(UITextAutocapitalizationType.self, [
+            "none": .none,
+            "words": .words,
+            "sentences": .sentences,
+            "allCharacters": .allCharacters,
         ]),
-        "autocorrectionType": RuntimeType([
-            "default": UITextAutocorrectionType.default.rawValue,
-            "no": UITextAutocorrectionType.no.rawValue,
-            "yes": UITextAutocorrectionType.yes.rawValue,
+        "autocorrectionType": RuntimeType(UITextAutocorrectionType.self, [
+            "default": .default,
+            "no": .no,
+            "yes": .yes,
         ]),
-        "spellCheckingType": RuntimeType([
-            "default": UITextSpellCheckingType.default.rawValue,
-            "no": UITextSpellCheckingType.no.rawValue,
-            "yes": UITextSpellCheckingType.yes.rawValue,
+        "spellCheckingType": RuntimeType(UITextSpellCheckingType.self, [
+            "default": .default,
+            "no": .no,
+            "yes": .yes,
         ]),
-        "keyboardType": RuntimeType(keyboardTypes),
-        "keyboardAppearance": RuntimeType([
-            "default": UIKeyboardAppearance.default.rawValue,
-            "dark": UIKeyboardAppearance.dark.rawValue,
-            "light": UIKeyboardAppearance.light.rawValue,
+        "keyboardType": RuntimeType(UIKeyboardType.self, keyboardTypes),
+        "keyboardAppearance": RuntimeType(UIKeyboardAppearance.self, [
+            "default": .default,
+            "dark": .dark,
+            "light": .light,
         ]),
-        "returnKeyType": RuntimeType([
-            "default": UIReturnKeyType.default.rawValue,
-            "go": UIReturnKeyType.go.rawValue,
-            "google": UIReturnKeyType.google.rawValue,
-            "join": UIReturnKeyType.join.rawValue,
-            "next": UIReturnKeyType.next.rawValue,
-            "route": UIReturnKeyType.route.rawValue,
-            "search": UIReturnKeyType.search.rawValue,
-            "send": UIReturnKeyType.send.rawValue,
-            "yahoo": UIReturnKeyType.yahoo.rawValue,
-            "done": UIReturnKeyType.done.rawValue,
-            "emergencyCall": UIReturnKeyType.emergencyCall.rawValue,
-            "continue": UIReturnKeyType.continue.rawValue,
+        "returnKeyType": RuntimeType(UIReturnKeyType.self, [
+            "default": .default,
+            "go": .go,
+            "google": .google,
+            "join": .join,
+            "next": .next,
+            "route": .route,
+            "search": .search,
+            "send": .send,
+            "yahoo": .yahoo,
+            "done": .done,
+            "emergencyCall": .emergencyCall,
+            "continue": .continue,
         ]),
         "enablesReturnKeyAutomatically": RuntimeType(Bool.self),
         "isSecureTextEntry": RuntimeType(Bool.self),
@@ -272,10 +296,10 @@ private let textInputTraits: [String: RuntimeType] = {
 }()
 
 private let textTraits = [
-    "textAlignment": RuntimeType([
-        "left": NSTextAlignment.left.rawValue,
-        "right": NSTextAlignment.right.rawValue,
-        "center": NSTextAlignment.center.rawValue,
+    "textAlignment": RuntimeType(NSTextAlignment.self, [
+        "left": .left,
+        "right": .right,
+        "center": .center,
     ])
 ]
 
@@ -285,20 +309,20 @@ extension UILabel {
         for (name, type) in textTraits {
             types[name] = type
         }
-        types["baselineAdjustment"] = RuntimeType([
-            "alignBaselines": UIBaselineAdjustment.alignBaselines.rawValue,
-            "alignCenters": UIBaselineAdjustment.alignCenters.rawValue,
-            "none": UIBaselineAdjustment.none.rawValue,
+        types["baselineAdjustment"] = RuntimeType(UIBaselineAdjustment.self, [
+            "alignBaselines": .alignBaselines,
+            "alignCenters": .alignCenters,
+            "none": .none,
         ])
         return types
     }
 }
 
-private let textFieldViewMode = RuntimeType([
-    "never": UITextFieldViewMode.never.rawValue,
-    "whileEditing": UITextFieldViewMode.whileEditing.rawValue,
-    "unlessEditing": UITextFieldViewMode.unlessEditing.rawValue,
-    "always": UITextFieldViewMode.always.rawValue,
+private let textFieldViewMode = RuntimeType(UITextFieldViewMode.self, [
+    "never": .never,
+    "whileEditing": .whileEditing,
+    "unlessEditing": .unlessEditing,
+    "always": .always,
 ])
 
 extension UITextField {
@@ -310,11 +334,11 @@ extension UITextField {
         for (name, type) in textTraits {
             types[name] = type
         }
-        types["borderStyle"] = RuntimeType([
-            "none": UITextBorderStyle.none.rawValue,
-            "line": UITextBorderStyle.line.rawValue,
-            "bezel": UITextBorderStyle.bezel.rawValue,
-            "roundedRect": UITextBorderStyle.roundedRect.rawValue,
+        types["borderStyle"] = RuntimeType(UITextBorderStyle.self, [
+            "none": .none,
+            "line": .line,
+            "bezel": .bezel,
+            "roundedRect": .roundedRect,
         ])
         types["clearButtonMode"] = textFieldViewMode
         types["leftViewMode"] = textFieldViewMode
@@ -323,20 +347,19 @@ extension UITextField {
     }
 
     open override func setValue(_ value: Any, forExpression name: String) throws {
-        // NOTE: for some reason, these properties don't support KVC
         switch name {
         case "autocapitalizationType":
-            autocapitalizationType = UITextAutocapitalizationType(rawValue: value as! Int)!
+            autocapitalizationType = value as! UITextAutocapitalizationType
         case "autocorrectionType":
-            autocorrectionType = UITextAutocorrectionType(rawValue: value as! Int)!
+            autocorrectionType = value as! UITextAutocorrectionType
         case "spellCheckingType":
-            spellCheckingType = UITextSpellCheckingType(rawValue: value as! Int)!
+            spellCheckingType = value as! UITextSpellCheckingType
         case "keyboardType":
-            keyboardType = UIKeyboardType(rawValue: value as! Int)!
+            keyboardType = value as! UIKeyboardType
         case "keyboardAppearance":
-            keyboardAppearance = UIKeyboardAppearance(rawValue: value as! Int)!
+            keyboardAppearance = value as! UIKeyboardAppearance
         case "returnKeyType":
-            returnKeyType = UIReturnKeyType(rawValue: value as! Int)!
+            returnKeyType = value as! UIReturnKeyType
         case "enablesReturnKeyAutomatically":
             enablesReturnKeyAutomatically = value as! Bool
         case "isSecureTextEntry":
@@ -360,20 +383,19 @@ extension UITextView {
     }
 
     open override func setValue(_ value: Any, forExpression name: String) throws {
-        // NOTE: for some reason, these properties don't support KVC
         switch name {
         case "autocapitalizationType":
-            autocapitalizationType = UITextAutocapitalizationType(rawValue: value as! Int)!
+            autocapitalizationType = value as! UITextAutocapitalizationType
         case "autocorrectionType":
-            autocorrectionType = UITextAutocorrectionType(rawValue: value as! Int)!
+            autocorrectionType = value as! UITextAutocorrectionType
         case "spellCheckingType":
-            spellCheckingType = UITextSpellCheckingType(rawValue: value as! Int)!
+            spellCheckingType = value as! UITextSpellCheckingType
         case "keyboardType":
-            keyboardType = UIKeyboardType(rawValue: value as! Int)!
+            keyboardType = value as! UIKeyboardType
         case "keyboardAppearance":
-            keyboardAppearance = UIKeyboardAppearance(rawValue: value as! Int)!
+            keyboardAppearance = value as! UIKeyboardAppearance
         case "returnKeyType":
-            returnKeyType = UIReturnKeyType(rawValue: value as! Int)!
+            returnKeyType = value as! UIReturnKeyType
         case "enablesReturnKeyAutomatically":
             enablesReturnKeyAutomatically = value as! Bool
         case "isSecureTextEntry":

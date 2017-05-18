@@ -13,19 +13,19 @@ import Layout
 extension NorthstarLabel {
     override open class var expressionTypes: [String: RuntimeType] {
         var types = super.expressionTypes
-        types["textStyle"] = RuntimeType([
-            "heading0": NorthstarTextStyle.heading0(.defaultColor),
-            "heading1": NorthstarTextStyle.heading1(.defaultColor),
-            "body": NorthstarTextStyle.body(.defaultColor),
-            "bodyBold": NorthstarTextStyle.bodyBold(.defaultColor),
-            "bodyAlt": NorthstarTextStyle.bodyAlt(.defaultColor),
-            "bodyHint": NorthstarTextStyle.bodyHint(.defaultColor),
-            "bodyColor": NorthstarTextStyle.bodyColor(.defaultColor),
-            "bodyWhite": NorthstarTextStyle.bodyWhite(.defaultColor),
-            "bodyError": NorthstarTextStyle.bodyColor(.colored(.northstarError)),
-            "bodySoft": NorthstarTextStyle.bodyColor(.colored(.northstarSoft)),
-            "small": NorthstarTextStyle.small(.defaultColor),
-            "smallColor": NorthstarTextStyle.smallColor(.defaultColor),
+        types["textStyle"] = RuntimeType(NorthstarTextStyle.self, [
+            "heading0": .heading0(.defaultColor),
+            "heading1": .heading1(.defaultColor),
+            "body": .body(.defaultColor),
+            "bodyBold": .bodyBold(.defaultColor),
+            "bodyAlt": .bodyAlt(.defaultColor),
+            "bodyHint": .bodyHint(.defaultColor),
+            "bodyColor": .bodyColor(.defaultColor),
+            "bodyWhite": .bodyWhite(.defaultColor),
+            "bodyError": .bodyColor(.colored(.northstarError)),
+            "bodySoft": .bodyColor(.colored(.northstarSoft)),
+            "small": .small(.defaultColor),
+            "smallColor": .smallColor(.defaultColor),
         ])
         return types
     }

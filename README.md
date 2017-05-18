@@ -594,15 +594,15 @@ The `RuntimeType` class shown in the example is a type wrapper used by Layout to
 
 	RuntimeType(MyStructType.self)
 	
-It can also be used to specify a set of legitimate enum values:
+It can also be used to specify a set of enum values:
 
-	RuntimeType([
-        "left": NSTextAlignment.left.rawValue,
-        "right": NSTextAlignment.right.rawValue,
-        "center": NSTextAlignment.center.rawValue,
+	RuntimeType(NSTextAlignment.self, [
+        "left": .left,
+        "right": .right,
+        "center": .center,
     ])
 
-For an enum, you can choose to use either the enum values themselves or the `rawValue`s if they exist. If the type of the property matches the `rawValue` (as is the case for most Objective-C APIs) then it's typically not necessary to also provide a custom `setValue(forExpression:)` implementation, but you'll have to determine this on a per-case basis.
+Swift enum values cannot be set automatically using the Objective-C runtime, but if the underlying type of the property matches the `rawValue` (as is the case for most Objective-C APIs) then it's typically not necessary to also provide a custom `setValue(forExpression:)` implementation. You'll have to determine this on a per-case basis.
 
 
 # Advanced Topics 

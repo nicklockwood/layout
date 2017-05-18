@@ -16,19 +16,19 @@ extension UIViewController {
         types["tabBarItem.title"] = RuntimeType(String.self)
         types["tabBarItem.image"] = RuntimeType(UIImage.self)
         types["tabBarItem.selectedImage"] = RuntimeType(UIImage.self)
-        types["tabBarItem.systemItem"] = RuntimeType([
-            "more": UITabBarSystemItem.more.rawValue,
-            "favorites": UITabBarSystemItem.favorites.rawValue,
-            "featured": UITabBarSystemItem.featured.rawValue,
-            "topRated": UITabBarSystemItem.topRated.rawValue,
-            "recents": UITabBarSystemItem.recents.rawValue,
-            "contacts": UITabBarSystemItem.contacts.rawValue,
-            "history": UITabBarSystemItem.history.rawValue,
-            "bookmarks": UITabBarSystemItem.bookmarks.rawValue,
-            "search": UITabBarSystemItem.search.rawValue,
-            "downloads": UITabBarSystemItem.downloads.rawValue,
-            "mostRecent": UITabBarSystemItem.mostRecent.rawValue,
-            "mostViewed": UITabBarSystemItem.mostViewed.rawValue,
+        types["tabBarItem.systemItem"] = RuntimeType(UITabBarSystemItem.self, [
+            "more": .more,
+            "favorites": .favorites,
+            "featured": .featured,
+            "topRated": .topRated,
+            "recents": .recents,
+            "contacts": .contacts,
+            "history": .history,
+            "bookmarks": .bookmarks,
+            "search": .search,
+            "downloads": .downloads,
+            "mostRecent": .mostRecent,
+            "mostViewed": .mostViewed,
         ])
         return types
     }
@@ -54,8 +54,12 @@ extension UIViewController {
         case "tabBarItem.selectedImage":
             updateTabBarItem(selectedImage: value as? UIImage)
         case "tabBarItem.systemItem":
-            tabBarItem = UITabBarItem(tabBarSystemItem: UITabBarSystemItem(rawValue: value as! Int)!, tag: 0)
+            tabBarItem = UITabBarItem(tabBarSystemItem: value as! UITabBarSystemItem, tag: 0)
         default:
+            var value = value
+            if let type = type(of: self).expressionTypes[name]?.type, case let .enum(_, _, adaptor) = type {
+                value = adaptor(value) // TODO: something nicer than this
+            }
             try _setValue(value, forKeyPath: name)
         }
     }

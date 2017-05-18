@@ -12,7 +12,7 @@ public class RuntimeType: NSObject {
     public enum Kind {
         case any(Any.Type)
         case `protocol`(Protocol)
-        case `enum`([String: Any])
+        case `enum`(Any.Type, [String: Any], (Any) -> Any)
     }
 
     public let type: Kind
@@ -25,18 +25,21 @@ public class RuntimeType: NSObject {
         self.type = .protocol(type)
     }
 
-    @nonobjc public init(_ type: [String: Any]) {
-        self.type = .enum(type)
+    @nonobjc public init<T: RawRepresentable>(_ type: T.Type, _ values: [String: T]) {
+        self.type = .enum(type, values, { return ($0 as! T).rawValue })
+    }
+
+    @nonobjc public init<T: Any>(_ type: T.Type, _ values: [String: T]) {
+        self.type = .enum(type, values, { $0 })
     }
 
     override public var description: String {
         switch type {
-        case let .any(type):
+        case let .any(type),
+             let .enum(type, _, _):
             return "\(type)"
         case let .protocol(type):
             return "\(type)"
-        case let .enum(values):
-            return "\(values.first?.value ?? "")"
         }
     }
 
@@ -71,14 +74,10 @@ public class RuntimeType: NSObject {
             default:
                 return subtype == type(of: value) || "\(subtype)" == "\(type(of: value))" ? value: nil
             }
-        case let .enum(enumValues):
+        case let .enum(type, enumValues, _):
             if let key = value as? String, let value = enumValues[key] {
                 return value
             }
-            guard let firstValue = enumValues.first?.value else {
-                return nil
-            }
-            let type = type(of: firstValue)
             if type != type(of: value) {
                 return nil
             }
