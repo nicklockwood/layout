@@ -1,6 +1,6 @@
 PODS:
   - Expression (0.5.0)
-  - Layout (0.1.1):
+  - Layout (0.2.0):
     - Expression (~> 0.5.0)
 
 DEPENDENCIES:
@@ -12,7 +12,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   Expression: 269b3d7498145165b80444a358df570f9bbc68e0
-  Layout: 22706189ec2046670ebfd1aaab80c252c1336e13
+  Layout: 9bc6e9b40dd6ed6b1a7d4875afdff5ef21d82844
 
 PODFILE CHECKSUM: de763472315fa391cbc8751113c14e4ffd2dd3fe
 

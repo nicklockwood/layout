@@ -84,16 +84,16 @@ public class LayoutNode: NSObject {
     // MARK: Validation
 
     public static func isValidExpressionName(
-        _ name: String, for viewOrViewControllerClass: NSObject.Type) -> Bool {
+        _ name: String, for viewOrViewControllerClass: AnyClass) -> Bool {
         switch name {
         case "top", "left", "bottom", "right", "width", "height":
             return true
-        case _ where viewOrViewControllerClass is UIView.Type:
-            return viewOrViewControllerClass.allPropertyTypes()[name] != nil
-        case _ where viewOrViewControllerClass is UIViewController.Type:
-            return viewOrViewControllerClass.allPropertyTypes()[name] != nil ||
-                UIView.allPropertyTypes()[name] != nil
         default:
+            if let viewClass = viewOrViewControllerClass as? UIView.Type {
+                return viewClass.expressionTypes[name] != nil
+            } else if let viewControllerClass = viewOrViewControllerClass as? UIViewController.Type {
+                return viewControllerClass.expressionTypes[name] != nil
+            }
             preconditionFailure("\(viewOrViewControllerClass) is not a UIView or UIViewController subclass")
         }
     }
@@ -196,19 +196,18 @@ public class LayoutNode: NSObject {
 
     // MARK: State
 
-    public var state: Any {
+    public var state: Any = () {
         didSet {
-            if let newState = state as? [String: Any] {
-                // Merge
-                if var oldState = oldValue as? [String: Any] {
-                    for (key, value) in newState {
-                        assert(oldState[key] != nil, "Cannot add new keys to state after initialization")
-                        oldState[key] = value
-                    }
-                    state = oldState
+            if let newState = state as? [String: Any], var oldState = oldValue as? [String: Any] {
+                for (key, value) in newState {
+                    assert(oldState[key] != nil, "Cannot add new keys to state after initialization")
+                    oldState[key] = value
                 }
+                state = oldState
             } else {
-                assert(type(of: oldValue) == type(of: state), "Cannot change type of state after initialization")
+                let oldType = type(of: oldValue)
+                assert(oldType == Void.self || oldType == type(of: state),
+                       "Cannot change type of state after initialization")
             }
             updateVariables()
         }
