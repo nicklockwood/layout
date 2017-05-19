@@ -11,6 +11,14 @@ import XCTest
 
 class LayoutNodeTests: XCTestCase {
 
+    func testInvalidExpression() {
+        let node = LayoutNode(expressions: ["foobar": "5"])
+        let errors = node.validate()
+        XCTAssertEqual(errors.count, 1)
+        XCTAssertTrue(errors.first?.description.contains("Unknown expression") == true)
+        XCTAssertTrue(errors.first?.description.contains("foobar") == true)
+    }
+
     func testCircularReference1() {
         let node = LayoutNode(expressions: ["top": "top"])
         let errors = node.validate()

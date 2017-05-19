@@ -102,7 +102,7 @@ public class LayoutNode: NSObject {
     public func validate(recursive: Bool = true) -> Set<LayoutError> {
         var errors = Set<LayoutError>()
         for name in expressions.keys {
-            guard let expression = expression(for: name) else {
+            guard let expression = self.expression(for: name) else {
                 errors.insert(LayoutError(SymbolError("Unknown expression name `\(name)`", for: name), for: self))
                 continue
             }
@@ -384,7 +384,7 @@ public class LayoutNode: NSObject {
             view.removeConstraint(heightConstraint)
             _heightConstraint = nil
         }
-        if children.isEmpty, !view.constraints.isEmpty {
+        if !view.constraints.isEmpty {
             for constraint in view.constraints where constraint.priority == UILayoutPriorityRequired {
                 // Prevent priority conflicts with Layout constraints
                 // TODO: can we limit this only to constraints that affect width/height?
@@ -403,7 +403,7 @@ public class LayoutNode: NSObject {
     private var _cachedExpressions = [String: LayoutExpression]()
     private func expression(for symbol: String) -> LayoutExpression? {
         if let expression = _cachedExpressions[symbol] {
-            return expression
+            return expression.isVoid ? nil : expression
         }
         if let string = expressions[symbol] {
             var expression: LayoutExpression
@@ -418,7 +418,9 @@ public class LayoutNode: NSObject {
                 expression = LayoutExpression(heightExpression: string, for: self)
             default:
                 guard let type = viewControllerExpressionTypes[symbol] ?? viewExpressionTypes[symbol] else {
-                    return nil // Not a valid expression
+                    expression = .void // NOTE: if we don't set the expression variable, the app crashes (Swift bug?)
+                    _cachedExpressions[symbol] = expression
+                    return nil
                 }
                 expression = LayoutExpression(expression: string, ofType: type, for: self)
             }
@@ -493,7 +495,7 @@ public class LayoutNode: NSObject {
     }
 
     func value(forSymbol name: String, dependsOn symbol: String) -> Bool {
-        if let expression = expression(for: name) {
+        if let expression = self.expression(for: name) {
             for name in expression.symbols where name == symbol || value(forSymbol: name, dependsOn: symbol) {
                 return true
             }
@@ -532,7 +534,7 @@ public class LayoutNode: NSObject {
             return try SymbolError.wrap(getter, for: symbol)
         }
         let getter: () throws -> Any?
-        if let expression = expression(for: symbol) {
+        if let expression = self.expression(for: symbol) {
             getter = { [unowned self] in
                 if self._evaluating.last == symbol,
                     let value = self.value(forVariable: symbol) ?? self.value(forConstant: symbol) {

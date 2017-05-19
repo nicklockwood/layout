@@ -115,16 +115,22 @@ extension NSObject {
         if let memoized = objc_getAssociatedObject(self, &propertiesKey) as? [String: RuntimeType] {
             return memoized
         }
+        if "\(self)".hasPrefix("_") {
+            // We don't want to mess with private stuff
+            return [:]
+        }
         // Gather properties
         var allProperties = [String: RuntimeType]()
         var numberOfProperties: CUnsignedInt = 0
-        let properties = class_copyPropertyList(self, &numberOfProperties)
+        guard let properties = class_copyPropertyList(self, &numberOfProperties) else {
+            return [:]
+        }
         for i in 0 ..< Int(numberOfProperties) {
-            let cprop = properties?[i].unsafelyUnwrapped
+            let cprop = properties[i]
             if let cname = property_getName(cprop), let cattribs = property_getAttributes(cprop) {
                 var name = String(cString: cname)
                 if name.hasPrefix("_") {
-                    // Don't want to mess with private stuff
+                    // We don't want to mess with private stuff
                     continue
                 }
                 // Get (non-readonly) attributes
