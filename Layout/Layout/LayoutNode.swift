@@ -90,9 +90,9 @@ public class LayoutNode: NSObject {
             return true
         default:
             if let viewClass = viewOrViewControllerClass as? UIView.Type {
-                return viewClass.expressionTypes[name] != nil
+                return viewClass.cachedExpressionTypes[name] != nil
             } else if let viewControllerClass = viewOrViewControllerClass as? UIViewController.Type {
-                return viewControllerClass.expressionTypes[name] != nil
+                return viewControllerClass.cachedExpressionTypes[name] != nil
             }
             preconditionFailure("\(viewOrViewControllerClass) is not a UIView or UIViewController subclass")
         }
@@ -507,11 +507,11 @@ public class LayoutNode: NSObject {
     }
 
     public lazy var viewExpressionTypes: [String: RuntimeType] = {
-        return type(of: self.view).expressionTypes
+        return type(of: self.view).cachedExpressionTypes
     }()
 
     public lazy var viewControllerExpressionTypes: [String: RuntimeType] = {
-        return self.viewController.map({ type(of: $0) })?.expressionTypes ?? [:]
+        return self.viewController.map { type(of: $0).cachedExpressionTypes } ?? [:]
     }()
 
     private class func isLayoutSymbol(_ name: String) -> Bool {

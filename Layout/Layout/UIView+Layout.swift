@@ -48,28 +48,70 @@ extension UIView {
             "bottomLeft": .bottomLeft,
             "bottomRight": .bottomRight,
         ])
-        // Explicitly disabled view properties
-        types["frame"] = nil
-        types["bounds"] = nil
-        types["center"] = nil
-        types["autoresizingMask"] = nil
+        types[""] = nil
         // TODO: better approach to layer properties?
         for (name, type) in (layerClass as! NSObject.Type).allPropertyTypes() {
             types["layer.\(name)"] = type
         }
         types["layer.borderColor"] = RuntimeType(CGColor.self)
-        // Explicitly disabled layer properties
-        types["layer.frame"] = nil
-        types["layer.bounds"] = nil
-        types["layer.position"] = nil
-        types["layer.anchorPoint"] = nil
+        // Explicitly disabled properties
+        for name in [
+            "autoresizingMask",
+            "bounds",
+            "bounds.x",
+            "bounds.y",
+            "bounds.width",
+            "bounds.height",
+            "bounds.origin",
+            "bounds.size",
+            "center",
+            "center.x",
+            "center.y",
+            "frame",
+            "frame.x",
+            "frame.y",
+            "frame.width",
+            "frame.height",
+            "frame.origin",
+            "frame.size",
+            "layer.anchorPoint",
+            "layer.bounds",
+            "layer.bounds.x",
+            "layer.bounds.y",
+            "layer.bounds.width",
+            "layer.bounds.height",
+            "layer.bounds.origin",
+            "layer.bounds.size",
+            "layer.frame",
+            "layer.frame.x",
+            "layer.frame.y",
+            "layer.frame.width",
+            "layer.frame.height",
+            "layer.frame.origin",
+            "layer.frame.size",
+            "layer.position",
+            "layer.position.x",
+            "layer.position.y",
+        ] {
+            types.removeValue(forKey: name)
+        }
+        return types
+    }
+
+    private static var propertiesKey = 0
+    class var cachedExpressionTypes: [String: RuntimeType] {
+        if let types = objc_getAssociatedObject(self, &propertiesKey) as? [String: RuntimeType] {
+            return types
+        }
+        let types = expressionTypes
+        objc_setAssociatedObject(self, &propertiesKey, types, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         return types
     }
 
     // Set expression value
     open func setValue(_ value: Any, forExpression name: String) throws {
         var value = value
-        if let type = type(of: self).expressionTypes[name]?.type, case let .enum(_, _, adaptor) = type {
+        if let type = type(of: self).cachedExpressionTypes[name]?.type, case let .enum(_, _, adaptor) = type {
             value = adaptor(value) // TODO: something nicer than this
         }
         try _setValue(value, forKeyPath: name)

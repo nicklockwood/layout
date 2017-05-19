@@ -33,6 +33,16 @@ extension UIViewController {
         return types
     }
 
+    private static var propertiesKey = 0
+    class var cachedExpressionTypes: [String: RuntimeType] {
+        if let types = objc_getAssociatedObject(self, &propertiesKey) as? [String: RuntimeType] {
+            return types
+        }
+        let types = expressionTypes
+        objc_setAssociatedObject(self, &propertiesKey, types, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+        return types
+    }
+
     private func updateTabBarItem(title: String? = nil, image: UIImage? = nil, selectedImage: UIImage? = nil) {
         let title = title ?? tabBarItem?.title
         let image = image ?? tabBarItem?.image
