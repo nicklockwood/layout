@@ -1,3 +1,13 @@
+## [0.2.1](https://github.schibsted.io/Rocket/layout/releases/tag/0.2.1) (2017-05-19)
+
+- Setting state to the same value no longer triggers an update
+- Added support for common Core Graphics geometry types such as `CGPoint`/`CGSize`
+- Added support for `UIEdgeInsets`-type properties, and affine/3D transforms
+- Passing an invalid expression name now throws an exception instead of crashing
+- Using an Optional or implicitly unwrapped Optional for state no longer fails
+- Improved handling of Optionals and nil values in constants and state variables
+- Fixed some bugs where constants or state variable names shadowed view properties
+
 ## [0.2.0](https://github.schibsted.io/Rocket/layout/releases/tag/0.2.0) (2017-05-18)
 
 - Improved support for enums - it's no longer neccesary to explicitly work with raw values (breaking change)

@@ -68,4 +68,40 @@ class StateTests: XCTestCase {
         XCTAssertEqual(try node.value(forSymbol: "bar") as? String, nil)
         XCTAssertEqual(try node.value(forSymbol: "text") as? String, "5 nil")
     }
+
+    class TestVC: UIViewController {
+        var updated = false
+
+        override func didUpdateLayout(for node: LayoutNode) {
+            updated = true
+        }
+    }
+
+    func testStateDictionaryUpdates() {
+        let node = LayoutNode(state: ["foo": 5, "bar": "baz"], expressions: ["top": "foo"])
+        let vc = TestVC()
+        try! node.mount(in: vc)
+        XCTAssertTrue(vc.updated)
+        vc.updated = false
+        node.state = ["foo": 6, "bar": "baz"] // Changed
+        XCTAssertTrue(vc.updated)
+        vc.updated = false
+        node.state = ["foo": 6, "bar": "baz"] // Not changed
+        XCTAssertFalse(vc.updated)
+    }
+
+    func testStateStructUpdates() {
+        var state = TestState()
+        let node = LayoutNode(state: state, expressions: ["top": "foo"])
+        let vc = TestVC()
+        try! node.mount(in: vc)
+        XCTAssertTrue(vc.updated)
+        vc.updated = false
+        state.foo = 6
+        node.state = state // Changed
+        XCTAssertTrue(vc.updated)
+        vc.updated = false
+        node.state = state // Not changed
+        XCTAssertFalse(vc.updated)
+    }
 }

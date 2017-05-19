@@ -196,40 +196,57 @@ public class LayoutNode: NSObject {
 
     // MARK: State
 
+    private func areEqual(_ lhs: Any, _ rhs: Any) -> Bool {
+        if let lhs = lhs as? AnyHashable, let rhs = rhs as? AnyHashable {
+            return lhs == rhs
+        }
+        return false // Can't compare equality
+    }
+
     public var state: Any {
         didSet {
+            var equal = true
             if let newState = state as? [String: Any], var oldState = oldValue as? [String: Any] {
                 for (key, value) in newState {
-                    assert(oldState[key] != nil, "Cannot add new keys to state after initialization")
+                    guard let oldValue = oldState[key] else {
+                        preconditionFailure("Cannot add new keys to state after initialization")
+                    }
+                    equal = equal && areEqual(oldValue, value)
                     oldState[key] = value
                 }
                 state = oldState
             } else {
                 state = try! unwrap(state)
                 let oldType = type(of: oldValue)
-                assert(oldType == Void.self || oldType == type(of: state),
-                       "Cannot change type of state after initialization")
+                assert(oldType == Void.self || oldType == type(of: state), "Cannot change type of state after initialization")
+                equal = areEqual(oldValue, state)
             }
-            updateVariables()
+            if !equal {
+                updateVariables()
+            }
         }
     }
 
     private var _variables = [String: Any]()
     private func updateVariables() {
+        var equal = true
         if let members = state as? [String: Any] {
+            equal = false // Shouldn't get here otherwise
             _variables = members
         } else {
             // TODO: flatten nested objects
             let mirror = Mirror(reflecting: state)
             for (name, value) in mirror.children {
-                if let name = name {
+                if let name = name, (equal && areEqual(_variables[name] as Any, value)) == false {
                     _variables[name] = value
+                    equal = false
                 }
             }
         }
-
-        // TODO: work out which expressions are actually affected
-        attempt(update)
+        if !equal {
+            // TODO: work out which expressions are actually affected
+            attempt(update)
+        }
     }
 
     // MARK: Hierarchy
