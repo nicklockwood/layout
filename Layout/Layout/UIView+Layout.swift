@@ -103,42 +103,6 @@ extension UIView {
 }
 
 extension UIScrollView {
-    open override class var expressionTypes: [String: RuntimeType] {
-        var types = super.expressionTypes
-        types["contentInset.top"] = RuntimeType(CGFloat.self)
-        types["contentInset.bottom"] = RuntimeType(CGFloat.self)
-        types["contentInset.left"] = RuntimeType(CGFloat.self)
-        types["contentInset.right"] = RuntimeType(CGFloat.self)
-        types["scrollIndicatorInsets.top"] = RuntimeType(CGFloat.self)
-        types["scrollIndicatorInsets.bottom"] = RuntimeType(CGFloat.self)
-        types["scrollIndicatorInsets.left"] = RuntimeType(CGFloat.self)
-        types["scrollIndicatorInsets.right"] = RuntimeType(CGFloat.self)
-        return types
-    }
-
-    open override func setValue(_ value: Any, forExpression name: String) throws {
-        switch name {
-        case "contentInset.top":
-            contentInset.top = value as! CGFloat
-        case "contentInset.bottom":
-            contentInset.bottom = value as! CGFloat
-        case "contentInset.left":
-            contentInset.left = value as! CGFloat
-        case "contentInset.right":
-            contentInset.right = value as! CGFloat
-        case "scrollIndicatorInsets.top":
-            scrollIndicatorInsets.top = value as! CGFloat
-        case "scrollIndicatorInsets.bottom":
-            scrollIndicatorInsets.bottom = value as! CGFloat
-        case "scrollIndicatorInsets.left":
-            scrollIndicatorInsets.left = value as! CGFloat
-        case "scrollIndicatorInsets.right":
-            scrollIndicatorInsets.right = value as! CGFloat
-        default:
-            try super.setValue(value, forExpression: name)
-        }
-    }
-
     open override func didUpdateLayout(for node: LayoutNode) {
         // Update contentSize
         contentSize = node.contentSize

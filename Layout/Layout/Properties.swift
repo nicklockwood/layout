@@ -203,8 +203,23 @@ extension NSObject {
                             allProperties["\(name).origin"] = RuntimeType(CGPoint.self)
                             allProperties["\(name).size"] = RuntimeType(CGSize.self)
                         }
+                    } else if typeAttrib.hasPrefix("T{UIEdgeInsets") {
+                        type = RuntimeType(UIEdgeInsets.self)
+                        if allProperties[name] == nil {
+                            allProperties["\(name).top"] = RuntimeType(CGFloat.self)
+                            allProperties["\(name).left"] = RuntimeType(CGFloat.self)
+                            allProperties["\(name).bottom"] = RuntimeType(CGFloat.self)
+                            allProperties["\(name).right"] = RuntimeType(CGFloat.self)
+                        }
+                    } else if typeAttrib.hasPrefix("T{CGAffineTransform") {
+                        // TODO: provide some kind of access to transform members
+                        type = RuntimeType(CGAffineTransform.self)
+                    } else if typeAttrib.hasPrefix("T{CATransform3D") {
+                        // TODO: provide some kind of access to transform members
+                        type = RuntimeType(CATransform3D.self)
                     } else {
-                        continue
+                        // Generic struct type
+                        type = RuntimeType(NSValue.self)
                     }
                 default:
                     // Unsupported type
@@ -313,6 +328,25 @@ extension NSObject {
                     rect.size = value as! CGSize
                     newValue = rect as NSValue
                 }
+            case var insets as UIEdgeInsets:
+                if value is NSNumber {
+                    switch key {
+                    case "top":
+                        insets.top = CGFloat(value as! NSNumber)
+                        newValue = insets as NSValue
+                    case "left":
+                        insets.left = CGFloat(value as! NSNumber)
+                        newValue = insets as NSValue
+                    case "bottom":
+                        insets.bottom = CGFloat(value as! NSNumber)
+                        newValue = insets as NSValue
+                    case "right":
+                        insets.right = CGFloat(value as! NSNumber)
+                        newValue = insets as NSValue
+                    default:
+                        break
+                    }
+                }
             default:
                 break
             }
@@ -369,6 +403,19 @@ extension NSObject {
                         value = rect.origin as NSValue
                     case "size":
                         value = rect.size as NSValue
+                    default:
+                        return nil
+                    }
+                case let insets as UIEdgeInsets:
+                    switch key {
+                    case "top":
+                        return insets.top
+                    case "left":
+                        return insets.left
+                    case "bottom":
+                        return insets.bottom
+                    case "right":
+                        return insets.right
                     default:
                         return nil
                     }

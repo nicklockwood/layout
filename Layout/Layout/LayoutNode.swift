@@ -422,7 +422,19 @@ public class LayoutNode: NSObject {
                     _cachedExpressions[symbol] = expression
                     return nil
                 }
-                expression = LayoutExpression(expression: string, ofType: type, for: self)
+                if case let .any(kind) = type.type, kind is CGFloat.Type {
+                    // Allow use of % in any vertical/horizontal property expression
+                    let parts = symbol.components(separatedBy: ".")
+                    if ["left", "right", "x", "width"].contains(parts.last!) {
+                        expression = LayoutExpression(xExpression: string, for: self)
+                    } else if ["top", "bottom", "y", "height"].contains(parts.last!) {
+                        expression = LayoutExpression(yExpression: string, for: self)
+                    } else {
+                        expression = LayoutExpression(expression: string, ofType: type, for: self)
+                    }
+                } else {
+                    expression = LayoutExpression(expression: string, ofType: type, for: self)
+                }
             }
             // Optimize constant expressions
             func isConstant(_ exp: LayoutExpression) -> Bool {
@@ -565,15 +577,15 @@ public class LayoutNode: NSObject {
             case "left":
                 getter = (parent == nil) ? { [unowned self] in self.view.frame.minX } : { 0 }
             case "width":
-                getter = { [unowned self] in self.view.frame.width }
+                getter = { [unowned self] in self.frame.width }
             case "right":
-                getter = { [unowned self] in self.view.frame.maxX }
+                getter = { [unowned self] in self.frame.maxX }
             case "top":
                 getter = (parent == nil) ? { [unowned self] in self.view.frame.minY } : { 0 }
             case "height":
-                getter = { [unowned self] in self.view.frame.height }
+                getter = { [unowned self] in self.frame.height }
             case "bottom":
-                getter = { [unowned self] in self.view.frame.maxY }
+                getter = { [unowned self] in self.frame.maxY }
             case "topLayoutGuide.length":
                 getter = { [unowned self] in self._layoutGuideController?.topLayoutGuide.length ?? 0 }
             case "bottomLayoutGuide.length":
@@ -584,7 +596,7 @@ public class LayoutNode: NSObject {
                 switch parts[0] {
                 case "parent":
                     if parent != nil {
-                        getter = { [unowned self] in try self.parent?.value(forSymbol: tail) }
+                        getter = { [unowned self] in try self.parent?.value(forSymbol: tail) ?? 0 }
                     } else {
                         getter = { [unowned self] in
                             switch tail {
@@ -692,6 +704,8 @@ public class LayoutNode: NSObject {
             }
             // Try AutoLayout
             if _widthConstraint != nil || _heightConstraint != nil {
+                let transform = view.layer.transform
+                view.layer.transform = CATransform3DIdentity
                 let frame = view.frame
                 view.translatesAutoresizingMaskIntoConstraints = false
                 if let widthConstraint = _widthConstraint,
@@ -720,6 +734,7 @@ public class LayoutNode: NSObject {
                 _heightConstraint?.isActive = false
                 view.translatesAutoresizingMaskIntoConstraints = true
                 view.frame = frame
+                view.layer.transform = transform
                 return size
             }
             // Try intrinsic size
@@ -775,7 +790,10 @@ public class LayoutNode: NSObject {
         for child in children {
             try child.update()
         }
+        let transform = view.layer.transform
+        view.layer.transform = CATransform3DIdentity
         view.frame = frame
+        view.layer.transform = transform
         view.didUpdateLayout(for: self)
         view.viewController?.didUpdateLayout(for: self)
         try throwUnhandledError()

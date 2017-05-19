@@ -10,7 +10,7 @@
 		01128E3D1EBC95C3007AEB0D /* UIViewController+Layout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01128E3C1EBC95C3007AEB0D /* UIViewController+Layout.swift */; };
 		012FE2C11ECE3B3100DFA961 /* StateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 012FE2C01ECE3B3100DFA961 /* StateTests.swift */; };
 		012FE2C31ECE52C700DFA961 /* Optional+Layout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 012FE2C21ECE52C700DFA961 /* Optional+Layout.swift */; };
-		012FE2C51ECED66C00DFA961 /* PointAndSizeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 012FE2C41ECED66C00DFA961 /* PointAndSizeTests.swift */; };
+		012FE2C51ECED66C00DFA961 /* GeometryExpressionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 012FE2C41ECED66C00DFA961 /* GeometryExpressionTests.swift */; };
 		015372411EC0CDD60025FBF0 /* AnyExpression.swift in Sources */ = {isa = PBXBuildFile; fileRef = 015372401EC0CDD60025FBF0 /* AnyExpression.swift */; };
 		016BC2961EC6E3E9009759A4 /* LayoutLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 016BC2951EC6E3E9009759A4 /* LayoutLoader.swift */; };
 		016BC2981EC6E43C009759A4 /* AnyExpressionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 016BC2971EC6E43C009759A4 /* AnyExpressionTests.swift */; };
@@ -45,7 +45,7 @@
 		01128E3C1EBC95C3007AEB0D /* UIViewController+Layout.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIViewController+Layout.swift"; sourceTree = "<group>"; };
 		012FE2C01ECE3B3100DFA961 /* StateTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StateTests.swift; sourceTree = "<group>"; };
 		012FE2C21ECE52C700DFA961 /* Optional+Layout.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Optional+Layout.swift"; sourceTree = "<group>"; };
-		012FE2C41ECED66C00DFA961 /* PointAndSizeTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PointAndSizeTests.swift; sourceTree = "<group>"; };
+		012FE2C41ECED66C00DFA961 /* GeometryExpressionTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GeometryExpressionTests.swift; sourceTree = "<group>"; };
 		015372401EC0CDD60025FBF0 /* AnyExpression.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AnyExpression.swift; sourceTree = "<group>"; };
 		016BC2951EC6E3E9009759A4 /* LayoutLoader.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LayoutLoader.swift; sourceTree = "<group>"; };
 		016BC2971EC6E43C009759A4 /* AnyExpressionTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AnyExpressionTests.swift; sourceTree = "<group>"; };
@@ -141,7 +141,7 @@
 				016BC2971EC6E43C009759A4 /* AnyExpressionTests.swift */,
 				01C8A6BF1ECCF9B00031CB2F /* EnumExpressionTests.swift */,
 				01B36DC41ECC452100D0DA01 /* FontExpressionTests.swift */,
-				012FE2C41ECED66C00DFA961 /* PointAndSizeTests.swift */,
+				012FE2C41ECED66C00DFA961 /* GeometryExpressionTests.swift */,
 				01DA95621EABC1E400868113 /* LayoutNodeTests.swift */,
 				012FE2C01ECE3B3100DFA961 /* StateTests.swift */,
 				01DA95641EABC1E400868113 /* Info.plist */,
@@ -386,7 +386,7 @@
 			files = (
 				01C8A6C01ECCF9B00031CB2F /* EnumExpressionTests.swift in Sources */,
 				016BC2981EC6E43C009759A4 /* AnyExpressionTests.swift in Sources */,
-				012FE2C51ECED66C00DFA961 /* PointAndSizeTests.swift in Sources */,
+				012FE2C51ECED66C00DFA961 /* GeometryExpressionTests.swift in Sources */,
 				012FE2C11ECE3B3100DFA961 /* StateTests.swift in Sources */,
 				01B36DC51ECC452100D0DA01 /* FontExpressionTests.swift in Sources */,
 				01DA95631EABC1E400868113 /* LayoutNodeTests.swift in Sources */,

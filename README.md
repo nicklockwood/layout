@@ -16,6 +16,7 @@
     - [Composition](#composition)
 - [Expressions](#expressions)
 	- [Layout Properties](#layout-properties)
+	- [Geometry](#geometry)
 	- [Strings](#strings)
 	- [Colors](#colors)
 	- [Images](#images)
@@ -409,7 +410,7 @@ Percentage values are relative to the width or height of the parent `LayoutNode`
 	
 Additionally, the `width` and `height` properties can make use of a virtual variable called `auto`. The `auto` variable equates to the content width or height of the node, which is determined by a combination of three things:
 
-* The `intrinsicContentSize` property of the view, if specified
+* The `intrinsicContentSize` property of the native view (if specified)
 * Any AutoLayout constraints applied to the view by its (non-Layout-managed) subviews
 * The enclosing bounds for all the children of the node.
 
@@ -423,7 +424,46 @@ Because it is possible to pass in arbitrary values via constants and state, Layo
 
 Expressions are strongly-typed however, so passing the wrong type of value to a function or operator, or returning the wrong type from an expression will result in an error. Where possible, these type checks are performed immediately when the node is first created so that the error is surfaced immediately.
 
-The following types of property are given special treatment in order to make it easier to specify them using a expression string:
+The following types of property are given special treatment in order to make it easier to specify them using an expression string:
+
+## Geometry
+
+Because Layout manages the view frame automatically, direct manipulation of the view's frame and position via expressions is not permitted - you should use the `top`/`left`/`bottom`/`right`/`width`/`height` expressions instead. However, there are other geometric properties that do not directly affect the frame, and many of these *are* available to be set via expressions, for example:
+
+* contentSize
+* contentInset
+* layer.transform
+
+These properties are not simple numbers, but structs containing several packed values. So how can you manipulate these with Layout expressions?
+
+Well, first of all, almost any property type can be set using a constant or state variable, even if there is no way to define a literal value in an expression. So for example, the following code will set the `layer.transform` even though Layout has no built-support for manipulating `CATransform3D` matrices:
+
+	LayoutNode(
+		named: "MyLayout.xml",
+		state: [
+			"flipped": true
+		],
+	    constants: [
+	    	"identityTransform": CATransform3DIdentity,
+	    	"flipTransform": CATransform3DMakeScale(1, 1, -1)
+	    ]
+	)
+	
+	<UIView layer.transform="flipped ? flipTransform : identityTransform"/>
+	
+But for some of the more common geometry types, such as `CGPoint`, `CGSize`, `CGRect` and `UIEdgeInsets`, Layout has built-in support for directly referencing the member properties in expressions. To set the top `contentInset` value for a `UIScrollView`, you could use:
+	
+	<UIScrollView contentInset.top="topLayoutGuide.length + 10"/>
+	
+And to explicitly set the `contentSize`, you could use:
+
+	<UIScrollView
+		contentSize.width="200%"
+		contentSize.height="auto + 20"
+	/>
+	
+(Note that `%` and `auto` are permitted inside `contentSize.width` and `contentSize.height`, just as they are for `width` and `height`.)
+	
 
 ## Strings
 
@@ -431,15 +471,19 @@ It is often necessary to use literal strings inside an expression, and since exp
 
 	<UILabel text="title"/>
 	
-...the `text` property of the label has been given the literal value "title", and not the value of the constant called "title", as you might expect.
+...the `text` property of the label has been given the literal value "title", and not the value of a constant named "title", as you might expect.
 
 To use an expression inside a string property, escape the value using `{ ... }` braces. So to use the "title" constant instead, you would write this:
 
 	<UILabel text="{title}"/>
 	
-You can use arbitrary logic inside expression blocks, including maths and boolean comparisons. The value of the expressions need not be a string, as the result will be *stringified*. You can use multiple expression blocks inside a single string expressions, and mix and match expression blocks with literal segments:
+You can use arbitrary logic inside the braced expression block, including maths and boolean comparisons. The value of the expressions need not be a string, as the result will be *stringified*. You can use multiple expression blocks inside a single string expression, and mix and match expression blocks with literal segments:
 
 	<UILabel text="Hello {name}, you have {n + 1} new messages"/>
+	
+If you need to use a string literal *inside* an expression block, then you can use single or double quotes to escape it:
+
+	<UILabel text="Hello {hasName ? name : 'World'}"/>
 	
 ## Colors
 
@@ -472,7 +516,6 @@ Static images can be specified by name or via a constant or state variable. As w
 	<UIImageView image="{imageConstant}"/>
 	
 	<UIImageView image="image_{index}.png"/>
-
 
 ## Fonts
 
@@ -540,7 +583,7 @@ Any lowercase tags are interpreted as HTML markup instead of a `UIView` class. T
 And as with regular text attributes, inline HTML can contain embedded expressions, which can themselves contain either attributed or non-attributed string variables or constants:
 
 	<UILabel>Hello <b>{name}</b></UILabel>
-	
+
 
 # Custom Components
 
