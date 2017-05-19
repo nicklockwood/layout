@@ -208,14 +208,6 @@ extension UIControl {
 }
 
 extension UIButton {
-    dynamic var title: String {
-        set { setTitle(newValue, for: .normal) }
-        get { return title(for: .normal) ?? "" }
-    }
-    dynamic var highlightedTitle: String {
-        set { setTitle(newValue, for: .highlighted) }
-        get { return title(for: .highlighted) ?? "" }
-    }
 
     open override class var expressionTypes: [String: RuntimeType] {
         var types = super.expressionTypes
@@ -228,13 +220,90 @@ extension UIButton {
             "contactAdd": .contactAdd,
         ])
         types["buttonType"] = types["type"]
+        // Title
+        types["title"] = RuntimeType(String.self)
+        types["highlightedTitle"] = RuntimeType(String.self)
+        types["disabledTitle"] = RuntimeType(String.self)
+        types["selectedTitle"] = RuntimeType(String.self)
+        types["focusedTitle"] = RuntimeType(String.self)
+        // Title color
+        types["titleColor"] = RuntimeType(UIColor.self)
+        types["highlightedTitleColor"] = RuntimeType(UIColor.self)
+        types["disabledTitleColor"] = RuntimeType(UIColor.self)
+        types["selectedTitleColor"] = RuntimeType(UIColor.self)
+        types["focusedTitleColor"] = RuntimeType(UIColor.self)
+        // Title shadow color
+        types["titleShadowColor"] = RuntimeType(UIColor.self)
+        types["highlightedTitleShadowColor"] = RuntimeType(UIColor.self)
+        types["disabledTitleShadowColor"] = RuntimeType(UIColor.self)
+        types["selectedTitleShadowColor"] = RuntimeType(UIColor.self)
+        types["focusedTitleShadowColor"] = RuntimeType(UIColor.self)
+        // Image
+        types["image"] = RuntimeType(UIImage.self)
+        types["highlightedImage"] = RuntimeType(UIImage.self)
+        types["disabledImage"] = RuntimeType(UIImage.self)
+        types["selectedImage"] = RuntimeType(UIImage.self)
+        types["focusedImage"] = RuntimeType(UIImage.self)
+        // Backgrounf image
+        types["backgroundImage"] = RuntimeType(UIImage.self)
+        types["highlightedBackgroundImage"] = RuntimeType(UIImage.self)
+        types["disabledBackgroundImage"] = RuntimeType(UIImage.self)
+        types["selectedBackgroundImage"] = RuntimeType(UIImage.self)
+        types["focusedBackgroundImage"] = RuntimeType(UIImage.self)
+        // Attributed title
+        types["attributedTitle"] = RuntimeType(NSAttributedString.self)
+        types["highlightedAttributedTitle"] = RuntimeType(NSAttributedString.self)
+        types["disabledAttributedTitle"] = RuntimeType(NSAttributedString.self)
+        types["selectedAttributedTitle"] = RuntimeType(NSAttributedString.self)
+        types["focusedAttributedTitle"] = RuntimeType(NSAttributedString.self)
+        // Setters used for embedded html
+        types["text"] = RuntimeType(String.self)
+        types["attributedText"] = RuntimeType(NSAttributedString.self)
         return types
     }
 
     open override func setValue(_ value: Any, forExpression name: String) throws {
         switch name {
-        case "type", "buttonType":
-            setValue((value as! UIButtonType).rawValue, forKey: "buttonType")
+        case "type", "buttonType": setValue((value as! UIButtonType).rawValue, forKey: "buttonType")
+        // Title
+        case "title": setTitle(value as? String, for: .normal)
+        case "highlightedTitle": setTitle(value as? String, for: .highlighted)
+        case "disabledTitle": setTitle(value as? String, for: .disabled)
+        case "selectedTitle": setTitle(value as? String, for: .selected)
+        case "focusedTitle": setTitle(value as? String, for: .focused)
+        // Title color
+        case "titleColor": setTitleColor(value as? UIColor, for: .normal)
+        case "highlightedTitleColor": setTitleColor(value as? UIColor, for: .highlighted)
+        case "disabledTitleColor": setTitleColor(value as? UIColor, for: .disabled)
+        case "selectedTitleColor": setTitleColor(value as? UIColor, for: .selected)
+        case "focusedTitleColor": setTitleColor(value as? UIColor, for: .focused)
+        // Title shadow color
+        case "titleShadowColor": setTitleShadowColor(value as? UIColor, for: .normal)
+        case "highlightedTitleShadowColor": setTitleShadowColor(value as? UIColor, for: .highlighted)
+        case "disabledTitleShadowColor": setTitleShadowColor(value as? UIColor, for: .disabled)
+        case "selectedTitleShadowColor": setTitleShadowColor(value as? UIColor, for: .selected)
+        case "focusedTitleShadowColor": setTitleShadowColor(value as? UIColor, for: .focused)
+        // Image
+        case "image": setImage(value as? UIImage, for: .normal)
+        case "highlightedImage": setImage(value as? UIImage, for: .highlighted)
+        case "disabledImage": setImage(value as? UIImage, for: .disabled)
+        case "selectedImage": setImage(value as? UIImage, for: .selected)
+        case "focusedImage": setImage(value as? UIImage, for: .focused)
+        // Background image
+        case "backgroundImage": setBackgroundImage(value as? UIImage, for: .normal)
+        case "highlightedBackgroundImage": setBackgroundImage(value as? UIImage, for: .highlighted)
+        case "disabledBackgroundImage": setBackgroundImage(value as? UIImage, for: .disabled)
+        case "selectedBackgroundImage": setBackgroundImage(value as? UIImage, for: .selected)
+        case "focusedBackgroundImage": setBackgroundImage(value as? UIImage, for: .focused)
+        // Attributed title
+        case "attributedTitle": setAttributedTitle(value as? NSAttributedString, for: .normal)
+        case "highlightedAttributedTitle": setAttributedTitle(value as? NSAttributedString, for: .highlighted)
+        case "disabledAttributedTitle": setAttributedTitle(value as? NSAttributedString, for: .disabled)
+        case "selectedAttributedTitle": setAttributedTitle(value as? NSAttributedString, for: .selected)
+        case "focusedAttributedTitle": setAttributedTitle(value as? NSAttributedString, for: .focused)
+        // Setter used for embedded html
+        case "text": setTitle(value as? String, for: .normal)
+        case "attributedText": setAttributedTitle(value as? NSAttributedString, for: .normal)
         default:
             try super.setValue(value, forExpression: name)
         }
@@ -354,22 +423,14 @@ extension UITextField {
 
     open override func setValue(_ value: Any, forExpression name: String) throws {
         switch name {
-        case "autocapitalizationType":
-            autocapitalizationType = value as! UITextAutocapitalizationType
-        case "autocorrectionType":
-            autocorrectionType = value as! UITextAutocorrectionType
-        case "spellCheckingType":
-            spellCheckingType = value as! UITextSpellCheckingType
-        case "keyboardType":
-            keyboardType = value as! UIKeyboardType
-        case "keyboardAppearance":
-            keyboardAppearance = value as! UIKeyboardAppearance
-        case "returnKeyType":
-            returnKeyType = value as! UIReturnKeyType
-        case "enablesReturnKeyAutomatically":
-            enablesReturnKeyAutomatically = value as! Bool
-        case "isSecureTextEntry":
-            isSecureTextEntry = value as! Bool
+        case "autocapitalizationType": autocapitalizationType = value as! UITextAutocapitalizationType
+        case "autocorrectionType": autocorrectionType = value as! UITextAutocorrectionType
+        case "spellCheckingType": spellCheckingType = value as! UITextSpellCheckingType
+        case "keyboardType": keyboardType = value as! UIKeyboardType
+        case "keyboardAppearance": keyboardAppearance = value as! UIKeyboardAppearance
+        case "returnKeyType": returnKeyType = value as! UIReturnKeyType
+        case "enablesReturnKeyAutomatically": enablesReturnKeyAutomatically = value as! Bool
+        case "isSecureTextEntry": isSecureTextEntry = value as! Bool
         default:
             try super.setValue(value, forExpression: name)
         }
@@ -390,22 +451,14 @@ extension UITextView {
 
     open override func setValue(_ value: Any, forExpression name: String) throws {
         switch name {
-        case "autocapitalizationType":
-            autocapitalizationType = value as! UITextAutocapitalizationType
-        case "autocorrectionType":
-            autocorrectionType = value as! UITextAutocorrectionType
-        case "spellCheckingType":
-            spellCheckingType = value as! UITextSpellCheckingType
-        case "keyboardType":
-            keyboardType = value as! UIKeyboardType
-        case "keyboardAppearance":
-            keyboardAppearance = value as! UIKeyboardAppearance
-        case "returnKeyType":
-            returnKeyType = value as! UIReturnKeyType
-        case "enablesReturnKeyAutomatically":
-            enablesReturnKeyAutomatically = value as! Bool
-        case "isSecureTextEntry":
-            isSecureTextEntry = value as! Bool
+        case "autocapitalizationType": autocapitalizationType = value as! UITextAutocapitalizationType
+        case "autocorrectionType": autocorrectionType = value as! UITextAutocorrectionType
+        case "spellCheckingType": spellCheckingType = value as! UITextSpellCheckingType
+        case "keyboardType": keyboardType = value as! UIKeyboardType
+        case "keyboardAppearance": keyboardAppearance = value as! UIKeyboardAppearance
+        case "returnKeyType": returnKeyType = value as! UIReturnKeyType
+        case "enablesReturnKeyAutomatically": enablesReturnKeyAutomatically = value as! Bool
+        case "isSecureTextEntry": isSecureTextEntry = value as! Bool
         default:
             try super.setValue(value, forExpression: name)
         }
