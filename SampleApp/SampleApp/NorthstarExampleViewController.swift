@@ -12,20 +12,30 @@ import Northstar
 
 class NorthstarExampleViewController: UIViewController {
 
+    var numberField: NorthstarTextField!
+    var termsCheckbox: NorthstarCheckboxControl!
+    var privacyCheckbox: NorthstarCheckboxControl!
+
     var layoutNode: LayoutNode? {
         didSet {
             layoutNode?.state = [
                 "hideError": true,
                 "error": ""
             ]
+            view.addGestureRecognizer(UITapGestureRecognizer(
+                target: self,
+                action: #selector(dismissKeyboard)
+            ))
         }
     }
 
-    var numberField: NorthstarTextField!
-    var termsCheckbox: NorthstarCheckboxControl!
-    var privacyCheckbox: NorthstarCheckboxControl!
+    func dismissKeyboard() {
+        numberField.resignFirstResponder()
+    }
 
     func submit() {
+        numberField.resignFirstResponder()
+
         var error = ""
         if (numberField.text ?? "").isEmpty {
             error += "Please enter your phone number\n"

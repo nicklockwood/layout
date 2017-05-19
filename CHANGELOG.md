@@ -1,3 +1,9 @@
+## [0.2.2](https://github.schibsted.io/Rocket/layout/releases/tag/0.2.2) (2017-05-19)
+
+- Fixed a critical bug where Bool properties were not working on 32-bit devices
+- Improved performance by not recalculating property types in setters
+- Added missing UIButton state setters
+
 ## [0.2.1](https://github.schibsted.io/Rocket/layout/releases/tag/0.2.1) (2017-05-19)
 
 - Setting state to the same value no longer triggers an update

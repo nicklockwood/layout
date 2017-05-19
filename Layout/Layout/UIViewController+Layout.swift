@@ -67,7 +67,7 @@ extension UIViewController {
             tabBarItem = UITabBarItem(tabBarSystemItem: value as! UITabBarSystemItem, tag: 0)
         default:
             var value = value
-            if let type = type(of: self).expressionTypes[name]?.type, case let .enum(_, _, adaptor) = type {
+            if let type = type(of: self).cachedExpressionTypes[name]?.type, case let .enum(_, _, adaptor) = type {
                 value = adaptor(value) // TODO: something nicer than this
             }
             try _setValue(value, forKeyPath: name)
