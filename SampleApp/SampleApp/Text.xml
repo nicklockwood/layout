@@ -2,7 +2,8 @@
     backgroundColor="#fee">
 
     <UIScrollView
-        contentInset.bottom="20 + bottomLayoutGuide.length"
+        contentSize.height="auto + 20"
+        contentInset.bottom="bottomLayoutGuide.length"
         scrollIndicatorInsets.bottom="bottomLayoutGuide.length">
 
         <UILabel

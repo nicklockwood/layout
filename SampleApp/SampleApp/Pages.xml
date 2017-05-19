@@ -4,72 +4,71 @@
     <UIScrollView
         outlet="scrollView"
         isPagingEnabled="true"
+        contentInset.top="max(topLayoutGuide.length + 10, 20)"
         contentInset.bottom="bottomLayoutGuide.length"
-        showsHorizontalScrollIndicator="false">
+        showsHorizontalScrollIndicator="false"
+        contentSize.width="300%"
+        contentSize.height="100% - contentInset.top - contentInset.bottom">
+
+        <!-- Page 1 -->
         <UIView
-            width="300%"
-            height="100% - parent.contentInset.bottom">
-
-            <!-- Page 1 -->
-            <UIView
-                top="max(topLayoutGuide.length + 10, 20)"
-                left="20"
-                width="(100/3)% - 40"
-                bottom="100% - 20"
-                layer.cornerRadius="10"
-                backgroundColor="#f33">
-                <UILabel
-                    width="100%"
-                    height="100%"
-                    textAlignment="center"
-                    text="Page 1"
-                    textColor="#fff"
-                    font="30 bold"
-                />
-            </UIView>
-
-            <!-- Page 2 -->
-            <UIView
-                top="previous.top"
-                left="previous.right + 40"
-                width="previous.width"
-                bottom="previous.bottom"
-                layer.cornerRadius="previous.layer.cornerRadius"
-                backgroundColor="#3a3">
-                <UILabel
-                    width="100%"
-                    height="100%"
-                    textAlignment="center"
-                    text="Page 2"
-                    textColor="#fff"
-                    font="30 bold"
-                />
-            </UIView>
-
-            <!-- Page 3 -->
-            <UIView
-                top="previous.top"
-                left="previous.right + 40"
-                width="previous.width"
-                bottom="previous.bottom"
-                layer.cornerRadius="previous.layer.cornerRadius"
-                backgroundColor="#09f">
-                <UILabel
-                    width="100%"
-                    height="100%"
-                    textAlignment="center"
-                    text="Page 3"
-                    textColor="#fff"
-                    font="30 bold"
-                />
-            </UIView>
-
+            top="0"
+            left="20"
+            width="100% - 40"
+            height="parent.contentSize.height - 20"
+            layer.cornerRadius="10"
+            backgroundColor="#f33">
+            <UILabel
+                width="100%"
+                height="100%"
+                textAlignment="center"
+                text="Page 1"
+                textColor="#fff"
+                font="30 bold"
+            />
         </UIView>
+
+        <!-- Page 2 -->
+        <UIView
+            top="previous.top"
+            left="previous.right + 40"
+            width="previous.width"
+            height="previous.height"
+            layer.cornerRadius="previous.layer.cornerRadius"
+            backgroundColor="#3a3">
+            <UILabel
+                width="100%"
+                height="100%"
+                textAlignment="center"
+                text="Page 2"
+                textColor="#fff"
+                font="30 bold"
+            />
+        </UIView>
+
+        <!-- Page 3 -->
+        <UIView
+            top="previous.top"
+            left="previous.right + 40"
+            width="previous.width"
+            height="previous.height"
+            layer.cornerRadius="previous.layer.cornerRadius"
+            backgroundColor="#09f">
+            <UILabel
+                width="100%"
+                height="100%"
+                textAlignment="center"
+                text="Page 3"
+                textColor="#fff"
+                font="30 bold"
+            />
+        </UIView>
+
     </UIScrollView>
     <UIPageControl
         outlet="pageControl"
         left="50% - width / 2"
-        bottom="100% - bottomLayoutGuide.length - 30"
+        bottom="100% - bottomLayoutGuide.length - 40"
         isUserInteractionEnabled="false"
         numberOfPages="3"
     />

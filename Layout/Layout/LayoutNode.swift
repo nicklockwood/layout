@@ -412,9 +412,9 @@ public class LayoutNode: NSObject {
                 expression = LayoutExpression(xExpression: string, for: self)
             case "top", "bottom":
                 expression = LayoutExpression(yExpression: string, for: self)
-            case "width":
+            case "width", "contentSize.width":
                 expression = LayoutExpression(widthExpression: string, for: self)
-            case "height":
+            case "height", "contentSize.height":
                 expression = LayoutExpression(heightExpression: string, for: self)
             default:
                 guard let type = viewControllerExpressionTypes[symbol] ?? viewExpressionTypes[symbol] else {
@@ -506,6 +506,7 @@ public class LayoutNode: NSObject {
     // Note: thrown error is always a SymbolError
     func doubleValue(forSymbol symbol: String) throws -> Double! {
         guard let anyValue = try value(forSymbol: symbol) else {
+            // FIXME: this is confusing behavior, but useful when called inside an expression
             return nil // Fall back to standard library
         }
         if let doubleValue = anyValue as? Double {
@@ -528,8 +529,11 @@ public class LayoutNode: NSObject {
     }
 
     // Note: thrown error is always a SymbolError
+    // TODO: numeric values may be returned as a Double, even if original type was something else
+    // this was deliberate for performance reasons, but it's a bit confusing - find a better solution
+    // before making this API public
     private var _getters = [String: () throws -> Any?]()
-    public func value(forSymbol symbol: String) throws -> Any! {
+    func value(forSymbol symbol: String) throws -> Any! {
         if let getter = _getters[symbol] {
             return try SymbolError.wrap(getter, for: symbol)
         }
@@ -625,6 +629,7 @@ public class LayoutNode: NSObject {
                             return value
                         }
                         // Fall back to standard library
+                        // FIXME: this is confusing behavior, but useful when called inside an expression
                         return nil
                     }
                 }
@@ -682,17 +687,28 @@ public class LayoutNode: NSObject {
 
     public var contentSize: CGSize {
         return attempt({
+            if expressions["contentSize"] != nil, !_evaluating.contains("contentSize") {
+                return try value(forSymbol: "contentSize") as! CGSize
+            }
             // Try AutoLayout
             if _widthConstraint != nil || _heightConstraint != nil {
                 let frame = view.frame
                 view.translatesAutoresizingMaskIntoConstraints = false
-                if let widthConstraint = _widthConstraint, !_evaluating.contains("width") {
+                if let widthConstraint = _widthConstraint,
+                    expressions["contentSize.width"] != nil, !_evaluating.contains("contentSize.width") {
+                    widthConstraint.isActive = true
+                    widthConstraint.constant = try CGFloat(doubleValue(forSymbol: "contentSize.width"))
+                } else if let widthConstraint = _widthConstraint, !_evaluating.contains("width") {
                     widthConstraint.isActive = true
                     widthConstraint.constant = try CGFloat(doubleValue(forSymbol: "width"))
                 } else {
                     _widthConstraint?.isActive = false
                 }
-                if let heightConstraint = _heightConstraint, !_evaluating.contains("height") {
+                if let heightConstraint = _heightConstraint,
+                    expressions["contentSize.height"] != nil, !_evaluating.contains("contentSize.height") {
+                    heightConstraint.isActive = true
+                    heightConstraint.constant = try CGFloat(doubleValue(forSymbol: "contentSize.height"))
+                } else if let heightConstraint = _heightConstraint, !_evaluating.contains("height") {
                     heightConstraint.isActive = true
                     heightConstraint.constant = try CGFloat(doubleValue(forSymbol: "height"))
                 } else {
@@ -711,10 +727,14 @@ public class LayoutNode: NSObject {
             var size = intrinsicSize
             if size.width != UIViewNoIntrinsicMetric || size.height != UIViewNoIntrinsicMetric {
                 var targetSize = CGSize(width: CGFloat.greatestFiniteMagnitude, height: .greatestFiniteMagnitude)
-                if !_evaluating.contains("width") {
+                if expressions["contentSize.width"] != nil, !_evaluating.contains("contentSize.width") {
+                    targetSize.width = try CGFloat(doubleValue(forSymbol: "contentSize.width"))
+                } else if !_evaluating.contains("width") {
                     targetSize.width = try CGFloat(doubleValue(forSymbol: "width"))
                 }
-                if !_evaluating.contains("height") {
+                if expressions["contentSize.height"] != nil, !_evaluating.contains("contentSize.height") {
+                    targetSize.height = try CGFloat(doubleValue(forSymbol: "contentSize.height"))
+                } else if !_evaluating.contains("height") {
                     targetSize.height = try CGFloat(doubleValue(forSymbol: "height"))
                 }
                 if targetSize.width < intrinsicSize.width || targetSize.height < intrinsicSize.height {
@@ -731,6 +751,11 @@ public class LayoutNode: NSObject {
             // Fill superview
             if size.width <= 0, size.height <= 0 {
                 size = view.superview?.bounds.size ?? .zero
+            }
+            if expressions["contentSize.width"] != nil, !_evaluating.contains("contentSize.width") {
+                size.width = try CGFloat(doubleValue(forSymbol: "contentSize.width"))
+            } else if expressions["contentSize.height"] != nil, !_evaluating.contains("contentSize.height") {
+                size.height = try CGFloat(doubleValue(forSymbol: "contentSize.height"))
             }
             return size
         }) ?? .zero

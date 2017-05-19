@@ -180,6 +180,32 @@ extension NSObject {
                     type = RuntimeType(AnyClass.self)
                 case ":":
                     type = RuntimeType(Selector.self)
+                case "{":
+                    if typeAttrib.hasPrefix("T{CGPoint") {
+                        type = RuntimeType(CGPoint.self)
+                        if allProperties[name] == nil {
+                            allProperties["\(name).x"] = RuntimeType(CGFloat.self)
+                            allProperties["\(name).y"] = RuntimeType(CGFloat.self)
+                        }
+                    } else if typeAttrib.hasPrefix("T{CGSize") {
+                        type = RuntimeType(CGSize.self)
+                        if allProperties[name] == nil {
+                            allProperties["\(name).width"] = RuntimeType(CGFloat.self)
+                            allProperties["\(name).height"] = RuntimeType(CGFloat.self)
+                        }
+                    } else if typeAttrib.hasPrefix("T{CGRect") {
+                        type = RuntimeType(CGRect.self)
+                        if allProperties[name] == nil {
+                            allProperties["\(name).x"] = RuntimeType(CGFloat.self)
+                            allProperties["\(name).y"] = RuntimeType(CGFloat.self)
+                            allProperties["\(name).width"] = RuntimeType(CGFloat.self)
+                            allProperties["\(name).height"] = RuntimeType(CGFloat.self)
+                            allProperties["\(name).origin"] = RuntimeType(CGPoint.self)
+                            allProperties["\(name).size"] = RuntimeType(CGSize.self)
+                        }
+                    } else {
+                        continue
+                    }
                 default:
                     // Unsupported type
                     continue
@@ -210,15 +236,19 @@ extension NSObject {
 
     // Safe version of setValue(forKeyPath:)
     func _setValue(_ value: Any, forKeyPath name: String) throws {
+        var prevKey = name
+        var prevTarget: NSObject?
         var target = self as NSObject
         let parts = name.components(separatedBy: ".")
-        for part in parts.dropLast() {
-            guard target.responds(to: Selector(part)) else {
-                throw SymbolError("Unknown property `\(part)` of `\(type(of: target))`", for: name)
+        for key in parts.dropLast() {
+            guard target.responds(to: Selector(key)) else {
+                throw SymbolError("Unknown property `\(key)` of `\(type(of: target))`", for: name)
             }
-            guard let nextTarget = target.value(forKey: part) as? NSObject else {
-                throw SymbolError("Encountered nil value for `\(part)` of `\(type(of: target))`", for: name)
+            guard let nextTarget = target.value(forKey: key) as? NSObject else {
+                throw SymbolError("Encountered nil value for `\(key)` of `\(type(of: target))`", for: name)
             }
+            prevKey = key
+            prevTarget = target
             target = nextTarget
         }
         // TODO: optimize this
@@ -234,7 +264,66 @@ extension NSObject {
                     return
                 }
             }
-            throw SymbolError("No valid setter found for property `\(key)` of `\(type(of: target))`", for: name)
+            var newValue: NSObject?
+            switch target {
+            case var point as CGPoint where value is NSNumber:
+                switch key {
+                case "x":
+                    point.x = CGFloat(value as! NSNumber)
+                    newValue = point as NSValue
+                case "y":
+                    point.y = CGFloat(value as! NSNumber)
+                    newValue = point as NSValue
+                default:
+                    break
+                }
+            case var size as CGSize where value is NSNumber:
+                switch key {
+                case "width":
+                    size.width = CGFloat(value as! NSNumber)
+                    newValue = size as NSValue
+                case "height":
+                    size.height = CGFloat(value as! NSNumber)
+                    newValue = size as NSValue
+                default:
+                    break
+                }
+            case var rect as CGRect:
+                if value is NSNumber {
+                    switch key {
+                    case "x":
+                        rect.origin.x = CGFloat(value as! NSNumber)
+                        newValue = rect as NSValue
+                    case "y":
+                        rect.origin.y = CGFloat(value as! NSNumber)
+                        newValue = rect as NSValue
+                    case "width":
+                        rect.size.width = CGFloat(value as! NSNumber)
+                        newValue = rect as NSValue
+                    case "height":
+                        rect.size.height = CGFloat(value as! NSNumber)
+                        newValue = rect as NSValue
+                    default:
+                        break
+                    }
+                } else if key == "origin", value is CGPoint {
+                    rect.origin = value as! CGPoint
+                    newValue = rect as NSValue
+                } else if key == "size", value is CGSize {
+                    rect.size = value as! CGSize
+                    newValue = rect as NSValue
+                }
+            default:
+                break
+            }
+            guard let value = newValue else {
+                throw SymbolError("No valid setter found for property `\(key)` of `\(type(of: target))`", for: name)
+            }
+            guard let prevTarget = prevTarget else {
+                throw SymbolError("Cannot set property `\(key)` of immutable `\(type(of: target))`", for: name)
+            }
+            prevTarget.setValue(value, forKey: prevKey)
+            return
         }
         target.setValue(value, forKey: key)
     }
@@ -242,12 +331,51 @@ extension NSObject {
     /// Safe version of value(forKeyPath:)
     func _value(forKeyPath name: String) -> Any? {
         var value = self as NSObject
-        for part in name.components(separatedBy: ".") {
-            guard value.responds(to: Selector(part)) == true,
-                let nextValue = value.value(forKey: part) as? NSObject else {
+        for key in name.components(separatedBy: ".") {
+            if value.responds(to: Selector(key)) == true,
+                let nextValue = value.value(forKey: key) as? NSObject {
+                value = nextValue
+            } else {
+                switch value {
+                case let point as CGPoint:
+                    switch key {
+                    case "x":
+                        return point.x
+                    case "y":
+                        return point.y
+                    default:
+                        return nil
+                    }
+                case let size as CGSize:
+                    switch key {
+                    case "width":
+                        return size.width
+                    case "height":
+                        return size.height
+                    default:
+                        return nil
+                    }
+                case let rect as CGRect:
+                    switch key {
+                    case "x":
+                        return rect.origin.x
+                    case "y":
+                        return rect.origin.y
+                    case "width":
+                        return rect.width
+                    case "height":
+                        return rect.height
+                    case "origin":
+                        value = rect.origin as NSValue
+                    case "size":
+                        value = rect.size as NSValue
+                    default:
+                        return nil
+                    }
+                default:
                     return nil
+                }
             }
-            value = nextValue
         }
         return value
     }

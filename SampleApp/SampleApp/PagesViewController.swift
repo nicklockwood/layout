@@ -15,7 +15,7 @@ class PagesViewController: UIViewController, UIScrollViewDelegate {
 
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         if scrollView === self.scrollView {
-            pageControl.currentPage = Int(round(scrollView.contentOffset.x / scrollView.frame.width))
+            pageControl?.currentPage = Int(round(scrollView.contentOffset.x / scrollView.frame.width))
         }
     }
 }
