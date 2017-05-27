@@ -5,73 +5,75 @@
     <UIScrollView
         contentInset.bottom="20 + bottomLayoutGuide.length"
         scrollIndicatorInsets.bottom="bottomLayoutGuide.length">
-        <Northstar.NorthstarLabel
-            text="Welcome"
-            textStyle="heading1"
-            left="16"
-            right="100% - 16"
-            top="32"
-        />
-        <Northstar.NorthstarLabel
-            text="Email"
-            textStyle="body"
-            left="16"
-            right="100% - 16"
-            top="previous.bottom + 24"
-        />
-        <Northstar.NorthstarTextField
-            outlet="numberField"
-            placeholder="(+44) Mobile number"
-            left="16"
-            right="100% - 16"
-            top="previous.bottom + 8"
-        />
-        <Northstar.NorthstarLabel
-            text="{error}"
-            textStyle="bodyError"
-            left="16"
-            right="100% - 16"
-            height="max(auto, 25)"
-            numberOfLines="0"
-            top="previous.bottom + 4"
-            isHidden="hideError"
-            alpha="hideError ? 0 : 1"
-        />
-        <Northstar.NorthstarLabel
-            text="Use the same email you’ve used for your Kufar account to gain access"
-            textStyle="bodySoft"
-            numberOfLines="0"
-            left="16"
-            right="100% - 16"
-            top="previous.bottom + 24"
-        />
-        <Northstar.NorthstarCheckboxControl
-            outlet="termsCheckbox"
-            text="I accept the terms and conditions for Kufar and SPiD"
-            left="16"
-            right="100% - 16"
-            top="previous.bottom + 4"
-        />
-        <Northstar.NorthstarCheckboxControl
-            outlet="privacyCheckbox"
-            text="I accept the Privacy Policy for SPiD"
-            left="16"
-            right="100% - 16"
-            top="previous.bottom"
-        />
-        <Northstar.NorthstarClickableLabel
-            text="Terms &amp; privacy"
-            left="16"
-            right="100% - 16"
-            top="previous.bottom"
-        />
-        <Northstar.NorthstarSubmitInputView
-            width="100%"
-            title="Submit"
-            isPrimary="true"
-            isEnabled="true"
-            top="previous.bottom"
-            touchUpInside="submit"
-        />
+        <UIControl touchUpInside="dismissKeyboard">
+            <Northstar.NorthstarLabel
+                text="Welcome"
+                textStyle="heading1"
+                left="16"
+                right="100% - 16"
+                top="32"
+            />
+            <Northstar.NorthstarLabel
+                text="Email"
+                textStyle="body"
+                left="16"
+                right="100% - 16"
+                top="previous.bottom + 24"
+            />
+            <Northstar.NorthstarTextField
+                outlet="numberField"
+                placeholder="(+44) Mobile number"
+                left="16"
+                right="100% - 16"
+                top="previous.bottom + 8"
+            />
+            <Northstar.NorthstarLabel
+                text="{error}"
+                textStyle="bodyError"
+                left="16"
+                right="100% - 16"
+                height="max(auto, 25)"
+                numberOfLines="0"
+                top="previous.bottom + 4"
+                isHidden="hideError"
+                alpha="hideError ? 0 : 1"
+            />
+            <Northstar.NorthstarLabel
+                text="Use the same email you’ve used for your Kufar account to gain access"
+                textStyle="bodySoft"
+                numberOfLines="0"
+                left="16"
+                right="100% - 16"
+                top="previous.bottom + 24"
+            />
+            <Northstar.NorthstarCheckboxControl
+                outlet="termsCheckbox"
+                text="I accept the terms and conditions for Kufar and SPiD"
+                left="16"
+                right="100% - 16"
+                top="previous.bottom + 4"
+            />
+            <Northstar.NorthstarCheckboxControl
+                outlet="privacyCheckbox"
+                text="I accept the Privacy Policy for SPiD"
+                left="16"
+                right="100% - 16"
+                top="previous.bottom"
+            />
+            <Northstar.NorthstarClickableLabel
+                text="Terms &amp; privacy"
+                left="16"
+                right="100% - 16"
+                top="previous.bottom"
+            />
+            <Northstar.NorthstarSubmitInputView
+                width="100%"
+                title="Submit"
+                isPrimary="true"
+                isEnabled="true"
+                top="previous.bottom"
+                touchUpInside="submit"
+            />
+        </UIControl>
     </UIScrollView>
 </NorthstarExampleViewController>

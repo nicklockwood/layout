@@ -22,10 +22,6 @@ class NorthstarExampleViewController: UIViewController {
                 "hideError": true,
                 "error": ""
             ]
-            view.addGestureRecognizer(UITapGestureRecognizer(
-                target: self,
-                action: #selector(dismissKeyboard)
-            ))
         }
     }
 
