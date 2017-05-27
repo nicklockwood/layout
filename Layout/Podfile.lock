@@ -1,12 +1,19 @@
 PODS:
-  - Expression (0.5.0)
+  - Expression (0.6.0)
+  - Layout (0.2.2):
+    - Expression (~> 0.6.0)
 
 DEPENDENCIES:
-  - Expression (~> 0.5.0)
+  - Layout (from `../`)
+
+EXTERNAL SOURCES:
+  Layout:
+    :path: ../
 
 SPEC CHECKSUMS:
-  Expression: 269b3d7498145165b80444a358df570f9bbc68e0
+  Expression: 3a1b9fd454590c9b2197721d6c1fe8a22137c592
+  Layout: 3d86ec8e96fbad3241d9fffcdacd3e734830025d
 
-PODFILE CHECKSUM: db21301c4ae6115a5d71c3960e0902d86008ae1a
+PODFILE CHECKSUM: 7bc9b0e5723b353706f18c4f2e1588b9a49483d1
 
 COCOAPODS: 1.2.1

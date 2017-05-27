@@ -44,7 +44,8 @@ struct AnyExpression: CustomStringConvertible {
     static let indexOffset = (Int64(2) << 52) - Int64(maxValues)
 
     init(_ expression: String,
-         symbols: [Expression.Symbol: Expression.Symbol.Evaluator]? = nil,
+         constants: [String: Any] = [:],
+         options: Expression.Options = .boolSymbols,
          evaluator: Evaluator? = nil)
     {
         var values = [Any]()
@@ -83,10 +84,23 @@ struct AnyExpression: CustomStringConvertible {
         }
         let literals = values
 
-        let expression = Expression(
-            expressionString,
-            symbols: symbols
-        ) { symbol, args in
+        // Convert constants
+        var numericConstants = [String: Double]()
+        do {
+            for (name, value) in constants {
+                numericConstants[name] = try store(value)
+            }
+        } catch {
+            evaluate = { throw error }
+            self.symbols = []
+            description = expression
+            return
+        }
+
+        let expression = Expression(expressionString,
+                                    options: options,
+                                    constants: numericConstants)
+        { symbol, args in
             let anyArgs = args.map(load)
             if let value = try evaluator?(symbol, anyArgs) {
                 return try store(value)

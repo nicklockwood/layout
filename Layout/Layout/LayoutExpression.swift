@@ -10,40 +10,6 @@ import UIKit
 import Foundation
 import Expression
 
-private let commonSymbols: [Expression.Symbol: Expression.Symbol.Evaluator] = {
-    var symbols: [Expression.Symbol: ([Double]) -> Double] = [:]
-
-    // boolean constants
-    symbols[.constant("true")] = { _ in 1 }
-    symbols[.constant("false")] = { _ in 0 }
-
-    // boolean infix operators
-    symbols[.infix("==")] = { (args: [Double]) -> Double in args[0] == args[1] ? 1 : 0 }
-    symbols[.infix("!=")] = { (args: [Double]) -> Double in args[0] != args[1] ? 1 : 0 }
-    symbols[.infix(">")] = { (args: [Double]) -> Double in args[0] > args[1] ? 1 : 0 }
-    symbols[.infix(">=")] = { (args: [Double]) -> Double in args[0] >= args[1] ? 1 : 0 }
-    symbols[.infix("<")] = { (args: [Double]) -> Double in args[0] < args[1] ? 1 : 0 }
-    symbols[.infix("<=")] = { (args: [Double]) -> Double in args[0] <= args[1] ? 1 : 0 }
-    symbols[.infix("&&")] = { (args: [Double]) -> Double in args[0] != 0 && args[1] != 0 ? 1 : 0 }
-    symbols[.infix("||")] = { (args: [Double]) -> Double in args[0] != 0 || args[1] != 0 ? 1 : 0 }
-
-    // boolean prefix operators
-    symbols[.prefix("!")] = { (args: [Double]) -> Double in args[0] == 0 ? 1 : 0 }
-
-    // ternary operator
-    symbols[.infix("?:")] = { (args: [Double]) -> Double in
-        if args.count == 3 {
-            return args[0] != 0 ? args[1] : args[2]
-        }
-        return args[0] != 0 ? args[0] : args[1]
-    }
-
-    // modulo operator
-    symbols[.infix("%")] = { (args: [Double]) -> Double in args[0].truncatingRemainder(dividingBy: args[1]) }
-
-    return symbols
-}()
-
 private func stringify(_ value: Any) -> String {
     guard let value = try? unwrap(value) else {
         return "nil"
@@ -79,15 +45,11 @@ struct LayoutExpression {
     }
 
     private init(numberExpression: String, evaluator: @escaping Expression.Evaluator) {
-        let expression = Expression(
-            numberExpression,
-            symbols: commonSymbols,
-            evaluator: evaluator
-        )
+        let expression = Expression(numberExpression, options: .boolSymbols, evaluator: evaluator)
         var symbols = Set<String>()
         for symbol in expression.symbols {
             switch symbol {
-            case let .constant(string), let .postfix(string):
+            case let .variable(string), let .postfix(string):
                 symbols.insert(string)
             default:
                 break
@@ -99,7 +61,7 @@ struct LayoutExpression {
     init(numberExpression: String, for node: LayoutNode) {
         self.init(numberExpression: numberExpression) { [unowned node] symbol, args in
             switch symbol {
-            case let .constant(name):
+            case let .variable(name):
                 return try node.doubleValue(forSymbol: name)
             default:
                 return nil
@@ -120,7 +82,7 @@ struct LayoutExpression {
             switch symbol {
             case .postfix("%"):
                 return try node.doubleValue(forSymbol: prop) / 100 * args[0]
-            case let .constant(name):
+            case let .variable(name):
                 return try node.doubleValue(forSymbol: name)
             default:
                 return nil
@@ -148,7 +110,7 @@ struct LayoutExpression {
             in: node
         ) { [unowned node] symbol, args in
             switch symbol {
-            case .constant("auto"):
+            case .variable("auto"):
                 return Double(node.contentSize.width)
             default:
                 return nil
@@ -168,7 +130,7 @@ struct LayoutExpression {
             in: node
         ) { [unowned node] symbol, args in
             switch symbol {
-            case .constant("auto"):
+            case .variable("auto"):
                 return Double(node.contentSize.height)
             default:
                 return nil
@@ -190,9 +152,9 @@ struct LayoutExpression {
     }
 
     private init(anyExpression: String, type: RuntimeType, evaluator: @escaping AnyExpression.Evaluator) {
-        let expression = AnyExpression(anyExpression, symbols: commonSymbols, evaluator: evaluator)
+        let expression = AnyExpression(anyExpression, options: .boolSymbols, evaluator: evaluator)
         var symbols = Set<String>()
-        for case let .constant(string) in expression.symbols {
+        for case let .variable(string) in expression.symbols {
             symbols.insert(string)
         }
         self.init(
@@ -209,7 +171,7 @@ struct LayoutExpression {
     init(anyExpression: String, type: RuntimeType, for node: LayoutNode) {
         self.init(anyExpression: anyExpression, type: type) { [unowned node] symbol, args in
             switch symbol {
-            case let .constant(name):
+            case let .variable(name):
                 return try node.value(forSymbol: name)
             default:
                 return nil
@@ -249,7 +211,7 @@ struct LayoutExpression {
         let expression = LayoutExpression(anyExpression: colorExpression, type: RuntimeType(UIColor.self)) {
             [unowned node] symbol, args in
             switch symbol {
-            case let .constant(string):
+            case let .variable(string):
                 if let color = hexStringToColor(string) {
                     return color
                 }
@@ -524,7 +486,7 @@ struct LayoutExpression {
         let expression = LayoutExpression(anyExpression: enumExpression, type: type) {
             [unowned node] symbol, args in
             switch symbol {
-            case let .constant(name):
+            case let .variable(name):
                 if let enumValue = values[name] {
                     return enumValue
                 }

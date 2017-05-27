@@ -18,19 +18,27 @@ class AnyExpressionTests: XCTestCase {
     }
 
     func testAddNumericConstants() {
-        let expression = AnyExpression("a + b", symbols: [
-            .constant("a"): { _ in 4 },
-            .constant("b"): { _ in 5 },
+        let expression = AnyExpression("a + b", constants: [
+            "a": 4,
+            "b": 5,
         ])
         XCTAssertEqual(try expression.evaluate() as? Double, 9)
     }
 
     func testAddStringConstants() {
+        let expression = AnyExpression("a + b", constants: [
+            "a": "foo",
+            "b": "bar",
+        ])
+        XCTAssertEqual(try expression.evaluate() as? String, "foobar")
+    }
+
+    func testAddStringVariables() {
         let expression = AnyExpression("a + b") { symbol, args in
             switch symbol {
-            case .constant("a"):
+            case .variable("a"):
                 return "foo"
-            case .constant("b"):
+            case .variable("b"):
                 return "bar"
             default:
                 return nil
@@ -40,74 +48,48 @@ class AnyExpressionTests: XCTestCase {
     }
 
     func testEquateStrings() {
-        let evaluator: AnyExpression.Evaluator = { symbol, args in
-            switch symbol {
-            case .constant("a"):
-                return "foo"
-            case .constant("b"):
-                return "bar"
-            case .constant("c"):
-                return "bar"
-            default:
-                return nil
-            }
-        }
-        let expression1 = AnyExpression("a == b", evaluator: evaluator)
+        let constants: [String: Any] = [
+            "a": "foo",
+            "b": "bar",
+            "c": "bar",
+        ]
+        let expression1 = AnyExpression("a == b", constants: constants)
         XCTAssertEqual(try expression1.evaluate() as? Double, 0)
-        let expression2 = AnyExpression("a != b", evaluator: evaluator)
+        let expression2 = AnyExpression("a != b", constants: constants)
         XCTAssertEqual(try expression2.evaluate() as? Double, 1)
-        let expression3 = AnyExpression("b == c", evaluator: evaluator)
+        let expression3 = AnyExpression("b == c", constants: constants)
         XCTAssertEqual(try expression3.evaluate() as? Double, 1)
     }
 
     func testEquateObjects() {
         let object1 = NSObject()
         let object2 = NSObject()
-        let evaluator: AnyExpression.Evaluator = { symbol, args in
-            switch symbol {
-            case .constant("a"):
-                return object1
-            case .constant("b"):
-                return object2
-            case .constant("c"):
-                return object2
-            default:
-                return nil
-            }
-        }
-        let expression1 = AnyExpression("a == b", evaluator: evaluator)
+        let constants: [String: Any] = [
+            "a": object1,
+            "b": object2,
+            "c": object2,
+        ]
+        let expression1 = AnyExpression("a == b", constants: constants)
         XCTAssertEqual(try expression1.evaluate() as? Double, 0)
-        let expression2 = AnyExpression("a != b", evaluator: evaluator)
+        let expression2 = AnyExpression("a != b", constants: constants)
         XCTAssertEqual(try expression2.evaluate() as? Double, 1)
-        let expression3 = AnyExpression("b == c", evaluator: evaluator)
+        let expression3 = AnyExpression("b == c", constants: constants)
         XCTAssertEqual(try expression3.evaluate() as? Double, 1)
     }
 
     func testAddNumbersJustInsideIndexRange() {
-        let expression = AnyExpression("a + b") { symbol, args in
-            switch symbol {
-            case .constant("a"):
-                return Double(AnyExpression.indexOffset) - 17
-            case .constant("b"):
-                return 5
-            default:
-                return nil
-            }
-        }
+        let expression = AnyExpression("a + b", constants: [
+            "a": Double(AnyExpression.indexOffset) - 17,
+            "b": 5,
+        ])
         XCTAssertEqual(try expression.evaluate() as? Double, Double(AnyExpression.indexOffset) - 12)
     }
 
     func testAddNumbersOutsideIndexRange() {
-        let expression = AnyExpression("a + b") { symbol, args in
-            switch symbol {
-            case .constant("a"):
-                return Double(AnyExpression.indexOffset) + 4
-            case .constant("b"):
-                return 5
-            default:
-                return nil
-            }
-        }
+        let expression = AnyExpression("a + b", constants: [
+            "a": Double(AnyExpression.indexOffset) + 4,
+            "b": 5,
+        ])
         XCTAssertThrowsError(try expression.evaluate()) { error in
             guard case let Expression.Error.message(message) = error,
                 message.contains("numeric range") else {
@@ -118,18 +100,11 @@ class AnyExpressionTests: XCTestCase {
     }
 
     func testMaxConstantCountExceeded() {
-        var contants = [String: String]()
+        var constants = [String: String]()
         for i in 0 ..< AnyExpression.maxValues {
-            contants["v\(i)"] = "\(i)"
+            constants["v\(i)"] = "\(i)"
         }
-        let expression = AnyExpression(contants.keys.joined(separator: "+")) { symbol, args in
-            switch symbol {
-            case let .constant(name):
-                return contants[name]
-            default:
-                return nil
-            }
-        }
+        let expression = AnyExpression(constants.keys.joined(separator: "+"), constants: constants)
         XCTAssertThrowsError(try expression.evaluate()) { error in
             guard case let Expression.Error.message(message) = error,
                 message.contains("number of stored values") else {

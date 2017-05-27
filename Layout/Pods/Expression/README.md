@@ -10,7 +10,7 @@ What is this?
 
 Expression is a library for Mac and iOS for evaluating numeric expressions at runtime.
 
-It is similar to Foundation's built-in Expression class, but with better support for custom operators, and a simpler API.
+It is similar to Foundation's built-in Expression class, but with better support for custom operators, and a more Swift-friendly API.
 
 
 Why would I want that?
@@ -30,9 +30,9 @@ but there are other possible applications, e.g.
 
 (If you find any other uses, let me know and I'll add them)
 
-Normally these kind of calculations would involve embedding a heavyweight interpreted language such as JavaScript or Lua into your app. Expression avoids that overhead, and is also more secure as it reduces the risk of arbitrary code injection or crashes due to infinite loops, buffer overflows, etc.
+Normally these kind of calculations would involve embedding a heavyweight interpreted language such as JavaScript or Lua into your app. Expression avoids that overhead, and is also more secure, as it reduces the risk of arbitrary code injection or crashes due to infinite loops, buffer overflows, etc.
 
-Expression is lightweight, well-tested, and written entirely in Swift 3.
+Expression is lightweight, well-tested, and written entirely in Swift.
 
 
 How do I install it?
@@ -46,6 +46,7 @@ How do I use it?
 
 You create an `Expression` instance by passing a string containing your expression, and (optionally) any or all of the following:
 
+* A set of configuration options - used to enabled or disable certain features
 * A dictionary of named constants - this is the simplest way to specify predefined constants
 * A dictionary of symbols and callback functions - this is the most efficient way to provide custom functions or operators
 * A custom Evaluator function - this is the most flexible solution, and can support dynamic variable or function names
@@ -81,7 +82,7 @@ let result = try! expression.evaluate()
 
 let hexColor = "#FF0000FF" // rrggbbaa
 let expression = Expression(hexColor) { symbol, args in
-    if case .constant(let name), name.hasPrefix("#") { {
+    if case .variable(let name), name.hasPrefix("#") { {
         let hex = String(name.characters.dropFirst())
         return Double("0x" + hex)
     }
@@ -141,14 +142,14 @@ Note that you can check the arity of the function either using pattern matching 
 
     
 Symbols
---------------
+--------
 
 Expressions are formed from symbols, defined by the `Expression.Symbol` enum type. The default evaluator defines several of these, but you are free to define your own in your custom evaluator function.
 
 The Expression library supports the following symbol types:
 
 ```swift
-.constant(String)
+.variable(String)
 ```
 
 This is an alphanumeric identifier representing a constant or variable in an expression. Identifiers can be any valid sequence of letters and numbers, beginning with a letter, underscore (_), dollar symbol ($), at sign (@) or hash/pound sign (#).
@@ -167,18 +168,33 @@ Any valid identifier may also be used as a postfix operator, by placing it after
 
 Operator precedence follows standard BODMAS order, with multiplication/division given precedence over addition/subtraction. Prefix operators take precedence over postfix operators, which take precedence over infix ones. There is currently no way to specify precedence for custom operators - they all have equal priority to addition/subtraction.
 
-**Note**: Although there are currently no built-in boolean operators, if you wish to implement these then it should work as expected, with the caveat that short-circuiting is not supported. The parser will also recognize the ternary `?:` operator, treating `a ? b : c` as a single infix operator, but with three arguments.
-
+Standard boolean operators are supported, and follow the normal precidence rules, with the caveat that short-circuiting (where the right-hand argument is not evaluated if the left-hand-side is false) is not supported. The parser will also recognize the ternary `?:` operator, treating `a ? b : c` as a single infix operator with three arguments.
 
 ```swift
 .function(String, arity: Int)
 ```
 
 Functions can be defined using any valid identifier followed by a comma-delimited sequence of arguments in parentheses. Functions can be overloaded to support different argument counts, but it is up to you to handle argument validation in your evaluator function.
-     
-     
-Standard library
--------------------
+
+
+Caching & Optimization
+-----------------------
+
+By default, Expression caches parsed expressions and optimizes the expression where possible to make evaluation more efficient. Depending on your use case, these features may be undesirable, in which case you can disable them using the `options` argument, as follows:
+
+```swift
+let expression = Expression("foo + bar(5) + rnd()", options: [.noCache, .noOptimize], ...)
+```
+
+The expression cache is unlimited in size. In most applications this is very unlikely to ever be a problem - expressions are tiny, and even the most complex expression you can imagine is probably well under 1KB, so it would take a hell of a lot of them to cause memory pressure - But if for some reason you do ever need to reclaim the memory used by cached expressions, you can do so by calling the `flushCache()` method:
+
+```swift
+Expression.flushCache())
+```
+
+
+Standard math symbols
+----------------------
 
 Expression implements a sort of "standard library" in the form of a default symbol dictionary. This contains basic math functions and constants that are generally useful, independent of a particular application.
 
@@ -205,7 +221,7 @@ let expression = Expression("3 + 4") { symbol, args in
 try expression.evaluate() // this will throw an error because no standard library operators are supported, including +
 ```
 
-Here is the current supported list of standard library symbols:
+Here are the currently supported math symbols:
 
 **constants**
 
@@ -216,7 +232,7 @@ pi
 **infix operators**
 
 ```swift
-+ - / *
++ - / * %
 ```
 
 **prefix operators**
@@ -246,7 +262,54 @@ min(x,y)
 atan2(x,y)
 mod(x,y)
 ```
-    
+
+
+Standard boolean symbols
+-------------------------
+
+In addition to math, Expression also supports boolean logic, following the C convention that zero is false and any nonzero value is true. The standard boolean symbols are not enabled by default, but you can enable them using the `.boolSymbols` option:
+
+```swift
+let expression = Expression("foo ? bar : baz", options: [.boolSymbols], ...)
+```
+
+As with the math symbols, all standard boolean operators can be individually overriden or disabled for a given expression using the `symbols` or `evaluator` constructor arguments.
+
+Here are the currently supported boolean symbols:
+
+**constants**
+
+```swift
+true
+false
+```
+
+**infix operators**
+
+```swift
+==
+!=
+>
+>=
+<
+<=
+&&
+||
+```
+
+**prefix operators**
+
+```swift
+!
+```
+
+**ternary operator**
+
+```swift
+?:
+```
+
+
 Calculator Example
 --------------------
 
@@ -256,7 +319,7 @@ Not much to say about this. It's a calculator. You can type expressions into it,
 Colors Example
 ----------------
 
-The Colors example demonstrates how to use Expression to create a (mostly) CSS-compliant color parser. It takes a string containing a named color, hex color or rgb() function call, and returns a UIColor object.
+The Colors example demonstrates how to use Expression to create a (mostly) CSS-compliant color parser. It takes a string containing a named color, hex color or `rgb()` function call, and returns a UIColor object.
 
 Using Expression to parse colors is a bit of a hack, as it only works because it's possible to encode a color as a 32-bit Integer, which itself can be stored inside the Double returned by the Expression Evaluator. Still, it's a neat trick.
 
@@ -281,7 +344,7 @@ Here are some things to note:
 * Any expression-based property of any view can reference any other property (of the same view, or any other view), and can even reference multiple properties.
 * Every view has a bottom and right property. These are computed, and cannot be set directly, but they can be used in expressions.
 * Circular references (a property whose value depends on itself) are forbidden, and will be detected by the system.
-* The `width` and `height` properties can use the `auto` constant, which does nothing useful for ordinary views, but can be used with text labels to calculate the optimal height for a given width, based on the amount of text.
+* The `width` and `height` properties can use the `auto` variable, which does nothing useful for ordinary views, but can be used with text labels to calculate the optimal height for a given width, based on the amount of text.
 * Numeric values are measured in screen points. Percentage values are relative to the superview's `width` or `height` property.
 * Remember you can use functions like `min()` and `max()` to ensure that relative values don't go above or below a fixed threshold.
 
