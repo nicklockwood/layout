@@ -142,13 +142,13 @@ extension NSObject {
                 let type: RuntimeType
                 let typeAttrib = attribs[0]
                 switch typeAttrib.characters.dropFirst().first! {
-                case "c", "B":
+                case "c" where OBJC_BOOL_IS_BOOL == 0, "B":
                     type = RuntimeType(Bool.self)
                     for attrib in attribs where attrib.hasPrefix("Gis") {
                         name = attrib.substring(from: "G".endIndex)
                         break
                     }
-                case "i", "s", "l", "q":
+                case "c", "i", "s", "l", "q":
                     type = RuntimeType(Int.self)
                 case "C", "I", "S", "L", "Q":
                     type = RuntimeType(UInt.self)
