@@ -105,8 +105,11 @@ struct AnyExpression: CustomStringConvertible {
             if let value = try evaluator?(symbol, anyArgs) {
                 return try store(value)
             }
+            if let doubleArgs = anyArgs as? [Double], doubleArgs == args {
+                return nil // Fall back to default implementation
+            }
             switch symbol {
-            case .infix("+") where !values.isEmpty:
+            case .infix("+"):
                 return try store("\(anyArgs[0])\(anyArgs[1])")
             case .infix("=="):
                 guard let hashableArgs = anyArgs as? [AnyHashable] else {
@@ -118,8 +121,10 @@ struct AnyExpression: CustomStringConvertible {
                     return nil
                 }
                 return hashableArgs[0] != hashableArgs[1] ? 1 : 0
-            default:
+            case .infix("?:") where anyArgs[0] is Double:
                 return nil // Fall back to default implementation
+            default:
+                throw Expression.Error.message("\(symbol) cannot be used with arguments of type \(anyArgs.map { type(of: $0) })")
             }
         }
         evaluate = {

@@ -33,6 +33,15 @@ class AnyExpressionTests: XCTestCase {
         XCTAssertEqual(try expression.evaluate() as? String, "foobar")
     }
 
+    func testAddNumericConstantsWithString() {
+        let expression = AnyExpression("a + b == 9 ? c : ''", constants: [
+            "a": 4,
+            "b": 5,
+            "c": "foo",
+        ])
+        XCTAssertEqual(try expression.evaluate() as? String, "foo")
+    }
+
     func testAddStringVariables() {
         let expression = AnyExpression("a + b") { symbol, args in
             switch symbol {
