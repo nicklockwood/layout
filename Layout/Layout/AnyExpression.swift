@@ -64,8 +64,16 @@ struct AnyExpression: CustomStringConvertible {
             if values.count == AnyExpression.maxValues {
                 throw Error.message("Maximum number of stored values in an expression exceeded")
             }
+            if let lhs = value as? AnyHashable, let index = values.index(where: {
+                if let rhs = $0 as? AnyHashable {
+                    return lhs == rhs
+                }
+                return false
+            }) {
+                return Double(Int64(index) + AnyExpression.indexOffset)
+            }
             values.append(value)
-            return Double(Int64(values.count) + AnyExpression.indexOffset - 1)
+            return Double(Int64(values.count - 1) + AnyExpression.indexOffset)
         }
         func load(_ arg: Double) -> Any {
             if let offsetIndex = Int64(exactly: arg),
@@ -87,10 +95,13 @@ struct AnyExpression: CustomStringConvertible {
             expressionString.replaceSubrange(subrange, with: "\(Int64(value))")
             range = subrange.lowerBound ..< expressionString.endIndex
         }
-        let literals = values
 
         // Convert constants
-        var numericConstants = [String: Double]()
+        var numericConstants = [
+            "true": 1.0, // TODO: fix optimizer so it can work out that these are constant
+            "false": 0.0,
+            "pi": .pi,
+        ]
         do {
             for (name, value) in constants {
                 numericConstants[name] = try store(value)
@@ -101,6 +112,10 @@ struct AnyExpression: CustomStringConvertible {
             description = expression
             return
         }
+
+        // These are constant values that won't change between evaluations
+        // and won't be re-stored, so must not be cleared
+        let literals = values
 
         // Convert symbols
         var numericSymbols = [Symbol: ([Double]) throws -> Double]()
@@ -127,17 +142,7 @@ struct AnyExpression: CustomStringConvertible {
             switch symbol {
             case .infix("+"):
                 return try store("\(anyArgs[0])\(anyArgs[1])")
-            case .infix("=="):
-                guard let hashableArgs = anyArgs as? [AnyHashable] else {
-                    return nil
-                }
-                return hashableArgs[0] == hashableArgs[1] ? 1 : 0
-            case .infix("!="):
-                guard let hashableArgs = anyArgs as? [AnyHashable] else {
-                    return nil
-                }
-                return hashableArgs[0] != hashableArgs[1] ? 1 : 0
-            case .infix("?:") where anyArgs[0] is Double:
+            case .infix("?:") where anyArgs[0] is Double, .infix("=="), .infix("!="):
                 return nil // Fall back to default implementation
             default:
                 throw Error.message("\(symbol) cannot be used with arguments of type \(anyArgs.map { type(of: $0) })")

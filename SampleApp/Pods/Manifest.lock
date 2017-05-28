@@ -1,7 +1,7 @@
 PODS:
-  - Expression (0.6.0)
+  - Expression (0.6.1)
   - Layout (0.2.2):
-    - Expression (~> 0.6.0)
+    - Expression (~> 0.6.1)
   - Northstar (0.0.1)
 
 DEPENDENCIES:
@@ -15,8 +15,8 @@ EXTERNAL SOURCES:
     :path: Northstar
 
 SPEC CHECKSUMS:
-  Expression: 3a1b9fd454590c9b2197721d6c1fe8a22137c592
-  Layout: 3d86ec8e96fbad3241d9fffcdacd3e734830025d
+  Expression: c31b1dbe6331efe83efd411a6e671eff4a54e8dd
+  Layout: 8cd23760e8a7a7aa2b9158f6da0d0b90bfe41fe2
   Northstar: 6eb0ebdb6b4d03b8a201e9de771f6848fc650899
 
 PODFILE CHECKSUM: f8215283a456a0d52cd21807f2f4678a24b1b693

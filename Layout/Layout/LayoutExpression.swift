@@ -37,7 +37,6 @@ struct LayoutExpression {
     init(evaluate: @escaping () throws -> Any,  symbols: Set<String>) {
         self.symbols = symbols
         if symbols.isEmpty, let value = try? evaluate() {
-            // Very basic optimization
             self.evaluate = { value }
         } else {
             self.evaluate = evaluate
@@ -45,18 +44,35 @@ struct LayoutExpression {
     }
 
     private init(numberExpression: String,
-                 symbols: [Expression.Symbol: Expression.Symbol.Evaluator] = [:],
-                 lookup: @escaping (String) throws -> Double)
+                 symbols: [Expression.Symbol: Expression.Symbol.Evaluator],
+                 for node: LayoutNode)
     {
         var expression = Expression(numberExpression, options: .boolSymbols)
         if !expression.symbols.isEmpty {
+            var constants = [String: Double]()
             var symbols = symbols
-            for symbol in expression.symbols where symbols[symbol] == nil {
-                if case let .variable(name) = symbol {
-                    symbols[symbol] = { _ in try lookup(name) }
+            do {
+                for symbol in expression.symbols where symbols[symbol] == nil {
+                    if case let .variable(name) = symbol {
+                        if let value = try node.doubleValue(forConstant: name) {
+                            constants[name] = value
+                        } else {
+                            symbols[symbol] = { [unowned node] _ in
+                                try node.doubleValue(forSymbol: name)
+                            }
+                        }
+                    }
                 }
+            } catch {
+                self.init(evaluate: { throw error }, symbols: [])
+                return
             }
-            expression = Expression(numberExpression, options: .boolSymbols, symbols: symbols)
+            expression = Expression(
+                numberExpression,
+                options: .boolSymbols,
+                constants: constants,
+                symbols: symbols
+            )
         }
         self.init(
             evaluate: expression.evaluate,
@@ -72,9 +88,7 @@ struct LayoutExpression {
     }
 
     init(numberExpression: String, for node: LayoutNode) {
-        self.init(numberExpression: numberExpression) { [unowned node] name in
-            try node.doubleValue(forSymbol: name)
-        }
+        self.init(numberExpression: numberExpression, symbols: [:], for: node)
     }
 
     private init(percentageExpression: String,
@@ -88,10 +102,9 @@ struct LayoutExpression {
         }
         let expression = LayoutExpression(
             numberExpression: percentageExpression,
-            symbols: symbols
-        ) { [unowned node] name in
-            try node.doubleValue(forSymbol: name)
-        }
+            symbols: symbols,
+            for: node
+        )
         self.init(
             evaluate: { try expression.evaluate() },
             symbols: Set(expression.symbols.map { $0 == "%" ? prop : $0 })
@@ -144,18 +157,30 @@ struct LayoutExpression {
 
     private init(anyExpression: String,
                  type: RuntimeType,
-                 symbols: [AnyExpression.Symbol: AnyExpression.SymbolEvaluator] = [:],
-                 lookup: @escaping (String) throws -> Any)
+                 symbols: [AnyExpression.Symbol: AnyExpression.SymbolEvaluator],
+                 lookup: @escaping (String) -> Any? = { _ in nil },
+                 for node: LayoutNode)
     {
         var expression = AnyExpression(anyExpression)
         if !expression.symbols.isEmpty {
+            var constants = [String: Any]()
             var symbols = symbols
             for symbol in expression.symbols where symbols[symbol] == nil {
                 if case let .variable(name) = symbol {
-                    symbols[symbol] = { _ in try lookup(name) }
+                    if let value = lookup(name) ?? node.value(forConstant: name) {
+                        constants[name] = value
+                    } else {
+                        symbols[symbol] = { [unowned node] _ in
+                            try node.value(forSymbol: name)
+                        }
+                    }
                 }
             }
-            expression = AnyExpression(anyExpression, symbols: symbols)
+            expression = AnyExpression(
+                anyExpression,
+                constants: constants,
+                symbols: symbols
+            )
         }
         self.init(
             evaluate: {
@@ -174,41 +199,11 @@ struct LayoutExpression {
     }
 
     init(anyExpression: String, type: RuntimeType, for node: LayoutNode) {
-        self.init(anyExpression: anyExpression, type: type) { [unowned node] name in
-            try node.value(forSymbol: name)
-        }
+        self.init(anyExpression: anyExpression, type: type, symbols: [:], for: node)
     }
 
     init(colorExpression: String, for node: LayoutNode) {
-        func hexStringToColor(_ string: String) -> UIColor? {
-            if string.hasPrefix("#") {
-                var string = String(string.characters.dropFirst())
-                switch string.characters.count {
-                case 3:
-                    string += "f"
-                    fallthrough
-                case 4:
-                    let red = string.characters[string.index(string.startIndex, offsetBy: 0)]
-                    let green = string.characters[string.index(string.startIndex, offsetBy: 1)]
-                    let blue = string.characters[string.index(string.startIndex, offsetBy: 2)]
-                    let alpha = string.characters[string.index(string.startIndex, offsetBy: 3)]
-                    string = "\(red)\(red)\(green)\(green)\(blue)\(blue)\(alpha)\(alpha)"
-                case 6:
-                    string += "ff"
-                default:
-                    break
-                }
-                if let rgba = Double("0x" + string).flatMap({ UInt32(exactly: $0) }) {
-                    let red = CGFloat((rgba & 0xFF000000) >> 24) / 255
-                    let green = CGFloat((rgba & 0x00FF0000) >> 16) / 255
-                    let blue = CGFloat((rgba & 0x0000FF00) >> 8) / 255
-                    let alpha = CGFloat((rgba & 0x000000FF) >> 0) / 255
-                    return UIColor(red: red, green: green, blue: blue, alpha: alpha)
-                }
-            }
-            return nil
-        }
-        let expression = LayoutExpression(
+        self.init(
             anyExpression: colorExpression,
             type: RuntimeType(UIColor.self),
             symbols: [
@@ -225,18 +220,40 @@ struct LayoutExpression {
                     }
                     return UIColor(red: CGFloat(r/255), green: CGFloat(g/255), blue: CGFloat(b/255), alpha: CGFloat(a))
                 }
-            ])
-        { [unowned node] name in
-            // TODO: evaluate hex colors as constants instead of variables
-            try hexStringToColor(name) ?? node.value(forSymbol: name)
-        }
-        var symbols = expression.symbols
-        for name in symbols {
-            if hexStringToColor(name) != nil {
-                symbols.remove(name)
-            }
-        }
-        self.init(evaluate: { try expression.evaluate() }, symbols: symbols)
+            ],
+            lookup: { string in
+                if string.hasPrefix("#") {
+                    var string = String(string.characters.dropFirst())
+                    switch string.characters.count {
+                    case 3:
+                        string += "f"
+                        fallthrough
+                    case 4:
+                        let chars = string.characters
+                        let red = chars[chars.index(chars.startIndex, offsetBy: 0)]
+                        let green = chars[chars.index(chars.startIndex, offsetBy: 1)]
+                        let blue = chars[chars.index(chars.startIndex, offsetBy: 2)]
+                        let alpha = chars[chars.index(chars.startIndex, offsetBy: 3)]
+                        string = "\(red)\(red)\(green)\(green)\(blue)\(blue)\(alpha)\(alpha)"
+                    case 6:
+                        string += "ff"
+                    case 8:
+                        break
+                    default:
+                        return nil
+                    }
+                    if let rgba = Double("0x" + string).flatMap({ UInt32(exactly: $0) }) {
+                        let red = CGFloat((rgba & 0xFF000000) >> 24) / 255
+                        let green = CGFloat((rgba & 0x00FF0000) >> 16) / 255
+                        let blue = CGFloat((rgba & 0x0000FF00) >> 8) / 255
+                        let alpha = CGFloat((rgba & 0x000000FF) >> 0) / 255
+                        return UIColor(red: red, green: green, blue: blue, alpha: alpha)
+                    }
+                }
+                return nil
+            },
+            for: node
+        )
     }
 
     init(cgColorExpression: String, for node: LayoutNode) {
@@ -476,20 +493,13 @@ struct LayoutExpression {
 
     init(enumExpression: String, type: RuntimeType, for node: LayoutNode) {
         guard case let .enum(_, values, _) = type.type else { preconditionFailure() }
-        let expression = LayoutExpression(
+        self.init(
             anyExpression: enumExpression,
-            type: type)
-        { [unowned node] name in
-            // TODO: treat enum values as constants instead of variables
-            try values[name] ?? node.value(forSymbol: name)
-        }
-        var symbols = expression.symbols
-        for name in symbols {
-            if values[name] != nil {
-                symbols.remove(name)
-            }
-        }
-        self.init(evaluate: { try expression.evaluate() }, symbols: symbols)
+            type: type,
+            symbols: [:],
+            lookup: { name in values[name] },
+            for: node
+        )
     }
 
     init(expression: String, ofType type: RuntimeType, for node: LayoutNode) {

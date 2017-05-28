@@ -27,6 +27,7 @@
 		01DA95871EABFF5F00868113 /* Expression.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 01DA95861EABFF5F00868113 /* Expression.framework */; };
 		01DA95901EB0A3A700868113 /* Properties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01DA958F1EB0A3A700868113 /* Properties.swift */; };
 		01DA95921EB0A8FA00868113 /* UIView+Layout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01DA95911EB0A8FA00868113 /* UIView+Layout.swift */; };
+		01DD395A1EDB312700F17F46 /* ColorExpressionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01DD39591EDB312700F17F46 /* ColorExpressionTests.swift */; };
 		3B031328AF75A8ED9FCB2B3F /* Pods_LayoutTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 05DA996CC29E3F6DB7194413 /* Pods_LayoutTests.framework */; };
 		B4894CA7E72E6E0505B7527C /* Pods_Layout.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4118130BF7EC77593CF35CF1 /* Pods_Layout.framework */; };
 /* End PBXBuildFile section */
@@ -65,6 +66,7 @@
 		01DA95861EABFF5F00868113 /* Expression.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Expression.framework; path = "../../../Library/Developer/Xcode/DerivedData/Layout-cidlxdzqvadfbngzwtfaldjrmjir/Build/Products/Debug-iphonesimulator/Expression.framework"; sourceTree = "<group>"; };
 		01DA958F1EB0A3A700868113 /* Properties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Properties.swift; sourceTree = "<group>"; };
 		01DA95911EB0A8FA00868113 /* UIView+Layout.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIView+Layout.swift"; sourceTree = "<group>"; };
+		01DD39591EDB312700F17F46 /* ColorExpressionTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ColorExpressionTests.swift; sourceTree = "<group>"; };
 		05DA996CC29E3F6DB7194413 /* Pods_LayoutTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_LayoutTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		112BC42B887D6AFE2BE726FB /* Pods-Layout.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Layout.release.xcconfig"; path = "Pods/Target Support Files/Pods-Layout/Pods-Layout.release.xcconfig"; sourceTree = "<group>"; };
 		185DA1F38D443FD9E7813D30 /* Pods-LayoutTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LayoutTests.release.xcconfig"; path = "Pods/Target Support Files/Pods-LayoutTests/Pods-LayoutTests.release.xcconfig"; sourceTree = "<group>"; };
@@ -139,6 +141,7 @@
 			isa = PBXGroup;
 			children = (
 				016BC2971EC6E43C009759A4 /* AnyExpressionTests.swift */,
+				01DD39591EDB312700F17F46 /* ColorExpressionTests.swift */,
 				01C8A6BF1ECCF9B00031CB2F /* EnumExpressionTests.swift */,
 				01B36DC41ECC452100D0DA01 /* FontExpressionTests.swift */,
 				012FE2C41ECED66C00DFA961 /* GeometryExpressionTests.swift */,
@@ -388,6 +391,7 @@
 				016BC2981EC6E43C009759A4 /* AnyExpressionTests.swift in Sources */,
 				012FE2C51ECED66C00DFA961 /* GeometryExpressionTests.swift in Sources */,
 				012FE2C11ECE3B3100DFA961 /* StateTests.swift in Sources */,
+				01DD395A1EDB312700F17F46 /* ColorExpressionTests.swift in Sources */,
 				01B36DC51ECC452100D0DA01 /* FontExpressionTests.swift in Sources */,
 				01DA95631EABC1E400868113 /* LayoutNodeTests.swift in Sources */,
 			);

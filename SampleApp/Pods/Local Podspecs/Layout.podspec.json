@@ -24,7 +24,7 @@
   "source_files": "Layout/Layout/*.swift",
   "dependencies": {
     "Expression": [
-      "~> 0.6.0"
+      "~> 0.6.1"
     ]
   }
 }

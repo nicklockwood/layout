@@ -1,7 +1,7 @@
 PODS:
-  - Expression (0.6.0)
+  - Expression (0.6.1)
   - Layout (0.2.2):
-    - Expression (~> 0.6.0)
+    - Expression (~> 0.6.1)
 
 DEPENDENCIES:
   - Layout (from `../`)
@@ -11,8 +11,8 @@ EXTERNAL SOURCES:
     :path: ../
 
 SPEC CHECKSUMS:
-  Expression: 3a1b9fd454590c9b2197721d6c1fe8a22137c592
-  Layout: 3d86ec8e96fbad3241d9fffcdacd3e734830025d
+  Expression: c31b1dbe6331efe83efd411a6e671eff4a54e8dd
+  Layout: 8cd23760e8a7a7aa2b9158f6da0d0b90bfe41fe2
 
 PODFILE CHECKSUM: de763472315fa391cbc8751113c14e4ffd2dd3fe
 

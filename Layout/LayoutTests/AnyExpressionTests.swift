@@ -14,6 +14,7 @@ class AnyExpressionTests: XCTestCase {
 
     func testAddNumbers() {
         let expression = AnyExpression("4 + 5")
+        XCTAssertEqual(expression.symbols, [.infix("+")])
         XCTAssertEqual(try expression.evaluate() as? Double, 9)
     }
 
@@ -22,6 +23,7 @@ class AnyExpressionTests: XCTestCase {
             "a": 4,
             "b": 5,
         ])
+        XCTAssertEqual(expression.symbols, [.infix("+")])
         XCTAssertEqual(try expression.evaluate() as? Double, 9)
     }
 
@@ -30,6 +32,7 @@ class AnyExpressionTests: XCTestCase {
             "a": "foo",
             "b": "bar",
         ])
+        XCTAssertEqual(expression.symbols, [.infix("+")])
         XCTAssertEqual(try expression.evaluate() as? String, "foobar")
     }
 
@@ -39,6 +42,7 @@ class AnyExpressionTests: XCTestCase {
             "b": 5,
             "c": "foo",
         ])
+        XCTAssertEqual(expression.symbols, [.infix("+"), .infix("=="), .infix("?:")])
         XCTAssertEqual(try expression.evaluate() as? String, "foo")
     }
 
@@ -47,6 +51,7 @@ class AnyExpressionTests: XCTestCase {
             .variable("a"): { _ in "foo" },
             .variable("b"): { _ in "bar" },
         ])
+        XCTAssertEqual(expression.symbols, [.variable("a"), .variable("b"), .infix("+")])
         XCTAssertEqual(try expression.evaluate() as? String, "foobar")
     }
 
@@ -61,7 +66,38 @@ class AnyExpressionTests: XCTestCase {
                 return nil
             }
         }
+        XCTAssertEqual(expression.symbols, [.variable("a"), .variable("b"), .infix("+")])
         XCTAssertEqual(try expression.evaluate() as? String, "foobar")
+    }
+
+    func testMixedConstantsAndVariables() {
+        let expression = AnyExpression(
+            "a + b + c",
+            constants: [
+                "a": "foo",
+                "b": "bar",
+            ],
+            symbols: [
+                .variable("c"): { _ in "baz" },
+            ]
+        )
+        XCTAssertEqual(expression.symbols, [.variable("c"), .infix("+")])
+        XCTAssertEqual(try expression.evaluate() as? String, "foobarbaz")
+    }
+
+    func testMixedConstantsAndVariables2() {
+        let expression = AnyExpression(
+            "foo ? #F00 : #00F",
+            constants: [
+                "#F00": UIColor(red: 1, green: 0, blue: 0, alpha: 1),
+                "#00F": UIColor(red: 0, green: 0, blue: 1, alpha: 1),
+            ],
+            symbols: [
+                .variable("foo"): { _ in true },
+            ]
+        )
+        XCTAssertEqual(expression.symbols, [.variable("foo"), .infix("?:")])
+        XCTAssertEqual(try expression.evaluate() as? UIColor, UIColor(red: 1, green: 0, blue: 0, alpha: 1))
     }
 
     func testEquateStrings() {
@@ -133,6 +169,7 @@ class AnyExpressionTests: XCTestCase {
 
     func testStringLiterals() {
         let expression = AnyExpression("'foo' + 'bar'")
+        XCTAssertEqual(expression.symbols, [.infix("+")])
         XCTAssertEqual(try expression.evaluate() as? String, "foobar")
     }
 }
