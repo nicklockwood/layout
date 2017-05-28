@@ -533,11 +533,8 @@ public class LayoutNode: NSObject {
     }
 
     // Note: thrown error is always a SymbolError
-    func doubleValue(forSymbol symbol: String) throws -> Double! {
-        guard let anyValue = try value(forSymbol: symbol) else {
-            // FIXME: this is confusing behavior, but useful when called inside an expression
-            return nil // Fall back to standard library
-        }
+    func doubleValue(forSymbol symbol: String) throws -> Double {
+        let anyValue = try value(forSymbol: symbol)
         if let doubleValue = anyValue as? Double {
             return doubleValue
         }
@@ -561,12 +558,12 @@ public class LayoutNode: NSObject {
     // TODO: numeric values may be returned as a Double, even if original type was something else
     // this was deliberate for performance reasons, but it's a bit confusing - find a better solution
     // before making this API public
-    private var _getters = [String: () throws -> Any?]()
-    func value(forSymbol symbol: String) throws -> Any! {
+    private var _getters = [String: () throws -> Any]()
+    func value(forSymbol symbol: String) throws -> Any {
         if let getter = _getters[symbol] {
             return try SymbolError.wrap(getter, for: symbol)
         }
-        let getter: () throws -> Any?
+        let getter: () throws -> Any
         if let expression = self.expression(for: symbol) {
             getter = { [unowned self] in
                 if self._evaluating.last == symbol,
@@ -657,9 +654,7 @@ public class LayoutNode: NSObject {
                             self.viewController?.value(forSymbol: symbol) ?? self.view.value(forSymbol: symbol) {
                             return value
                         }
-                        // Fall back to standard library
-                        // FIXME: this is confusing behavior, but useful when called inside an expression
-                        return nil
+                        throw SymbolError("\(symbol) not found", for: symbol)
                     }
                 }
             }
@@ -675,9 +670,8 @@ public class LayoutNode: NSObject {
                 // Crude optimization to avoid setting constant properties multiple times
                 continue
             }
-            if let anyValue = try value(forSymbol: name) {
-                try setValue(anyValue, forExpression: name)
-            }
+            let anyValue = try value(forSymbol: name)
+            try setValue(anyValue, forExpression: name)
         }
     }
 

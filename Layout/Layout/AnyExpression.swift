@@ -35,29 +35,34 @@ import Expression
 // Version of Expression that works with any value type
 struct AnyExpression: CustomStringConvertible {
     let evaluate: () throws -> Any
-    let symbols: Set<Expression.Symbol>
+    let symbols: Set<Symbol>
     let description: String
 
-    typealias Evaluator = (_ symbol: Expression.Symbol, _ args: [Any]) throws -> Any?
+    typealias Options = Expression.Options
+    typealias Error = Expression.Error
+    typealias Symbol = Expression.Symbol
+    typealias Evaluator = (_ symbol: Symbol, _ args: [Any]) throws -> Any?
+    typealias SymbolEvaluator = (_ args: [Any]) throws -> Any
 
     static let maxValues = 256
     static let indexOffset = (Int64(2) << 52) - Int64(maxValues)
 
     init(_ expression: String,
+         options: Options = .boolSymbols,
          constants: [String: Any] = [:],
-         options: Expression.Options = .boolSymbols,
+         symbols: [Symbol: SymbolEvaluator] = [:],
          evaluator: Evaluator? = nil)
     {
         var values = [Any]()
         func store(_ value: Any) throws -> Double {
             if let value = (value as? NSNumber).map({ Double($0) }) {
                 guard value <= Double(AnyExpression.indexOffset) else {
-                    throw Expression.Error.message("Value \(value) is outside of the supported numeric range")
+                    throw Error.message("Value \(value) is outside of the supported numeric range")
                 }
                 return value
             }
             if values.count == AnyExpression.maxValues {
-                throw Expression.Error.message("Maximum number of stored values in an expression exceeded")
+                throw Error.message("Maximum number of stored values in an expression exceeded")
             }
             values.append(value)
             return Double(Int64(values.count) + AnyExpression.indexOffset - 1)
@@ -97,9 +102,20 @@ struct AnyExpression: CustomStringConvertible {
             return
         }
 
+        // Convert symbols
+        var numericSymbols = [Symbol: ([Double]) throws -> Double]()
+        for (symbol, closure) in symbols {
+            numericSymbols[symbol] = { args in
+                let anyArgs = args.map(load)
+                let value = try closure(anyArgs)
+                return try store(value)
+            }
+        }
+
         let expression = Expression(expressionString,
                                     options: options,
-                                    constants: numericConstants)
+                                    constants: numericConstants,
+                                    symbols: numericSymbols)
         { symbol, args in
             let anyArgs = args.map(load)
             if let value = try evaluator?(symbol, anyArgs) {
@@ -124,7 +140,7 @@ struct AnyExpression: CustomStringConvertible {
             case .infix("?:") where anyArgs[0] is Double:
                 return nil // Fall back to default implementation
             default:
-                throw Expression.Error.message("\(symbol) cannot be used with arguments of type \(anyArgs.map { type(of: $0) })")
+                throw Error.message("\(symbol) cannot be used with arguments of type \(anyArgs.map { type(of: $0) })")
             }
         }
         evaluate = {

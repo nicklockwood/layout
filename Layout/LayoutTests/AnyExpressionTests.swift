@@ -43,6 +43,14 @@ class AnyExpressionTests: XCTestCase {
     }
 
     func testAddStringVariables() {
+        let expression = AnyExpression("a + b", symbols: [
+            .variable("a"): { _ in "foo" },
+            .variable("b"): { _ in "bar" },
+        ])
+        XCTAssertEqual(try expression.evaluate() as? String, "foobar")
+    }
+
+    func testAddStringVariables2() {
         let expression = AnyExpression("a + b") { symbol, args in
             switch symbol {
             case .variable("a"):

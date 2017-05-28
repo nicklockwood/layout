@@ -44,55 +44,58 @@ struct LayoutExpression {
         }
     }
 
-    private init(numberExpression: String, evaluator: @escaping Expression.Evaluator) {
-        let expression = Expression(numberExpression, options: .boolSymbols, evaluator: evaluator)
-        var symbols = Set<String>()
-        for symbol in expression.symbols {
-            switch symbol {
-            case let .variable(string), let .postfix(string):
-                symbols.insert(string)
-            default:
-                break
+    private init(numberExpression: String,
+                 symbols: [Expression.Symbol: Expression.Symbol.Evaluator] = [:],
+                 lookup: @escaping (String) throws -> Double)
+    {
+        var expression = Expression(numberExpression, options: .boolSymbols)
+        if !expression.symbols.isEmpty {
+            var symbols = symbols
+            for symbol in expression.symbols where symbols[symbol] == nil {
+                if case let .variable(name) = symbol {
+                    symbols[symbol] = { _ in try lookup(name) }
+                }
             }
+            expression = Expression(numberExpression, options: .boolSymbols, symbols: symbols)
         }
-        self.init(evaluate: expression.evaluate, symbols: symbols)
+        self.init(
+            evaluate: expression.evaluate,
+            symbols: Set(expression.symbols.flatMap {
+                switch $0 {
+                case let .variable(string), let .postfix(string):
+                    return string
+                default:
+                    return nil
+                }
+            })
+        )
     }
 
     init(numberExpression: String, for node: LayoutNode) {
-        self.init(numberExpression: numberExpression) { [unowned node] symbol, args in
-            switch symbol {
-            case let .variable(name):
-                return try node.doubleValue(forSymbol: name)
-            default:
-                return nil
-            }
+        self.init(numberExpression: numberExpression) { [unowned node] name in
+            try node.doubleValue(forSymbol: name)
         }
     }
 
     private init(percentageExpression: String,
                  for prop: String, in node: LayoutNode,
-                 evaluator: @escaping Expression.Evaluator = { _ in nil }) {
+                 symbols: [Expression.Symbol: Expression.Symbol.Evaluator] = [:])
+    {
         let prop = "parent.\(prop)"
+        var symbols = symbols
+        symbols[.postfix("%")] = { [unowned node] args in
+            try node.doubleValue(forSymbol: prop) / 100 * args[0]
+        }
         let expression = LayoutExpression(
-            numberExpression: percentageExpression
-        ) { [unowned node] symbol, args in
-            if let value = try evaluator(symbol, args) {
-                return value
-            }
-            switch symbol {
-            case .postfix("%"):
-                return try node.doubleValue(forSymbol: prop) / 100 * args[0]
-            case let .variable(name):
-                return try node.doubleValue(forSymbol: name)
-            default:
-                return nil
-            }
+            numberExpression: percentageExpression,
+            symbols: symbols
+        ) { [unowned node] name in
+            try node.doubleValue(forSymbol: name)
         }
-        var symbols = expression.symbols
-        if symbols.remove("%") != nil {
-            symbols.insert(prop)
-        }
-        self.init(evaluate: { try expression.evaluate() }, symbols: symbols)
+        self.init(
+            evaluate: { try expression.evaluate() },
+            symbols: Set(expression.symbols.map { $0 == "%" ? prop : $0 })
+        )
     }
 
     init(xExpression: String, for node: LayoutNode) {
@@ -106,41 +109,29 @@ struct LayoutExpression {
     init(widthExpression: String, for node: LayoutNode) {
         let expression = LayoutExpression(
             percentageExpression: widthExpression,
-            for: "width",
-            in: node
-        ) { [unowned node] symbol, args in
-            switch symbol {
-            case .variable("auto"):
-                return Double(node.contentSize.width)
-            default:
-                return nil
-            }
-        }
-        var symbols = expression.symbols
-        if symbols.remove("auto") != nil {
-            symbols.insert("contentSize.width")
-        }
-        self.init(evaluate: { try expression.evaluate() }, symbols: symbols)
+            for: "width", in: node,
+            symbols: [.variable("auto"): { [unowned node] _ in
+                Double(node.contentSize.width)
+            }]
+        )
+        self.init(
+            evaluate: { try expression.evaluate() },
+            symbols: Set(expression.symbols.map { $0 == "auto" ? "contentSize.width" : $0 })
+        )
     }
 
     init(heightExpression: String, for node: LayoutNode) {
         let expression = LayoutExpression(
             percentageExpression: heightExpression,
-            for: "height",
-            in: node
-        ) { [unowned node] symbol, args in
-            switch symbol {
-            case .variable("auto"):
-                return Double(node.contentSize.height)
-            default:
-                return nil
-            }
-        }
-        var symbols = expression.symbols
-        if symbols.remove("auto") != nil {
-            symbols.insert("contentSize.height")
-        }
-        self.init(evaluate: { try expression.evaluate() }, symbols: symbols)
+            for: "height", in: node,
+            symbols: [.variable("auto"): { [unowned node] _ in
+                Double(node.contentSize.height)
+            }]
+        )
+        self.init(
+            evaluate: { try expression.evaluate() },
+            symbols: Set(expression.symbols.map { $0 == "auto" ? "contentSize.height" : $0 })
+        )
     }
 
     init(boolExpression: String, for node: LayoutNode) {
@@ -151,11 +142,20 @@ struct LayoutExpression {
         )
     }
 
-    private init(anyExpression: String, type: RuntimeType, evaluator: @escaping AnyExpression.Evaluator) {
-        let expression = AnyExpression(anyExpression, options: .boolSymbols, evaluator: evaluator)
-        var symbols = Set<String>()
-        for case let .variable(string) in expression.symbols {
-            symbols.insert(string)
+    private init(anyExpression: String,
+                 type: RuntimeType,
+                 symbols: [AnyExpression.Symbol: AnyExpression.SymbolEvaluator] = [:],
+                 lookup: @escaping (String) throws -> Any)
+    {
+        var expression = AnyExpression(anyExpression)
+        if !expression.symbols.isEmpty {
+            var symbols = symbols
+            for symbol in expression.symbols where symbols[symbol] == nil {
+                if case let .variable(name) = symbol {
+                    symbols[symbol] = { _ in try lookup(name) }
+                }
+            }
+            expression = AnyExpression(anyExpression, symbols: symbols)
         }
         self.init(
             evaluate: {
@@ -164,18 +164,18 @@ struct LayoutExpression {
                 }
                 return value
             },
-            symbols: symbols
+            symbols: Set(expression.symbols.flatMap {
+                if case let .variable(string) = $0 {
+                    return string
+                }
+                return nil
+            })
         )
     }
 
     init(anyExpression: String, type: RuntimeType, for node: LayoutNode) {
-        self.init(anyExpression: anyExpression, type: type) { [unowned node] symbol, args in
-            switch symbol {
-            case let .variable(name):
-                return try node.value(forSymbol: name)
-            default:
-                return nil
-            }
+        self.init(anyExpression: anyExpression, type: type) { [unowned node] name in
+            try node.value(forSymbol: name)
         }
     }
 
@@ -208,34 +208,27 @@ struct LayoutExpression {
             }
             return nil
         }
-        let expression = LayoutExpression(anyExpression: colorExpression, type: RuntimeType(UIColor.self)) {
-            [unowned node] symbol, args in
-            switch symbol {
-            case let .variable(string):
-                if let color = hexStringToColor(string) {
-                    return color
+        let expression = LayoutExpression(
+            anyExpression: colorExpression,
+            type: RuntimeType(UIColor.self),
+            symbols: [
+                .function("rgb", arity: 3): { args in
+                    guard let r = args[0] as? Double, let g = args[1] as? Double, let b = args[2] as? Double else {
+                        throw Expression.Error.message("Type mismatch")
+                    }
+                    return UIColor(red: CGFloat(r/255), green: CGFloat(g/255), blue: CGFloat(b/255), alpha: 1)
+                },
+                .function("rgba", arity: 4): { args in
+                    guard let r = args[0] as? Double, let g = args[1] as? Double,
+                        let b = args[2] as? Double, let a = args[3] as? Double else {
+                            throw Expression.Error.message("Type mismatch")
+                    }
+                    return UIColor(red: CGFloat(r/255), green: CGFloat(g/255), blue: CGFloat(b/255), alpha: CGFloat(a))
                 }
-                return try node.value(forSymbol: string)
-            case let .function("rgb", arity):
-                if arity != 3 {
-                    throw Expression.Error.arityMismatch(.function("rgb", arity: 3))
-                }
-                guard let r = args[0] as? Double, let g = args[1] as? Double, let b = args[2] as? Double else {
-                    throw Expression.Error.message("Type mismatch")
-                }
-                return UIColor(red: CGFloat(r/255), green: CGFloat(g/255), blue: CGFloat(b/255), alpha: 1)
-            case let .function("rgba", arity):
-                if arity != 4 {
-                    throw Expression.Error.arityMismatch(.function("rgba", arity: 4))
-                }
-                guard let r = args[0] as? Double, let g = args[1] as? Double,
-                    let b = args[2] as? Double, let a = args[3] as? Double else {
-                    throw Expression.Error.message("Type mismatch")
-                }
-                return UIColor(red: CGFloat(r/255), green: CGFloat(g/255), blue: CGFloat(b/255), alpha: CGFloat(a))
-            default:
-                return nil
-            }
+            ])
+        { [unowned node] name in
+            // TODO: evaluate hex colors as constants instead of variables
+            try hexStringToColor(name) ?? node.value(forSymbol: name)
         }
         var symbols = expression.symbols
         for name in symbols {
@@ -483,17 +476,12 @@ struct LayoutExpression {
 
     init(enumExpression: String, type: RuntimeType, for node: LayoutNode) {
         guard case let .enum(_, values, _) = type.type else { preconditionFailure() }
-        let expression = LayoutExpression(anyExpression: enumExpression, type: type) {
-            [unowned node] symbol, args in
-            switch symbol {
-            case let .variable(name):
-                if let enumValue = values[name] {
-                    return enumValue
-                }
-                return try node.value(forSymbol: name)
-            default:
-                return nil
-            }
+        let expression = LayoutExpression(
+            anyExpression: enumExpression,
+            type: type)
+        { [unowned node] name in
+            // TODO: treat enum values as constants instead of variables
+            try values[name] ?? node.value(forSymbol: name)
         }
         var symbols = expression.symbols
         for name in symbols {
