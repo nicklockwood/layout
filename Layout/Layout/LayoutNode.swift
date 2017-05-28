@@ -457,13 +457,10 @@ public class LayoutNode: NSObject {
             func isConstant(_ exp: LayoutExpression) -> Bool {
                 for name in expression.symbols {
                     guard expressions[name] != nil else {
-                        guard value(forVariable: name) == nil else {
-                            return false // Inherited variable
-                        }
                         guard value(forConstant: name) == nil else {
                             continue // Inherited constant
                         }
-                        return false // View or controller property
+                        return false // Variable or view/controller property
                     }
                     if _evaluating.contains(name) {
                         return false // Possible circular reference
@@ -499,11 +496,11 @@ public class LayoutNode: NSObject {
     // MARK: symbols
 
     private func value(forConstant name: String) -> Any? {
-        return constants[name] ?? parent?.value(forConstant: name)
+        return _variables[name] == nil ? constants[name] ?? parent?.value(forConstant: name) : nil
     }
 
-    private func value(forVariable name: String) -> Any? {
-        return _variables[name] ?? parent?.value(forVariable: name)
+    private func value(forVariableOrConstant name: String) -> Any? {
+        return _variables[name] ?? constants[name] ?? parent?.value(forVariableOrConstant: name)
     }
 
     public lazy var viewExpressionTypes: [String: RuntimeType] = {
@@ -567,7 +564,7 @@ public class LayoutNode: NSObject {
         if let expression = self.expression(for: symbol) {
             getter = { [unowned self] in
                 if self._evaluating.last == symbol,
-                    let value = self.value(forVariable: symbol) ?? self.value(forConstant: symbol) {
+                    let value = self.value(forVariableOrConstant: symbol) {
                     // If an expression directly references itself it may be shadowing
                     // a constant or variable, so check for that first before throwing
                     return value
@@ -646,7 +643,7 @@ public class LayoutNode: NSObject {
                 default:
                     getter = { [unowned self] in
                         // Try local variables/constants first, then
-                        if let value = self.value(forVariable: symbol) ?? self.value(forConstant: symbol) {
+                        if let value = self.value(forVariableOrConstant: symbol) {
                             return value
                         }
                         // Then controller/view symbols
