@@ -1,3 +1,9 @@
+## [0.2.3](https://github.schibsted.io/Rocket/layout/releases/tag/0.2.3) (2017-05-29)
+
+- Fixed bug where inherited state incorrectly shadowed local constants
+- Expressions that mix math functions with non-numeric types now work as expected
+- Improved expression parsing and evaluation performance
+
 ## [0.2.2](https://github.schibsted.io/Rocket/layout/releases/tag/0.2.2) (2017-05-19)
 
 - Fixed a critical bug where Bool properties were not working on 32-bit devices
