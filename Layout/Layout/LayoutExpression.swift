@@ -27,6 +27,12 @@ private func stringify(_ value: Any) -> String {
     }
 }
 
+private let ignoredSymbols: Set<Expression.Symbol> = [
+    .variable("pi"),
+    .variable("true"),
+    .variable("false"),
+]
+
 struct LayoutExpression {
     let evaluate: () throws -> Any
     let symbols: Set<String>
@@ -43,37 +49,37 @@ struct LayoutExpression {
         }
     }
 
+    // Symbols are assumed to be impure - i.e. they won't always return the same value
     private init(numberExpression: String,
                  symbols: [Expression.Symbol: Expression.Symbol.Evaluator],
                  for node: LayoutNode)
     {
-        var expression = Expression(numberExpression, options: .boolSymbols)
-        if !expression.symbols.isEmpty {
-            var constants = [String: Double]()
-            var symbols = symbols
-            do {
-                for symbol in expression.symbols where symbols[symbol] == nil {
-                    if case let .variable(name) = symbol {
-                        if let value = try node.doubleValue(forConstant: name) {
-                            constants[name] = value
-                        } else {
-                            symbols[symbol] = { [unowned node] _ in
-                                try node.doubleValue(forSymbol: name)
-                            }
+        let parsedExpression = Expression.parse(numberExpression)
+        var constants = [String: Double]()
+        var symbols = symbols
+        do {
+            for symbol in parsedExpression.symbols
+                where symbols[symbol] == nil && !ignoredSymbols.contains(symbol) {
+                if case let .variable(name) = symbol {
+                    if let value = try node.doubleValue(forConstant: name) {
+                        constants[name] = value
+                    } else {
+                        symbols[symbol] = { [unowned node] _ in
+                            try node.doubleValue(forSymbol: name)
                         }
                     }
                 }
-            } catch {
-                self.init(evaluate: { throw error }, symbols: [])
-                return
             }
-            expression = Expression(
-                numberExpression,
-                options: .boolSymbols,
-                constants: constants,
-                symbols: symbols
-            )
+        } catch {
+            self.init(evaluate: { throw error }, symbols: [])
+            return
         }
+        let expression = Expression(
+            parsedExpression,
+            options: .boolSymbols,
+            constants: constants,
+            symbols: symbols
+        )
         self.init(
             evaluate: expression.evaluate,
             symbols: Set(expression.symbols.flatMap {
@@ -155,33 +161,34 @@ struct LayoutExpression {
         )
     }
 
+    // Symbols are assumed to be pure - i.e. they will always return the same value
     private init(anyExpression: String,
                  type: RuntimeType,
                  symbols: [AnyExpression.Symbol: AnyExpression.SymbolEvaluator],
                  lookup: @escaping (String) -> Any? = { _ in nil },
                  for node: LayoutNode)
     {
-        var expression = AnyExpression(anyExpression)
-        if !expression.symbols.isEmpty {
-            var constants = [String: Any]()
-            var symbols = symbols
-            for symbol in expression.symbols where symbols[symbol] == nil {
-                if case let .variable(name) = symbol {
-                    if let value = lookup(name) ?? node.value(forConstant: name) {
-                        constants[name] = value
-                    } else {
-                        symbols[symbol] = { [unowned node] _ in
-                            try node.value(forSymbol: name)
-                        }
+        let parsedExpression = Expression.parse(anyExpression)
+        var constants = [String: Any]()
+        var symbols = symbols
+        for symbol in parsedExpression.symbols
+            where symbols[symbol] == nil && !ignoredSymbols.contains(symbol) {
+            if case let .variable(name) = symbol {
+                if let value = lookup(name) ?? node.value(forConstant: name) {
+                    constants[name] = value
+                } else {
+                    symbols[symbol] = { [unowned node] _ in
+                        try node.value(forSymbol: name)
                     }
                 }
             }
-            expression = AnyExpression(
-                anyExpression,
-                constants: constants,
-                symbols: symbols
-            )
         }
+        let expression = AnyExpression(
+            anyExpression,
+            options: [.boolSymbols, .pureSymbols],
+            constants: constants,
+            symbols: symbols
+        )
         self.init(
             evaluate: {
                 guard let value = try type.cast(expression.evaluate()) else {

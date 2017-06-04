@@ -53,6 +53,21 @@ struct AnyExpression: CustomStringConvertible {
          symbols: [Symbol: SymbolEvaluator] = [:],
          evaluator: Evaluator? = nil)
     {
+        self.init(
+            Expression.parse(expression),
+            options: options,
+            constants: constants,
+            symbols: symbols,
+            evaluator: evaluator
+        )
+    }
+
+    init(_ expression: ParsedExpression,
+         options: Options = .boolSymbols,
+         constants: [String: Any] = [:],
+         symbols: [Symbol: SymbolEvaluator] = [:],
+         evaluator: Evaluator? = nil)
+    {
         var values = [Any]()
         func store(_ value: Any) throws -> Double {
             if let value = (value as? NSNumber).map({ Double($0) }) {
@@ -84,32 +99,31 @@ struct AnyExpression: CustomStringConvertible {
             return arg
         }
 
-        // Handle string literals
-        // TODO: extend Expression library with support for quotes so we can make this less hacky
-        var expressionString = expression
-        var range = expressionString.startIndex ..< expressionString.endIndex
-        while let subrange = expressionString.range(of: "('[^']*')|(\\\"[^\"]*\\\")", options: .regularExpression, range: range) {
-            var literal = expressionString[subrange]
-            literal = literal.trimmingCharacters(in: CharacterSet(charactersIn: String(literal.characters.first!)))
-            let value = try! store(literal)
-            expressionString.replaceSubrange(subrange, with: "\(Int64(value))")
-            range = subrange.lowerBound ..< expressionString.endIndex
-        }
-
-        // Convert constants
-        var numericConstants = [
-            "true": 1.0, // TODO: fix optimizer so it can work out that these are constant
-            "false": 0.0,
-            "pi": .pi,
-        ]
+        var numericConstants = [String: Double]()
         do {
+
+            // Handle string literals
+            for symbol in expression.symbols {
+                if case let .variable(name) = symbol {
+                    var chars = name.characters
+                    if chars.count >= 2, let first = chars.first, let last = chars.last,
+                        "'\"".characters.contains(first), last == first {
+                        chars.removeFirst()
+                        chars.removeLast()
+                        numericConstants[name] = try store(String(chars))
+                    }
+                }
+            }
+
+            // Convert constants
             for (name, value) in constants {
                 numericConstants[name] = try store(value)
             }
+
         } catch {
             evaluate = { throw error }
             self.symbols = []
-            description = expression
+            description = expression.description
             return
         }
 
@@ -127,7 +141,7 @@ struct AnyExpression: CustomStringConvertible {
             }
         }
 
-        let expression = Expression(expressionString,
+        let expression = Expression(expression,
                                     options: options,
                                     constants: numericConstants,
                                     symbols: numericSymbols)

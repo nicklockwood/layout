@@ -1,0 +1,30 @@
+{
+  "DVTSourceControlWorkspaceBlueprintPrimaryRemoteRepositoryKey" : "5D475806C5D77DB9EB2832984483DFA85EE795FB",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyRepositoryLocationsKey" : {
+
+  },
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyStatesKey" : {
+    "173AEAC6212D8C24AE556EA1E4F2817BE777B578" : 9223372036854775807,
+    "5D475806C5D77DB9EB2832984483DFA85EE795FB" : 9223372036854775807
+  },
+  "DVTSourceControlWorkspaceBlueprintIdentifierKey" : "200A9599-0129-4BCC-BAE9-43DADDEDDC33",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyPathsKey" : {
+    "173AEAC6212D8C24AE556EA1E4F2817BE777B578" : "..\/Dropbox\/Open%20Source%20(GIT)\/Expression",
+    "5D475806C5D77DB9EB2832984483DFA85EE795FB" : "layout\/"
+  },
+  "DVTSourceControlWorkspaceBlueprintNameKey" : "SampleApp",
+  "DVTSourceControlWorkspaceBlueprintVersion" : 204,
+  "DVTSourceControlWorkspaceBlueprintRelativePathToProjectKey" : "SampleApp\/SampleApp.xcworkspace",
+  "DVTSourceControlWorkspaceBlueprintRemoteRepositoriesKey" : [
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/nicklockwood\/Expression.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "173AEAC6212D8C24AE556EA1E4F2817BE777B578"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "github.schibsted.io:Rocket\/layout.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "5D475806C5D77DB9EB2832984483DFA85EE795FB"
+    }
+  ]
+}

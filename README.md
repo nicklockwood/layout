@@ -4,7 +4,7 @@
 	- [What?](#what)
 	- [Why?](#why)
 	- [How?](#how)
-- [Usage?](#usage)
+- [Usage](#usage)
     - [Installation](#installation)
     - [Integration](#integration)
     - [Live Reloading](#live-reloading)
