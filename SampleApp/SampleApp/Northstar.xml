@@ -7,14 +7,14 @@
         scrollIndicatorInsets.bottom="bottomLayoutGuide.length">
         <UIControl touchUpInside="dismissKeyboard">
             <Northstar.NorthstarLabel
-                text="Welcome"
+                text="{strings.signup.title}"
                 textStyle="heading1"
                 left="16"
                 right="100% - 16"
                 top="32"
             />
             <Northstar.NorthstarLabel
-                text="Email"
+                text="{strings.signup.email_label}"
                 textStyle="body"
                 left="16"
                 right="100% - 16"
@@ -22,7 +22,7 @@
             />
             <Northstar.NorthstarTextField
                 outlet="numberField"
-                placeholder="(+44) Mobile number"
+                placeholder="{strings.signup.email_placeholder}"
                 left="16"
                 right="100% - 16"
                 top="previous.bottom + 8"
@@ -39,7 +39,7 @@
                 alpha="hideError ? 0 : 1"
             />
             <Northstar.NorthstarLabel
-                text="Use the same email you’ve used for your Kufar account to gain access"
+                text="{strings.signup.email_description}"
                 textStyle="bodySoft"
                 numberOfLines="0"
                 left="16"
@@ -48,27 +48,27 @@
             />
             <Northstar.NorthstarCheckboxControl
                 outlet="termsCheckbox"
-                text="I accept the terms and conditions for Kufar and SPiD"
+                text="{strings.signup.terms_checkbox}"
                 left="16"
                 right="100% - 16"
                 top="previous.bottom + 4"
             />
             <Northstar.NorthstarCheckboxControl
                 outlet="privacyCheckbox"
-                text="I accept the Privacy Policy for SPiD"
+                text="{strings.signup.privacy_checkbox}"
                 left="16"
                 right="100% - 16"
                 top="previous.bottom"
             />
             <Northstar.NorthstarClickableLabel
-                text="Terms &amp; privacy"
+                text="{strings.signup.terms_label}"
                 left="16"
                 right="100% - 16"
                 top="previous.bottom"
             />
             <Northstar.NorthstarSubmitInputView
                 width="100%"
-                title="Submit"
+                title="{strings.signup.submit_button}"
                 isPrimary="true"
                 isEnabled="true"
                 top="previous.bottom"

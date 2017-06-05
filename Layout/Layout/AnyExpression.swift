@@ -99,12 +99,15 @@ struct AnyExpression: CustomStringConvertible {
             return arg
         }
 
+        // Handle string literals and constants
         var numericConstants = [String: Double]()
         do {
-
-            // Handle string literals
             for symbol in expression.symbols {
                 if case let .variable(name) = symbol {
+                    if let value = constants[name] {
+                        numericConstants[name] = try store(value)
+                        continue
+                    }
                     var chars = name.characters
                     if chars.count >= 2, let first = chars.first, let last = chars.last,
                         "'\"".characters.contains(first), last == first {
@@ -114,12 +117,6 @@ struct AnyExpression: CustomStringConvertible {
                     }
                 }
             }
-
-            // Convert constants
-            for (name, value) in constants {
-                numericConstants[name] = try store(value)
-            }
-
         } catch {
             evaluate = { throw error }
             self.symbols = []

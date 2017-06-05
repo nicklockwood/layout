@@ -1,0 +1,16 @@
+/* 
+  Northstar.strings
+  SampleApp
+
+  Created by Nick Lockwood on 05/06/2017.
+  Copyright © 2017 Nick Lockwood. All rights reserved.
+*/
+
+"signup.title" = "Welcome";
+"signup.email_label" = "Email";
+"signup.email_placeholder" = "name@domain.com";
+"signup.email_description" = "Use the same email you’ve used for your Kufar account to gain access";
+"signup.terms_checkbox" = "I accept the terms and conditions for Kufar and SPiD";
+"signup.privacy_checkbox" = "I accept the Privacy Policy for SPiD";
+"signup.terms_label" = "Terms & privacy";
+"signup.submit_button" = "Submit";

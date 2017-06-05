@@ -109,7 +109,7 @@ The core API exposed by Layout is the `LayoutNode` class. Create a layout node a
     
 This example code creates a centered `UILabel` inside a `UIView` with a white background that will stretch to fill its superview once mounted.
 
-For simple views, creating the layout in code is a convenient solution that avoids the need for an external file. But the real power of the Layout framework comes from the ability to specify layouts using external XML files because it allows for *live reloading* (see below), which can significantly reduce development time.
+For simple views, creating the layout in code is a convenient solution that avoids the need for an external file. But the real power of the Layout framework comes from the ability to specify layouts using external XML files because it allows for [live reloading](#live-reloading) (see below), which can significantly reduce development time.
 
 The equivalent XML markup for the above layout is:
 
@@ -484,6 +484,23 @@ You can use arbitrary logic inside the braced expression block, including maths 
 If you need to use a string literal *inside* an expression block, then you can use single or double quotes to escape it:
 
 	<UILabel text="Hello {hasName ? name : 'World'}"/>
+
+If your app is localized, you will need to use constants instead of literal strings for virtually all of the strings in your template. Localizing all of these strings and passing them as individual constants would be rather tedious, so Layout offers some alternatives:
+
+Constants prefixed with `strings.` are assumed to be localized strings, and will be looked up in the application's `Localizable.strings` file. So for example, if your `Localizable.strings` file contains the following entry:
+
+    "Signup.NameLabel" = "Name";
+    
+Then you can reference this directly in your XML as follows, without creating an explicit constant in code:
+
+    <UILabel text="{strings.Signup.NameLabel}"/>
+    
+It's common practice on iOS to use the English text as the key for localized strings, which may often contain spaces of punctuation making it invalid as an identifier. In this case, you can use backticks to escape the key, as follows:
+
+    <UILabel text="{`strings.Some text with spaces and punctuation!`}"/>
+
+In addition to reducing boilerplate, strings referenced directly from your XML will also take advantage of [live reloading](#live-reloading), so you can make changes to your `Localizable.strings` file, and they will be picked up when you type Cmd-R in the simulator, with no need to recompile the app.
+
 	
 ## Colors
 

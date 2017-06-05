@@ -8,8 +8,15 @@
 
 import UIKit
 
-public protocol LayoutDelegate {
-    func layoutNode(_ layoutNode: LayoutNode, didDetectError error: LayoutError)
+/// Optional delegate protocol to be implemented by a LayoutNode's owner
+@objc public protocol LayoutDelegate: class {
+
+    /// Notify that an error occured in the node tree
+    @objc optional func layoutNode(_ layoutNode: LayoutNode, didDetectError error: Error)
+
+    /// Fetch a localized string constant for a given key.
+    /// These strings are assumed to be constant for the duration of the layout tree's lifecycle
+    @objc optional func layoutNode(_ layoutNode: LayoutNode, localizedStringForKey key: String) -> String?
 }
 
 public class LayoutNode: NSObject {
@@ -157,16 +164,16 @@ public class LayoutNode: NSObject {
         }
 
         if let delegate = _owner as? LayoutDelegate {
-            delegate.layoutNode(self, didDetectError: LayoutError(error))
+            delegate.layoutNode?(self, didDetectError: LayoutError(error))
             _unhandledError = nil
             return
         }
 
-        if var responder: UIResponder = viewController {
+        if var responder = _owner as? UIResponder {
             // Pass error up the chain to the first VC that can handle it
             while let nextResponder = responder.next {
                 if let delegate = nextResponder as? LayoutDelegate {
-                    delegate.layoutNode(self, didDetectError: LayoutError(error))
+                    delegate.layoutNode?(self, didDetectError: LayoutError(error))
                     _unhandledError = nil
                     return
                 }
@@ -254,8 +261,7 @@ public class LayoutNode: NSObject {
     public private(set) var children: [LayoutNode]
     public private(set) weak var parent: LayoutNode? {
         didSet {
-            _getters.removeAll()
-            _cachedExpressions.removeAll()
+            cleanUp()
             bubbleUnhandledError()
         }
     }
@@ -348,8 +354,7 @@ public class LayoutNode: NSObject {
             _originalExpressions[name] = expression
         }
         expressions = _originalExpressions
-        _getters.removeAll()
-        _cachedExpressions.removeAll()
+        cleanUp()
         overrideExpressions()
 
         if let outlet = node.outlet {
@@ -413,6 +418,15 @@ public class LayoutNode: NSObject {
             if expressions["height"] != nil {
                 _heightConstraint = view.heightAnchor.constraint(equalToConstant: 0)
             }
+        }
+    }
+
+    private func cleanUp() {
+        _evaluating.removeAll()
+        _getters.removeAll()
+        _cachedExpressions.removeAll()
+        for child in children {
+            child.cleanUp()
         }
     }
 
@@ -491,8 +505,30 @@ public class LayoutNode: NSObject {
 
     // MARK: symbols
 
+    func localizedString(forKey key: String) -> String? {
+        var responder = _owner as? UIResponder
+        while responder != nil {
+            if let delegate = responder as? LayoutDelegate,
+                let string = delegate.layoutNode?(self, localizedStringForKey: key) {
+                return string
+            }
+            responder = responder?.next
+        }
+        return parent?.localizedString(forKey: key)
+    }
+
     func value(forConstant name: String) -> Any? {
-        return _variables[name] == nil ? constants[name] ?? parent?.value(forConstant: name) : nil
+        guard _variables[name] == nil else {
+            return nil
+        }
+        if let value = constants[name] ?? parent?.value(forConstant: name) {
+            return value
+        }
+        if name.hasPrefix("strings.") {
+            let key = name.substring(from: "strings.".endIndex)
+            return localizedString(forKey: key)
+        }
+        return nil
     }
 
     private func value(forVariableOrConstant name: String) -> Any? {
@@ -868,6 +904,7 @@ public class LayoutNode: NSObject {
                 return
             } catch {}
         }
+        cleanUp()
         _owner = owner
         if let outlet = outlet {
             guard let type = Swift.type(of: owner).allPropertyTypes()[outlet] else {
@@ -927,5 +964,6 @@ public class LayoutNode: NSObject {
             child.unbind()
         }
         _owner = nil
+        cleanUp()
     }
 }

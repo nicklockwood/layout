@@ -8,7 +8,7 @@
 
 import UIKit
 
-open class LayoutViewController: UIViewController, LayoutDelegate {
+open class LayoutViewController: UIViewController {
 
     public var layoutNode: LayoutNode? = nil {
         didSet {
@@ -29,7 +29,7 @@ open class LayoutViewController: UIViewController, LayoutDelegate {
         }
     }
 
-    private var _loader: LayoutLoader?
+    fileprivate var _loader: LayoutLoader?
     private var _state: Any = ()
     private var _errorNode: LayoutNode?
     private var _error: LayoutError? = nil
@@ -138,11 +138,6 @@ open class LayoutViewController: UIViewController, LayoutDelegate {
         // Override in subclass
     }
 
-    open func layoutNode(_ layoutNode: LayoutNode, didDetectError error: LayoutError) {
-        // TODO: should we just get rid of the layoutError() method?
-        layoutError(error)
-    }
-
     open func layoutError(_ error: LayoutError) {
 
         // Pass error up the chain to the first VC that can handle it
@@ -243,4 +238,20 @@ open class LayoutViewController: UIViewController, LayoutDelegate {
     private let reloadMessage = "Tap to Reload"
 
     #endif
+}
+
+extension LayoutViewController: LayoutDelegate {
+
+    open func layoutNode(_ layoutNode: LayoutNode, didDetectError error: Error) {
+        guard let error = error as? LayoutError else {
+            assertionFailure()
+            return
+        }
+        // TODO: should we just get rid of the layoutError() method?
+        layoutError(error)
+    }
+
+    open func layoutNode(_ layoutNode: LayoutNode, localizedStringForKey key: String) -> String? {
+        return _loader?.localizedStrings[key]
+    }
 }

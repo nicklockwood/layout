@@ -174,11 +174,17 @@ struct LayoutExpression {
         for symbol in parsedExpression.symbols
             where symbols[symbol] == nil && !ignoredSymbols.contains(symbol) {
             if case let .variable(name) = symbol {
-                if let value = lookup(name) ?? node.value(forConstant: name) {
+                var key = name
+                let chars = name.characters
+                if chars.count >= 2, let first = chars.first, let last = chars.last,
+                    last == first, first == "`" {
+                    key = String(chars.dropFirst().dropLast())
+                }
+                if let value = lookup(key) ?? node.value(forConstant: key) {
                     constants[name] = value
                 } else {
                     symbols[symbol] = { [unowned node] _ in
-                        try node.value(forSymbol: name)
+                        try node.value(forSymbol: key)
                     }
                 }
             }

@@ -10,12 +10,15 @@ import Foundation
 
 typealias LayoutLoaderCallback = (LayoutNode?, LayoutError?) -> Void
 
+// API for loading a layout XML file
 class LayoutLoader {
 
     private var _xmlURL: URL?
+    private var _projectDirectory: URL?
     private var _dataTask: URLSessionDataTask?
     private var _state: Any = ()
     private var _constants: [String: Any] = [:]
+    private var _strings: [String: String]?
 
     private func setNodeWithXMLData(
         _ data: Data?,
@@ -58,6 +61,7 @@ class LayoutLoader {
                 let bundlePath = Bundle.main.bundleURL.absoluteString
                 if xmlURL.absoluteString.hasPrefix(bundlePath),
                     let projectDirectory = findProjectDirectory(at: "\(relativeTo)") {
+                    _projectDirectory = projectDirectory
                     let path = xmlURL.absoluteString.substring(from: bundlePath.endIndex)
                     guard let url = findSourceURL(forRelativePath: path, in: projectDirectory) else {
                         completion(nil, .message("Unable to locate source file for \(path)"))
@@ -118,6 +122,27 @@ class LayoutLoader {
             constants: _constants,
             completion: completion
         )
+    }
+
+    public var localizedStrings: [String: String] {
+        if let strings = _strings {
+            return strings
+        }
+        var stringsPath = "Localizable.strings"
+        if let resourcePath = Bundle.main.resourcePath,
+            let localizedPath = Bundle.main.path(forResource: "Localizable", ofType: "strings") {
+            stringsPath = localizedPath.substring(from: resourcePath.endIndex)
+        }
+        if let projectDirectory = _projectDirectory,
+            let url = findSourceURL(forRelativePath: stringsPath, in: projectDirectory) {
+            _strings = NSDictionary(contentsOf: url) as? [String: String] ?? [:]
+            return _strings!
+        }
+        if let stringsFile = Bundle.main.path(forResource: "Localizable", ofType: "strings") {
+            _strings = NSDictionary(contentsOfFile: stringsFile) as? [String: String] ?? [:]
+            return _strings!
+        }
+        return [:]
     }
 
     #if arch(i386) || arch(x86_64)
