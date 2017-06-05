@@ -11,7 +11,7 @@ import UIKit
 extension UIViewController {
 
     /// Expression names and types
-    open class var expressionTypes: [String: RuntimeType] {
+    @objc open class var expressionTypes: [String: RuntimeType] {
         var types = allPropertyTypes()
         types["tabBarItem.title"] = RuntimeType(String.self)
         types["tabBarItem.image"] = RuntimeType(UIImage.self)
@@ -55,7 +55,7 @@ extension UIViewController {
     }
 
     // Set expression value
-    open func setValue(_ value: Any, forExpression name: String) throws {
+    @objc open func setValue(_ value: Any, forExpression name: String) throws {
         switch name {
         case "tabBarItem.title":
             updateTabBarItem(title: value as? String)
@@ -75,12 +75,12 @@ extension UIViewController {
     }
 
     /// Get symbol value
-    open func value(forSymbol name: String) -> Any? {
+    @objc open func value(forSymbol name: String) -> Any? {
         return _value(forKeyPath: name)
     }
 
     /// Called immediately after a child node is added
-    open func didInsertChildNode(_ node: LayoutNode, at index: Int) {
+    @objc open func didInsertChildNode(_ node: LayoutNode, at index: Int) {
         for controller in node.viewControllers {
             addChildViewController(controller)
         }
@@ -88,7 +88,7 @@ extension UIViewController {
     }
 
     /// Called immediately before a child node is removed
-    open func willRemoveChildNode(_ node: LayoutNode, at index: Int) {
+    @objc open func willRemoveChildNode(_ node: LayoutNode, at index: Int) {
         for controller in node.viewControllers {
             controller.removeFromParentViewController()
         }
@@ -96,7 +96,7 @@ extension UIViewController {
     }
 
     /// Called immediately after layout has been performed
-    open func didUpdateLayout(for node: LayoutNode) {}
+    @objc open func didUpdateLayout(for node: LayoutNode) {}
 }
 
 extension UITabBarController {

@@ -25,7 +25,7 @@ extension UIView {
     }
 
     /// Expression names and types
-    open class var expressionTypes: [String: RuntimeType] {
+    @objc open class var expressionTypes: [String: RuntimeType] {
         var types = allPropertyTypes()
         // TODO: support more properties
         types["backgroundColor"] = RuntimeType(UIColor.self)
@@ -109,7 +109,7 @@ extension UIView {
     }
 
     // Set expression value
-    open func setValue(_ value: Any, forExpression name: String) throws {
+    @objc open func setValue(_ value: Any, forExpression name: String) throws {
         var value = value
         if let type = type(of: self).cachedExpressionTypes[name]?.type, case let .enum(_, _, adaptor) = type {
             value = adaptor(value) // TODO: something nicer than this
@@ -118,12 +118,12 @@ extension UIView {
     }
 
     /// Get symbol value
-    open func value(forSymbol name: String) -> Any? {
+    @objc open func value(forSymbol name: String) -> Any? {
         return _value(forKeyPath: name)
     }
 
     /// Called immediately after a child node is added
-    open func didInsertChildNode(_ node: LayoutNode, at index: Int) {
+    @objc open func didInsertChildNode(_ node: LayoutNode, at index: Int) {
         if let viewController = self.viewController {
             for controller in node.viewControllers {
                 viewController.addChildViewController(controller)
@@ -133,7 +133,7 @@ extension UIView {
     }
 
     /// Called immediately before a child node is removed
-    open func willRemoveChildNode(_ node: LayoutNode, at index: Int) {
+    @objc open func willRemoveChildNode(_ node: LayoutNode, at index: Int) {
         for controller in node.viewControllers {
             controller.removeFromParentViewController()
         }
@@ -141,7 +141,7 @@ extension UIView {
     }
 
     /// Called immediately after layout has been performed
-    open func didUpdateLayout(for node: LayoutNode) {}
+    @objc open func didUpdateLayout(for node: LayoutNode) {}
 }
 
 extension UIScrollView {

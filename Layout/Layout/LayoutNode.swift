@@ -870,8 +870,8 @@ public class LayoutNode: NSObject {
         }
         _owner = owner
         if let outlet = outlet {
-            guard let type = type(of: owner).allPropertyTypes()[outlet] else {
-                throw LayoutError.message("`\(type(of: owner))` does not have an outlet named `\(outlet)`")
+            guard let type = Swift.type(of: owner).allPropertyTypes()[outlet] else {
+                throw LayoutError.message("`\(Swift.type(of: owner))` does not have an outlet named `\(outlet)`")
             }
             var didMatch = false
             var expectedType = "UIView or LayoutNode"
@@ -883,25 +883,25 @@ public class LayoutNode: NSObject {
                     owner.setValue(self, forKey: outlet)
                     didMatch = true
                 } else {
-                    expectedType = "\(type(of: self))"
+                    expectedType = "\(Swift.type(of: self))"
                 }
             } else if type.matches(UIView.self) {
                 if type.matches(view) {
                     owner.setValue(view, forKey: outlet)
                     didMatch = true
                 } else {
-                    expectedType = "\(type(of: view))"
+                    expectedType = "\(Swift.type(of: view))"
                 }
             } else if let viewController = viewController, type.matches(UIViewController.self) {
                 if type.matches(viewController) {
                     owner.setValue(viewController, forKey: outlet)
                     didMatch = true
                 } else {
-                    expectedType = "\(type(of: viewController))"
+                    expectedType = "\(Swift.type(of: viewController))"
                 }
             }
             if !didMatch {
-                throw LayoutError.message("outlet `\(outlet)` of `\(type(of: owner))` is not a \(expectedType)")
+                throw LayoutError.message("outlet `\(outlet)` of `\(Swift.type(of: owner))` is not a \(expectedType)")
             }
         }
         if let type = viewExpressionTypes["delegate"],

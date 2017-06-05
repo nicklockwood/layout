@@ -278,11 +278,11 @@ struct LayoutExpression {
         var symbols = Set<String>()
         var range = expression.startIndex ..< expression.endIndex
         while let subrange = expression.range(of: "\\{[^}]*\\}", options: .regularExpression, range: range) {
-            let string = expression[range.lowerBound ..< subrange.lowerBound]
+            let string = expression.substring(with: range.lowerBound ..< subrange.lowerBound)
             if !string.isEmpty {
                 parts.append(.string(string))
             }
-            let expressionString = expression[subrange].trimmingCharacters(in: CharacterSet(charactersIn: "{}"))
+            let expressionString = expression.substring(with: subrange).trimmingCharacters(in: CharacterSet(charactersIn: "{}"))
             let expression = LayoutExpression(
                 anyExpression: expressionString,
                 type: RuntimeType(Any.self),
@@ -293,7 +293,7 @@ struct LayoutExpression {
             range = subrange.upperBound ..< range.upperBound
         }
         if !range.isEmpty {
-            parts.append(.string(expression[range]))
+            parts.append(.string(expression.substring(with: range)))
         }
         self.init(
             evaluate: {

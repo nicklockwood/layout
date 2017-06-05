@@ -26,19 +26,19 @@ public final class NorthstarSubmitInputView: UIControl {
         defaultBackgroundColor = backgroundColor
     }
 
-    public dynamic var title: String = "" {
+    @objc public var title = "" {
         didSet {
             submitButton.setTitle(self.title, for: .normal)
         }
     }
 
-    public dynamic var isPrimary: Bool = true {
+    @objc public var isPrimary = true {
         didSet {
             submitButton.isPrimary = isPrimary
         }
     }
 
-    public override dynamic var isEnabled: Bool {
+    public override var isEnabled: Bool {
         didSet {
             submitButton.isEnabled = isEnabled
         }

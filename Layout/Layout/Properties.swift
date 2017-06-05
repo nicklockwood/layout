@@ -72,13 +72,13 @@ public class RuntimeType: NSObject {
             case _ where subtype == Any.self:
                 return value
             default:
-                return subtype == type(of: value) || "\(subtype)" == "\(type(of: value))" ? value: nil
+                return subtype == Swift.type(of: value) || "\(subtype)" == "\(Swift.type(of: value))" ? value: nil
             }
         case let .enum(type, enumValues, _):
             if let key = value as? String, let value = enumValues[key] {
                 return value
             }
-            if type != type(of: value) {
+            if type != Swift.type(of: value) {
                 return nil
             }
             if let value = value as? AnyHashable, let values = Array(enumValues.values) as? [AnyHashable] {
