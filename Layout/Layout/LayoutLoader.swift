@@ -144,12 +144,19 @@ class LayoutLoader {
         }
         return [:]
     }
+}
 
-    #if arch(i386) || arch(x86_64)
+#if arch(i386) || arch(x86_64)
 
     // MARK: Only applicable when running in the simulator
 
+    private var _projectDirectory: URL?
+    private var _sourceURLCache = [String: URL]()
+
     private func findProjectDirectory(at path: String) -> URL? {
+        if let projectDirectory = _projectDirectory, path.hasPrefix(projectDirectory.path) {
+            return projectDirectory
+        }
         var url = URL(fileURLWithPath: path)
         if !url.pathExtension.isEmpty {
             url = url.deletingLastPathComponent()
@@ -167,13 +174,17 @@ class LayoutLoader {
                 if let url = findProjectDirectory(at: parent.path) {
                     return url
                 }
+                _projectDirectory = url
                 return url
             }
         }
         return findProjectDirectory(at: parent.path)
     }
 
-    private func findSourceURL(forRelativePath path: String, in directory: URL) -> URL? {
+    private func findSourceURL(forRelativePath path: String, in directory: URL, usingCache: Bool = true) -> URL? {
+        if let url = _sourceURLCache[path], FileManager.default.fileExists(atPath: url.path) {
+            return url
+        }
         guard let files = try? FileManager.default.contentsOfDirectory(atPath: directory.path) else {
             return nil
         }
@@ -185,23 +196,39 @@ class LayoutLoader {
             let directory = directory.appendingPathComponent(file)
             if file == parts[0] {
                 if parts.count == 1 {
+                    if usingCache {
+                        _sourceURLCache[path] = directory
+                    }
                     return directory // Not actually a directory
                 }
-                if let result = findSourceURL(forRelativePath: parts.dropFirst().joined(separator: "/"), in: directory) {
+                if let result = findSourceURL(
+                    forRelativePath: parts.dropFirst().joined(separator: "/"),
+                    in: directory,
+                    usingCache: false
+                ) {
+                    if usingCache {
+                        _sourceURLCache[path] = result
+                    }
                     return result
                 }
             }
-            if let result = findSourceURL(forRelativePath: path, in: directory) {
+            if let result = findSourceURL(
+                forRelativePath: path,
+                in: directory,
+                usingCache: false
+            ) {
+                if usingCache {
+                    _sourceURLCache[path] = result
+                }
                 return result
             }
         }
         return nil
     }
 
-    #else
+#else
 
     private func findProjectDirectory(at path: String) -> URL? { return nil }
     private func findSourceURL(forRelativePath path: String, in directory: URL) -> URL? { return nil }
-
-    #endif
-}
+    
+#endif
