@@ -1,3 +1,10 @@
+## [0.2.4](https://github.schibsted.io/Rocket/layout/releases/tag/0.2.4) (2017-06-06)
+
+- Added support for directly using localized strings from XML, and live loading of edited strings
+- Added support for missing UIScrollView enum properties
+- Added convenient solution for merging constants dictionaries
+- Further optimized startup and update performance  
+
 ## [0.2.3](https://github.schibsted.io/Rocket/layout/releases/tag/0.2.3) (2017-05-29)
 
 - Fixed bug where inherited state incorrectly shadowed local constants
