@@ -200,6 +200,22 @@ And how you might reference them in the XML:
 
 (You may have noticed that the `title` and `titleFont` constants are surrounded by `{...}` braces, but the `titleColor` constant isn't. This is explained in the [Expressions](#expressions) section below.)
 
+You will probably find that some constants are common to every layout in your application, for example if you have constants representing standard spacing metrics, fonts or colors. It would be annoying to have to repeat these everywhere, but the lack of a convenient way to merge dictionaries in Swift (as of version 3.0) makes it painful to create a static dictionary of common constants as well.
+
+For this reason, the `constants` argument of `LayoutNode`'s initializer is actually variadic, allowing you to pass multiple dictionaries, which will be merged automatically. This makes it much more pleasant to combine a standard constants dictionary with a handful of custom values:
+
+    let extraConstants: [String: Any] = ...
+
+    self.loadLayout(
+	    named: "MyLayout.xml",
+	    constants: globalConstants, extraConstants, [
+	    	"title": NSLocalizedString("homescreen.title", message: ""),
+	    	"titleColor": UIColor.primaryThemeColor,
+	    	"titleFont": UIFont.systemFont(ofSize: 30),
+	    ]
+	)
+
+
 ## State
 
 For more dynamic layouts, you may have properties of the view that need to change frequently (perhaps even during an animation), and recreating the entire view hierarchy to change these is neither convenient nor efficient. For these properties, you can use *state*. State works the same way as constants, except you can update state after the `LayoutNode` has been initialized:
@@ -506,9 +522,9 @@ In addition to reducing boilerplate, strings referenced directly from your XML w
 
 Colors can be specified using CSS-style rgb(a) hex literals. These can be 3, 4, 6 or 8 digits long, and are prefixed with a `#`:
 
-	#fff // white
+	#fff // opaque white
 	#fff7 // 50% transparent white
-	#ff0000 // red
+	#ff0000 // opaque red
 	#ff00007f // 50% transparent red
 
 You can also use CSS-style `rgb()` and `rgba()` functions. For consistency with CSS conventions, the red, green and blue values are specified in the range 0-255, and alpha in the range 0-1:

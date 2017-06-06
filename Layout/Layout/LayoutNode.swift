@@ -39,7 +39,7 @@ public class LayoutNode: NSObject {
         viewController: UIViewController? = nil,
         outlet: String? = nil,
         state: Any = Void(),
-        constants: [String: Any] = [:],
+        constants: [String: Any]...,
         expressions: [String: String] = [:],
         children: [LayoutNode] = []
     ) {
@@ -53,9 +53,16 @@ public class LayoutNode: NSObject {
         self.viewController = viewController
         self.outlet = outlet
         self.state = try! unwrap(state)
-        self.constants = constants
         self.expressions = expressions
         self.children = children
+
+        // Merge constants
+        self.constants = constants.first ?? [:]
+        for consts in constants.dropFirst() {
+            for (key, value) in consts {
+                self.constants[key] = value
+            }
+        }
 
         _originalExpressions = expressions
 

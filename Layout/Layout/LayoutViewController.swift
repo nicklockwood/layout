@@ -38,12 +38,22 @@ open class LayoutViewController: UIViewController {
         return layoutNode != nil || _loader != nil
     }
 
+    private func merge(_ dictionaries: [[String: Any]]) -> [String: Any] {
+        var result = [String: Any]()
+        for dict in dictionaries {
+            for (key, value) in dict {
+                result[key] = value
+            }
+        }
+        return result
+    }
+
     public func loadLayout(
         named: String? = nil,
         bundle: Bundle = Bundle.main,
         relativeTo: String = #file,
         state: Any = (),
-        constants: [String: Any] = [:])
+        constants: [String: Any]...)
     {
         assert(Thread.isMainThread)
         let name = named ?? "\(type(of: self))".components(separatedBy: ".").last!
@@ -56,7 +66,7 @@ open class LayoutViewController: UIViewController {
             withContentsOfURL: xmlURL,
             relativeTo: relativeTo,
             state: state,
-            constants: constants
+            constants: merge(constants)
         )
     }
 
@@ -64,7 +74,7 @@ open class LayoutViewController: UIViewController {
         withContentsOfURL xmlURL: URL,
         relativeTo: String? = #file,
         state: Any = (),
-        constants: [String: Any] = [:],
+        constants: [String: Any]...,
         completion: ((LayoutError?) -> Void)? = nil)
     {
         if _loader == nil {
@@ -74,7 +84,7 @@ open class LayoutViewController: UIViewController {
             withContentsOfURL: xmlURL,
             relativeTo: relativeTo,
             state: state,
-            constants: constants
+            constants: merge(constants)
         ) { layoutNode, error in
             if let layoutNode = layoutNode {
                 self.layoutNode = layoutNode
