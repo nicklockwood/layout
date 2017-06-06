@@ -145,6 +145,25 @@ extension UIView {
 }
 
 extension UIScrollView {
+    open override class var expressionTypes: [String: RuntimeType] {
+        var types = super.expressionTypes
+        types["indicatorStyle"] = RuntimeType(UIScrollViewIndicatorStyle.self, [
+            "default": .default,
+            "black": .black,
+            "white": .white,
+        ])
+        types["indexDisplayMode"] = RuntimeType(UIScrollViewIndexDisplayMode.self, [
+            "automatic": .automatic,
+            "alwaysHidden": .alwaysHidden,
+        ])
+        types["keyboardDismissMode"] = RuntimeType(UIScrollViewKeyboardDismissMode.self, [
+            "none": .none,
+            "onDrag": .onDrag,
+            "interactive": .interactive,
+        ])
+        return types
+    }
+
     open override func didUpdateLayout(for node: LayoutNode) {
         // Update contentSize
         contentSize = node.contentSize

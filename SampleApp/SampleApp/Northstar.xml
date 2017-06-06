@@ -4,7 +4,8 @@
 
     <UIScrollView
         contentInset.bottom="20 + bottomLayoutGuide.length"
-        scrollIndicatorInsets.bottom="bottomLayoutGuide.length">
+        scrollIndicatorInsets.bottom="bottomLayoutGuide.length"
+        keyboardDismissMode="onDrag">
         <UIControl touchUpInside="dismissKeyboard">
             <Northstar.NorthstarLabel
                 text="{strings.signup.title}"
