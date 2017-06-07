@@ -62,7 +62,14 @@ class LayoutLoader {
                 if xmlURL.absoluteString.hasPrefix(bundlePath),
                     let projectDirectory = findProjectDirectory(at: "\(relativeTo)") {
                     _projectDirectory = projectDirectory
-                    let path = xmlURL.absoluteString.substring(from: bundlePath.endIndex)
+                    var parts = xmlURL.absoluteString.substring(from: bundlePath.endIndex).components(separatedBy: "/")
+                    for (i, part) in parts.enumerated().reversed() {
+                        if part.hasSuffix(".bundle") {
+                            parts.removeFirst(i + 1)
+                            break
+                        }
+                    }
+                    let path = parts.joined(separator: "/")
                     guard let url = findSourceURL(forRelativePath: path, in: projectDirectory) else {
                         completion(nil, .message("Unable to locate source file for \(path)"))
                         return
