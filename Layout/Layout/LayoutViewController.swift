@@ -130,6 +130,11 @@ open class LayoutViewController: UIViewController {
         }
     }
 
+    open override var canBecomeFirstResponder: Bool {
+        // Ensure Cmd-R shortcut works inside modal view controller
+        return true
+    }
+
     open override func viewWillLayoutSubviews() {
         super.viewWillLayoutSubviews()
         do {
