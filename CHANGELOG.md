@@ -1,3 +1,8 @@
+## [0.2.5](https://github.schibsted.io/Rocket/layout/releases/tag/0.2.5) (2017-06-07)
+
+- Fixed bug with locating xml layout files inside a framework bundle
+- Fixed Cmd-R shortcut inside LayoutViewController when presented modally
+
 ## [0.2.4](https://github.schibsted.io/Rocket/layout/releases/tag/0.2.4) (2017-06-06)
 
 - Added support for directly using localized strings from XML, and live loading of edited strings
