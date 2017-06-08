@@ -78,11 +78,11 @@ public class RuntimeType: NSObject {
             if let key = value as? String, let value = enumValues[key] {
                 return value
             }
-            if type != Swift.type(of: value) {
-                return nil
-            }
             if let value = value as? AnyHashable, let values = Array(enumValues.values) as? [AnyHashable] {
                 return values.contains(value) ? value : nil
+            }
+            if type != Swift.type(of: value) {
+                return nil
             }
             return value
         case let .protocol(type):
