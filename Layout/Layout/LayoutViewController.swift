@@ -10,7 +10,7 @@ import UIKit
 
 open class LayoutViewController: UIViewController {
 
-    public var layoutNode: LayoutNode? = nil {
+    open var layoutNode: LayoutNode? = nil {
         didSet {
             if layoutNode?.viewController == self {
                 // TODO: should this use case be allowed at all?
@@ -132,7 +132,7 @@ open class LayoutViewController: UIViewController {
 
     open override var canBecomeFirstResponder: Bool {
         // Ensure Cmd-R shortcut works inside modal view controller
-        return true
+        return childViewControllers.isEmpty
     }
 
     open override func viewWillLayoutSubviews() {
