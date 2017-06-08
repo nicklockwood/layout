@@ -1,3 +1,8 @@
+## [0.2.6](https://github.schibsted.io/Rocket/layout/releases/tag/0.2.6) (2017-06-08)
+
+- Fixed bug where custom enums would be misidentified as the wrong type
+- Fixed bug with events being swallowed inside nested view controllers of LayoutViewController
+
 ## [0.2.5](https://github.schibsted.io/Rocket/layout/releases/tag/0.2.5) (2017-06-07)
 
 - Fixed bug with locating xml layout files inside a framework bundle
