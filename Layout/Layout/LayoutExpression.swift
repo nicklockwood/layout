@@ -10,11 +10,8 @@ import UIKit
 import Foundation
 import Expression
 
-private func stringify(_ value: Any) -> String {
-    guard let value = try? unwrap(value) else {
-        return "nil"
-    }
-    switch value {
+private func stringify(_ value: Any) throws -> String {
+    switch try unwrap(value) {
     case let number as NSNumber:
         guard let int = Int64(exactly: Double(number)) else {
             return "\(number)"
@@ -254,7 +251,9 @@ struct LayoutExpression {
         )
         self.init(
             evaluate: {
-                guard let value = try type.cast(expression.evaluate()) else {
+                let anyValue = try expression.evaluate()
+                guard let value = type.cast(anyValue) else {
+                    try _ = unwrap(anyValue)
                     throw Expression.Error.message("Type mismatch")
                 }
                 return value
@@ -373,11 +372,11 @@ struct LayoutExpression {
         let expression = LayoutExpression(interpolatedStringExpression: stringExpression, for: node)
         self.init(
             evaluate: {
-                var result = ""
-                for part in try expression.evaluate() as! [Any] {
-                    result += stringify(part)
+                let parts = try expression.evaluate() as! [Any]
+                if parts.count == 1, isNil(parts[0]) {
+                    return ""
                 }
-                return result
+                return try parts.map({ try stringify($0) }).joined()
             },
             symbols: expression.symbols
         )
@@ -399,7 +398,7 @@ struct LayoutExpression {
                         htmlString += "$\(substrings.count)"
                         substrings.append(part)
                     default:
-                        htmlString += stringify(part)
+                        htmlString += try stringify(part)
                     }
                 }
                 let result = try NSMutableAttributedString(
@@ -445,7 +444,7 @@ struct LayoutExpression {
                 var font = UIFont.systemFont(ofSize: LayoutExpression.defaultFontSize)
                 var traits = font.fontDescriptor.symbolicTraits
                 for part in try expression.evaluate() as! [Any] {
-                    switch part {
+                    switch try unwrap(part) {
                     case let part as UIFont:
                         font = part
                     default:
@@ -521,14 +520,19 @@ struct LayoutExpression {
         let expression = LayoutExpression(interpolatedStringExpression: imageExpression, for: node)
         self.init(
             evaluate: {
+                let parts = try expression.evaluate() as! [Any]
+                if parts.count == 1, isNil(parts[0]) {
+                    // Explicitly allow empty images
+                    return UIImage()
+                }
                 var image: UIImage?
                 var string = ""
-                for part in try expression.evaluate() as! [Any] {
+                for part in parts {
                     switch part {
                     case let part as UIImage:
                         image = part
                     default:
-                        string += stringify(part)
+                        string += try stringify(part)
                     }
                 }
                 string = string.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -537,21 +541,22 @@ struct LayoutExpression {
                          throw Expression.Error.message("Invalid image specifier `\(string)`")
                     }
                     return image
-                }
-                let parts = string.components(separatedBy: ":")
-                var bundle = Bundle.main
-                if parts.count == 2 {
-                    let identifier = parts.first!
-                    string = parts.last!
-                    guard let _bundle = Bundle(identifier: identifier) else {
-                        throw Expression.Error.message("Could not locate bundle with identifier `\(identifier)`")
+                } else {
+                    let parts = string.components(separatedBy: ":")
+                    var bundle = Bundle.main
+                    if parts.count == 2 {
+                        let identifier = parts.first!
+                        string = parts.last!
+                        guard let _bundle = Bundle(identifier: identifier) else {
+                            throw Expression.Error.message("Could not locate bundle with identifier `\(identifier)`")
+                        }
+                        bundle = _bundle
                     }
-                    bundle = _bundle
+                    if let image = UIImage(named: parts.last!, in: bundle, compatibleWith: nil) {
+                        return image
+                    }
+                    throw Expression.Error.message("Invalid image name `\(string)`")
                 }
-                if let image = UIImage(named: parts.last!, in: bundle, compatibleWith: nil) {
-                    return image
-                }
-                throw Expression.Error.message("Invalid image name `\(string)`")
             },
             symbols: expression.symbols
         )
@@ -595,7 +600,11 @@ struct LayoutExpression {
             case is UIFont.Type:
                 self.init(fontExpression: expression, for: node)
             default:
-                self.init(anyExpression: expression, type: type, for: node)
+                let expression = LayoutExpression(anyExpression: expression, type: type, for: node)
+                self.init(
+                    evaluate: { try unwrap(expression.evaluate()) }, // Handle nil
+                    symbols: expression.symbols
+                )
             }
         case .enum:
             self.init(enumExpression: expression, type: type, for: node)

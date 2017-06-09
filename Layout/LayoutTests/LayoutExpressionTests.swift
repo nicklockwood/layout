@@ -35,4 +35,27 @@ class LayoutExpressionTests: XCTestCase {
         let expression = LayoutExpression(numberExpression: "foo ?? 5", for: node)
         XCTAssertEqual(try expression.evaluate() as? Double, 5)
     }
+
+    func testNullStringExpression() {
+        let null: String? = nil
+        let node = LayoutNode(constants: ["foo" : null as Any])
+        let expression = LayoutExpression(stringExpression: "{foo}", for: node)
+        XCTAssertEqual(try expression.evaluate() as? String, "")
+    }
+
+    func testNullImageExpression() {
+        let null: UIImage? = nil
+        let node = LayoutNode(constants: ["foo" : null as Any])
+        let expression = LayoutExpression(imageExpression: "{foo}", for: node)
+        XCTAssertEqual((try expression.evaluate() as? UIImage).map { $0.size }, .zero)
+    }
+
+    func testNullAnyExpression() {
+        let null: Any? = nil
+        let node = LayoutNode(constants: ["foo" : null as Any])
+        let expression = LayoutExpression(expression: "foo", ofType: RuntimeType(Any.self), for: node)
+        XCTAssertThrowsError(try expression.evaluate()) { error in
+            XCTAssert("\(error)".contains("nil"))
+        }
+    }
 }

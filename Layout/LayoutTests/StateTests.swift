@@ -66,7 +66,9 @@ class StateTests: XCTestCase {
         )
         XCTAssertEqual(try node.value(forSymbol: "foo") as? Int, 5)
         XCTAssertEqual(try node.value(forSymbol: "bar") as? String, nil)
-        XCTAssertEqual(try node.value(forSymbol: "text") as? String, "5 nil")
+        XCTAssertThrowsError(try node.value(forSymbol: "text")) { error in
+            XCTAssert("\(error)".contains("nil"))
+        }
     }
 
     class TestVC: UIViewController {

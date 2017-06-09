@@ -31,4 +31,13 @@ class ColorExpressionTests: XCTestCase {
         let expected = UIColor(red: 1, green: 0, blue: 0, alpha: 1)
         XCTAssertEqual(try expression.evaluate() as? UIColor, expected)
     }
+
+    func testNilColor() {
+        let null: UIColor? = nil
+        let node = LayoutNode(constants: ["color": null as Any])
+        let expression = LayoutExpression(colorExpression: "color", for: node)
+        XCTAssertThrowsError(try expression.evaluate()) { error in
+            XCTAssert("\(error)".contains("nil"))
+        }
+    }
 }

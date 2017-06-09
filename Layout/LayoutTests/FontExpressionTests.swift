@@ -62,4 +62,13 @@ class FontExpressionTests: XCTestCase {
         let expected = UIFont(descriptor: descriptor.withSymbolicTraits(traits)!, size: font.pointSize)
         XCTAssertEqual(try expression.evaluate() as? UIFont, expected)
     }
+
+    func testNilFont() {
+        let font: UIFont? = nil
+        let node = LayoutNode(constants: ["font": font as Any])
+        let expression = LayoutExpression(fontExpression: "{font} bold", for: node)
+        XCTAssertThrowsError(try expression.evaluate()) { error in
+            XCTAssert("\(error)".contains("nil"))
+        }
+    }
 }

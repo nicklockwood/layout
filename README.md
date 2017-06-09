@@ -620,9 +620,14 @@ And as with regular text attributes, inline HTML can contain embedded expression
 
 ## Optionals
 
-There is currently very limited support for optionals in expressions. There is no way to specify that an expression's return value is optional, and so returning `nil` from an expression is always an error.
+There is currently very limited support for optionals in expressions. There is no way to specify that an expression's return value is optional, and so returning `nil` from an expression is usually an error. There are two exceptions to this:
 
-There is slightly more flexibility when handing optional values inside an expression, however. It is possible to refer to `nil` in an expression, and to compare values against it. For example:
+1. Returning nil from a String expression will return an empty string
+2. Returning nil from a UIImage expression will return a blank image with zero width/height
+
+The reason for these specific exceptions is that passing a nil image or text to a component is a common approach in UIKit for indicating that a given element is not needed, and by allowing nil values for these types, we avoid the need to pass additional flags into the component to mark these as unused.
+
+There is slightly more flexibility when handing optional values *inside* an expression. It is possible to refer to `nil` in an expression, and to compare values against it. For example:
 
     <UIView backgroundColor="col == nil ? #fff : col"/>
     

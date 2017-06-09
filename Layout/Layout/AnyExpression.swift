@@ -32,19 +32,6 @@
 import Foundation
 import Expression
 
-// Workaround to check if a value is nil
-private protocol _Optional {
-    var isNil: Bool { get }
-}
-extension Optional: _Optional {
-    var isNil: Bool {
-        if case .none = self {
-            return true
-        }
-        return false
-    }
-}
-
 // Version of Expression that works with any value type
 struct AnyExpression: CustomStringConvertible {
     let evaluate: () throws -> Any
@@ -101,12 +88,7 @@ struct AnyExpression: CustomStringConvertible {
                 }) {
                     return Double(Int64(index) + AnyExpression.indexOffset)
                 }
-            } else if let lhs = value as? _Optional, let index = values.index(where: {
-                if let rhs = $0 as? _Optional {
-                    return lhs.isNil && rhs.isNil
-                }
-                return false
-            }) {
+            } else if isNil(value), let index = values.index(where: { isNil($0) }) {
                 return Double(Int64(index) + AnyExpression.indexOffset)
             }
             values.append(value)
@@ -184,8 +166,8 @@ struct AnyExpression: CustomStringConvertible {
                  .infix("=="),
                  .infix("!="):
                 return nil // Fall back to default implementation
-            case .infix("??"):
-                return (anyArgs[0] as? _Optional).map { $0.isNil ? args[1] : args[0] }
+            case .infix("??") where isOptional(anyArgs[0]):
+                return isNil(anyArgs[0]) ? args[1] : args[0]
             default:
                 throw Error.message("\(symbol) cannot be used with arguments of type \(anyArgs.map { type(of: $0) })")
             }
