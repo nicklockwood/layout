@@ -1,3 +1,12 @@
+## [0.3.0](https://github.schibsted.io/Rocket/layout/releases/tag/0.3.0) (2017-06-09)
+
+- Implicitly unwrapping a nil value inside a string expression will now throw instead of printing "nil"
+- String and image expressions can now safely return nil values, all other expression types will throw
+- Added `nil` literal value, for checking if values are nil inside an expression
+- Added `??` null-coalescing operator, for proving fallback values for nil inputs in expressions
+- All properties now use AnyExpression internally, meaning they can reference arbitrary types 
+- Braces are now permitted around any expression type, making the rules less confusing to remember
+
 ## [0.2.6](https://github.schibsted.io/Rocket/layout/releases/tag/0.2.6) (2017-06-08)
 
 - Fixed bug where custom enums would be misidentified as the wrong type

@@ -19,7 +19,7 @@ private func stringify(_ value: Any) throws -> String {
         return "\(int)"
     case let value as NSAttributedString:
         return value.string
-    default:
+    case let value:
         return "\(value)"
     }
 }

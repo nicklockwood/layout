@@ -43,6 +43,13 @@ class LayoutExpressionTests: XCTestCase {
         XCTAssertEqual(try expression.evaluate() as? String, "")
     }
 
+    func testOptionalStringExpression() {
+        let foo: String? = "foo"
+        let node = LayoutNode(constants: ["foo" : foo as Any])
+        let expression = LayoutExpression(stringExpression: "{foo}", for: node)
+        XCTAssertEqual(try expression.evaluate() as? String, "foo")
+    }
+
     func testNullImageExpression() {
         let null: UIImage? = nil
         let node = LayoutNode(constants: ["foo" : null as Any])
