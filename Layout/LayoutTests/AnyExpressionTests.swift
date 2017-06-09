@@ -176,7 +176,9 @@ class AnyExpressionTests: XCTestCase {
     func testNilString() {
         let null: String? = nil
         let expression = AnyExpression("foo + 'bar'", constants: ["foo": null as Any])
-        XCTAssertEqual(try expression.evaluate() as? String, "nilbar")
+        XCTAssertThrowsError(try expression.evaluate()) { error in
+            XCTAssert("\(error)".contains("nil"))
+        }
     }
 
     func testNilString2() {

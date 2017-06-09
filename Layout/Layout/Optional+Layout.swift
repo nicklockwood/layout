@@ -13,7 +13,7 @@ func isOptional(_ value: Any) -> Bool {
     return value is _Optional
 }
 
-// Unwraps an optional value or throws if nil
+// Unwraps a potentially optional value or throws if nil
 func unwrap(_ value: Any) throws -> Any {
     guard let optional = value as? _Optional else {
         return value
@@ -22,6 +22,14 @@ func unwrap(_ value: Any) throws -> Any {
         throw LayoutError.message("Unexpected nil value")
     }
     return value
+}
+
+// Unwraps a potentially optional value or returns nil
+func value(of value: Any) -> Any? {
+    guard let optional = value as? _Optional else {
+        return value
+    }
+    return optional.value
 }
 
 // Test if a value is nil

@@ -167,7 +167,7 @@ struct AnyExpression: CustomStringConvertible {
             }
             switch symbol {
             case .infix("+"):
-                return try store("\(anyArgs[0])\(anyArgs[1])")
+                return try store("\(unwrap(anyArgs[0]))\(unwrap(anyArgs[1]))")
             case .infix("?:") where anyArgs[0] is Double,
                  .infix("=="),
                  .infix("!="):

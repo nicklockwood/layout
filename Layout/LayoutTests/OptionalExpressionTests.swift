@@ -18,11 +18,32 @@ class OptionalExpressionTests: XCTestCase {
         XCTAssertTrue(try expression.evaluate() as? Bool == true)
     }
 
+    func testAddOptionalNumbers() {
+        let foo: Double? = 5
+        let node = LayoutNode(constants: ["foo" : foo as Any])
+        let expression = LayoutExpression(numberExpression: "foo + 5", for: node)
+        XCTAssertEqual(try expression.evaluate() as? Double, 10)
+    }
+
+    func testMultiplyOptionalNumbers() {
+        let foo: Double? = 5
+        let node = LayoutNode(constants: ["foo" : foo as Any])
+        let expression = LayoutExpression(numberExpression: "foo * 5", for: node)
+        XCTAssertEqual(try expression.evaluate() as? Double, 25)
+    }
+
     func testEquateOptionalStrings() {
         let foo: String? = "foo"
         let node = LayoutNode(constants: ["foo" : foo as Any])
         let expression = LayoutExpression(boolExpression: "foo == 'foo'", for: node)
         XCTAssertTrue(try expression.evaluate() as? Bool == true)
+    }
+
+    func testAddOptionalStrings() {
+        let foo: String? = "foo"
+        let node = LayoutNode(constants: ["foo" : foo as Any])
+        let expression = LayoutExpression(stringExpression: "{foo + 'bar'}", for: node)
+        XCTAssertEqual(try expression.evaluate() as? String, "foobar")
     }
 
     func testNullCoalescingInNumberExpression() {
