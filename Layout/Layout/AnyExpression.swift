@@ -32,6 +32,19 @@
 import Foundation
 import Expression
 
+// Workaround to check if a value is nil
+private protocol _Optional {
+    var isNil: Bool { get }
+}
+extension Optional: _Optional {
+    var isNil: Bool {
+        if case .none = self {
+            return true
+        }
+        return false
+    }
+}
+
 // Version of Expression that works with any value type
 struct AnyExpression: CustomStringConvertible {
     let evaluate: () throws -> Any
@@ -79,9 +92,18 @@ struct AnyExpression: CustomStringConvertible {
             if values.count == AnyExpression.maxValues {
                 throw Error.message("Maximum number of stored values in an expression exceeded")
             }
-            if let lhs = value as? AnyHashable, let index = values.index(where: {
-                if let rhs = $0 as? AnyHashable {
-                    return lhs == rhs
+            if let lhs = value as? AnyHashable {
+                if let index = values.index(where: {
+                    if let rhs = $0 as? AnyHashable {
+                        return lhs == rhs
+                    }
+                    return false
+                }) {
+                    return Double(Int64(index) + AnyExpression.indexOffset)
+                }
+            } else if let lhs = value as? _Optional, let index = values.index(where: {
+                if let rhs = $0 as? _Optional {
+                    return lhs.isNil && rhs.isNil
                 }
                 return false
             }) {
@@ -106,6 +128,11 @@ struct AnyExpression: CustomStringConvertible {
                 if case let .variable(name) = symbol {
                     if let value = constants[name] {
                         numericConstants[name] = try store(value)
+                        continue
+                    }
+                    if name == "nil" {
+                        let null: Any? = nil
+                        numericConstants["nil"] = try store(null as Any)
                         continue
                     }
                     var chars = name.characters
@@ -153,8 +180,12 @@ struct AnyExpression: CustomStringConvertible {
             switch symbol {
             case .infix("+"):
                 return try store("\(anyArgs[0])\(anyArgs[1])")
-            case .infix("?:") where anyArgs[0] is Double, .infix("=="), .infix("!="):
+            case .infix("?:") where anyArgs[0] is Double,
+                 .infix("=="),
+                 .infix("!="):
                 return nil // Fall back to default implementation
+            case .infix("??"):
+                return (anyArgs[0] as? _Optional).map { $0.isNil ? args[1] : args[0] }
             default:
                 throw Error.message("\(symbol) cannot be used with arguments of type \(anyArgs.map { type(of: $0) })")
             }

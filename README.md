@@ -22,6 +22,7 @@
 	- [Images](#images)
 	- [Fonts](#fonts)
 	- [Attributed Strings](#attributed-strings)
+	- [Optionals](#optionals)
 - [Custom Components](#custom-components)
 	- [Namespacing](#namespacing)
 	- [Custom Property Types](#custom-property-types)
@@ -616,6 +617,18 @@ Any lowercase tags are interpreted as HTML markup instead of a `UIView` class. T
 And as with regular text attributes, inline HTML can contain embedded expressions, which can themselves contain either attributed or non-attributed string variables or constants:
 
 	<UILabel>Hello <b>{name}</b></UILabel>
+
+## Optionals
+
+There is currently very limited support for optionals in expressions. There is no way to specify that an expression's return value is optional, and so returning `nil` from an expression is always an error.
+
+There is slightly more flexibility when handing optional values inside an expression, however. It is possible to refer to `nil` in an expression, and to compare values against it. For example:
+
+    <UIView backgroundColor="col == nil ? #fff : col"/>
+    
+In this example, if the `col` constant is `nil`, we return a default color of white instead. This can also be written more simply using the `??` null-coalescing operator:
+
+    <UIView backgroundColor="col ?? #fff"/>
 
 
 # Custom Components

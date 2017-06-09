@@ -172,4 +172,32 @@ class AnyExpressionTests: XCTestCase {
         XCTAssertEqual(expression.symbols, [.infix("+")])
         XCTAssertEqual(try expression.evaluate() as? String, "foobar")
     }
+
+    func testNilString() {
+        let null: String? = nil
+        let expression = AnyExpression("foo + 'bar'", constants: ["foo": null as Any])
+        XCTAssertEqual(try expression.evaluate() as? String, "nilbar")
+    }
+
+    func testNilString2() {
+        let null: String? = nil
+        let expression1 = AnyExpression("foo == nil ? 'bar' : foo", constants: ["foo": null as Any])
+        XCTAssertEqual(try expression1.evaluate() as? String, "bar")
+        let expression2 = AnyExpression("foo == nil ? 'bar' : foo", constants: ["foo": "foo"])
+        XCTAssertEqual(try expression2.evaluate() as? String, "foo")
+    }
+
+    func testNilColor() {
+        let null: UIColor? = nil
+        let expression1 = AnyExpression("foo == nil ? bar : foo", constants: ["foo": null as Any, "bar": UIColor.red])
+        XCTAssertEqual(try expression1.evaluate() as? UIColor, .red)
+        let expression2 = AnyExpression("foo == nil ? bar : foo", constants: ["foo": UIColor.green, "bar": UIColor.red])
+        XCTAssertEqual(try expression2.evaluate() as? UIColor, .green)
+    }
+
+    func testNullCoalescing() {
+        let null: String? = nil
+        let expression = AnyExpression("foo ?? 'bar'", constants: ["foo": null as Any])
+        XCTAssertEqual(try expression.evaluate() as? String, "bar")
+    }
 }
