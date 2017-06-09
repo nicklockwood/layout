@@ -156,6 +156,12 @@ struct AnyExpression: CustomStringConvertible {
             if let value = try evaluator?(symbol, anyArgs) {
                 return try store(value)
             }
+            if case .infix("??") = symbol {
+                guard isOptional(anyArgs[0]) else {
+                    throw Error.message("left hand argument of ?? operator must be optional")
+                }
+                return isNil(anyArgs[0]) ? args[1] : args[0]
+            }
             if let doubleArgs = anyArgs as? [Double], doubleArgs == args {
                 return nil // Fall back to default implementation
             }
@@ -166,8 +172,6 @@ struct AnyExpression: CustomStringConvertible {
                  .infix("=="),
                  .infix("!="):
                 return nil // Fall back to default implementation
-            case .infix("??") where isOptional(anyArgs[0]):
-                return isNil(anyArgs[0]) ? args[1] : args[0]
             default:
                 throw Error.message("\(symbol) cannot be used with arguments of type \(anyArgs.map { type(of: $0) })")
             }
