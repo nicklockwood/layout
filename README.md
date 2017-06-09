@@ -198,7 +198,7 @@ And how you might reference them in the XML:
 		/>
 	</UIView>
 
-(You may have noticed that the `title` and `titleFont` constants are surrounded by `{...}` braces, but the `titleColor` constant isn't. This is explained in the [Expressions](#expressions) section below.)
+(You may have noticed that the `title` and `titleFont` constants are surrounded by `{...}` braces, but the `titleColor` constant isn't. This is explained in the [Strings](##strings) and [Fonts](##fonts) subsections below.)
 
 You will probably find that some constants are common to every layout in your application, for example if you have constants representing standard spacing metrics, fonts or colors. It would be annoying to have to repeat these everywhere, but the lack of a convenient way to merge dictionaries in Swift (as of version 3.0) makes it painful to create a static dictionary of common constants as well.
 
@@ -395,7 +395,7 @@ The most important feature of the `LayoutNode` class is its built-in support for
 
 Expressions can be simple, hard-coded values such as "10", or more complex expressions such as "width / 2 + someConstant". The available operators and functions to use in an expression depend on the name and type of the property being expressed, but in general all expressions support the standard decimal math and boolean operators and functions that you find in most C-family programming languages.
 	
-Expressions in a `LayoutNode` can reference constants and state passed in to the node or any of its parents. They can also reference the values of any other expression defined on the node, or of supported property of the view:
+Expressions in a `LayoutNode` can reference constants and state passed in to the node or any of its parents. They can also reference the values of any other expression defined on the node, or any supported property of the view:
 
     5 + width / 3
     isSelected ? blue : gray

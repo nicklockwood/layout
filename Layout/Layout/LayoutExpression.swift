@@ -33,6 +33,44 @@ private let ignoredSymbols: Set<Expression.Symbol> = [
     .variable("false"),
 ]
 
+private enum ParsedExpressionPart {
+    case string(String)
+    case expression(ParsedExpression)
+}
+
+private var expressionCache = [String: [ParsedExpressionPart]]()
+private var stringExpressionCache = [String: [ParsedExpressionPart]]()
+private func parseExpression(_ expression: String, isString: Bool) -> [ParsedExpressionPart] {
+    assert(Thread.isMainThread)
+    if let parts = (isString ? stringExpressionCache : expressionCache)[expression] {
+        return parts
+    }
+    var parts = [ParsedExpressionPart]()
+    var range = expression.startIndex ..< expression.endIndex
+    while let subrange = expression.range(of: "\\{[^}]*\\}", options: .regularExpression, range: range) {
+        let string = expression.substring(with: range.lowerBound ..< subrange.lowerBound)
+        if !string.isEmpty {
+            parts.append(.string(string))
+        }
+        let expressionString = String(expression.characters[subrange].dropFirst().dropLast())
+        let parsedExpression = Expression.parse(expressionString, usingCache: false)
+        parts.append(.expression(parsedExpression))
+        range = subrange.upperBound ..< range.upperBound
+    }
+    if !range.isEmpty {
+        parts.append(.string(expression.substring(with: range)))
+    }
+    if isString {
+        stringExpressionCache[expression] = parts
+        return parts
+    }
+    if parts.count == 1, case let .string(string) = parts[0] {
+        parts[0] = .expression(Expression.parse(string, usingCache: false))
+    }
+    expressionCache[expression] = parts
+    return parts
+}
+
 struct LayoutExpression {
     let evaluate: () throws -> Any
     let symbols: Set<String>
@@ -49,26 +87,38 @@ struct LayoutExpression {
         }
     }
 
+    init(malformedExpression: String) {
+        symbols = []
+        evaluate = {
+            throw Expression.Error.message("Malformed expression `\(malformedExpression)`")
+        }
+    }
+
     // Symbols are assumed to be impure - i.e. they won't always return the same value
     private init(numberExpression: String,
                  symbols: [Expression.Symbol: Expression.Symbol.Evaluator],
                  for node: LayoutNode)
     {
-        let parsedExpression = Expression.parse(numberExpression)
+        let parts = parseExpression(numberExpression, isString: false)
+        guard parts.count == 1, case let .expression(parsedExpression) = parts[0] else {
+            self.init(malformedExpression: numberExpression)
+            return
+        }
+
         var constants = [String: Double]()
         var symbols = symbols
         do {
             for symbol in parsedExpression.symbols
                 where symbols[symbol] == nil && !ignoredSymbols.contains(symbol) {
-                if case let .variable(name) = symbol {
-                    if let value = try node.doubleValue(forConstant: name) {
-                        constants[name] = value
-                    } else {
-                        symbols[symbol] = { [unowned node] _ in
-                            try node.doubleValue(forSymbol: name)
+                    if case let .variable(name) = symbol {
+                        if let value = try node.doubleValue(forConstant: name) {
+                            constants[name] = value
+                        } else {
+                            symbols[symbol] = { [unowned node] _ in
+                                try node.doubleValue(forSymbol: name)
+                            }
                         }
                     }
-                }
             }
         } catch {
             self.init(evaluate: { throw error }, symbols: [])
@@ -161,14 +211,33 @@ struct LayoutExpression {
         )
     }
 
-    // Symbols are assumed to be pure - i.e. they will always return the same value
     private init(anyExpression: String,
                  type: RuntimeType,
                  symbols: [AnyExpression.Symbol: AnyExpression.SymbolEvaluator],
                  lookup: @escaping (String) -> Any? = { _ in nil },
                  for node: LayoutNode)
     {
-        let parsedExpression = Expression.parse(anyExpression)
+        let parts = parseExpression(anyExpression, isString: false)
+        guard parts.count == 1, case let .expression(parsedExpression) = parts[0] else {
+            self.init(malformedExpression: anyExpression)
+            return
+        }
+        self.init(
+            anyExpression: parsedExpression,
+            type: type,
+            symbols: symbols,
+            lookup: lookup,
+            for: node
+        )
+    }
+
+    // Symbols are assumed to be pure - i.e. they will always return the same value
+    private init(anyExpression parsedExpression: ParsedExpression,
+                 type: RuntimeType,
+                 symbols: [AnyExpression.Symbol: AnyExpression.SymbolEvaluator] = [:],
+                 lookup: @escaping (String) -> Any? = { _ in nil },
+                 for node: LayoutNode)
+    {
         var constants = [String: Any]()
         var symbols = symbols
         for symbol in parsedExpression.symbols
@@ -190,7 +259,7 @@ struct LayoutExpression {
             }
         }
         let expression = AnyExpression(
-            anyExpression,
+            parsedExpression,
             options: [.boolSymbols, .pureSymbols],
             constants: constants,
             symbols: symbols
@@ -280,26 +349,20 @@ struct LayoutExpression {
             case expression(() throws -> Any)
         }
 
-        var parts = [ExpressionPart]()
         var symbols = Set<String>()
-        var range = expression.startIndex ..< expression.endIndex
-        while let subrange = expression.range(of: "\\{[^}]*\\}", options: .regularExpression, range: range) {
-            let string = expression.substring(with: range.lowerBound ..< subrange.lowerBound)
-            if !string.isEmpty {
-                parts.append(.string(string))
+        let parts: [ExpressionPart] = parseExpression(expression, isString: true).map { part in
+            switch part {
+            case let .expression(parsedExpression):
+                let expression = LayoutExpression(
+                    anyExpression: parsedExpression,
+                    type: RuntimeType(Any.self),
+                    for: node
+                )
+                symbols.formUnion(expression.symbols)
+                return .expression(expression.evaluate)
+            case let .string(string):
+                return .string(string)
             }
-            let expressionString = expression.substring(with: subrange).trimmingCharacters(in: CharacterSet(charactersIn: "{}"))
-            let expression = LayoutExpression(
-                anyExpression: expressionString,
-                type: RuntimeType(Any.self),
-                for: node
-            )
-            parts.append(.expression(expression.evaluate))
-            symbols.formUnion(expression.symbols)
-            range = subrange.upperBound ..< range.upperBound
-        }
-        if !range.isEmpty {
-            parts.append(.string(expression.substring(with: range)))
         }
         self.init(
             evaluate: {
