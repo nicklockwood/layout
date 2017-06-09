@@ -28,4 +28,11 @@ class LayoutExpressionTests: XCTestCase {
         let expression = LayoutExpression(numberExpression: "{5}{6}", for: node)
         XCTAssertThrowsError(try expression.evaluate())
     }
+
+    func testNullCoalescingInNumberExpression() {
+        let null: Double? = nil
+        let node = LayoutNode(constants: ["foo" : null as Any])
+        let expression = LayoutExpression(numberExpression: "foo ?? 5", for: node)
+        XCTAssertEqual(try expression.evaluate() as? Double, 5)
+    }
 }

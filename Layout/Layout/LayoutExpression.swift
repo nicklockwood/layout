@@ -99,47 +99,12 @@ struct LayoutExpression {
                  symbols: [Expression.Symbol: Expression.Symbol.Evaluator],
                  for node: LayoutNode)
     {
-        let parts = parseExpression(numberExpression, isString: false)
-        guard parts.count == 1, case let .expression(parsedExpression) = parts[0] else {
-            self.init(malformedExpression: numberExpression)
-            return
-        }
-
-        var constants = [String: Double]()
-        var symbols = symbols
-        do {
-            for symbol in parsedExpression.symbols
-                where symbols[symbol] == nil && !ignoredSymbols.contains(symbol) {
-                    if case let .variable(name) = symbol {
-                        if let value = try node.doubleValue(forConstant: name) {
-                            constants[name] = value
-                        } else {
-                            symbols[symbol] = { [unowned node] _ in
-                                try node.doubleValue(forSymbol: name)
-                            }
-                        }
-                    }
-            }
-        } catch {
-            self.init(evaluate: { throw error }, symbols: [])
-            return
-        }
-        let expression = Expression(
-            parsedExpression,
-            options: .boolSymbols,
-            constants: constants,
-            symbols: symbols
-        )
         self.init(
-            evaluate: expression.evaluate,
-            symbols: Set(expression.symbols.flatMap {
-                switch $0 {
-                case let .variable(string), let .postfix(string):
-                    return string
-                default:
-                    return nil
-                }
-            })
+            anyExpression: numberExpression,
+            type: RuntimeType(Double.self),
+            symbols: [:],
+            numericSymbols: symbols,
+            for: node
         )
     }
 
@@ -211,9 +176,12 @@ struct LayoutExpression {
         )
     }
 
+    // symbols are assumed to be pure - i.e. they will always return the same value
+    // numericSymbols are assumed to be impure - i.e. they won't always return the same value
     private init(anyExpression: String,
                  type: RuntimeType,
                  symbols: [AnyExpression.Symbol: AnyExpression.SymbolEvaluator],
+                 numericSymbols: [AnyExpression.Symbol: Expression.Symbol.Evaluator] = [:],
                  lookup: @escaping (String) -> Any? = { _ in nil },
                  for node: LayoutNode)
     {
@@ -226,22 +194,25 @@ struct LayoutExpression {
             anyExpression: parsedExpression,
             type: type,
             symbols: symbols,
+            numericSymbols: numericSymbols,
             lookup: lookup,
             for: node
         )
     }
 
-    // Symbols are assumed to be pure - i.e. they will always return the same value
+    // symbols are assumed to be pure - i.e. they will always return the same value
+    // numericSymbols are assumed to be impure - i.e. they won't always return the same value
     private init(anyExpression parsedExpression: ParsedExpression,
                  type: RuntimeType,
                  symbols: [AnyExpression.Symbol: AnyExpression.SymbolEvaluator] = [:],
+                 numericSymbols: [AnyExpression.Symbol: Expression.Symbol.Evaluator] = [:],
                  lookup: @escaping (String) -> Any? = { _ in nil },
                  for node: LayoutNode)
     {
         var constants = [String: Any]()
         var symbols = symbols
-        for symbol in parsedExpression.symbols
-            where symbols[symbol] == nil && !ignoredSymbols.contains(symbol) {
+        for symbol in parsedExpression.symbols where symbols[symbol] == nil &&
+            numericSymbols[symbol] == nil && !ignoredSymbols.contains(symbol) {
             if case let .variable(name) = symbol {
                 var key = name
                 let chars = name.characters
@@ -258,11 +229,28 @@ struct LayoutExpression {
                 }
             }
         }
+        let evaluator: AnyExpression.Evaluator? = numericSymbols.isEmpty ? nil : { symbol, anyArgs in
+            guard let fn = numericSymbols[symbol] else { return nil }
+            var args = [Double]()
+            for arg in anyArgs {
+                if let doubleValue = arg as? Double {
+                    args.append(doubleValue)
+                } else if let cgFloatValue = arg as? CGFloat {
+                    args.append(Double(cgFloatValue))
+                } else if let numberValue = arg as? NSNumber {
+                    args.append(Double(numberValue))
+                } else {
+                    return nil
+                }
+            }
+            return try fn(args)
+        }
         let expression = AnyExpression(
             parsedExpression,
             options: [.boolSymbols, .pureSymbols],
             constants: constants,
-            symbols: symbols
+            symbols: symbols,
+            evaluator: evaluator
         )
         self.init(
             evaluate: {
@@ -272,10 +260,12 @@ struct LayoutExpression {
                 return value
             },
             symbols: Set(expression.symbols.flatMap {
-                if case let .variable(string) = $0 {
+                switch $0 {
+                case let .variable(string), let .postfix(string):
                     return string
+                default:
+                    return nil
                 }
-                return nil
             })
         )
     }
