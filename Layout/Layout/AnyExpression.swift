@@ -32,6 +32,8 @@
 import Foundation
 import Expression
 
+private let mask: UInt64 = 0b11111111_11111000_00000000_00000000_00000000_00000000_00000000_00000000
+
 // Version of Expression that works with any value type
 struct AnyExpression: CustomStringConvertible {
     let evaluate: () throws -> Any
@@ -43,9 +45,6 @@ struct AnyExpression: CustomStringConvertible {
     typealias Symbol = Expression.Symbol
     typealias Evaluator = (_ symbol: Symbol, _ args: [Any]) throws -> Any?
     typealias SymbolEvaluator = (_ args: [Any]) throws -> Any
-
-    static let maxValues = 256
-    static let indexOffset = (Int64(2) << 52) - Int64(maxValues)
 
     init(_ expression: String,
          options: Options = .boolSymbols,
@@ -71,13 +70,11 @@ struct AnyExpression: CustomStringConvertible {
         var values = [Any]()
         func store(_ value: Any) throws -> Double {
             if let value = (value as? NSNumber).map({ Double($0) }) {
-                guard value <= Double(AnyExpression.indexOffset) else {
-                    throw Error.message("Value \(value) is outside of the supported numeric range")
+                if value.bitPattern & mask == mask {
+                    // Value is NaN
+                    return Double(bitPattern: mask)
                 }
                 return value
-            }
-            if values.count == AnyExpression.maxValues {
-                throw Error.message("Maximum number of stored values in an expression exceeded")
             }
             if let lhs = value as? AnyHashable {
                 if let index = values.index(where: {
@@ -86,19 +83,21 @@ struct AnyExpression: CustomStringConvertible {
                     }
                     return false
                 }) {
-                    return Double(Int64(index) + AnyExpression.indexOffset)
+                    return Double(bitPattern: UInt64(index + 1) | mask)
                 }
             } else if isNil(value), let index = values.index(where: { isNil($0) }) {
-                return Double(Int64(index) + AnyExpression.indexOffset)
+                return Double(bitPattern: UInt64(index + 1) | mask)
             }
             values.append(value)
-            return Double(Int64(values.count - 1) + AnyExpression.indexOffset)
+            return Double(bitPattern: UInt64(values.count) | mask)
         }
         func load(_ arg: Double) -> Any {
-            if let offsetIndex = Int64(exactly: arg),
-                let index = Int(exactly: offsetIndex - AnyExpression.indexOffset),
-                index >= 0, index < values.count {
-                return values[index]
+            let bits = arg.bitPattern
+            if bits & mask == mask {
+                let index = Int(bits ^ mask) - 1
+                if index < values.count {
+                    return values[index]
+                }
             }
             return arg
         }
@@ -168,9 +167,11 @@ struct AnyExpression: CustomStringConvertible {
             switch symbol {
             case .infix("+"):
                 return try store("\(unwrap(anyArgs[0]))\(unwrap(anyArgs[1]))")
-            case .infix("?:") where anyArgs[0] is Double,
-                 .infix("=="),
-                 .infix("!="):
+            case .infix("=="):
+                return args[0].bitPattern == args[1].bitPattern ? 1 : 0
+            case .infix("!="):
+                return args[0].bitPattern != args[1].bitPattern ? 1 : 0
+            case .infix("?:") where anyArgs[0] is Double:
                 return nil // Fall back to default implementation
             default:
                 throw Error.message("\(symbol) cannot be used with arguments of type \(anyArgs.map { type(of: $0) })")

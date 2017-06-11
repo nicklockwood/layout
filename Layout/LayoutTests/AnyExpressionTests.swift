@@ -112,6 +112,8 @@ class AnyExpressionTests: XCTestCase {
         XCTAssertEqual(try expression2.evaluate() as? Double, 1)
         let expression3 = AnyExpression("b == c", constants: constants)
         XCTAssertEqual(try expression3.evaluate() as? Double, 1)
+        let expression4 = AnyExpression("b != c", constants: constants)
+        XCTAssertEqual(try expression4.evaluate() as? Double, 0)
     }
 
     func testEquateObjects() {
@@ -128,43 +130,6 @@ class AnyExpressionTests: XCTestCase {
         XCTAssertEqual(try expression2.evaluate() as? Double, 1)
         let expression3 = AnyExpression("b == c", constants: constants)
         XCTAssertEqual(try expression3.evaluate() as? Double, 1)
-    }
-
-    func testAddNumbersJustInsideIndexRange() {
-        let expression = AnyExpression("a + b", constants: [
-            "a": Double(AnyExpression.indexOffset) - 17,
-            "b": 5,
-        ])
-        XCTAssertEqual(try expression.evaluate() as? Double, Double(AnyExpression.indexOffset) - 12)
-    }
-
-    func testAddNumbersOutsideIndexRange() {
-        let expression = AnyExpression("a + b", constants: [
-            "a": Double(AnyExpression.indexOffset) + 4,
-            "b": 5,
-        ])
-        XCTAssertThrowsError(try expression.evaluate()) { error in
-            guard case let Expression.Error.message(message) = error,
-                message.contains("numeric range") else {
-                XCTFail()
-                return
-            }
-        }
-    }
-
-    func testMaxConstantCountExceeded() {
-        var constants = [String: String]()
-        for i in 0 ..< AnyExpression.maxValues {
-            constants["v\(i)"] = "\(i)"
-        }
-        let expression = AnyExpression(constants.keys.joined(separator: "+"), constants: constants)
-        XCTAssertThrowsError(try expression.evaluate()) { error in
-            guard case let Expression.Error.message(message) = error,
-                message.contains("number of stored values") else {
-                XCTFail()
-                return
-            }
-        }
     }
 
     func testStringLiterals() {
