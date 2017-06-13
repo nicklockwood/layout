@@ -133,10 +133,10 @@ extension NSObject {
                     // We don't want to mess with private stuff
                     continue
                 }
-                // Get (non-readonly) attributes
+                // Get attributes
                 let attribs = String(cString: cattribs).components(separatedBy: ",")
                 if attribs.contains("R") {
-                    // TODO: check for KVC compliance
+                    // skip read-only properties
                     continue
                 }
                 let type: RuntimeType
@@ -218,8 +218,17 @@ extension NSObject {
                         // TODO: provide some kind of access to transform members
                         type = RuntimeType(CATransform3D.self)
                     } else {
-                        // Generic struct type
+                        // Generic (possibly unsupported) struct type
                         type = RuntimeType(NSValue.self)
+                    }
+                case "^":
+                    if typeAttrib.hasPrefix("T^{CGColor") {
+                        type = RuntimeType(CGColor.self)
+                    } else if typeAttrib.hasPrefix("T^{CGImage") {
+                        type = RuntimeType(CGImage.self)
+                    } else {
+                        // Unsupported struct ref type
+                        continue
                     }
                 default:
                     // Unsupported type

@@ -28,6 +28,7 @@ private let ignoredSymbols: Set<Expression.Symbol> = [
     .variable("pi"),
     .variable("true"),
     .variable("false"),
+    .variable("nil"),
 ]
 
 private enum ParsedExpressionPart {

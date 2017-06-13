@@ -53,27 +53,12 @@ extension UIView {
         for (name, type) in (layerClass as! NSObject.Type).allPropertyTypes() {
             types["layer.\(name)"] = type
         }
-        types["layer.borderColor"] = RuntimeType(CGColor.self)
+        types["layer.contents"] = RuntimeType(CGImage.self)
         // Explicitly disabled properties
         for name in [
-            "autoresizingMask",
-            "bounds",
-            "bounds.x",
-            "bounds.y",
-            "bounds.width",
-            "bounds.height",
-            "bounds.origin",
-            "bounds.size",
             "center",
             "center.x",
             "center.y",
-            "frame",
-            "frame.x",
-            "frame.y",
-            "frame.width",
-            "frame.height",
-            "frame.origin",
-            "frame.size",
             "layer.anchorPoint",
             "layer.bounds",
             "layer.bounds.x",
@@ -92,7 +77,9 @@ extension UIView {
             "layer.position",
             "layer.position.x",
             "layer.position.y",
+            "layer.sublayers",
         ] {
+            assert(types[name] != nil)
             types.removeValue(forKey: name)
         }
         return types

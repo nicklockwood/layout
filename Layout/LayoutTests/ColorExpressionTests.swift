@@ -40,4 +40,16 @@ class ColorExpressionTests: XCTestCase {
             XCTAssert("\(error)".contains("nil"))
         }
     }
+
+    func testSetBackgroundColor() {
+        let node = LayoutNode(expressions: ["backgroundColor": "#f00"])
+        let expected = UIColor(red: 1, green: 0, blue: 0, alpha: 1)
+        XCTAssertEqual(node.view.backgroundColor, expected)
+    }
+
+    func testSetLayerBackgroundColor() {
+        let node = LayoutNode(expressions: ["layer.backgroundColor": "#f00"])
+        let expected = UIColor(red: 1, green: 0, blue: 0, alpha: 1).cgColor
+        XCTAssertEqual(node.view.layer.backgroundColor, expected)
+    }
 }
