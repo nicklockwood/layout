@@ -25,6 +25,12 @@ class StateTests: XCTestCase {
         XCTAssertEqual(try node.value(forSymbol: "bar") as? String, "baz")
     }
 
+    func testNestedStateDictionary() {
+        let node = LayoutNode(state: ["foo": ["bar": "baz"]])
+        XCTAssertEqual(try node.value(forSymbol: "foo") as! [String: String], ["bar": "baz"])
+        XCTAssertEqual(try node.value(forSymbol: "foo.bar") as? String, "baz")
+    }
+
     func testStateStruct() {
         var state = TestState()
         let node = LayoutNode(state: state)

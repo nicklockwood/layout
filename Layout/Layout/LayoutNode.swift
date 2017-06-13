@@ -248,7 +248,7 @@ public class LayoutNode: NSObject {
             equal = false // Shouldn't get here otherwise
             _variables = members
         } else {
-            // TODO: flatten nested objects
+            // TODO: what about nested objects?
             let mirror = Mirror(reflecting: state)
             for (name, value) in mirror.children {
                 if let name = name, (equal && areEqual(_variables[name] as Any, value)) == false {
@@ -524,11 +524,26 @@ public class LayoutNode: NSObject {
         return parent?.localizedString(forKey: key)
     }
 
-    func value(forConstant name: String) -> Any? {
-        guard _variables[name] == nil else {
+    private func value(forKeyPath keyPath: String, in dictionary: [String: Any]) -> Any? {
+        if let value = dictionary[keyPath] {
+            return value
+        }
+        guard let range = keyPath.range(of: ".") else {
             return nil
         }
-        if let value = constants[name] ?? parent?.value(forConstant: name) {
+        let key = keyPath.substring(to: range.lowerBound)
+        // TODO: if not a dictionary, should we use a mirror?
+        if let dictionary = dictionary[key] as? [String: Any] {
+            return value(forKeyPath: keyPath.substring(from: range.upperBound), in: dictionary)
+        }
+        return nil
+    }
+
+    func value(forConstant name: String) -> Any? {
+        guard value(forKeyPath: name, in: _variables) == nil else {
+            return nil
+        }
+        if let value = value(forKeyPath: name, in: constants) ?? parent?.value(forConstant: name) {
             return value
         }
         if name.hasPrefix("strings.") {
@@ -539,7 +554,16 @@ public class LayoutNode: NSObject {
     }
 
     private func value(forVariableOrConstant name: String) -> Any? {
-        return _variables[name] ?? constants[name] ?? parent?.value(forVariableOrConstant: name)
+        if let value = value(forKeyPath: name, in: _variables) ??
+            value(forKeyPath: name, in: constants) ??
+            parent?.value(forVariableOrConstant: name) {
+            return value
+        }
+        if name.hasPrefix("strings.") {
+            let key = name.substring(from: "strings.".endIndex)
+            return localizedString(forKey: key)
+        }
+        return nil
     }
 
     public lazy var viewExpressionTypes: [String: RuntimeType] = {
