@@ -1,3 +1,12 @@
+## [0.3.1](https://github.schibsted.io/Rocket/layout/releases/tag/0.3.1) (2017-06-13)
+
+- You can now reference nested state or constants dictionary keys using keypaths in expressions
+- Fixed a major performance regression introduced in 0.2.1, which made the UIDesigner unusable
+- Added support for setting CGColor and CGImage properties on a CALayer using expressions
+- Fixed string formatting when concatenating optional strings
+- Improved null-coalescing operator error messaging
+- Improved AnyExpression implementation to eliminate arbitrary limits on numeric values
+
 ## [0.3.0](https://github.schibsted.io/Rocket/layout/releases/tag/0.3.0) (2017-06-09)
 
 - Implicitly unwrapping a nil value inside a string expression will now throw instead of printing "nil"
@@ -48,7 +57,7 @@
 
 ## [0.2.0](https://github.schibsted.io/Rocket/layout/releases/tag/0.2.0) (2017-05-18)
 
-- Improved support for enums - it's no longer neccesary to explicitly work with raw values (breaking change)
+- Improved support for enums - it's no longer necessary to explicitly work with raw values (breaking change)
 - Shadowing of inherited constants and state now works in a more intuitive way
 - Cyclical references in expressions now correctly throw an error instead of crashing
 - You can now use font names containing spaces in font expressions by wrapping them in single or double quotes

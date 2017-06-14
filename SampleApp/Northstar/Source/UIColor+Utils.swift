@@ -4,24 +4,37 @@ import UIKit
 
 public extension UIColor {
 
-    public convenience init?(hexString: String) {
-        var hexString = hexString.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
-        var hexValue = UInt32(0)
+    @nonobjc public convenience init?(hexString: String) {
         if hexString.hasPrefix("#") {
-            hexString.remove(at: hexString.startIndex)
+            var string = String(hexString.characters.dropFirst())
+            switch string.characters.count {
+            case 3:
+                string += "f"
+                fallthrough
+            case 4:
+                let chars = string.characters
+                let red = chars[chars.index(chars.startIndex, offsetBy: 0)]
+                let green = chars[chars.index(chars.startIndex, offsetBy: 1)]
+                let blue = chars[chars.index(chars.startIndex, offsetBy: 2)]
+                let alpha = chars[chars.index(chars.startIndex, offsetBy: 3)]
+                string = "\(red)\(red)\(green)\(green)\(blue)\(blue)\(alpha)\(alpha)"
+            case 6:
+                string += "ff"
+            case 8:
+                break
+            default:
+                return nil
+            }
+            if let rgba = Double("0x" + string).flatMap({ UInt32(exactly: $0) }) {
+                let red = CGFloat((rgba & 0xFF000000) >> 24) / 255
+                let green = CGFloat((rgba & 0x00FF0000) >> 16) / 255
+                let blue = CGFloat((rgba & 0x0000FF00) >> 8) / 255
+                let alpha = CGFloat((rgba & 0x000000FF) >> 0) / 255
+                self.init(red: red, green: green, blue: blue, alpha: alpha)
+                return
+            }
         }
-
-        guard hexString.characters.count == 6,
-            Scanner(string: hexString).scanHexInt32(&hexValue) else {
-            return nil
-        }
-
-        let divisor = CGFloat(255)
-
-        self.init(red: CGFloat((hexValue & 0xFF0000) >> 16) / divisor,
-                  green: CGFloat((hexValue & 0x00FF00) >> 8) / divisor,
-                  blue: CGFloat(hexValue & 0x0000FF) / divisor,
-                  alpha: 1)
+        return nil
     }
 
     class func imageWithColor(_ color: UIColor) -> UIImage? {

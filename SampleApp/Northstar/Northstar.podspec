@@ -11,4 +11,5 @@ Pod::Spec.new do |s|
   s.resource_bundles = {
     'Northstar' => ['Resources/*']
   }
+  s.dependency 'Layout'
 end

@@ -19,5 +19,10 @@
     "Northstar": [
       "Resources/*"
     ]
+  },
+  "dependencies": {
+    "Layout": [
+
+    ]
   }
 }

@@ -12,14 +12,14 @@
             left="15 + previous.right"
             width="toggleLayout ? (100% - 45)/2 : (100% - 60)/3"
             height="width"
-            backgroundColor="#f66"
+            backgroundColor="colors.red"
         />
         <UIView
             top="15 + previous.bottom"
             left="previous.left"
             width="previous.width"
             height="width"
-            backgroundColor="#fa7"
+            backgroundColor="colors.orange"
         />
         <UILabel
             top="15 + previous.bottom"
@@ -34,21 +34,21 @@
             left="width + 30"
             width="toggleLayout ? (100% - 45)/2 : (100% - 60)/3"
             height="width/2"
-            backgroundColor="#09f"
+            backgroundColor="colors.blue"
         />
         <UIView
             top="15 + previous.bottom"
             left="previous.left"
             width="previous.width"
             height="width"
-            backgroundColor="#0f9"
+            backgroundColor="colors.green"
         />
         <UIView
             top="toggleLayout ? 15 + previous.bottom : 0"
             left="toggleLayout ? previous.left : previous.right + 15"
             width="previous.width"
             height="width"
-            backgroundColor="#fcc"
+            backgroundColor="colors.pink"
         />
     </UIScrollView>
 
@@ -65,7 +65,7 @@
             left="15"
             right="100% - 15"
             title="Toggle"
-            backgroundColor="toggleLayout ? #09f : #f66"
+            backgroundColor="toggleLayout ? colors.blue : colors.red"
             layer.cornerRadius="5"
             touchUpInside="toggle"
         />
