@@ -645,13 +645,13 @@ public class LayoutNode: NSObject {
         let getter: () throws -> Any
         switch symbol {
         case "left":
-            getter = (parent == nil) ? { [unowned self] in self.view.frame.minX } : { 0 }
+            getter = (parent == nil) ? { [unowned self] in self.frame.minX } : { 0 }
         case "width":
             getter = { [unowned self] in self.frame.width }
         case "right":
             getter = { [unowned self] in self.frame.maxX }
         case "top":
-            getter = (parent == nil) ? { [unowned self] in self.view.frame.minY } : { 0 }
+            getter = (parent == nil) ? { [unowned self] in self.frame.minY } : { 0 }
         case "height":
             getter = { [unowned self] in self.frame.height }
         case "bottom":
@@ -759,15 +759,20 @@ public class LayoutNode: NSObject {
         return view.isHidden
     }
 
+    var _frame: CGRect?
     public var frame: CGRect {
-        return attempt({
-            return CGRect(
-                x: try CGFloat(doubleValue(forSymbol: "left")),
-                y: try CGFloat(doubleValue(forSymbol: "top")),
-                width: try CGFloat(doubleValue(forSymbol: "width")),
-                height: try CGFloat(doubleValue(forSymbol: "height"))
-            )
-        }) ?? .zero
+        guard let frame = _frame else {
+            _frame = attempt {
+                CGRect(
+                    x: try CGFloat(doubleValue(forSymbol: "left")),
+                    y: try CGFloat(doubleValue(forSymbol: "top")),
+                    width: try CGFloat(doubleValue(forSymbol: "width")),
+                    height: try CGFloat(doubleValue(forSymbol: "height"))
+                )
+            }
+            return _frame ?? .zero
+        }
+        return frame
     }
 
     public var contentSize: CGSize {
@@ -865,6 +870,7 @@ public class LayoutNode: NSObject {
         }
         let transform = view.layer.transform
         view.layer.transform = CATransform3DIdentity
+        _frame = nil // Recaculate frame
         view.frame = frame
         view.layer.transform = transform
         view.didUpdateLayout(for: self)
