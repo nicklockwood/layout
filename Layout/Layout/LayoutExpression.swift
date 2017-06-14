@@ -254,8 +254,8 @@ struct LayoutExpression {
             evaluate: {
                 let anyValue = try expression.evaluate()
                 guard let value = type.cast(anyValue) else {
-                    try _ = unwrap(anyValue)
-                    throw Expression.Error.message("Type mismatch")
+                    let value = try unwrap(anyValue)
+                    throw Expression.Error.message("Value `\(value)` is not of type `\(type)`")
                 }
                 return value
             },
@@ -329,7 +329,7 @@ struct LayoutExpression {
     }
 
     init(cgColorExpression: String, for node: LayoutNode) {
-        let expression = LayoutExpression.init(colorExpression: cgColorExpression, for: node)
+        let expression = LayoutExpression(colorExpression: cgColorExpression, for: node)
         self.init(evaluate: { try (expression.evaluate() as! UIColor).cgColor }, symbols: expression.symbols)
     }
 

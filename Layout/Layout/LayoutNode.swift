@@ -661,9 +661,16 @@ public class LayoutNode: NSObject {
         case "bottomLayoutGuide.length":
             getter = { [unowned self] in self._layoutGuideController?.bottomLayoutGuide.length ?? 0 }
         default:
-            var parts = symbol.components(separatedBy: ".")
-            let tail = parts.dropFirst().joined(separator: ".")
-            switch parts[0] {
+            let head: String
+            let tail: String
+            if let range = symbol.range(of: ".") {
+                head = symbol.substring(to: range.lowerBound)
+                tail = symbol.substring(from: range.upperBound)
+            } else {
+                head = ""
+                tail = ""
+            }
+            switch head {
             case "parent":
                 if parent != nil {
                     getter = { [unowned self] in try self.parent?.value(forSymbol: tail) ?? 0 }
