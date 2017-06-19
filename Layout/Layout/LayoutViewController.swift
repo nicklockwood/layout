@@ -97,17 +97,7 @@ open class LayoutViewController: UIViewController {
     }
 
     @objc private func _reloadLayout() {
-
-        // Pass message up the chain to the root LayoutViewController
-        var responder: UIResponder = self
-        while let nextResponder = responder.next {
-            if let layoutController = nextResponder as? LayoutViewController {
-                layoutController._reloadLayout()
-                return
-            }
-            responder = nextResponder
-        }
-
+        print("Reloading \(type(of: self))")
         reloadLayout(withCompletion: nil)
     }
 
