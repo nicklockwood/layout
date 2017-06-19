@@ -415,6 +415,11 @@ public class LayoutNode: NSObject {
         }
         if !view.constraints.isEmpty {
             for constraint in view.constraints where constraint.priority == UILayoutPriorityRequired {
+                guard view.superview == nil else {
+                    // prevents crash due to NSInternalInconsistencyException:
+                    // Mutating a priority from required to not on an installed constraint is not supported
+                    break
+                }
                 // Prevent priority conflicts with Layout constraints
                 // TODO: can we limit this only to constraints that affect width/height?
                 constraint.priority -= 1
