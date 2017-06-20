@@ -3,11 +3,11 @@
 
     <UIScrollView
         contentSize.height="auto + 20"
+        contentInset.top="max(topLayoutGuide.length + 10, 20)"
         contentInset.bottom="bottomLayoutGuide.length"
         scrollIndicatorInsets.bottom="bottomLayoutGuide.length">
 
         <UILabel
-            top="max(topLayoutGuide.length + 10, 20)"
             left="20"
             text="Left-aligned bold text"
             font="bold"

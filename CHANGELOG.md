@@ -1,3 +1,10 @@
+# Change Log
+
+## [0.3.2](https://github.schibsted.io/Rocket/layout/releases/tag/0.3.2) (2017-06-20)
+
+- Reloading a nested LayoutViewController now reloads just the current controller, not the parent
+- Fixed potential AutoLayout crash
+
 ## [0.3.1](https://github.schibsted.io/Rocket/layout/releases/tag/0.3.1) (2017-06-13)
 
 - You can now reference nested state or constants dictionary keys using keypaths in expressions

@@ -125,8 +125,8 @@ open class LayoutViewController: UIViewController {
         return childViewControllers.isEmpty
     }
 
-    open override func viewWillLayoutSubviews() {
-        super.viewWillLayoutSubviews()
+    open override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
         do {
             if let errorNode = _errorNode {
                 try errorNode.update()
