@@ -9,7 +9,9 @@
 import UIKit
 import Layout
 
-class ExamplesViewController: LayoutViewController {
+class ExamplesViewController: LayoutViewController, UITabBarControllerDelegate {
+
+    private var selectedTab = 0
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -32,5 +34,21 @@ class ExamplesViewController: LayoutViewController {
                 )
             ]
         )
+    }
+
+    override func layoutDidLoad() {
+        super.layoutDidLoad()
+        guard let tabBarController = layoutNode?.viewController as? UITabBarController else {
+            return
+        }
+        tabBarController.selectedIndex = selectedTab
+        tabBarController.delegate = self
+    }
+
+    func tabBarController(_ tabBarController: UITabBarController, didSelect viewController: UIViewController) {
+        guard let index = tabBarController.viewControllers?.index(of: viewController) else {
+            return
+        }
+        selectedTab = index
     }
 }

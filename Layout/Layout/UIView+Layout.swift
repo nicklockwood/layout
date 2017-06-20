@@ -156,10 +156,12 @@ extension UIScrollView {
         contentSize = node.contentSize
         // Prevents contentOffset glitch when rotating from portrait to landscape
         if isPagingEnabled {
-            contentOffset = CGPoint(
+            let offset = CGPoint(
                 x: round(contentOffset.x / frame.size.width) * frame.size.width - contentInset.left,
                 y: round(contentOffset.y / frame.size.height) * frame.size.height - contentInset.top
             )
+            guard !offset.x.isNaN && !offset.y.isNaN else { return }
+            contentOffset = offset
         }
     }
 }
