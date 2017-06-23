@@ -162,6 +162,9 @@ extension UIScrollView {
     }
 
     open override func didUpdateLayout(for node: LayoutNode) {
+        guard type(of: self) == UIScrollView.self else {
+            return // Skip this behavior for subclasses like UITableView
+        }
         // Update contentSize
         contentSize = node.contentSize
         // Prevents contentOffset glitch when rotating from portrait to landscape
@@ -477,6 +480,37 @@ extension UITextView {
         case "returnKeyType": returnKeyType = value as! UIReturnKeyType
         case "enablesReturnKeyAutomatically": enablesReturnKeyAutomatically = value as! Bool
         case "isSecureTextEntry": isSecureTextEntry = value as! Bool
+        default:
+            try super.setValue(value, forExpression: name)
+        }
+    }
+}
+
+private let tableViewStyle = RuntimeType(UITableViewStyle.self, [
+    "plain": .plain,
+    "grouped": .grouped,
+])
+
+extension UITableView {
+    open override class func create(with node: LayoutNode) throws -> UIView {
+        var style = UITableViewStyle.plain
+        if let expression = node.expressions["style"] {
+            let styleExpression = LayoutExpression(expression: expression, type: tableViewStyle, for: node)
+            style = try styleExpression.evaluate() as! UITableViewStyle
+        }
+        return UITableView(frame: .zero, style: style)
+    }
+
+    open override class var expressionTypes: [String: RuntimeType] {
+        var types = super.expressionTypes
+        types["style"] = tableViewStyle
+        return types
+    }
+
+    open override func setValue(_ value: Any, forExpression name: String) throws {
+        switch name {
+        case "style":
+            break // Ignore this - we set it during creation
         default:
             try super.setValue(value, forExpression: name)
         }
