@@ -149,10 +149,8 @@ private class LayoutParser: NSObject, XMLParserDelegate {
             text = ""
         }
 
-        let viewController = node.viewControllerClass?.init()
         let layoutNode = LayoutNode(
-            view: viewController?.view ?? node.viewClass.init(), // TODO: customize init
-            viewController: viewController,
+            class: node.viewControllerClass ?? node.viewClass,
             outlet: outlet,
             expressions: attributes,
             children: node.children

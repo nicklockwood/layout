@@ -85,7 +85,7 @@ class OptionalExpressionTests: XCTestCase {
     func testNullAnyExpression() {
         let null: Any? = nil
         let node = LayoutNode(constants: ["foo" : null as Any])
-        let expression = LayoutExpression(expression: "foo", ofType: RuntimeType(Any.self), for: node)
+        let expression = LayoutExpression(expression: "foo", type: RuntimeType(Any.self), for: node)
         XCTAssertThrowsError(try expression.evaluate()) { error in
             XCTAssert("\(error)".contains("nil"))
         }

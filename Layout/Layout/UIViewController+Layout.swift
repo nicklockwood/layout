@@ -54,6 +54,11 @@ extension UIViewController {
         }
     }
 
+    /// Called to construct the view
+    @objc open class func create(with node: LayoutNode) throws -> UIViewController {
+        return self.init()
+    }
+
     // Set expression value
     @objc open func setValue(_ value: Any, forExpression name: String) throws {
         switch name {

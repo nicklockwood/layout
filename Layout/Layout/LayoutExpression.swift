@@ -178,7 +178,7 @@ struct LayoutExpression {
     // numericSymbols are assumed to be impure - i.e. they won't always return the same value
     private init(anyExpression: String,
                  type: RuntimeType,
-                 symbols: [AnyExpression.Symbol: AnyExpression.SymbolEvaluator],
+                 symbols: [AnyExpression.Symbol: AnyExpression.SymbolEvaluator] = [:],
                  numericSymbols: [AnyExpression.Symbol: Expression.Symbol.Evaluator] = [:],
                  lookup: @escaping (String) -> Any? = { _ in nil },
                  for node: LayoutNode)
@@ -268,10 +268,6 @@ struct LayoutExpression {
                 }
             })
         )
-    }
-
-    init(anyExpression: String, type: RuntimeType, for node: LayoutNode) {
-        self.init(anyExpression: anyExpression, type: type, symbols: [:], for: node)
     }
 
     init(colorExpression: String, for node: LayoutNode) {
@@ -574,7 +570,7 @@ struct LayoutExpression {
         )
     }
 
-    init(expression: String, ofType type: RuntimeType, for node: LayoutNode) {
+    init(expression: String, type: RuntimeType, for node: LayoutNode) {
         switch type.type {
         case let .any(subtype):
             switch subtype {

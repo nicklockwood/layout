@@ -20,12 +20,13 @@ import UIKit
 }
 
 public class LayoutNode: NSObject {
-    public let view: UIView
-    public let viewController: UIViewController?
+    public var view: UIView { return _view }
+    public private(set) var viewController: UIViewController?
     public private(set) var outlet: String?
     public private(set) var expressions: [String: String]
     public internal(set) var constants: [String: Any]
     private var _originalExpressions: [String: String]
+    private var _view: UIView!
 
     public var viewControllers: [UIViewController] {
         guard let viewController = viewController else {
@@ -34,40 +35,7 @@ public class LayoutNode: NSObject {
         return [viewController]
     }
 
-    public init(
-        view: UIView? = nil,
-        viewController: UIViewController? = nil,
-        outlet: String? = nil,
-        state: Any = Void(),
-        constants: [String: Any]...,
-        expressions: [String: String] = [:],
-        children: [LayoutNode] = []
-    ) {
-        assert(Thread.isMainThread)
-
-        let view = view ?? viewController?.view ?? UIView()
-        viewController?.view = view
-        view.autoresizingMask = []
-
-        self.view = view
-        self.viewController = viewController
-        self.outlet = outlet
-        self.state = try! unwrap(state)
-        self.expressions = expressions
-        self.children = children
-
-        // Merge constants
-        self.constants = constants.first ?? [:]
-        for consts in constants.dropFirst() {
-            for (key, value) in consts {
-                self.constants[key] = value
-            }
-        }
-
-        _originalExpressions = expressions
-
-        super.init()
-
+    private func completeSetup() {
         overrideExpressions()
         updateVariables()
 
@@ -87,12 +55,88 @@ public class LayoutNode: NSObject {
 
         for (index, child) in children.enumerated() {
             child.parent = self
-            if let viewController = view.viewController {
+            if let viewController = _view.viewController {
                 viewController.didInsertChildNode(child, at: index)
             } else {
-                view.didInsertChildNode(child, at: index)
+                _view.didInsertChildNode(child, at: index)
             }
         }
+    }
+
+    init(
+        class: AnyClass,
+        outlet: String? = nil,
+        state: Any = (),
+        constants: [String: Any] = [:],
+        expressions: [String: String] = [:],
+        children: [LayoutNode] = []
+    ) {
+        assert(Thread.isMainThread)
+
+        self.outlet = outlet
+        self.state = state
+        self.constants = constants
+        self.expressions = expressions
+        self.children = children
+
+        _originalExpressions = expressions
+
+        super.init()
+
+        switch `class` {
+        case let viewClass as UIView.Type:
+            do {
+                // Can't use `attempt()` here as it tries to access view
+                _view = try viewClass.create(with: self)
+            } catch {
+                _view = viewClass.init()
+                logError(error)
+            }
+        case let controllerClass as UIViewController.Type:
+            viewController = attempt { try controllerClass.create(with: self) }
+            _view = viewController?.view ?? UIView()
+            _view.autoresizingMask = []
+        default:
+            preconditionFailure("\(`class`) is not a UIView or UIViewController subclass")
+        }
+
+        completeSetup()
+    }
+
+    public init(
+        view: UIView? = nil,
+        viewController: UIViewController? = nil,
+        outlet: String? = nil,
+        state: Any = (),
+        constants: [String: Any]...,
+        expressions: [String: String] = [:],
+        children: [LayoutNode] = []
+    ) {
+        assert(Thread.isMainThread)
+
+        _view = view ?? viewController?.view ?? UIView()
+        viewController?.view = _view
+        _view.autoresizingMask = []
+
+        self.viewController = viewController
+        self.outlet = outlet
+        self.state = try! unwrap(state)
+        self.expressions = expressions
+        self.children = children
+
+        // Merge constants
+        self.constants = constants.first ?? [:]
+        for consts in constants.dropFirst() {
+            for (key, value) in consts {
+                self.constants[key] = value
+            }
+        }
+
+        _originalExpressions = expressions
+
+        super.init()
+
+        completeSetup()
     }
 
     // MARK: Validation
@@ -474,10 +518,10 @@ public class LayoutNode: NSObject {
                     } else if ["top", "bottom", "y", "height"].contains(parts.last!) {
                         expression = LayoutExpression(yExpression: string, for: self)
                     } else {
-                        expression = LayoutExpression(expression: string, ofType: type, for: self)
+                        expression = LayoutExpression(expression: string, type: type, for: self)
                     }
                 } else {
-                    expression = LayoutExpression(expression: string, ofType: type, for: self)
+                    expression = LayoutExpression(expression: string, type: type, for: self)
                 }
             }
             // Only set constant values once
@@ -719,7 +763,7 @@ public class LayoutNode: NSObject {
                     }
                     // Then controller/view symbols
                     if let value =
-                        self.viewController?.value(forSymbol: symbol) ?? self.view.value(forSymbol: symbol) {
+                        self.viewController?.value(forSymbol: symbol) ?? self._view?.value(forSymbol: symbol) {
                         return value
                     }
                     throw SymbolError("\(symbol) not found", for: symbol)

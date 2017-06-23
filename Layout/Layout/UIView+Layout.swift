@@ -100,6 +100,11 @@ extension UIView {
         return types
     }
 
+    /// Called to construct the view
+    @objc open class func create(with node: LayoutNode) throws -> UIView {
+        return self.init()
+    }
+
     // Set expression value
     @objc open func setValue(_ value: Any, forExpression name: String) throws {
         var value = value
