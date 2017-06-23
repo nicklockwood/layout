@@ -127,15 +127,20 @@ open class LayoutViewController: UIViewController {
 
     open override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        do {
-            if let errorNode = _errorNode {
-                try errorNode.update()
-                view.bringSubview(toFront: errorNode.view)
+
+        if let errorNode = _errorNode {
+            errorNode.view.frame = view.bounds
+            view.bringSubview(toFront: errorNode.view)
+        } else if let view = layoutNode?.view {
+            if self.view.bounds != view.bounds {
+                view.frame = self.view.bounds
             } else {
-                try layoutNode?.update()
+                do {
+                    try layoutNode?.update()
+                } catch {
+                    layoutError(LayoutError(error, for: layoutNode))
+                }
             }
-        } catch {
-            layoutError(LayoutError(error, for: layoutNode))
         }
     }
 

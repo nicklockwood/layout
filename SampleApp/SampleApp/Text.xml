@@ -5,6 +5,7 @@
         contentSize.height="auto + 20"
         contentInset.top="max(topLayoutGuide.length + 10, 20)"
         contentInset.bottom="bottomLayoutGuide.length"
+        scrollIndicatorInsets.top="topLayoutGuide.length"
         scrollIndicatorInsets.bottom="bottomLayoutGuide.length">
 
         <UILabel

@@ -4,12 +4,13 @@
 
     <UIScrollView
         contentInset.top="max(topLayoutGuide.length + 10, 15)"
-        scrollIndicatorInsets.bottom="bottomLayoutGuide.length + 50"
-        contentInset.bottom="scrollIndicatorInsets.bottom + 15">
+        contentInset.bottom="scrollIndicatorInsets.bottom + 15"
+        scrollIndicatorInsets.top="topLayoutGuide.length"
+        scrollIndicatorInsets.bottom="bottomLayoutGuide.length + 50">
 
         <!-- First column -->
         <UIView
-            left="15 + previous.right"
+            left="15"
             width="toggleLayout ? (100% - 45)/2 : (100% - 60)/3"
             height="width"
             backgroundColor="colors.red"

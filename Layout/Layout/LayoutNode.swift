@@ -26,7 +26,7 @@ public class LayoutNode: NSObject {
     public private(set) var expressions: [String: String]
     public internal(set) var constants: [String: Any]
     private var _originalExpressions: [String: String]
-    private var _view: UIView!
+    @objc private var _view: UIView!
 
     public var viewControllers: [UIViewController] {
         guard let viewController = viewController else {
@@ -38,6 +38,7 @@ public class LayoutNode: NSObject {
     private func completeSetup() {
         overrideExpressions()
         updateVariables()
+        updateObservers()
 
         #if arch(i386) || arch(x86_64)
 
@@ -61,6 +62,32 @@ public class LayoutNode: NSObject {
                 _view.didInsertChildNode(child, at: index)
             }
         }
+    }
+
+    private var _observing = false
+    private func updateObservers() {
+        if _observing, parent != nil {
+            stopObserving()
+        } else if !_observing, parent == nil {
+            addObserver(self, forKeyPath: "_view.frame", options: [], context: nil)
+            _observing = true
+        }
+    }
+
+    private func stopObserving() {
+        if _observing {
+            removeObserver(self, forKeyPath: "_view.frame")
+            _observing = false
+        }
+    }
+
+    public override func observeValue(
+        forKeyPath keyPath: String?,
+        of object: Any?,
+        change: [NSKeyValueChangeKey : Any]?,
+        context: UnsafeMutableRawPointer?
+    ) {
+        attempt { try update() }
     }
 
     init(
@@ -137,6 +164,10 @@ public class LayoutNode: NSObject {
         super.init()
 
         completeSetup()
+    }
+
+    deinit {
+        stopObserving()
     }
 
     // MARK: Validation
@@ -313,7 +344,9 @@ public class LayoutNode: NSObject {
     public private(set) weak var parent: LayoutNode? {
         didSet {
             cleanUp()
+            overrideExpressions()
             bubbleUnhandledError()
+            updateObservers()
         }
     }
 
@@ -387,6 +420,7 @@ public class LayoutNode: NSObject {
 
     // Experimental - used for nested XML reference loading
     internal func update(with node: LayoutNode) throws {
+        node.stopObserving()
         guard type(of: view) == type(of: node.view) else {
             throw LayoutError.message("Cannot replace \(type(of: view)) with \(type(of: node.view))")
         }
@@ -404,7 +438,6 @@ public class LayoutNode: NSObject {
         for (name, expression) in node._originalExpressions where _originalExpressions[name] == nil {
             _originalExpressions[name] = expression
         }
-        expressions = _originalExpressions
         cleanUp()
         overrideExpressions()
 
@@ -422,30 +455,32 @@ public class LayoutNode: NSObject {
     // MARK: expressions
 
     private func overrideExpressions() {
+        expressions = _originalExpressions
+
         // layout props
         if expressions["width"] == nil {
             if expressions["left"] != nil, expressions["right"] != nil {
                 expressions["width"] = "right - left"
             } else if !view.constraints.isEmpty || view.intrinsicContentSize.width != UIViewNoIntrinsicMetric {
                 expressions["width"] = "auto"
-            } else {
+            } else if parent != nil {
                 expressions["width"] = "100%"
             }
         }
-        if expressions["left"] == nil {
-            expressions["left"] = expressions["right"] != nil ? "right - width" : "0"
+        if expressions["left"] == nil, expressions["right"] != nil {
+            expressions["left"] = "right - width"
         }
         if expressions["height"] == nil {
             if expressions["top"] != nil, expressions["bottom"] != nil {
                 expressions["height"] = "bottom - top"
             } else if !view.constraints.isEmpty || view.intrinsicContentSize.height != UIViewNoIntrinsicMetric {
                 expressions["height"] = "auto"
-            } else {
+            } else if parent != nil {
                 expressions["height"] = "100%"
             }
         }
-        if expressions["top"] == nil {
-            expressions["top"] = expressions["bottom"] != nil ? "bottom - height" : "0"
+        if expressions["top"] == nil, expressions["bottom"] != nil {
+            expressions["top"] = "bottom - height"
         }
 
         // Handle Autolayout
@@ -468,12 +503,8 @@ public class LayoutNode: NSObject {
                 // TODO: can we limit this only to constraints that affect width/height?
                 constraint.priority -= 1
             }
-            if expressions["width"] != nil {
-                _widthConstraint = view.widthAnchor.constraint(equalToConstant: 0)
-            }
-            if expressions["height"] != nil {
-                _heightConstraint = view.heightAnchor.constraint(equalToConstant: 0)
-            }
+            _widthConstraint = view.widthAnchor.constraint(equalToConstant: 0)
+            _heightConstraint = view.heightAnchor.constraint(equalToConstant: 0)
         }
     }
 
@@ -694,21 +725,36 @@ public class LayoutNode: NSObject {
         let getter: () throws -> Any
         switch symbol {
         case "left":
-            getter = (parent == nil) ? { [unowned self] in self.frame.minX } : { 0 }
+            getter = { [unowned self] in
+                self.view.frame.minX
+            }
         case "width":
-            getter = { [unowned self] in self.frame.width }
+            getter = { [unowned self] in
+                self.view.frame.width
+            }
         case "right":
-            getter = { [unowned self] in self.frame.maxX }
+            getter = { [unowned self] in
+                self.frame.maxX
+            }
         case "top":
-            getter = (parent == nil) ? { [unowned self] in self.frame.minY } : { 0 }
+            getter = { [unowned self] in
+                self.view.frame.minY
+            }
         case "height":
-            getter = { [unowned self] in self.frame.height }
+            getter = { [unowned self] in
+                self.view.frame.height
+            }
         case "bottom":
-            getter = { [unowned self] in self.frame.maxY }
+            getter = { [unowned self] in
+                self.frame.maxY
+            }
         case "topLayoutGuide.length":
-            getter = { [unowned self] in self._layoutGuideController?.topLayoutGuide.length ?? 0 }
+            getter = { [unowned self] in
+                self._layoutGuideController?.topLayoutGuide.length ?? 0
+            }
         case "bottomLayoutGuide.length":
-            getter = { [unowned self] in self._layoutGuideController?.bottomLayoutGuide.length ?? 0 }
+            getter = { [unowned self] in self._layoutGuideController?.bottomLayoutGuide.length ?? 0
+            }
         default:
             let head: String
             let tail: String
@@ -722,15 +768,21 @@ public class LayoutNode: NSObject {
             switch head {
             case "parent":
                 if parent != nil {
-                    getter = { [unowned self] in try self.parent?.value(forSymbol: tail) ?? 0 }
-                } else {
                     getter = { [unowned self] in
-                        switch tail {
-                        case "width":
-                            return self.view.superview?.bounds.width ?? 0
-                        case "height":
-                            return self.view.superview?.bounds.height ?? 0
-                        default:
+                        try self.parent?.value(forSymbol: tail) as Any
+                    }
+                } else {
+                    switch tail {
+                    case "width":
+                        getter = { [unowned self] in
+                            return self.view.superview?.bounds.width ?? self.view.frame.width
+                        }
+                    case "height":
+                        getter = { [unowned self] in
+                            return self.view.superview?.bounds.height ?? self.view.frame.height
+                        }
+                    default:
+                        getter = {
                             throw SymbolError("Undefined symbol `\(tail)`", for: symbol)
                         }
                     }
@@ -744,7 +796,9 @@ public class LayoutNode: NSObject {
                     return try previous?.value(forSymbol: tail) ?? 0
                 }
             case "previous":
-                getter = { [unowned self] in try self.previous?.value(forSymbol: tail) ?? 0 }
+                getter = { [unowned self] in
+                    try self.previous?.value(forSymbol: tail) as Any
+                }
             case "next" where LayoutNode.isLayoutSymbol(tail):
                 getter = { [unowned self] in
                     var next = self.next
@@ -754,7 +808,9 @@ public class LayoutNode: NSObject {
                     return try next?.value(forSymbol: tail) ?? 0
                 }
             case "next":
-                getter = { [unowned self] in try self.next?.value(forSymbol: tail) ?? 0 }
+                getter = { [unowned self] in
+                    try self.next?.value(forSymbol: tail) as Any
+                }
             default:
                 getter = { [unowned self] in
                     // Try local variables/constants first, then
@@ -909,7 +965,6 @@ public class LayoutNode: NSObject {
     // Note: thrown error is always a LayoutError
     private var _suppressUpdates = false
     public func update() throws {
-        guard parent != nil || view.superview != nil else { return }
         guard _suppressUpdates == false else { return }
         defer { _suppressUpdates = false }
         _suppressUpdates = true
@@ -965,9 +1020,7 @@ public class LayoutNode: NSObject {
             }
         }
         view.addSubview(self.view)
-        if view.frame != .zero {
-            try update()
-        }
+        try update()
     }
 
     /// Unmounts and unbinds the node

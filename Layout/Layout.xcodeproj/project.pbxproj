@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0111514A1EFD2E0C002502FE /* LayoutFrameTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 011151491EFD2E0C002502FE /* LayoutFrameTests.swift */; };
 		01128E3D1EBC95C3007AEB0D /* UIViewController+Layout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01128E3C1EBC95C3007AEB0D /* UIViewController+Layout.swift */; };
 		012FE2C11ECE3B3100DFA961 /* StateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 012FE2C01ECE3B3100DFA961 /* StateTests.swift */; };
 		012FE2C31ECE52C700DFA961 /* Optional+Layout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 012FE2C21ECE52C700DFA961 /* Optional+Layout.swift */; };
@@ -45,6 +46,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		011151491EFD2E0C002502FE /* LayoutFrameTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LayoutFrameTests.swift; sourceTree = "<group>"; };
 		01128E3C1EBC95C3007AEB0D /* UIViewController+Layout.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIViewController+Layout.swift"; sourceTree = "<group>"; };
 		012FE2C01ECE3B3100DFA961 /* StateTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StateTests.swift; sourceTree = "<group>"; };
 		012FE2C21ECE52C700DFA961 /* Optional+Layout.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Optional+Layout.swift"; sourceTree = "<group>"; };
@@ -146,6 +148,7 @@
 			children = (
 				016BC2971EC6E43C009759A4 /* AnyExpressionTests.swift */,
 				01D2E1CC1EEA8D660052ABCB /* LayoutExpressionTests.swift */,
+				011151491EFD2E0C002502FE /* LayoutFrameTests.swift */,
 				01D2E1CE1EEB17E80052ABCB /* OptionalExpressionTests.swift */,
 				01DD39591EDB312700F17F46 /* ColorExpressionTests.swift */,
 				01C8A6BF1ECCF9B00031CB2F /* EnumExpressionTests.swift */,
@@ -396,6 +399,7 @@
 				01C8A6C01ECCF9B00031CB2F /* EnumExpressionTests.swift in Sources */,
 				016BC2981EC6E43C009759A4 /* AnyExpressionTests.swift in Sources */,
 				012FE2C51ECED66C00DFA961 /* GeometryExpressionTests.swift in Sources */,
+				0111514A1EFD2E0C002502FE /* LayoutFrameTests.swift in Sources */,
 				012FE2C11ECE3B3100DFA961 /* StateTests.swift in Sources */,
 				01DD395A1EDB312700F17F46 /* ColorExpressionTests.swift in Sources */,
 				01B36DC51ECC452100D0DA01 /* FontExpressionTests.swift in Sources */,
