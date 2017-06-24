@@ -1,0 +1,17 @@
+<UITableViewCell
+    reuseIdentifier="cell"
+    style="subtitle"
+    textLabel.text="Title #{row}"
+    detailTextLabel.text="Subtitle #{row}"
+    detailTextLabel.textColor="#aaa">
+
+    <UIImageView
+        top="50% - height / 2"
+        right="100% - 20"
+        width="auto"
+        height="auto"
+        image="{image}"
+        tintColor="#999"
+    />
+
+</UITableViewCell>

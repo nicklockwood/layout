@@ -7,12 +7,15 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		011151481EFC079C002502FE /* TableCell.xml in Resources */ = {isa = PBXBuildFile; fileRef = 011151471EFC079C002502FE /* TableCell.xml */; };
 		01128E3F1EBCCB4F007AEB0D /* ExamplesViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01128E3E1EBCCB4F007AEB0D /* ExamplesViewController.swift */; };
 		01128E411EBCCB6A007AEB0D /* Examples.xml in Resources */ = {isa = PBXBuildFile; fileRef = 01128E401EBCCB6A007AEB0D /* Examples.xml */; };
 		01129EB61EAB8ED200072E1D /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01129EB51EAB8ED200072E1D /* AppDelegate.swift */; };
 		01129EBD1EAB8ED200072E1D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 01129EBC1EAB8ED200072E1D /* Assets.xcassets */; };
 		01129EC01EAB8ED200072E1D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 01129EBE1EAB8ED200072E1D /* LaunchScreen.storyboard */; };
 		01185D4D1EE607B0008225F3 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 01185D4F1EE607B0008225F3 /* Localizable.strings */; };
+		0119D1AF1EFBC36500047F37 /* Table.xml in Resources */ = {isa = PBXBuildFile; fileRef = 0119D1AE1EFBC36500047F37 /* Table.xml */; };
+		0119D1B11EFBC44D00047F37 /* TableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0119D1B01EFBC44D00047F37 /* TableViewController.swift */; };
 		0153724E1EC2E1650025FBF0 /* Northstar.xml in Resources */ = {isa = PBXBuildFile; fileRef = 0153724D1EC2E1650025FBF0 /* Northstar.xml */; };
 		015372541EC30AE90025FBF0 /* Boxes.xml in Resources */ = {isa = PBXBuildFile; fileRef = 015372531EC30AE90025FBF0 /* Boxes.xml */; };
 		015372561EC30B640025FBF0 /* Pages.xml in Resources */ = {isa = PBXBuildFile; fileRef = 015372551EC30B640025FBF0 /* Pages.xml */; };
@@ -28,6 +31,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		011151471EFC079C002502FE /* TableCell.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = TableCell.xml; sourceTree = "<group>"; };
 		01128E3E1EBCCB4F007AEB0D /* ExamplesViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExamplesViewController.swift; sourceTree = "<group>"; };
 		01128E401EBCCB6A007AEB0D /* Examples.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = Examples.xml; sourceTree = "<group>"; };
 		01129EB21EAB8ED200072E1D /* SampleApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SampleApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -36,6 +40,8 @@
 		01129EBF1EAB8ED200072E1D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		01129EC11EAB8ED200072E1D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		01185D4E1EE607B0008225F3 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
+		0119D1AE1EFBC36500047F37 /* Table.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = Table.xml; sourceTree = "<group>"; };
+		0119D1B01EFBC44D00047F37 /* TableViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TableViewController.swift; sourceTree = "<group>"; };
 		0153724D1EC2E1650025FBF0 /* Northstar.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = Northstar.xml; sourceTree = "<group>"; };
 		015372531EC30AE90025FBF0 /* Boxes.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = Boxes.xml; sourceTree = "<group>"; };
 		015372551EC30B640025FBF0 /* Pages.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = Pages.xml; sourceTree = "<group>"; };
@@ -92,12 +98,15 @@
 				01128E3E1EBCCB4F007AEB0D /* ExamplesViewController.swift */,
 				01B36D8F1EC7C2FA00D0DA01 /* BoxesViewController.swift */,
 				01B36D911EC7C49200D0DA01 /* PagesViewController.swift */,
+				0119D1B01EFBC44D00047F37 /* TableViewController.swift */,
 				016BC2831EC371E7009759A4 /* NorthstarExampleViewController.swift */,
 				01B36D8D1EC7C29700D0DA01 /* Northstar+Layout.swift */,
 				01128E401EBCCB6A007AEB0D /* Examples.xml */,
 				015372531EC30AE90025FBF0 /* Boxes.xml */,
 				015372551EC30B640025FBF0 /* Pages.xml */,
 				015372571EC30CEC0025FBF0 /* Text.xml */,
+				0119D1AE1EFBC36500047F37 /* Table.xml */,
+				011151471EFC079C002502FE /* TableCell.xml */,
 				0153724D1EC2E1650025FBF0 /* Northstar.xml */,
 				01185D4F1EE607B0008225F3 /* Localizable.strings */,
 				01129EBC1EAB8ED200072E1D /* Assets.xcassets */,
@@ -196,7 +205,9 @@
 				01129EC01EAB8ED200072E1D /* LaunchScreen.storyboard in Resources */,
 				0153724E1EC2E1650025FBF0 /* Northstar.xml in Resources */,
 				01185D4D1EE607B0008225F3 /* Localizable.strings in Resources */,
+				0119D1AF1EFBC36500047F37 /* Table.xml in Resources */,
 				01128E411EBCCB6A007AEB0D /* Examples.xml in Resources */,
+				011151481EFC079C002502FE /* TableCell.xml in Resources */,
 				01129EBD1EAB8ED200072E1D /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -257,6 +268,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				016BC2841EC371E7009759A4 /* NorthstarExampleViewController.swift in Sources */,
+				0119D1B11EFBC44D00047F37 /* TableViewController.swift in Sources */,
 				01128E3F1EBCCB4F007AEB0D /* ExamplesViewController.swift in Sources */,
 				01129EB61EAB8ED200072E1D /* AppDelegate.swift in Sources */,
 				01B36D921EC7C49200D0DA01 /* PagesViewController.swift in Sources */,

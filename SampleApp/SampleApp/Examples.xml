@@ -19,6 +19,12 @@
         tabBarItem.image="Text"
         xml="Text.xml"/>
 
+    <!-- Table -->
+    <TableViewController
+        title="Table"
+        tabBarItem.image="Table"
+        xml="Table.xml"/>
+
     <!-- Northstar -->
     <NorthstarExampleViewController
         title="Northstar"

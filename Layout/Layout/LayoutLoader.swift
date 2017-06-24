@@ -47,6 +47,35 @@ class LayoutLoader {
     }
 
     public func loadLayout(
+        named: String,
+        bundle: Bundle = Bundle.main,
+        relativeTo: String = #file,
+        state: Any = (),
+        constants: [String: Any] = [:]) throws -> LayoutNode
+    {
+        assert(Thread.isMainThread)
+        guard let xmlURL = bundle.url(forResource: named, withExtension: nil) ??
+            bundle.url(forResource: named, withExtension: "xml") else {
+                throw LayoutError.message("No layout XML file found for `\(named)`")
+        }
+        var _node: LayoutNode?
+        var _error: Error?
+        loadLayout(
+            withContentsOfURL: xmlURL,
+            relativeTo: relativeTo,
+            state: state,
+            constants: constants
+        ) { node, error in
+            _node = node
+            _error = error
+        }
+        if let error = _error {
+            throw error
+        }
+        return _node!
+    }
+
+    public func loadLayout(
         withContentsOfURL xmlURL: URL,
         relativeTo: String? = #file,
         state: Any = (),

@@ -1,0 +1,15 @@
+<TableViewController
+    backgroundColor="#fee">
+
+    <UITableView
+        outlet="tableView"
+        style="plain"
+        rowHeight="60"
+        contentOffset.y="-topLayoutGuide.length"
+        contentInset.top="topLayoutGuide.length"
+        contentInset.bottom="bottomLayoutGuide.length"
+        scrollIndicatorInsets.top="topLayoutGuide.length"
+        scrollIndicatorInsets.bottom="bottomLayoutGuide.length"
+    />
+
+</TableViewController>
