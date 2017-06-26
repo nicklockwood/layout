@@ -32,15 +32,16 @@ private class LayoutParser: NSObject, XMLParserDelegate {
     private var error: LayoutError?
     private var text = ""
     private var isHTML = false
+    private var parseQueue = [() -> Void]()
 
     private struct XMLNode {
-        var viewClass: UIView.Type
-        var viewControllerClass: UIViewController.Type?
+        var elementName: String
         var attributes: [String: String]
         var children: [LayoutNode]
     }
 
     fileprivate func parse(_ parser: XMLParser, relativeTo: String?) throws -> LayoutNode {
+        assert(Thread.isMainThread)
         defer {
             root = nil
             top = nil
@@ -51,6 +52,7 @@ private class LayoutParser: NSObject, XMLParserDelegate {
         if let error = error {
             throw error
         }
+        parseQueue.forEach { $0() }
         return root
     }
 
@@ -72,26 +74,9 @@ private class LayoutParser: NSObject, XMLParserDelegate {
             return
         }
 
-        let classPrefix = Bundle.main.object(forInfoDictionaryKey: "CFBundleName") ?? ""
-        guard let anyClass = NSClassFromString(elementName) ??
-            NSClassFromString("\(classPrefix).\(elementName)") else {
-            error = LayoutError.message("Unknown class `\(elementName)` in XML")
-            parser.abortParsing()
-            return
-        }
-
-        let viewClass = anyClass as? UIView.Type
-        let viewControllerClass = anyClass as? UIViewController.Type
-        guard viewClass != nil || viewControllerClass != nil else {
-            error = .message("`\(anyClass)` is not a subclass of UIView or UIViewController")
-            parser.abortParsing()
-            return
-        }
-
         top.map { stack.append($0) }
         top = XMLNode(
-            viewClass: viewClass ?? UIView.self,
-            viewControllerClass: viewControllerClass,
+            elementName: elementName,
             attributes: attributes,
             children: []
         )
@@ -149,17 +134,32 @@ private class LayoutParser: NSObject, XMLParserDelegate {
             text = ""
         }
 
-        let layoutNode = LayoutNode(
-            class: node.viewControllerClass ?? node.viewClass,
-            outlet: outlet,
-            expressions: attributes,
-            children: node.children
-        )
+        let classPrefix = Bundle.main.object(forInfoDictionaryKey: "CFBundleName") ?? ""
+        guard let anyClass = NSClassFromString(elementName) ??
+            NSClassFromString("\(classPrefix).\(elementName)") else {
+                error = LayoutError.message("Unknown class `\(elementName)` in XML")
+                parser.abortParsing()
+                return
+        }
+
+        let layoutNode: LayoutNode
+        do {
+            layoutNode = try LayoutNode(
+                class: anyClass,
+                outlet: outlet,
+                expressions: attributes,
+                children: node.children
+            )
+        } catch {
+            self.error = LayoutError(error)
+            parser.abortParsing()
+            return
+        }
 
         if let xmlPath = xmlPath, let xmlURL = urlFromString(xmlPath) {
             let loader = LayoutLoader()
             let relativePath = self.relativePath
-            DispatchQueue.main.async { // Workaround for XMLParser not being re-entrant
+            parseQueue.append { // Workaround for XMLParser not being re-entrant
                 loader.loadLayout(
                     withContentsOfURL: xmlURL,
                     relativeTo: relativePath

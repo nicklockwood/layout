@@ -97,7 +97,7 @@ public class LayoutNode: NSObject {
         constants: [String: Any] = [:],
         expressions: [String: String] = [:],
         children: [LayoutNode] = []
-    ) {
+    ) throws {
         assert(Thread.isMainThread)
 
         self.outlet = outlet
@@ -112,19 +112,14 @@ public class LayoutNode: NSObject {
 
         switch `class` {
         case let viewClass as UIView.Type:
-            do {
-                // Can't use `attempt()` here as it tries to access view
-                _view = try viewClass.create(with: self)
-            } catch {
-                _view = viewClass.init()
-                logError(error)
-            }
+            // Can't use `attempt()` here as it tries to access view
+            _view = try viewClass.create(with: self)
         case let controllerClass as UIViewController.Type:
-            viewController = attempt { try controllerClass.create(with: self) }
+            viewController = try controllerClass.create(with: self)
             _view = viewController?.view ?? UIView()
             _view.autoresizingMask = []
         default:
-            preconditionFailure("\(`class`) is not a UIView or UIViewController subclass")
+            throw LayoutError.message("`\(`class`)` is not a subclass of UIView or UIViewController")
         }
 
         completeSetup()
@@ -381,7 +376,6 @@ public class LayoutNode: NSObject {
         } else {
             view.didInsertChildNode(child, at: index)
         }
-        try? update()
     }
 
     public func replaceChild(at index: Int, with child: LayoutNode) {
@@ -408,7 +402,6 @@ public class LayoutNode: NSObject {
             }
             unbind()
             parent?.children.remove(at: index)
-            try? parent?.update()
             parent = nil
             return
         }
@@ -449,7 +442,9 @@ public class LayoutNode: NSObject {
         for child in node.children {
             addChild(child)
         }
-        try update()
+        if view.window != nil || _owner != nil {
+            try update()
+        }
     }
 
     // MARK: expressions
@@ -1041,7 +1036,7 @@ public class LayoutNode: NSObject {
     // Note: thrown error is always a LayoutError
     private weak var _owner: NSObject?
     private func bind(to owner: NSObject) throws {
-        guard _owner == nil || _owner == owner else {
+        guard _owner == nil || _owner == owner || _owner == viewController else {
             throw LayoutError.message("Cannot re-bind an already bound node.")
         }
         if let viewController = viewController, owner != viewController {
