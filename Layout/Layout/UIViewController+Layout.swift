@@ -8,6 +8,8 @@
 
 import UIKit
 
+private var _cachedExpressionTypes = [Int: [String: RuntimeType]]()
+
 extension UIViewController {
 
     /// Expression names and types
@@ -33,13 +35,12 @@ extension UIViewController {
         return types
     }
 
-    private static var propertiesKey = 0
     class var cachedExpressionTypes: [String: RuntimeType] {
-        if let types = objc_getAssociatedObject(self, &propertiesKey) as? [String: RuntimeType] {
+        if let types = _cachedExpressionTypes[self.hash()] {
             return types
         }
         let types = expressionTypes
-        objc_setAssociatedObject(self, &propertiesKey, types, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+        _cachedExpressionTypes[self.hash()] = types
         return types
     }
 

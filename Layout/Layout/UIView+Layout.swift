@@ -8,6 +8,8 @@
 
 import UIKit
 
+private var _cachedExpressionTypes = [Int: [String: RuntimeType]]()
+
 extension UIView {
 
     /// The view controller that owns the view - used to access layout guides
@@ -90,13 +92,12 @@ extension UIView {
         return types
     }
 
-    private static var propertiesKey = 0
     class var cachedExpressionTypes: [String: RuntimeType] {
-        if let types = objc_getAssociatedObject(self, &propertiesKey) as? [String: RuntimeType] {
+        if let types = _cachedExpressionTypes[self.hash()] {
             return types
         }
         let types = expressionTypes
-        objc_setAssociatedObject(self, &propertiesKey, types, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+        _cachedExpressionTypes[self.hash()] = types
         return types
     }
 
@@ -595,16 +596,29 @@ extension UITableView {
             nodes = []
             objc_setAssociatedObject(self, &tableViewNodesKey, nodes, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         }
-        let node = try! LayoutLoader().loadLayout(
-            named: layoutData.name,
-            bundle: layoutData.bundle,
-            relativeTo: layoutData.relativeTo,
-            state: layoutData.state,
-            constants: layoutData.constants
-        )
-        nodes?.add(node)
-        node.view.setValue(identifier, forKey: "reuseIdentifier")
-        return node
+        do {
+            let node = try LayoutLoader().loadLayout(
+                named: layoutData.name,
+                bundle: layoutData.bundle,
+                relativeTo: layoutData.relativeTo,
+                state: layoutData.state,
+                constants: layoutData.constants
+            )
+            nodes?.add(node)
+            node.view.setValue(identifier, forKey: "reuseIdentifier")
+            return node
+        } catch {
+            var responder: UIResponder? = self
+            while responder != nil {
+                if let errorHandler = responder as? LayoutLoading {
+                    errorHandler.layoutError(LayoutError(error))
+                    return LayoutNode(view: UITableViewCell())
+                }
+                responder = responder?.next
+            }
+            print("Layout error: \(error)")
+            return LayoutNode(view: UITableViewCell())
+        }
     }
 }
 
