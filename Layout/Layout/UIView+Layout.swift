@@ -163,7 +163,7 @@ extension UIScrollView {
     }
 
     open override func didUpdateLayout(for node: LayoutNode) {
-        guard type(of: self) == UIScrollView.self else {
+        guard classForCoder == UIScrollView.self else {
             return // Skip this behavior for subclasses like UITableView
         }
         // Update contentSize

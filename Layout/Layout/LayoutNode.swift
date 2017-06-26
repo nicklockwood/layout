@@ -414,14 +414,14 @@ public class LayoutNode: NSObject {
     // Experimental - used for nested XML reference loading
     internal func update(with node: LayoutNode) throws {
         node.stopObserving()
-        guard type(of: view) == type(of: node.view) else {
-            throw LayoutError.message("Cannot replace \(type(of: view)) with \(type(of: node.view))")
+        guard view.classForCoder == node.view.classForCoder else {
+            throw LayoutError.message("Cannot replace \(view.classForCoder) with \(node.view.classForCoder)")
         }
         guard (viewController == nil) == (node.viewController == nil) else {
-            throw LayoutError.message("Cannot replace \(viewController.map { "\(type(of: $0))" } ?? "nil") with \(node.viewController.map { "\(type(of: $0))" } ?? "nil")")
+            throw LayoutError.message("Cannot replace \(viewController.map { "\($0.classForCoder)" } ?? "nil") with \(node.viewController.map { "\($0.classForCoder)" } ?? "nil")")
         }
-        guard viewController.map({ type(of: $0) == type(of: node.viewController!) }) != false else {
-            throw LayoutError.message("Cannot replace \(type(of: viewController!)) with \(type(of: node.viewController!))")
+        guard viewController?.classForCoder == node.viewController?.classForCoder else {
+            throw LayoutError.message("Cannot replace \(viewController!.classForCoder) with \(node.viewController!.classForCoder)")
         }
 
         for child in children {
@@ -1068,18 +1068,18 @@ public class LayoutNode: NSObject {
                     owner.setValue(view, forKey: outlet)
                     didMatch = true
                 } else {
-                    expectedType = "\(Swift.type(of: view))"
+                    expectedType = "\(view.classForCoder)"
                 }
             } else if let viewController = viewController, type.matches(UIViewController.self) {
                 if type.matches(viewController) {
                     owner.setValue(viewController, forKey: outlet)
                     didMatch = true
                 } else {
-                    expectedType = "\(Swift.type(of: viewController))"
+                    expectedType = "\(viewController.classForCoder)"
                 }
             }
             if !didMatch {
-                throw LayoutError.message("outlet `\(outlet)` of `\(Swift.type(of: owner))` is not a \(expectedType)")
+                throw LayoutError.message("outlet `\(outlet)` of `\(owner.classForCoder)` is not a \(expectedType)")
             }
         }
         if let type = viewExpressionTypes["delegate"],

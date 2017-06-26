@@ -37,8 +37,8 @@ class EditViewController: UIViewController, UITextFieldDelegate {
     var node: LayoutNode! {
         didSet {
             guard rootNode != nil else { return }
-            if type(of: oldValue.view) != type(of: node.view) ||
-                oldValue.viewController.map({ type(of: $0) }) != node.viewController.map({ type(of: $0) }) {
+            if oldValue.view.classForCoder != node.view.classForCoder ||
+                oldValue.viewController?.classForCoder != node.viewController?.classForCoder {
                 updateUI()
             } else {
                 updateFieldValues()
@@ -75,7 +75,7 @@ class EditViewController: UIViewController, UITextFieldDelegate {
     }
 
     private func updateUI() {
-        let cls = node.viewController.map { type(of: $0) } ?? type(of: node.view)
+        let cls: AnyClass = node.viewController?.classForCoder ?? node.view.classForCoder
         var children = [
             LayoutNode(
                 view: UITextField(),

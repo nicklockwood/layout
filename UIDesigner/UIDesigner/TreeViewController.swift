@@ -13,12 +13,12 @@ class TreeViewController: UITableViewController {
 
     func nodeName(_ node: LayoutNode) -> String {
         return node.viewController.map {
-            var name = "\(type(of: $0))"
+            var name = "\($0.classForCoder)"
             if let title = $0.title, !title.isEmpty {
                 name += " (\(title))"
             }
             return name
-        } ?? "\(type(of: node.view))"
+        } ?? "\(node.view.classForCoder)"
     }
 
     var layoutNode: LayoutNode? {
