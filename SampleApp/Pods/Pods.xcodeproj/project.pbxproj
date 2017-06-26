@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		011151501F013A56002502FE /* LayoutLoading.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0111514F1F013A56002502FE /* LayoutLoading.swift */; };
 		05284BE6EBB489203CAF662B06372F4B /* Expression.h in Headers */ = {isa = PBXBuildFile; fileRef = C80B2B48B89A35F0F960F5CC3273C4A1 /* Expression.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		066E1B8EAB104717FE97C5E37815E0C7 /* NorthstarClickableLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C9EBE857CB2BCDEBC44A7393CF6B71 /* NorthstarClickableLabel.swift */; };
 		0FC3CBFD74B99B257F92730783180932 /* Expression.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6AD78E0FD5D74D5EF4DB8DD720AE6354 /* Expression.framework */; };
@@ -114,6 +115,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		0111514F1F013A56002502FE /* LayoutLoading.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LayoutLoading.swift; sourceTree = "<group>"; };
 		03134C79E14CFE0BBC83A3961C22A4A2 /* Pods-SampleApp-dummy.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = "Pods-SampleApp-dummy.m"; sourceTree = "<group>"; };
 		07C574B1BE2957191C9C0B492123D6ED /* LayoutNode.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LayoutNode.swift; sourceTree = "<group>"; };
 		0A1C71CAF998E550D3021251135AFDCA /* NorthstarColors.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NorthstarColors.swift; sourceTree = "<group>"; };
@@ -148,24 +150,24 @@
 		6CFCEA3ECB7E0ABC1DFCAD53CD65ED99 /* Optional+Layout.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "Optional+Layout.swift"; sourceTree = "<group>"; };
 		6DCF87CD8BF0E677CA1A4B52A12D8C66 /* NorthstarWebViewController.storyboard */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = file.storyboard; path = NorthstarWebViewController.storyboard; sourceTree = "<group>"; };
 		717A657F963EDCBC21A92EF2DABDF0D4 /* LayoutLoader.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LayoutLoader.swift; sourceTree = "<group>"; };
-		789E09DDD92440BA1B413C1B2086CB17 /* Northstar.bundle */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; name = Northstar.bundle; path = Northstar.bundle; sourceTree = BUILT_PRODUCTS_DIR; };
+		789E09DDD92440BA1B413C1B2086CB17 /* Northstar.bundle */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Northstar.bundle; sourceTree = BUILT_PRODUCTS_DIR; };
 		7A3C7A12100E48034AFEC68269EE7CBD /* Expression.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = Expression.xcconfig; sourceTree = "<group>"; };
 		7BAADCCBDF4B75BC8F4FB81EDCFD8812 /* Expression-umbrella.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "Expression-umbrella.h"; sourceTree = "<group>"; };
 		7CDEE2ECB69CC0452355FB8088786D24 /* NorthstarButton.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NorthstarButton.swift; sourceTree = "<group>"; };
 		7D3DF14F404F6422DC698635C9897189 /* LayoutViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LayoutViewController.swift; sourceTree = "<group>"; };
-		7D40CBEF202563E3FFB38A7077356EA2 /* Pods-SampleApp.modulemap */ = {isa = PBXFileReference; includeInIndex = 1; path = "Pods-SampleApp.modulemap"; sourceTree = "<group>"; };
-		8A896D211FD7738B85EC1CE82181EE46 /* Layout.modulemap */ = {isa = PBXFileReference; includeInIndex = 1; path = Layout.modulemap; sourceTree = "<group>"; };
-		8CB5959BD2D89A936EEFC08A0A50DA5C /* Pods_SampleApp.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; name = Pods_SampleApp.framework; path = "Pods-SampleApp.framework"; sourceTree = BUILT_PRODUCTS_DIR; };
+		7D40CBEF202563E3FFB38A7077356EA2 /* Pods-SampleApp.modulemap */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = "sourcecode.module-map"; path = "Pods-SampleApp.modulemap"; sourceTree = "<group>"; };
+		8A896D211FD7738B85EC1CE82181EE46 /* Layout.modulemap */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = "sourcecode.module-map"; path = Layout.modulemap; sourceTree = "<group>"; };
+		8CB5959BD2D89A936EEFC08A0A50DA5C /* Pods_SampleApp.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_SampleApp.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		91B47F2C6762232C70D4BDA548192320 /* Pods-SampleApp-acknowledgements.markdown */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; path = "Pods-SampleApp-acknowledgements.markdown"; sourceTree = "<group>"; };
 		92FA4EE44FBD930D6A3F9963018D46BB /* Northstar-prefix.pch */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "Northstar-prefix.pch"; sourceTree = "<group>"; };
-		93A4A3777CF96A4AAC1D13BA6DCCEA73 /* Podfile */ = {isa = PBXFileReference; explicitFileType = text.script.ruby; includeInIndex = 1; lastKnownFileType = text; name = Podfile; path = ../Podfile; sourceTree = SOURCE_ROOT; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
-		96F73A21575CE55318A88F85A9832409 /* Northstar.modulemap */ = {isa = PBXFileReference; includeInIndex = 1; path = Northstar.modulemap; sourceTree = "<group>"; };
+		93A4A3777CF96A4AAC1D13BA6DCCEA73 /* Podfile */ = {isa = PBXFileReference; explicitFileType = text.script.ruby; includeInIndex = 1; name = Podfile; path = ../Podfile; sourceTree = SOURCE_ROOT; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
+		96F73A21575CE55318A88F85A9832409 /* Northstar.modulemap */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = "sourcecode.module-map"; path = Northstar.modulemap; sourceTree = "<group>"; };
 		977E19306D119D7023F94AC3AE17E4DE /* Pods-SampleApp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Pods-SampleApp.debug.xcconfig"; sourceTree = "<group>"; };
 		99B65C3BB469B1E7BD965419EEABEEC1 /* Media.xcassets */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = folder.assetcatalog; path = Media.xcassets; sourceTree = "<group>"; };
 		9F5D888055D44C11BC874DC915821670 /* AnyExpression.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AnyExpression.swift; sourceTree = "<group>"; };
-		A06E17D902249D904A9D6FD120998AEC /* Expression.modulemap */ = {isa = PBXFileReference; includeInIndex = 1; path = Expression.modulemap; sourceTree = "<group>"; };
+		A06E17D902249D904A9D6FD120998AEC /* Expression.modulemap */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = "sourcecode.module-map"; path = Expression.modulemap; sourceTree = "<group>"; };
 		B10DB059BF7B418D060EA15F1B04F8E0 /* Expression-prefix.pch */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "Expression-prefix.pch"; sourceTree = "<group>"; };
-		B1137ACEB1F7F75AE6E4563DB088868F /* Layout.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; name = Layout.framework; path = Layout.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		B1137ACEB1F7F75AE6E4563DB088868F /* Layout.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Layout.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		B186D6059A1ED2AB9D49E1A2232FFF43 /* NorthstarLabel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NorthstarLabel.swift; sourceTree = "<group>"; };
 		B704B4B9A6BAC177121522C78138B294 /* Northstar-umbrella.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "Northstar-umbrella.h"; sourceTree = "<group>"; };
 		C2D52F16DBAD2C78FBCBE82A618E51AD /* UIViewController+Layout.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "UIViewController+Layout.swift"; sourceTree = "<group>"; };
@@ -173,11 +175,11 @@
 		C59829C582380195FA2AE90DECC8A5F4 /* Properties.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Properties.swift; sourceTree = "<group>"; };
 		C66F570C57AF0FDDB797FC88CB838DF2 /* Pods-SampleApp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Pods-SampleApp.release.xcconfig"; sourceTree = "<group>"; };
 		C676C5C18B8DF7B0961F41666CDF76F0 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		C6FF4930F074126500BFFDE021017BBB /* Expression.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; name = Expression.framework; path = Expression.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		C6FF4930F074126500BFFDE021017BBB /* Expression.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Expression.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		C80B2B48B89A35F0F960F5CC3273C4A1 /* Expression.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = Expression.h; path = Sources/Expression.h; sourceTree = "<group>"; };
 		CF32CAA357D020A5B522EF86BE63D451 /* Layout.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Layout.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		D28817338E13E8C35B10273C01FFC971 /* NorthstarCheckboxControl.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NorthstarCheckboxControl.swift; sourceTree = "<group>"; };
-		D473327068D4F9CA5F3F7ED7A42331D1 /* Northstar.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; name = Northstar.framework; path = Northstar.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		D473327068D4F9CA5F3F7ED7A42331D1 /* Northstar.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Northstar.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		D6163C795B423DE2A5510080F3DD25A0 /* Expression.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = Expression.swift; path = Sources/Expression.swift; sourceTree = "<group>"; };
 		E0A41846698EC5DA173814CB68E54FD7 /* Pods-SampleApp-frameworks.sh */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.script.sh; path = "Pods-SampleApp-frameworks.sh"; sourceTree = "<group>"; };
 		E5E31EB15AA8DE09E3D197FCD9DFCC1F /* Layout-dummy.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = "Layout-dummy.m"; sourceTree = "<group>"; };
@@ -267,7 +269,6 @@
 				D6163C795B423DE2A5510080F3DD25A0 /* Expression.swift */,
 				0E0773B506BB190E59FD9E1892366A8B /* Support Files */,
 			);
-			name = Expression;
 			path = Expression;
 			sourceTree = "<group>";
 		};
@@ -319,7 +320,6 @@
 			children = (
 				C4D34376DBD3702ACF148C0D41CC5222 /* Layout */,
 			);
-			name = Layout;
 			path = Layout;
 			sourceTree = "<group>";
 		};
@@ -402,6 +402,7 @@
 				1D4C97FDE70AECA2B5F1EB0A724BAB22 /* LayoutError.swift */,
 				3425D5A46CA138B116EBBACBC8968C85 /* LayoutExpression.swift */,
 				717A657F963EDCBC21A92EF2DABDF0D4 /* LayoutLoader.swift */,
+				0111514F1F013A56002502FE /* LayoutLoading.swift */,
 				07C574B1BE2957191C9C0B492123D6ED /* LayoutNode.swift */,
 				46FDABD6BED7D77748B6F3030D85D208 /* LayoutNode+XML.swift */,
 				7D3DF14F404F6422DC698635C9897189 /* LayoutViewController.swift */,
@@ -410,7 +411,6 @@
 				E89993C5F4A118F31A7F768E56DEB956 /* UIView+Layout.swift */,
 				C2D52F16DBAD2C78FBCBE82A618E51AD /* UIViewController+Layout.swift */,
 			);
-			name = Layout;
 			path = Layout;
 			sourceTree = "<group>";
 		};
@@ -423,7 +423,6 @@
 				27692C6E39283AD55D836533B5F52DAF /* NorthstarSubmitInputView.xib */,
 				6DCF87CD8BF0E677CA1A4B52A12D8C66 /* NorthstarWebViewController.storyboard */,
 			);
-			name = Resources;
 			path = Resources;
 			sourceTree = "<group>";
 		};
@@ -459,7 +458,6 @@
 				1963ED3BE08CAB322A1672E4CDDBBE8B /* UIView+NorthstarLoadable.swift */,
 				189237168C6C7CA9B8FCAF5AE2BE7AB1 /* UIViewController+NorthstarLoadable.swift */,
 			);
-			name = Source;
 			path = Source;
 			sourceTree = "<group>";
 		};
@@ -668,6 +666,7 @@
 				A8CA67218C6B5BB72B927FA258CEB01F /* LayoutLoader.swift in Sources */,
 				7A8946E935B83AA07625F18730D16882 /* LayoutNode+XML.swift in Sources */,
 				914D7335595532F370AC84974BB3A7C7 /* LayoutNode.swift in Sources */,
+				011151501F013A56002502FE /* LayoutLoading.swift in Sources */,
 				4153F86FEC17FD73C87D885651F9A4CD /* LayoutViewController.swift in Sources */,
 				EA2CCBAA6621D75C83BD5E293F13FE8B /* Optional+Layout.swift in Sources */,
 				EE0007746B8E9DDF6BA8419EDE198300 /* Properties.swift in Sources */,
