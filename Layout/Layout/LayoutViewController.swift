@@ -150,16 +150,6 @@ open class LayoutViewController: UIViewController {
 
     open func layoutError(_ error: LayoutError) {
 
-        // Pass error up the chain to the first VC that can handle it
-        var responder: UIResponder = self
-        while let nextResponder = responder.next {
-            if let layoutController = nextResponder as? LayoutViewController {
-                layoutController.layoutError(error)
-                return
-            }
-            responder = nextResponder
-        }
-
         // If error has no changes, just re-display it
         if let errorNode = _errorNode, error == _error {
             view.bringSubview(toFront: errorNode.view)
