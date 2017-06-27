@@ -1,6 +1,6 @@
 {
   "name": "Layout",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "summary": "XML templates + expression-based layout system",
   "homepage": "https://github.schibsted.io/Rocket/layout/",
   "license": {
@@ -12,7 +12,7 @@
   },
   "source": {
     "git": "git@github.schibsted.io:Rocket/layout.git",
-    "tag": "0.3.2"
+    "tag": "0.3.3"
   },
   "platforms": {
     "ios": "9.0"

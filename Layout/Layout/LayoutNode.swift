@@ -261,11 +261,6 @@ public class LayoutNode: NSObject {
 
     internal func logError(_ error: Error) {
         _unhandledError = LayoutError(error, for: self)
-
-        #if arch(i386) || arch(x86_64)
-            print("Error: \(_unhandledError!)")
-        #endif
-
         bubbleUnhandledError()
     }
 
@@ -1039,6 +1034,7 @@ public class LayoutNode: NSObject {
         guard _owner == nil || _owner == owner || _owner == viewController else {
             throw LayoutError.message("Cannot re-bind an already bound node.")
         }
+        _unhandledError = nil
         if let viewController = viewController, owner != viewController {
             do {
                 try bind(to: viewController)

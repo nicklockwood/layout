@@ -1,6 +1,6 @@
 PODS:
   - Expression (0.7.0)
-  - Layout (0.3.2):
+  - Layout (0.3.3):
     - Expression (~> 0.7.0)
   - Northstar (0.0.1):
     - Layout
@@ -17,7 +17,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   Expression: 58438d38e484a565be5ebc34e76f12f629132989
-  Layout: 3368b9651423273a7c18ebcdeec45f5e08ef9dde
+  Layout: dd0f05c96f727a0f8f7926727bc933cbcc3e2c70
   Northstar: eb1f7e140d4d5f4efcd6c8d6c7fc73a445fffb99
 
 PODFILE CHECKSUM: f8215283a456a0d52cd21807f2f4678a24b1b693

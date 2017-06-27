@@ -1,5 +1,16 @@
 # Change Log
 
+## [0.3.3](https://github.schibsted.io/Rocket/layout/releases/tag/0.3.3) (2017-06-27)
+
+- Added `LayoutLoading` protocol, for loading arbitrary views or view controllers from XML
+- LayoutVC errors are no longer passed up to parent, which fixes a bug with reloading after an error
+- Significantly improved property setting performance - at least 2X faster
+- Loading of nested XML files is now synchronous, avoiding a flash as subviews are loaded
+- Improved default frame behavior, and added unit tests
+- Added support for `UITableView`, `UITableViewCell`, and `UITableViewController`
+- Added custom initializer support for views/controllers that require extra arguments
+- Added support for `layoutMargins` in expressions
+
 ## [0.3.2](https://github.schibsted.io/Rocket/layout/releases/tag/0.3.2) (2017-06-20)
 
 - Reloading a nested LayoutViewController now reloads just the current controller, not the parent

@@ -27,7 +27,9 @@
 	- [Namespacing](#namespacing)
 	- [Custom Property Types](#custom-property-types)
 - [Advanced Topics](#advanced-topics)
+    - [Layout-based Components](#layout-based-components)
 	- [Manual Integration](#manual-integration)
+    - [TableViews](#tableviews)
 - [Example Projects](#example-projects)
 	- [SampleApp](#sampleapp)
 	- [UIDesigner](#uidesigner)
@@ -151,7 +153,7 @@ Use option 1 for layouts generated in code. Use option 2 for XML layout files lo
 
 Option 3 can be used to load a layout from an arbitrary URL, which can be either a local file or remotely-hosted. This is useful if you need to develop directly on a device, because you can host the layout file on your Mac and then connect to it from the device to allow reloading of changes without recompiling the app. It's also potentially useful in production for hosting layouts in some kind of CMS system.
 
-**Note:** The `loadLayout(withContentsOfURL:)` offers limited control over caching, etc. so if you intend to host your layouts remotely, it may be better to download the XML template to a local cache location first and then load it from there.
+**Note:** The `loadLayout(withContentsOfURL:)` offers limited control over caching, etc. so if you intend to host your layouts remotely, it may be better to download the XML template to a local cache location first and then load it from there. 
 
 ## Live Reloading
 
@@ -699,11 +701,37 @@ It can also be used to specify a set of enum values:
 Swift enum values cannot be set automatically using the Objective-C runtime, but if the underlying type of the property matches the `rawValue` (as is the case for most Objective-C APIs) then it's typically not necessary to also provide a custom `setValue(forExpression:)` implementation. You'll have to determine this on a per-case basis.
 
 
-# Advanced Topics 
+# Advanced Topics
+
+## Layout-based Components
+
+If you are creating a library of views or controllers that use Layout internally, it probably doesn't make sense to base each component on a subclass of `LayoutViewController`. Ideally there should only be one `LayoutViewController` visible on-screen at once, otherwise the meaning of "reload" becomes ambiguous.
+
+If the consumers of your component library are using `Layout`, then you can expose all your components as xml files and allow them to be composed directly using Layout templates or code, but if you want the library to work well with ordinary UIKit code, then it is better if each component is exposed as a regular `UIView` or `UIViewController` subclass.
+
+To implement this, you can make use of the `LayoutLoading` protocol. `LayoutLoading` works in the same way as `LayoutViewController`, providing `loadLayout(...)` and `reloadLayout(...)` methods to load the subviews of your view or view controller using Layout templates.
+
+Unlike `LayoutViewController`,  `LayoutLoading` provides no "red box" error console or reloading keyboard shortcuts, and because it is a protocol rather than a base class, it can be applied on top of any existing `UIView`/`ViewController` base class that you require.
+
+The default implementations of `LayoutLoading` will bubble errors up the responder chain to the first view or view controller that handles them. If the `LayoutLoading` view or view controller is placed inside a root `LayoutViewController`, it will therefore gain all the same debugging benefits of using a `LayoutViewController` base class, but with less overhead and more flexibility.
+
+    class MyView: UIView, LayoutLoading {
+        
+        public override init(frame: CGRect) {
+            super.init(frame: frame)
+            
+            loadLayout(
+                named: "MyView.mxl",
+                state: ...,
+                constants: ...,
+            )
+        }
+    }
+
 
 ## Manual Integration
 
-If you would prefer not to subclass `LayoutViewController`, you can mount a `LayoutNode` directly into a view or view controller by using the `mount(in:)` method:
+If you would prefer not to use either the `LayoutViewController` base class or `LayoutLoading` protocol, you can mount a `LayoutNode` directly into a regular view or view controller by using the `mount(in:)` method:
 	
 	class MyViewController: UIViewController {
     	
@@ -727,11 +755,62 @@ If you would prefer not to subclass `LayoutViewController`, you can mount a `Lay
         }
     }
 
-This method of integration does not provide the automatic live reloading feature for local XML files, nor the "red box" debugging interface - both of those are implemented internally by the `LayoutViewController`.
+This method of integration does not provide the automatic live reloading feature for local XML files, nor the "red box" debugging interface - both of those are implemented internally by the `LayoutViewController`. It also won't bubble errors up the responder chain to the next `LayoutLoading` handler.
 
-Note that both the `mount(in:)` and `update()` methods may throw an error. An error will be thrown if there is a problems with your XML markup, or in an expression's syntax or logic. These errors are not expected to occur in a correctly implemented layout - they typically only happen if you have made a mistake in your code, so it should be OK to suppress them with `!` for release builds (assuming you've tested your app before releasing it!).
+Both the `mount(in:)` and `update()` methods may throw an error. An error will be thrown if there is a problems with your XML markup, or in an expression's syntax or logic.
+
+These errors are not expected to occur in a correctly implemented layout - they typically only happen if you have made a mistake in your code, so it should be OK to suppress them with `!` for release builds (assuming you've tested your app before releasing it!).
 
 If you are loading XML templates from a external source, you may wish to catch and log errors instead of allowing them to crash, as there is a greater likelihood of an error making it into production if templates and native code are updated independently.
+    
+# TableViews
+
+You can use a `UITableView` inside a Layout template in much the same way as you would use any view. The delegate and datasource will automatically be bound to the file's owner, which is typically either the `LayoutViewController`, or the first nested view controller that conforms to one or both of the `UITableViewDelegate`/`DataSource` protocols.
+
+Using a Layout-based `UITableViewCell` is also possible, but slightly more involved. Currently, the implementation for a Layout-based table must be done primarily in code rather than in the layout template itself. A typical setup might look like this:
+
+    class TableViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
+    
+        @IBOutlet var tableView: UITableView? {
+            didSet {
+                tableView?.registerLayout(
+                    named: "MyCell.xml",
+                    forCellReuseIdentifier: "cell"
+                )
+            }
+        }
+        
+        var rowData: [MyModel]
+    
+        func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+            return rowData.count
+        }
+    
+        func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+            let node = tableView.dequeueReusableLayoutNode(withIdentifier: "cell", for: indexPath)
+            node.state = rowData[indexPath.row]
+            return node.view as! UITableViewCell
+        }
+    }
+    
+Note the use of two extension methods on `UITableview`: `registerLayout(...)` and `dequeueReusableLayoutNode(...)`. These work in pretty-much the same way as their UIKit counterparts, but are desiged to work with xml Layout-based cells instead of nibs.
+
+The XML for the cell itself might look something like this:
+
+    <UITableViewCell
+        reuseIdentifier="cell"
+        textLabel.text="{title}">
+    
+        <UIImageView
+            top="50% - height / 2"
+            right="100% - 20"
+            width="auto"
+            height="auto"
+            image="{image}"
+            tintColor="#999"
+        />
+    
+    </UITableViewCell>    
 
 
 # Example Projects
