@@ -825,7 +825,7 @@ public class LayoutNode: NSObject {
 
     // Note: thrown error is always a SymbolError
     private func updateExpressionValues() throws {
-        for name in expressions.keys {
+        for name in expressions.keys where !LayoutNode.isLayoutSymbol(name) {
             if let expression = _cachedExpressions[name], expression.symbols.isEmpty {
                 // Crude optimization to avoid setting constant properties multiple times
                 continue
