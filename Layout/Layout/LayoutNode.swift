@@ -191,7 +191,6 @@ public class LayoutNode: NSObject {
                 continue
             }
             do {
-                // TODO: check for recursion here?
                 _ = try expression.evaluate()
             } catch {
                 errors.insert(LayoutError(error, for: self))
@@ -550,31 +549,35 @@ public class LayoutNode: NSObject {
                 do {
                     let value = try expression.evaluate()
                     try setValue(value, forExpression: symbol)
-                    _getters[symbol] = { value }
                 } catch {
                     // Something went wrong, so don't cache the expression
                     return expression
                 }
             } else {
-                _getters[symbol] = { [unowned self] in
-                    if self._evaluating.last == symbol,
-                        let value = self.value(forVariableOrConstant: symbol) {
-                        // If an expression directly references itself it may be shadowing
-                        // a constant or variable, so check for that first before throwing
-                        return value
-                    }
-                    guard !self._evaluating.contains(symbol) else {
-                        throw SymbolError("Circular reference", for: symbol)
-                    }
-                    self._evaluating.append(symbol)
-                    defer {
-                        assert(self._evaluating.last == symbol)
-                        self._evaluating.removeLast()
-                    }
-                    return try SymbolError.wrap(expression.evaluate, for: symbol)
-                }
+                let evaluate = expression.evaluate
+                expression = LayoutExpression(
+                    evaluate: { [unowned self] in
+                        if self._evaluating.last == symbol,
+                            let value = self.value(forVariableOrConstant: symbol) {
+                            // If an expression directly references itself it may be shadowing
+                            // a constant or variable, so check for that first before throwing
+                            return value
+                        }
+                        guard !self._evaluating.contains(symbol) else {
+                            throw SymbolError("Circular reference", for: symbol)
+                        }
+                        self._evaluating.append(symbol)
+                        defer {
+                            assert(self._evaluating.last == symbol)
+                            self._evaluating.removeLast()
+                        }
+                        return try SymbolError.wrap(evaluate, for: symbol)
+                    },
+                    symbols: expression.symbols
+                )
             }
             _cachedExpressions[symbol] = expression
+            _getters[symbol] = expression.evaluate
             return expression
         }
         return nil
