@@ -36,6 +36,10 @@ public class LayoutNode: NSObject {
     }
 
     private func completeSetup() {
+        _usesAutoLayout = self.view.constraints.contains {
+            [.top, .left, .bottom, .right, .width, .height].contains($0.firstAttribute)
+        }
+
         overrideExpressions()
         updateVariables()
         updateObservers()
@@ -117,7 +121,6 @@ public class LayoutNode: NSObject {
         case let controllerClass as UIViewController.Type:
             viewController = try controllerClass.create(with: self)
             _view = viewController?.view ?? UIView()
-            _view.autoresizingMask = []
         default:
             throw LayoutError.message("`\(`class`)` is not a subclass of UIView or UIViewController")
         }
@@ -138,7 +141,6 @@ public class LayoutNode: NSObject {
 
         _view = view ?? viewController?.view ?? UIView()
         viewController?.view = _view
-        _view.autoresizingMask = []
 
         self.viewController = viewController
         self.outlet = outlet
@@ -450,50 +452,34 @@ public class LayoutNode: NSObject {
         if expressions["width"] == nil {
             if expressions["left"] != nil, expressions["right"] != nil {
                 expressions["width"] = "right - left"
-            } else if !view.constraints.isEmpty || view.intrinsicContentSize.width != UIViewNoIntrinsicMetric {
+            } else if _usesAutoLayout || view.intrinsicContentSize.width != UIViewNoIntrinsicMetric {
                 expressions["width"] = "auto"
             } else if parent != nil {
                 expressions["width"] = "100%"
             }
         }
-        if expressions["left"] == nil, expressions["right"] != nil {
-            expressions["left"] = "right - width"
+        if expressions["left"] == nil {
+            if expressions["right"] != nil {
+                expressions["left"] = "right - width"
+            } else if parent != nil {
+                expressions["left"] = "0"
+            }
         }
         if expressions["height"] == nil {
             if expressions["top"] != nil, expressions["bottom"] != nil {
                 expressions["height"] = "bottom - top"
-            } else if !view.constraints.isEmpty || view.intrinsicContentSize.height != UIViewNoIntrinsicMetric {
+            } else if _usesAutoLayout || view.intrinsicContentSize.height != UIViewNoIntrinsicMetric {
                 expressions["height"] = "auto"
             } else if parent != nil {
                 expressions["height"] = "100%"
             }
         }
-        if expressions["top"] == nil, expressions["bottom"] != nil {
-            expressions["top"] = "bottom - height"
-        }
-
-        // Handle Autolayout
-        if let widthConstraint = _widthConstraint {
-            view.removeConstraint(widthConstraint)
-            _widthConstraint = nil
-        }
-        if let heightConstraint = _heightConstraint {
-            view.removeConstraint(heightConstraint)
-            _heightConstraint = nil
-        }
-        if !view.constraints.isEmpty {
-            for constraint in view.constraints where constraint.priority == UILayoutPriorityRequired {
-                guard view.superview == nil else {
-                    // prevents crash due to NSInternalInconsistencyException:
-                    // Mutating a priority from required to not on an installed constraint is not supported
-                    break
-                }
-                // Prevent priority conflicts with Layout constraints
-                // TODO: can we limit this only to constraints that affect width/height?
-                constraint.priority -= 1
+        if expressions["top"] == nil {
+            if expressions["bottom"] != nil {
+                expressions["top"] = "bottom - height"
+            } else if parent != nil {
+                expressions["top"] = "0"
             }
-            _widthConstraint = view.widthAnchor.constraint(equalToConstant: 0)
-            _heightConstraint = view.heightAnchor.constraint(equalToConstant: 0)
         }
     }
 
@@ -879,39 +865,42 @@ public class LayoutNode: NSObject {
                 return try value(forSymbol: "contentSize") as! CGSize
             }
             // Try AutoLayout
-            if _widthConstraint != nil || _heightConstraint != nil {
+            if _usesAutoLayout {
                 let transform = view.layer.transform
                 view.layer.transform = CATransform3DIdentity
                 let frame = view.frame
                 view.translatesAutoresizingMaskIntoConstraints = false
-                if let widthConstraint = _widthConstraint,
-                    expressions["contentSize.width"] != nil, !_evaluating.contains("contentSize.width") {
-                    widthConstraint.isActive = true
-                    widthConstraint.constant = try CGFloat(doubleValue(forSymbol: "contentSize.width"))
-                } else if let widthConstraint = _widthConstraint, !_evaluating.contains("width") {
-                    widthConstraint.isActive = true
-                    widthConstraint.constant = try CGFloat(doubleValue(forSymbol: "width"))
+                if expressions["contentSize.width"] != nil, !_evaluating.contains("contentSize.width") {
+                    _widthConstraint.isActive = true
+                    _widthConstraint.constant = try CGFloat(doubleValue(forSymbol: "contentSize.width"))
+                } else if !_evaluating.contains("width") {
+                    _widthConstraint.isActive = true
+                    _widthConstraint.constant = try CGFloat(doubleValue(forSymbol: "width"))
                 } else {
-                    _widthConstraint?.isActive = false
+                    _widthConstraint.isActive = false
                 }
-                if let heightConstraint = _heightConstraint,
-                    expressions["contentSize.height"] != nil, !_evaluating.contains("contentSize.height") {
-                    heightConstraint.isActive = true
-                    heightConstraint.constant = try CGFloat(doubleValue(forSymbol: "contentSize.height"))
-                } else if let heightConstraint = _heightConstraint, !_evaluating.contains("height") {
-                    heightConstraint.isActive = true
-                    heightConstraint.constant = try CGFloat(doubleValue(forSymbol: "height"))
+                if expressions["contentSize.height"] != nil, !_evaluating.contains("contentSize.height") {
+                    _heightConstraint.isActive = true
+                    _heightConstraint.constant = try CGFloat(doubleValue(forSymbol: "contentSize.height"))
+                } else if !_evaluating.contains("height") {
+                    _heightConstraint.isActive = true
+                    _heightConstraint.constant = try CGFloat(doubleValue(forSymbol: "height"))
                 } else {
-                    _heightConstraint?.isActive = false
+                    _heightConstraint.isActive = false
                 }
                 view.layoutIfNeeded()
                 let size = view.frame.size
-                _widthConstraint?.isActive = false
-                _heightConstraint?.isActive = false
+                _widthConstraint.isActive = false
+                _heightConstraint.isActive = false
                 view.translatesAutoresizingMaskIntoConstraints = true
                 view.frame = frame
                 view.layer.transform = transform
-                return size
+                if size.width > 0 || size.height > 0 {
+                    return size
+                }
+            } else {
+                _widthConstraint.isActive = false
+                _heightConstraint.isActive = false
             }
             // Try intrinsic size
             let intrinsicSize = view.intrinsicContentSize
@@ -940,8 +929,11 @@ public class LayoutNode: NSObject {
                 size.height = max(size.height, frame.maxY)
             }
             // Fill superview
-            if size.width <= 0, size.height <= 0 {
-                size = view.superview?.bounds.size ?? .zero
+            if size.width <= 0 {
+                size.width = view.superview?.bounds.size.width ?? 0
+            }
+            if size.height <= 0 {
+                size.height = view.superview?.bounds.size.height ?? 0
             }
             if expressions["contentSize.width"] != nil, !_evaluating.contains("contentSize.width") {
                 size.width = try CGFloat(doubleValue(forSymbol: "contentSize.width"))
@@ -952,8 +944,20 @@ public class LayoutNode: NSObject {
         }) ?? .zero
     }
 
-    private var _widthConstraint: NSLayoutConstraint?
-    private var _heightConstraint: NSLayoutConstraint?
+    // AutoLayout support
+    private var _usesAutoLayout = false
+    private lazy var _widthConstraint: NSLayoutConstraint = {
+        let constraint = self.view.widthAnchor.constraint(equalToConstant: 0)
+        constraint.priority = UILayoutPriorityDefaultHigh
+        constraint.identifier = "LayoutWidth"
+        return constraint
+    }()
+    private lazy var _heightConstraint: NSLayoutConstraint = {
+        let constraint = self.view.heightAnchor.constraint(equalToConstant: 0)
+        constraint.priority = UILayoutPriorityDefaultHigh
+        constraint.identifier = "LayoutHeight"
+        return constraint
+    }()
 
     // Note: thrown error is always a LayoutError
     private var _suppressUpdates = false
@@ -965,11 +969,18 @@ public class LayoutNode: NSObject {
         for child in children {
             try child.update()
         }
-        let transform = view.layer.transform
-        view.layer.transform = CATransform3DIdentity
-        _frame = nil // Recaculate frame
-        view.frame = frame
-        view.layer.transform = transform
+        _frame = nil // Recalculate frame
+        if view.translatesAutoresizingMaskIntoConstraints {
+            let transform = view.layer.transform
+            view.layer.transform = CATransform3DIdentity
+            view.frame = frame
+            view.layer.transform = transform
+        } else {
+            _heightConstraint.constant = frame.height
+            _heightConstraint.isActive = true
+            _widthConstraint.constant = frame.width
+            _widthConstraint.isActive = true
+        }
         view.didUpdateLayout(for: self)
         view.viewController?.didUpdateLayout(for: self)
         try throwUnhandledError()
@@ -986,10 +997,8 @@ public class LayoutNode: NSObject {
         for controller in viewControllers {
             viewController.addChildViewController(controller)
         }
+        view.frame = viewController.view.bounds
         viewController.view.addSubview(view)
-        if viewController.view.frame != .zero {
-            try update()
-        }
     }
 
     // Note: thrown error is always a LayoutError
@@ -1012,8 +1021,8 @@ public class LayoutNode: NSObject {
                 viewController.addChildViewController(controller)
             }
         }
+        self.view.frame = view.bounds
         view.addSubview(self.view)
-        try update()
     }
 
     /// Unmounts and unbinds the node
@@ -1034,10 +1043,13 @@ public class LayoutNode: NSObject {
     // Note: thrown error is always a LayoutError
     private weak var _owner: NSObject?
     private func bind(to owner: NSObject) throws {
+        if let error = _unhandledError, !"\(error)".contains("XML") {
+            // Hack to prevent XML validation errors being swallowed
+            _unhandledError = nil
+        }
         guard _owner == nil || _owner == owner || _owner == viewController else {
             throw LayoutError.message("Cannot re-bind an already bound node.")
         }
-        _unhandledError = nil
         if let viewController = viewController, owner != viewController {
             do {
                 try bind(to: viewController)
