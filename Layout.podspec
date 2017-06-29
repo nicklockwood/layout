@@ -13,6 +13,6 @@ Pod::Spec.new do |s|
 
   s.requires_arc = true
   
-  s.source_files  = "Layout/Layout/*.swift"
+  s.source_files  = "Layout/*.swift"
   s.dependency 'Expression', '~> 0.7.0'
 end

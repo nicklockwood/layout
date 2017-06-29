@@ -1,0 +1,20 @@
+PODS:
+  - Expression (0.7.0)
+  - Layout (0.3.4):
+    - Expression (~> 0.7.0)
+
+DEPENDENCIES:
+  - Expression
+  - Layout (from `.`)
+
+EXTERNAL SOURCES:
+  Layout:
+    :path: .
+
+SPEC CHECKSUMS:
+  Expression: 58438d38e484a565be5ebc34e76f12f629132989
+  Layout: 7dac8a7949dca6fdc939ec3cb48e524edb5b2bc4
+
+PODFILE CHECKSUM: 4d5da174d4bbb4e4dc0abe767f13cda099426d84
+
+COCOAPODS: 1.2.1

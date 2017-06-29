@@ -1,0 +1,30 @@
+{
+  "name": "Layout",
+  "version": "0.3.4",
+  "summary": "XML templates + expression-based layout system",
+  "homepage": "https://github.schibsted.io/Rocket/layout/",
+  "license": {
+    "type": "Internal",
+    "text": "Copyright (c) 2017 Schibsted Media Group. All rights reserved"
+  },
+  "authors": {
+    "Nick Lockwood": "nick.lockwood@schibsted.com"
+  },
+  "source": {
+    "git": "git@github.schibsted.io:Rocket/layout.git",
+    "tag": "0.3.4"
+  },
+  "platforms": {
+    "ios": "9.0"
+  },
+  "pod_target_xcconfig": {
+    "SWIFT_VERSION": "3.1"
+  },
+  "requires_arc": true,
+  "source_files": "Layout/*.swift",
+  "dependencies": {
+    "Expression": [
+      "~> 0.7.0"
+    ]
+  }
+}

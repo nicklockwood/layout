@@ -1,0 +1,28 @@
+<UITabBarController
+    backgroundColor="#fff">
+
+    <!-- Boxes -->
+    <BoxesViewController
+        title="Boxes"
+        tabBarItem.image="Boxes"
+        xml="Boxes.xml"/>
+
+    <!-- Pages -->
+    <PagesViewController
+        title="Pages"
+        tabBarItem.image="Pages"
+        xml="Pages.xml"/>
+
+    <!-- Text -->
+    <UIViewController
+        title="Text"
+        tabBarItem.image="Text"
+        xml="Text.xml"/>
+
+    <!-- Table -->
+    <TableViewController
+        title="Table"
+        tabBarItem.image="Table"
+        xml="Table.xml"/>
+
+</UITabBarController>
