@@ -16,7 +16,7 @@ public struct SymbolError: Error, Hashable, CustomStringConvertible {
     public var description: String {
         var description = String(describing: error)
         if !description.contains(symbol) {
-            description = "\(description) in `\(symbol)`"
+            description = "\(description) in \(symbol)"
         }
         return description
     }
@@ -27,7 +27,11 @@ public struct SymbolError: Error, Hashable, CustomStringConvertible {
 
     init(_ error: Error, for symbol: String) {
         self.symbol = symbol
-        self.error = (error as? SymbolError)?.error ?? error
+        if let error = error as? SymbolError, error.symbol == symbol {
+            self.error = error.error
+        } else {
+            self.error = error
+        }
     }
 
     init(_ message: String, for symbol: String) {

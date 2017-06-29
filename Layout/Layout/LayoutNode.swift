@@ -550,7 +550,7 @@ public class LayoutNode: NSObject {
                             return value
                         }
                         guard !self._evaluating.contains(symbol) else {
-                            throw SymbolError("Circular reference", for: symbol)
+                            throw SymbolError("Circular reference for \(symbol)", for: symbol)
                         }
                         self._evaluating.append(symbol)
                         defer {
@@ -999,6 +999,7 @@ public class LayoutNode: NSObject {
         }
         view.frame = viewController.view.bounds
         viewController.view.addSubview(view)
+        try update()
     }
 
     // Note: thrown error is always a LayoutError
@@ -1021,8 +1022,8 @@ public class LayoutNode: NSObject {
                 viewController.addChildViewController(controller)
             }
         }
-        self.view.frame = view.bounds
         view.addSubview(self.view)
+        try update()
     }
 
     /// Unmounts and unbinds the node
