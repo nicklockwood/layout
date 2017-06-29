@@ -90,6 +90,7 @@ extension UIViewController {
         for controller in node.viewControllers {
             addChildViewController(controller)
         }
+        node.view.frame = view.bounds
         view.addSubview(node.view)
     }
 

@@ -3,10 +3,11 @@
     style="subtitle"
     textLabel.text="Title #{row}"
     detailTextLabel.text="Subtitle #{row}"
-    detailTextLabel.textColor="#aaa">
+    detailTextLabel.textColor="#aaa"
+    height="auto + 20">
 
     <UIImageView
-        top="50% - height / 2"
+        top="20"
         right="100% - 20"
         width="auto"
         height="auto"
