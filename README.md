@@ -29,7 +29,7 @@
 - [Advanced Topics](#advanced-topics)
     - [Layout-based Components](#layout-based-components)
 	- [Manual Integration](#manual-integration)
-    - [TableViews](#tableviews)
+    - [Table Views](#table-views)
 - [Example Projects](#example-projects)
 	- [SampleApp](#sampleapp)
 	- [UIDesigner](#uidesigner)
@@ -763,7 +763,7 @@ These errors are not expected to occur in a correctly implemented layout - they 
 
 If you are loading XML templates from a external source, you may wish to catch and log errors instead of allowing them to crash, as there is a greater likelihood of an error making it into production if templates and native code are updated independently.
     
-# TableViews
+# Table Views
 
 You can use a `UITableView` inside a Layout template in much the same way as you would use any view. The delegate and datasource will automatically be bound to the file's owner, which is typically either the `LayoutViewController`, or the first nested view controller that conforms to one or both of the `UITableViewDelegate`/`DataSource` protocols.
 
@@ -811,6 +811,8 @@ The XML for the cell itself might look something like this:
         />
     
     </UITableViewCell>    
+
+Layout supports dynamic table cell heights based on AutoLayout. To enable this, set a height expression for your cell, and ensure that you implement the `tableView(_: UITableView, estimatedHeightForRowAt:)` delegate method in `UITableViewDelegate`. If your cells all have the same height, it is more efficient to set the `rowHeight` expression for the `UITableView` instead.
 
 
 # Example Projects

@@ -30,7 +30,7 @@ class LayoutNodeTests: XCTestCase {
     func testCircularReference2() {
         let node = LayoutNode(expressions: ["top": "bottom", "bottom": "top"])
         let errors = node.validate()
-        XCTAssertEqual(errors.count, 2)
+        XCTAssertGreaterThanOrEqual(errors.count, 2)
         for error in errors {
             let description = error.description
             XCTAssertTrue(description.contains("Circular reference"))

@@ -1,5 +1,12 @@
 # Change Log
 
+## [0.3.4](https://github.schibsted.io/Rocket/layout/releases/tag/0.3.4) (2017-06-29)
+
+- Added support for dynamic table cell height based on AutoLayout
+- Improved AutoLayout integration and fixed a potential crash
+- Improved performance by avoiding double-evaluation of frame properties on each layout
+- Fixed a bug where a circular reference could cause a crash in some cases instead of showing a red box
+
 ## [0.3.3](https://github.schibsted.io/Rocket/layout/releases/tag/0.3.3) (2017-06-27)
 
 - Added `LayoutLoading` protocol, for loading arbitrary views or view controllers from XML
