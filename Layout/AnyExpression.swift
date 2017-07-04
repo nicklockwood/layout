@@ -50,8 +50,7 @@ struct AnyExpression: CustomStringConvertible {
          options: Options = .boolSymbols,
          constants: [String: Any] = [:],
          symbols: [Symbol: SymbolEvaluator] = [:],
-         evaluator: Evaluator? = nil)
-    {
+         evaluator: Evaluator? = nil) {
         self.init(
             Expression.parse(expression),
             options: options,
@@ -65,8 +64,7 @@ struct AnyExpression: CustomStringConvertible {
          options: Options = .boolSymbols,
          constants: [String: Any] = [:],
          symbols: [Symbol: SymbolEvaluator] = [:],
-         evaluator: Evaluator? = nil)
-    {
+         evaluator: Evaluator? = nil) {
         var values = [Any]()
         func store(_ value: Any) throws -> Double {
             if let value = (value as? NSNumber).map({ Double($0) }) {
@@ -149,8 +147,7 @@ struct AnyExpression: CustomStringConvertible {
         let expression = Expression(expression,
                                     options: options,
                                     constants: numericConstants,
-                                    symbols: numericSymbols)
-        { symbol, args in
+                                    symbols: numericSymbols) { symbol, args in
             let anyArgs = args.map(load)
             if let value = try evaluator?(symbol, anyArgs) {
                 return try store(value)

@@ -1,16 +1,10 @@
-//
-//  LayoutViewController.swift
-//  Layout
-//
-//  Created by Nick Lockwood on 27/04/2017.
-//  Copyright © 2017 Nick Lockwood. All rights reserved.
-//
+//  Copyright © 2017 Schibsted. All rights reserved.
 
 import UIKit
 
 open class LayoutViewController: UIViewController {
 
-    open var layoutNode: LayoutNode? = nil {
+    open var layoutNode: LayoutNode? {
         didSet {
             if layoutNode?.viewController == self {
                 // TODO: should this use case be allowed at all?
@@ -32,7 +26,7 @@ open class LayoutViewController: UIViewController {
     fileprivate var _loader: LayoutLoader?
     private var _state: Any = ()
     private var _errorNode: LayoutNode?
-    private var _error: LayoutError? = nil
+    private var _error: LayoutError?
 
     private var isReloadable: Bool {
         return layoutNode != nil || _loader != nil
@@ -53,8 +47,7 @@ open class LayoutViewController: UIViewController {
         bundle: Bundle = Bundle.main,
         relativeTo: String = #file,
         state: Any = (),
-        constants: [String: Any]...)
-    {
+        constants: [String: Any]...) {
         assert(Thread.isMainThread)
         let name = named ?? "\(type(of: self))".components(separatedBy: ".").last!
         guard let xmlURL = bundle.url(forResource: name, withExtension: nil) ??
@@ -75,8 +68,7 @@ open class LayoutViewController: UIViewController {
         relativeTo: String? = #file,
         state: Any = (),
         constants: [String: Any]...,
-        completion: ((LayoutError?) -> Void)? = nil)
-    {
+        completion: ((LayoutError?) -> Void)? = nil) {
         if _loader == nil {
             _loader = LayoutLoader()
         }
@@ -166,7 +158,7 @@ open class LayoutViewController: UIViewController {
         _errorNode = LayoutNode(
             view: UIControl(),
             constants: [
-                "error": error
+                "error": error,
             ],
             expressions: [
                 "width": "100%",
@@ -221,28 +213,28 @@ open class LayoutViewController: UIViewController {
 
     #if arch(i386) || arch(x86_64)
 
-    // MARK: Only applicable when running in the simulator
+        // MARK: Only applicable when running in the simulator
 
-    private let _keyCommands = [
-        UIKeyCommand(input: "r", modifierFlags: .command, action: #selector(_reloadLayout))
-    ]
+        private let _keyCommands = [
+            UIKeyCommand(input: "r", modifierFlags: .command, action: #selector(_reloadLayout)),
+        ]
 
-    open override var keyCommands: [UIKeyCommand]? {
-        return _keyCommands
-    }
+        open override var keyCommands: [UIKeyCommand]? {
+            return _keyCommands
+        }
 
-    private let reloadMessage = "Tap or Cmd-R to Reload"
+        private let reloadMessage = "Tap or Cmd-R to Reload"
 
     #else
 
-    private let reloadMessage = "Tap to Reload"
+        private let reloadMessage = "Tap to Reload"
 
     #endif
 }
 
 extension LayoutViewController: LayoutDelegate {
 
-    open func layoutNode(_ layoutNode: LayoutNode, didDetectError error: Error) {
+    open func layoutNode(_: LayoutNode, didDetectError error: Error) {
         guard let error = error as? LayoutError else {
             assertionFailure()
             return
@@ -251,7 +243,7 @@ extension LayoutViewController: LayoutDelegate {
         layoutError(error)
     }
 
-    open func layoutNode(_ layoutNode: LayoutNode, localizedStringForKey key: String) -> String? {
+    open func layoutNode(_: LayoutNode, localizedStringForKey key: String) -> String? {
         return _loader?.localizedStrings[key]
     }
 }

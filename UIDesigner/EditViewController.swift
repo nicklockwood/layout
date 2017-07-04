@@ -1,10 +1,4 @@
-//
-//  EditViewController.swift
-//  UIDesigner
-//
-//  Created by Nick Lockwood on 21/04/2017.
-//  Copyright © 2017 Nick Lockwood. All rights reserved.
-//
+//  Copyright © 2017 Schibsted. All rights reserved.
 
 import UIKit
 import Layout
@@ -54,8 +48,8 @@ class EditViewController: UIViewController, UITextFieldDelegate {
         super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
         preferredContentSize = CGSize(width: 320, height: 400)
     }
-    
-    required init?(coder aDecoder: NSCoder) {
+
+    required init?(coder _: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
@@ -93,7 +87,7 @@ class EditViewController: UIViewController, UITextFieldDelegate {
                     "editingDidEnd": "didUpdateClass",
                     "text": "\(cls)",
                 ]
-            )
+            ),
         ]
         expressionFields.removeAll()
         func filterTypes(_ key: String, _ type: RuntimeType) -> String? {
@@ -125,7 +119,7 @@ class EditViewController: UIViewController, UITextFieldDelegate {
         }
         let fieldNames = ["top", "left", "width", "height", "bottom", "right"]
             + node.viewControllerExpressionTypes.flatMap(filterTypes).sorted()
-            + node.viewExpressionTypes.flatMap(filterTypes).sorted() {
+            + node.viewExpressionTypes.flatMap(filterTypes).sorted {
                 switch ($0.hasPrefix("layer."), $1.hasPrefix("layer.")) {
                 case (true, true), (false, false):
                     return $0 < $1
@@ -189,7 +183,7 @@ class EditViewController: UIViewController, UITextFieldDelegate {
                         "height": "auto + 10",
                     ],
                     children: children
-                )
+                ),
             ]
         )
         print("creation: ", round((CACurrentMediaTime() - start) * 1000))

@@ -1,10 +1,4 @@
-//
-//  NodeExpression.swift
-//  TableTest
-//
-//  Created by Nick Lockwood on 06/04/2017.
-//  Copyright © 2017 Nick Lockwood. All rights reserved.
-//
+//  Copyright © 2017 Schibsted. All rights reserved.
 
 import UIKit
 import Foundation
@@ -76,7 +70,7 @@ struct LayoutExpression {
     static let void = LayoutExpression(evaluate: { () }, symbols: ["_"])
     var isVoid: Bool { return symbols.first == "_" }
 
-    init(evaluate: @escaping () throws -> Any,  symbols: Set<String>) {
+    init(evaluate: @escaping () throws -> Any, symbols: Set<String>) {
         self.symbols = symbols
         if symbols.isEmpty, let value = try? evaluate() {
             self.evaluate = { value }
@@ -95,8 +89,7 @@ struct LayoutExpression {
     // Symbols are assumed to be impure - i.e. they won't always return the same value
     private init(numberExpression: String,
                  symbols: [Expression.Symbol: Expression.Symbol.Evaluator],
-                 for node: LayoutNode)
-    {
+                 for node: LayoutNode) {
         self.init(
             anyExpression: numberExpression,
             type: RuntimeType(Double.self),
@@ -112,8 +105,7 @@ struct LayoutExpression {
 
     private init(percentageExpression: String,
                  for prop: String, in node: LayoutNode,
-                 symbols: [Expression.Symbol: Expression.Symbol.Evaluator] = [:])
-    {
+                 symbols: [Expression.Symbol: Expression.Symbol.Evaluator] = [:]) {
         let prop = "parent.\(prop)"
         var symbols = symbols
         symbols[.postfix("%")] = { [unowned node] args in
@@ -181,8 +173,7 @@ struct LayoutExpression {
                  symbols: [AnyExpression.Symbol: AnyExpression.SymbolEvaluator] = [:],
                  numericSymbols: [AnyExpression.Symbol: Expression.Symbol.Evaluator] = [:],
                  lookup: @escaping (String) -> Any? = { _ in nil },
-                 for node: LayoutNode)
-    {
+                 for node: LayoutNode) {
         let parts = parseExpression(anyExpression, isString: false)
         guard parts.count == 1, case let .expression(parsedExpression) = parts[0] else {
             self.init(malformedExpression: anyExpression)
@@ -205,8 +196,7 @@ struct LayoutExpression {
                  symbols: [AnyExpression.Symbol: AnyExpression.SymbolEvaluator] = [:],
                  numericSymbols: [AnyExpression.Symbol: Expression.Symbol.Evaluator] = [:],
                  lookup: @escaping (String) -> Any? = { _ in nil },
-                 for node: LayoutNode)
-    {
+                 for node: LayoutNode) {
         var constants = [String: Any]()
         var symbols = symbols
         for symbol in parsedExpression.symbols where symbols[symbol] == nil &&
@@ -279,15 +269,15 @@ struct LayoutExpression {
                     guard let r = args[0] as? Double, let g = args[1] as? Double, let b = args[2] as? Double else {
                         throw Expression.Error.message("Type mismatch")
                     }
-                    return UIColor(red: CGFloat(r/255), green: CGFloat(g/255), blue: CGFloat(b/255), alpha: 1)
+                    return UIColor(red: CGFloat(r / 255), green: CGFloat(g / 255), blue: CGFloat(b / 255), alpha: 1)
                 },
                 .function("rgba", arity: 4): { args in
                     guard let r = args[0] as? Double, let g = args[1] as? Double,
                         let b = args[2] as? Double, let a = args[3] as? Double else {
-                            throw Expression.Error.message("Type mismatch")
+                        throw Expression.Error.message("Type mismatch")
                     }
-                    return UIColor(red: CGFloat(r/255), green: CGFloat(g/255), blue: CGFloat(b/255), alpha: CGFloat(a))
-                }
+                    return UIColor(red: CGFloat(r / 255), green: CGFloat(g / 255), blue: CGFloat(b / 255), alpha: CGFloat(a))
+                },
             ],
             lookup: { string in
                 if string.hasPrefix("#") {
@@ -311,10 +301,10 @@ struct LayoutExpression {
                         return nil
                     }
                     if let rgba = Double("0x" + string).flatMap({ UInt32(exactly: $0) }) {
-                        let red = CGFloat((rgba & 0xFF000000) >> 24) / 255
-                        let green = CGFloat((rgba & 0x00FF0000) >> 16) / 255
-                        let blue = CGFloat((rgba & 0x0000FF00) >> 8) / 255
-                        let alpha = CGFloat((rgba & 0x000000FF) >> 0) / 255
+                        let red = CGFloat((rgba & 0xFF00_0000) >> 24) / 255
+                        let green = CGFloat((rgba & 0x00FF_0000) >> 16) / 255
+                        let blue = CGFloat((rgba & 0x0000_FF00) >> 8) / 255
+                        let alpha = CGFloat((rgba & 0x0000_00FF) >> 0) / 255
                         return UIColor(red: red, green: green, blue: blue, alpha: alpha)
                     }
                 }
@@ -352,7 +342,7 @@ struct LayoutExpression {
         }
         self.init(
             evaluate: {
-                return try parts.map { part -> Any in
+                try parts.map { part -> Any in
                     switch part {
                     case let .expression(evaluate):
                         return try evaluate()
@@ -383,8 +373,8 @@ struct LayoutExpression {
         let expression = LayoutExpression(interpolatedStringExpression: attributedStringExpression, for: node)
         let symbols = expression.symbols
         // TODO: find out why these break stuff
-//        symbols.insert("font")
-//        symbols.insert("textColor")
+        //        symbols.insert("font")
+        //        symbols.insert("textColor")
         self.init(
             evaluate: {
                 var substrings = [NSAttributedString]()
@@ -405,7 +395,7 @@ struct LayoutExpression {
                 )
                 let correctFont = try node.value(forSymbol: "font") as? UIFont ?? UIFont.systemFont(ofSize: 17)
                 let range = NSMakeRange(0, result.string.utf16.count)
-                result.enumerateAttributes(in: range, options: []) { attribs, range, stop in
+                result.enumerateAttributes(in: range, options: []) { attribs, range, _ in
                     var attribs = attribs
                     if let font = attribs[NSFontAttributeName] as? UIFont {
                         let traits = font.fontDescriptor.symbolicTraits
@@ -535,7 +525,7 @@ struct LayoutExpression {
                 string = string.trimmingCharacters(in: .whitespacesAndNewlines)
                 if let image = image {
                     if !string.isEmpty {
-                         throw Expression.Error.message("Invalid image specifier `\(string)`")
+                        throw Expression.Error.message("Invalid image specifier `\(string)`")
                     }
                     return image
                 } else {

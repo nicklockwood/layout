@@ -1,10 +1,4 @@
-//
-//  PropertyObserver.swift
-//  Layout
-//
-//  Created by Nick Lockwood on 30/03/2017.
-//  Copyright © 2017 Nick Lockwood. All rights reserved.
-//
+//  Copyright © 2017 Schibsted. All rights reserved.
 
 import Foundation
 
@@ -26,14 +20,14 @@ public class RuntimeType: NSObject {
     }
 
     @nonobjc public init<T: RawRepresentable>(_ type: T.Type, _ values: [String: T]) {
-        self.type = .enum(type, values, { return ($0 as! T).rawValue })
+        self.type = .enum(type, values, { ($0 as! T).rawValue })
     }
 
     @nonobjc public init<T: Any>(_ type: T.Type, _ values: [String: T]) {
         self.type = .enum(type, values, { $0 })
     }
 
-    override public var description: String {
+    public override var description: String {
         switch type {
         case let .any(type),
              let .enum(type, _, _):
@@ -72,7 +66,7 @@ public class RuntimeType: NSObject {
             case _ where subtype == Any.self:
                 return value
             default:
-                return subtype == Swift.type(of: value) || "\(subtype)" == "\(Swift.type(of: value))" ? value: nil
+                return subtype == Swift.type(of: value) || "\(subtype)" == "\(Swift.type(of: value))" ? value : nil
             }
         case let .enum(type, enumValues, _):
             if let key = value as? String, let value = enumValues[key] {

@@ -1,10 +1,4 @@
-//
-//  EnumExpressionTests.swift
-//  Layout
-//
-//  Created by Nick Lockwood on 17/05/2017.
-//  Copyright © 2017 Nick Lockwood. All rights reserved.
-//
+//  Copyright © 2017 Schibsted. All rights reserved.
 
 import XCTest
 @testable import Layout
@@ -25,7 +19,7 @@ class EnumExpressionTests: XCTestCase {
         let expected = UIViewContentMode.center
         let node = LayoutNode(
             constants: [
-                "mode": expected
+                "mode": expected,
             ],
             expressions: [
                 "contentMode": "mode",
@@ -50,7 +44,7 @@ class EnumExpressionTests: XCTestCase {
         let node = LayoutNode(
             view: UITextField(),
             constants: [
-                "type": expected
+                "type": expected,
             ],
             expressions: [
                 "returnKeyType": "type",

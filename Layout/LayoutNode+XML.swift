@@ -1,10 +1,4 @@
-//
-//  LayoutNode+XML.swift
-//  Layout
-//
-//  Created by Nick Lockwood on 27/04/2017.
-//  Copyright © 2017 Nick Lockwood. All rights reserved.
-//
+//  Copyright © 2017 Schibsted. All rights reserved.
 
 import Foundation
 
@@ -62,7 +56,7 @@ private class LayoutParser: NSObject, XMLParserDelegate {
 
     // MARK: XMLParserDelegate methods
 
-    func parser(_ parser: XMLParser, didStartElement elementName: String, namespaceURI: String?, qualifiedName: String?, attributes: [String : String] = [:]) {
+    func parser(_: XMLParser, didStartElement elementName: String, namespaceURI _: String?, qualifiedName _: String?, attributes: [String: String] = [:]) {
 
         if top != nil, isHTMLNode(elementName) {
             text += "<\(elementName)"
@@ -108,7 +102,7 @@ private class LayoutParser: NSObject, XMLParserDelegate {
         }
     }
 
-    func parser(_ parser: XMLParser, didEndElement elementName: String, namespaceURI: String?, qualifiedName: String?) {
+    func parser(_ parser: XMLParser, didEndElement elementName: String, namespaceURI _: String?, qualifiedName _: String?) {
         guard let node = top else {
             preconditionFailure()
         }
@@ -130,16 +124,16 @@ private class LayoutParser: NSObject, XMLParserDelegate {
             .trimmingCharacters(in: .whitespacesAndNewlines)
             .replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
         if !text.isEmpty {
-            attributes[isHTML ? "attributedText": "text"] = text
+            attributes[isHTML ? "attributedText" : "text"] = text
             text = ""
         }
 
         let classPrefix = Bundle.main.object(forInfoDictionaryKey: "CFBundleName") ?? ""
         guard let anyClass = NSClassFromString(elementName) ??
             NSClassFromString("\(classPrefix).\(elementName)") else {
-                error = LayoutError.message("Unknown class `\(elementName)` in XML")
-                parser.abortParsing()
-                return
+            error = LayoutError.message("Unknown class `\(elementName)` in XML")
+            parser.abortParsing()
+            return
         }
 
         let layoutNode: LayoutNode
@@ -185,11 +179,11 @@ private class LayoutParser: NSObject, XMLParserDelegate {
         }
     }
 
-    func parser(_ parser: XMLParser, foundCharacters string: String) {
+    func parser(_: XMLParser, foundCharacters string: String) {
         text += string
     }
 
-    func parser(_ parser: XMLParser, parseErrorOccurred parseError: Error) {
+    func parser(_: XMLParser, parseErrorOccurred parseError: Error) {
         guard error == nil else {
             // Don't overwrite existing error
             return
@@ -197,9 +191,9 @@ private class LayoutParser: NSObject, XMLParserDelegate {
         let nsError = parseError as NSError
         guard let line = nsError.userInfo["NSXMLParserErrorLineNumber"],
             let column = nsError.userInfo["NSXMLParserErrorColumn"] else {
-                error = .message("XML validation error: " +
-                    "\(nsError.localizedDescription.trimmingCharacters(in: .whitespacesAndNewlines))")
-                return
+            error = .message("XML validation error: " +
+                "\(nsError.localizedDescription.trimmingCharacters(in: .whitespacesAndNewlines))")
+            return
         }
         guard let message = nsError.userInfo["NSXMLParserErrorMessage"] else {
             error = .message("XML validation error at \(line):\(column)")

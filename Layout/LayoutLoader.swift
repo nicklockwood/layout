@@ -1,10 +1,4 @@
-//
-//  LayoutViewController.swift
-//  Layout
-//
-//  Created by Nick Lockwood on 10/05/2017.
-//  Copyright © 2017 Nick Lockwood. All rights reserved.
-//
+//  Copyright © 2017 Schibsted. All rights reserved.
 
 import Foundation
 
@@ -51,12 +45,11 @@ class LayoutLoader {
         bundle: Bundle = Bundle.main,
         relativeTo: String = #file,
         state: Any = (),
-        constants: [String: Any] = [:]) throws -> LayoutNode
-    {
+        constants: [String: Any] = [:]) throws -> LayoutNode {
         assert(Thread.isMainThread)
         guard let xmlURL = bundle.url(forResource: named, withExtension: nil) ??
             bundle.url(forResource: named, withExtension: "xml") else {
-                throw LayoutError.message("No layout XML file found for `\(named)`")
+            throw LayoutError.message("No layout XML file found for `\(named)`")
         }
         var _node: LayoutNode?
         var _error: Error?
@@ -127,7 +120,7 @@ class LayoutLoader {
                 return
             }
         }
-        _dataTask = URLSession.shared.dataTask(with: xmlURL) { data, response, error in
+        _dataTask = URLSession.shared.dataTask(with: xmlURL) { data, _, error in
             DispatchQueue.main.async {
                 if self._xmlURL != xmlURL {
                     return // Must have been cancelled
@@ -264,7 +257,7 @@ class LayoutLoader {
 
 #else
 
-    private func findProjectDirectory(at path: String) -> URL? { return nil }
-    private func findSourceURL(forRelativePath path: String, in directory: URL) -> URL? { return nil }
-    
+    private func findProjectDirectory(at _: String) -> URL? { return nil }
+    private func findSourceURL(forRelativePath _: String, in _: URL) -> URL? { return nil }
+
 #endif

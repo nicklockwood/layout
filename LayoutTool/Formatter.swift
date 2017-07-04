@@ -1,10 +1,4 @@
-//
-//  Formatter.swift
-//  Layout
-//
-//  Created by Nick Lockwood on 03/07/2017.
-//  Copyright © 2017 Nick Lockwood. All rights reserved.
-//
+//  Copyright © 2017 Schibsted. All rights reserved.
 
 import Foundation
 
@@ -40,7 +34,7 @@ func format(_ xmlData: Data) throws -> String {
 
 extension Collection where Iterator.Element == XMLNode {
     var isHTML: Bool {
-        return self.contains(where: { $0.isHTML })
+        return contains(where: { $0.isHTML })
     }
 
     func toString(withIndent indent: String, indentFirstLine: Bool = true) -> String {

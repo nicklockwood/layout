@@ -1,10 +1,4 @@
-//
-//  StateTests.swift
-//  Layout
-//
-//  Created by Nick Lockwood on 18/05/2017.
-//  Copyright © 2017 Nick Lockwood. All rights reserved.
-//
+//  Copyright © 2017 Schibsted. All rights reserved.
 
 import XCTest
 @testable import Layout
@@ -80,7 +74,7 @@ class StateTests: XCTestCase {
     class TestVC: UIViewController {
         var updated = false
 
-        override func didUpdateLayout(for node: LayoutNode) {
+        override func didUpdateLayout(for _: LayoutNode) {
             updated = true
         }
     }

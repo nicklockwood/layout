@@ -1,16 +1,10 @@
-//
-//  ColorExpressionTests.swift
-//  Layout
-//
-//  Created by Nick Lockwood on 28/05/2017.
-//  Copyright © 2017 Nick Lockwood. All rights reserved.
-//
+//  Copyright © 2017 Schibsted. All rights reserved.
 
 import XCTest
 @testable import Layout
 
 class ColorExpressionTests: XCTestCase {
-        
+
     func testRed() {
         let node = LayoutNode()
         let expression = LayoutExpression(colorExpression: "#f00", for: node)

@@ -1,10 +1,4 @@
-//
-//  DesignViewController.swift
-//  UIDesigner
-//
-//  Created by Nick Lockwood on 21/04/2017.
-//  Copyright © 2017 Nick Lockwood. All rights reserved.
-//
+//  Copyright © 2017 Schibsted. All rights reserved.
 
 import UIKit
 import Layout
@@ -170,7 +164,7 @@ class DesignViewController: UIViewController, UIToolbarDelegate, EditViewControl
         orientationControl.selectedSegmentIndex = 0
         orientationControl.sizeToFit()
         orientationControl.addTarget(self, action: #selector(changeDevice), for: .valueChanged)
-        
+
         // Toolbar
         toolbar = UIToolbar()
         toolbar.frame.size.width = view.frame.size.width
@@ -350,7 +344,7 @@ class DesignViewController: UIViewController, UIToolbarDelegate, EditViewControl
     }
 
     private func rebuildUIViews() {
-        func rebuildUIViews(for node: LayoutNode, in containerView: UIView) -> UIView {
+        func rebuildUIViews(for node: LayoutNode, in _: UIView) -> UIView {
             let view = DesignView()
             view.backgroundColor = .clear
             view.node = node
@@ -402,7 +396,7 @@ class DesignViewController: UIViewController, UIToolbarDelegate, EditViewControl
         toolbar.frame.origin.y = view.bounds.height - toolbar.frame.height
     }
 
-    func position(for bar: UIBarPositioning) -> UIBarPosition {
+    func position(for _: UIBarPositioning) -> UIBarPosition {
         return .bottom
     }
 
@@ -411,7 +405,7 @@ class DesignViewController: UIViewController, UIToolbarDelegate, EditViewControl
     private func deepCopyChildren(of node: LayoutNode) -> [LayoutNode] {
         var children = [LayoutNode]()
         for child in node.children {
-            var viewController: UIViewController? = nil
+            var viewController: UIViewController?
             if let oldViewController = child.viewController {
                 viewController = type(of: oldViewController).init()
             }
@@ -454,7 +448,7 @@ class DesignViewController: UIViewController, UIToolbarDelegate, EditViewControl
         } else {
             expressions[name] = expression
         }
-        var viewController: UIViewController? = nil
+        var viewController: UIViewController?
         if let oldViewController = node.viewController {
             viewController = type(of: oldViewController).init()
         }
@@ -471,7 +465,7 @@ class DesignViewController: UIViewController, UIToolbarDelegate, EditViewControl
         }
     }
 
-    func popoverPresentationControllerDidDismissPopover(_ popoverPresentationController: UIPopoverPresentationController) {
+    func popoverPresentationControllerDidDismissPopover(_: UIPopoverPresentationController) {
         editViewController = nil
     }
 }

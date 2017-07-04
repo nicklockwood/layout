@@ -1,10 +1,4 @@
-//
-//  main.swift
-//  LayoutTool
-//
-//  Created by Nick Lockwood on 29/06/2017.
-//  Copyright © 2017 Nick Lockwood. All rights reserved.
-//
+//  Copyright © 2017 Schibsted. All rights reserved.
 
 import Foundation
 
@@ -28,7 +22,7 @@ private var stderr = FileHandle.standardError
 func printHelp() {
     print("")
     print("LayoutTool, version \(version)")
-    print("copyright (c) 2017 Nick Lockwood")
+    print("copyright (c) 2017 Schibsted")
     print("")
     print("help             print this help page")
     print("version          print the currently installed LayoutTool version")
@@ -36,6 +30,7 @@ func printHelp() {
     print("list <files>     list all xml files found at the specified path(s)")
     print("")
 }
+
 func processArguments(_ args: [String]) {
     guard args.count > 1 else {
         print("LayoutTool expects at least one argument".inRed, to: &stderr)
@@ -67,7 +62,6 @@ func processArguments(_ args: [String]) {
         return
     }
 }
-
 
 // Pass in arguments
 processArguments(CommandLine.arguments)

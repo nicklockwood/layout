@@ -1,10 +1,4 @@
-//
-//  TreeViewController.swift
-//  UIDesigner
-//
-//  Created by Nick Lockwood on 07/05/2017.
-//  Copyright © 2017 Nick Lockwood. All rights reserved.
-//
+//  Copyright © 2017 Schibsted. All rights reserved.
 
 import UIKit
 import Layout
@@ -37,7 +31,7 @@ class TreeViewController: UITableViewController {
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
     }
 
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    override func tableView(_: UITableView, numberOfRowsInSection _: Int) -> Int {
         return layoutNode?.children.count ?? 0
     }
 
@@ -49,7 +43,7 @@ class TreeViewController: UITableViewController {
         return cell
     }
 
-    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+    override func tableView(_: UITableView, didSelectRowAt indexPath: IndexPath) {
         guard let layoutNode = layoutNode, layoutNode.children.count > indexPath.row else {
             return
         }

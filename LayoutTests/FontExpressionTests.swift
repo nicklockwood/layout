@@ -1,16 +1,10 @@
-//
-//  FontExpressionTests.swift
-//  Layout
-//
-//  Created by Nick Lockwood on 17/05/2017.
-//  Copyright © 2017 Nick Lockwood. All rights reserved.
-//
+//  Copyright © 2017 Schibsted. All rights reserved.
 
 import XCTest
 @testable import Layout
 
 class FontExpressionTests: XCTestCase {
-    
+
     func testBold() {
         let node = LayoutNode()
         let expression = LayoutExpression(fontExpression: "bold", for: node)

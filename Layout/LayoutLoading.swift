@@ -1,10 +1,4 @@
-//
-//  LayoutLoading.swift
-//  Pods
-//
-//  Created by Nick Lockwood on 26/06/2017.
-//
-//
+//  Copyright © 2017 Schibsted. All rights reserved.
 
 import Foundation
 
@@ -22,14 +16,13 @@ public extension LayoutLoading {
         bundle: Bundle = Bundle.main,
         relativeTo: String = #file,
         state: Any = (),
-        constants: [String: Any]...)
-    {
+        constants: [String: Any]...) {
         assert(Thread.isMainThread)
         let name = named ?? "\(type(of: self))".components(separatedBy: ".").last!
         guard let xmlURL = bundle.url(forResource: name, withExtension: nil) ??
             bundle.url(forResource: name, withExtension: "xml") else {
-                layoutError(.message("No layout XML file found for `\(name)`"))
-                return
+            layoutError(.message("No layout XML file found for `\(name)`"))
+            return
         }
         loadLayout(
             withContentsOfURL: xmlURL,
@@ -46,8 +39,7 @@ public extension LayoutLoading {
         relativeTo: String? = #file,
         state: Any = (),
         constants: [String: Any]...,
-        completion: ((LayoutError?) -> Void)? = nil)
-    {
+        completion: ((LayoutError?) -> Void)? = nil) {
         _loader.loadLayout(
             withContentsOfURL: xmlURL,
             relativeTo: relativeTo,
@@ -92,14 +84,12 @@ public extension LayoutLoading {
     }
 
     private var _loader: LayoutLoader {
-        get {
-            guard let loader = objc_getAssociatedObject(self, &loaderKey) as? LayoutLoader else {
-                let loader = LayoutLoader()
-                objc_setAssociatedObject(self, &loaderKey, loader, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
-                return loader
-            }
+        guard let loader = objc_getAssociatedObject(self, &loaderKey) as? LayoutLoader else {
+            let loader = LayoutLoader()
+            objc_setAssociatedObject(self, &loaderKey, loader, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
             return loader
         }
+        return loader
     }
 }
 

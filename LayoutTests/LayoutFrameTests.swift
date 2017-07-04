@@ -1,16 +1,10 @@
-//
-//  LayoutFrameTests.swift
-//  Layout
-//
-//  Created by Nick Lockwood on 23/06/2017.
-//  Copyright © 2017 Nick Lockwood. All rights reserved.
-//
+//  Copyright © 2017 Schibsted. All rights reserved.
 
 import XCTest
 @testable import Layout
 
 class LayoutFrameTests: XCTestCase {
-    
+
     func testLayoutFrameMatchesView() {
         let frame = CGRect(x: 100, y: 50, width: 200, height: 300)
         let view = UIView(frame: frame)

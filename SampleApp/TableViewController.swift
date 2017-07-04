@@ -1,10 +1,4 @@
-//
-//  TableViewController.swift
-//  SampleApp
-//
-//  Created by Nick Lockwood on 22/06/2017.
-//  Copyright © 2017 Nick Lockwood. All rights reserved.
-//
+//  Copyright © 2017 Schibsted. All rights reserved.
 
 import UIKit
 import Layout
@@ -33,11 +27,11 @@ class TableViewController: UIViewController, UITableViewDataSource, UITableViewD
         tableView?.reloadData()
     }
 
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    func tableView(_: UITableView, numberOfRowsInSection _: Int) -> Int {
         return 50
     }
 
-    func tableView(_ tableView: UITableView, estimatedHeightForRowAt indexPath: IndexPath) -> CGFloat {
+    func tableView(_: UITableView, estimatedHeightForRowAt _: IndexPath) -> CGFloat {
         return 50
     }
 

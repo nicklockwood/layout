@@ -1,10 +1,4 @@
-//
-//  UIView+Layout.swift
-//  Layout
-//
-//  Created by Nick Lockwood on 26/04/2017.
-//  Copyright © 2017 Nick Lockwood. All rights reserved.
-//
+//  Copyright © 2017 Schibsted. All rights reserved.
 
 import UIKit
 
@@ -14,8 +8,8 @@ extension UIView {
 
     /// The view controller that owns the view - used to access layout guides
     var viewController: UIViewController? {
-        var controller: UIViewController? = nil
-        var responder: UIResponder? = self.next
+        var controller: UIViewController?
+        var responder: UIResponder? = next
         while responder != nil {
             if let responder = responder as? UIViewController {
                 controller = responder
@@ -102,7 +96,7 @@ extension UIView {
     }
 
     /// Called to construct the view
-    @objc open class func create(with node: LayoutNode) throws -> UIView {
+    @objc open class func create(with _: LayoutNode) throws -> UIView {
         return self.init()
     }
 
@@ -131,7 +125,7 @@ extension UIView {
     }
 
     /// Called immediately before a child node is removed
-    @objc open func willRemoveChildNode(_ node: LayoutNode, at index: Int) {
+    @objc open func willRemoveChildNode(_ node: LayoutNode, at _: Int) {
         for controller in node.viewControllers {
             controller.removeFromParentViewController()
         }
@@ -139,7 +133,7 @@ extension UIView {
     }
 
     /// Called immediately after layout has been performed
-    @objc open func didUpdateLayout(for node: LayoutNode) {}
+    @objc open func didUpdateLayout(for _: LayoutNode) {}
 }
 
 extension UIScrollView {
@@ -287,43 +281,43 @@ extension UIButton {
     open override func setValue(_ value: Any, forExpression name: String) throws {
         switch name {
         case "type", "buttonType": setValue((value as! UIButtonType).rawValue, forKey: "buttonType")
-        // Title
+            // Title
         case "title": setTitle(value as? String, for: .normal)
         case "highlightedTitle": setTitle(value as? String, for: .highlighted)
         case "disabledTitle": setTitle(value as? String, for: .disabled)
         case "selectedTitle": setTitle(value as? String, for: .selected)
         case "focusedTitle": setTitle(value as? String, for: .focused)
-        // Title color
+            // Title color
         case "titleColor": setTitleColor(value as? UIColor, for: .normal)
         case "highlightedTitleColor": setTitleColor(value as? UIColor, for: .highlighted)
         case "disabledTitleColor": setTitleColor(value as? UIColor, for: .disabled)
         case "selectedTitleColor": setTitleColor(value as? UIColor, for: .selected)
         case "focusedTitleColor": setTitleColor(value as? UIColor, for: .focused)
-        // Title shadow color
+            // Title shadow color
         case "titleShadowColor": setTitleShadowColor(value as? UIColor, for: .normal)
         case "highlightedTitleShadowColor": setTitleShadowColor(value as? UIColor, for: .highlighted)
         case "disabledTitleShadowColor": setTitleShadowColor(value as? UIColor, for: .disabled)
         case "selectedTitleShadowColor": setTitleShadowColor(value as? UIColor, for: .selected)
         case "focusedTitleShadowColor": setTitleShadowColor(value as? UIColor, for: .focused)
-        // Image
+            // Image
         case "image": setImage(value as? UIImage, for: .normal)
         case "highlightedImage": setImage(value as? UIImage, for: .highlighted)
         case "disabledImage": setImage(value as? UIImage, for: .disabled)
         case "selectedImage": setImage(value as? UIImage, for: .selected)
         case "focusedImage": setImage(value as? UIImage, for: .focused)
-        // Background image
+            // Background image
         case "backgroundImage": setBackgroundImage(value as? UIImage, for: .normal)
         case "highlightedBackgroundImage": setBackgroundImage(value as? UIImage, for: .highlighted)
         case "disabledBackgroundImage": setBackgroundImage(value as? UIImage, for: .disabled)
         case "selectedBackgroundImage": setBackgroundImage(value as? UIImage, for: .selected)
         case "focusedBackgroundImage": setBackgroundImage(value as? UIImage, for: .focused)
-        // Attributed title
+            // Attributed title
         case "attributedTitle": setAttributedTitle(value as? NSAttributedString, for: .normal)
         case "highlightedAttributedTitle": setAttributedTitle(value as? NSAttributedString, for: .highlighted)
         case "disabledAttributedTitle": setAttributedTitle(value as? NSAttributedString, for: .disabled)
         case "selectedAttributedTitle": setAttributedTitle(value as? NSAttributedString, for: .selected)
         case "focusedAttributedTitle": setAttributedTitle(value as? NSAttributedString, for: .focused)
-        // Setter used for embedded html
+            // Setter used for embedded html
         case "text": setTitle(value as? String, for: .normal)
         case "attributedText": setAttributedTitle(value as? NSAttributedString, for: .normal)
         default:
@@ -397,7 +391,7 @@ private let textTraits = [
         "left": .left,
         "right": .right,
         "center": .center,
-    ])
+    ]),
 ]
 
 extension UILabel {

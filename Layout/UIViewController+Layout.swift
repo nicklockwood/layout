@@ -1,10 +1,4 @@
-//
-//  UIViewController+Layout.swift
-//  Layout
-//
-//  Created by Nick Lockwood on 05/05/2017.
-//  Copyright © 2017 Nick Lockwood. All rights reserved.
-//
+//  Copyright © 2017 Schibsted. All rights reserved.
 
 import UIKit
 
@@ -56,7 +50,7 @@ extension UIViewController {
     }
 
     /// Called to construct the view
-    @objc open class func create(with node: LayoutNode) throws -> UIViewController {
+    @objc open class func create(with _: LayoutNode) throws -> UIViewController {
         return self.init()
     }
 
@@ -86,7 +80,7 @@ extension UIViewController {
     }
 
     /// Called immediately after a child node is added
-    @objc open func didInsertChildNode(_ node: LayoutNode, at index: Int) {
+    @objc open func didInsertChildNode(_ node: LayoutNode, at _: Int) {
         for controller in node.viewControllers {
             addChildViewController(controller)
         }
@@ -95,7 +89,7 @@ extension UIViewController {
     }
 
     /// Called immediately before a child node is removed
-    @objc open func willRemoveChildNode(_ node: LayoutNode, at index: Int) {
+    @objc open func willRemoveChildNode(_ node: LayoutNode, at _: Int) {
         for controller in node.viewControllers {
             controller.removeFromParentViewController()
         }
@@ -103,7 +97,7 @@ extension UIViewController {
     }
 
     /// Called immediately after layout has been performed
-    @objc open func didUpdateLayout(for node: LayoutNode) {}
+    @objc open func didUpdateLayout(for _: LayoutNode) {}
 }
 
 extension UITabBarController {
@@ -111,7 +105,7 @@ extension UITabBarController {
         if let viewController = node.viewController {
             var viewControllers = self.viewControllers ?? []
             viewControllers.insert(viewController, at: index)
-            self.setViewControllers(viewControllers, animated: false)
+            setViewControllers(viewControllers, animated: false)
         } else {
             super.didInsertChildNode(node, at: index)
         }
@@ -122,7 +116,7 @@ extension UITabBarController {
             var viewControllers = self.viewControllers,
             let index = viewControllers.index(of: viewController) {
             viewControllers.remove(at: index)
-            self.setViewControllers(viewControllers, animated: false)
+            setViewControllers(viewControllers, animated: false)
         } else {
             super.willRemoveChildNode(node, at: index)
         }

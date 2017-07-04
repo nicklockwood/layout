@@ -1,10 +1,4 @@
-//
-//  Optional+Layout.swift
-//  Layout
-//
-//  Created by Nick Lockwood on 18/05/2017.
-//  Copyright © 2017 Nick Lockwood. All rights reserved.
-//
+//  Copyright © 2017 Schibsted. All rights reserved.
 
 import Foundation
 

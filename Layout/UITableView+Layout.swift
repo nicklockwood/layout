@@ -1,10 +1,4 @@
-//
-//  UITableView+Layout.swift
-//  Pods
-//
-//  Created by Nick Lockwood on 26/06/2017.
-//
-//
+//  Copyright © 2017 Schibsted. All rights reserved.
 
 import UIKit
 
@@ -42,7 +36,7 @@ extension UITableView {
     open override func setValue(_ value: Any, forExpression name: String) throws {
         switch name {
         case "style":
-        break // Ignore this - we set it during creation
+            break // Ignore this - we set it during creation
         default:
             try super.setValue(value, forExpression: name)
         }
@@ -90,7 +84,7 @@ extension UITableView {
         forCellReuseIdentifier identifier: String
     ) {
         var xmlData = objc_getAssociatedObject(self, &nodeDataKey) as? NSMutableDictionary
-        if  xmlData == nil {
+        if xmlData == nil {
             xmlData = [:]
             objc_setAssociatedObject(self, &nodeDataKey, xmlData, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         }
@@ -103,7 +97,7 @@ extension UITableView {
         )
     }
 
-    public func dequeueReusableLayoutNode(withIdentifier identifier: String, for indexPath: IndexPath) -> LayoutNode {
+    public func dequeueReusableLayoutNode(withIdentifier identifier: String, for _: IndexPath) -> LayoutNode {
         if let cell = dequeueReusableCell(withIdentifier: identifier) {
             guard let node = cell.layoutNode else {
                 preconditionFailure("\(type(of: cell)) is not a Layout-managed view")
@@ -113,7 +107,7 @@ extension UITableView {
         }
         guard let xmlData = objc_getAssociatedObject(self, &nodeDataKey) as? NSMutableDictionary,
             let layoutData = xmlData[identifier] as? LayoutData else {
-                preconditionFailure("No Layout XML has been registered for `identifier`")
+            preconditionFailure("No Layout XML has been registered for `identifier`")
         }
         var nodes = objc_getAssociatedObject(self, &nodesKey) as? NSMutableArray
         if nodes == nil {

@@ -1,10 +1,4 @@
-//
-//  Parser.swift
-//  Layout
-//
-//  Created by Nick Lockwood on 29/06/2017.
-//  Copyright © 2017 Nick Lockwood. All rights reserved.
-//
+//  Copyright © 2017 Schibsted. All rights reserved.
 
 import Foundation
 
@@ -154,7 +148,7 @@ class LayoutParser: NSObject, XMLParserDelegate {
 
     // MARK: XMLParserDelegate methods
 
-    func parser(_ parser: XMLParser, didStartElement elementName: String, namespaceURI: String?, qualifiedName: String?, attributes: [String : String] = [:]) {
+    func parser(_: XMLParser, didStartElement elementName: String, namespaceURI _: String?, qualifiedName _: String?, attributes: [String: String] = [:]) {
         if textIsEmpty(text), top?.isEmpty == true {
             text = ""
         } else if !isHTMLElement(elementName) {
@@ -170,7 +164,7 @@ class LayoutParser: NSObject, XMLParserDelegate {
         top = node
     }
 
-    func parser(_ parser: XMLParser, didEndElement elementName: String, namespaceURI: String?, qualifiedName: String?) {
+    func parser(_: XMLParser, didEndElement elementName: String, namespaceURI _: String?, qualifiedName _: String?) {
         if textIsEmpty(text), top?.isEmpty == true {
             text = ""
         } else if !isHTMLElement(elementName) {
@@ -182,16 +176,16 @@ class LayoutParser: NSObject, XMLParserDelegate {
         appendNode(node)
     }
 
-    func parser(_ parser: XMLParser, foundCharacters string: String) {
+    func parser(_: XMLParser, foundCharacters string: String) {
         text += string
     }
 
-    func parser(_ parser: XMLParser, foundComment comment: String) {
+    func parser(_: XMLParser, foundComment comment: String) {
         appendText()
         appendNode(.comment(comment))
     }
 
-    func parser(_ parser: XMLParser, parseErrorOccurred parseError: Error) {
+    func parser(_: XMLParser, parseErrorOccurred parseError: Error) {
         guard error == nil else {
             // Don't overwrite existing error
             return
@@ -199,9 +193,9 @@ class LayoutParser: NSObject, XMLParserDelegate {
         let nsError = parseError as NSError
         guard let line = nsError.userInfo["NSXMLParserErrorLineNumber"],
             let column = nsError.userInfo["NSXMLParserErrorColumn"] else {
-                error = .parsing("XML validation error: " +
-                    "\(nsError.localizedDescription.trimmingCharacters(in: .whitespacesAndNewlines))")
-                return
+            error = .parsing("XML validation error: " +
+                "\(nsError.localizedDescription.trimmingCharacters(in: .whitespacesAndNewlines))")
+            return
         }
         guard let message = nsError.userInfo["NSXMLParserErrorMessage"] else {
             error = .parsing("XML validation error at \(line):\(column)")

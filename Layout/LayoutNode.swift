@@ -1,10 +1,4 @@
-//
-//  LayoutNode.swift
-//  UIDesigner
-//
-//  Created by Nick Lockwood on 21/04/2017.
-//  Copyright © 2017 Nick Lockwood. All rights reserved.
-//
+//  Copyright © 2017 Schibsted. All rights reserved.
 
 import UIKit
 
@@ -36,7 +30,7 @@ public class LayoutNode: NSObject {
     }
 
     private func completeSetup() {
-        _usesAutoLayout = self.view.constraints.contains {
+        _usesAutoLayout = view.constraints.contains {
             [.top, .left, .bottom, .right, .width, .height].contains($0.firstAttribute)
         }
 
@@ -86,10 +80,10 @@ public class LayoutNode: NSObject {
     }
 
     public override func observeValue(
-        forKeyPath keyPath: String?,
-        of object: Any?,
-        change: [NSKeyValueChangeKey : Any]?,
-        context: UnsafeMutableRawPointer?
+        forKeyPath _: String?,
+        of _: Any?,
+        change _: [NSKeyValueChangeKey: Any]?,
+        context _: UnsafeMutableRawPointer?
     ) {
         attempt { try update() }
     }
@@ -626,11 +620,11 @@ public class LayoutNode: NSObject {
     }
 
     public lazy var viewExpressionTypes: [String: RuntimeType] = {
-        return type(of: self.view).cachedExpressionTypes
+        type(of: self.view).cachedExpressionTypes
     }()
 
     public lazy var viewControllerExpressionTypes: [String: RuntimeType] = {
-        return self.viewController.map { type(of: $0).cachedExpressionTypes } ?? [:]
+        self.viewController.map { type(of: $0).cachedExpressionTypes } ?? [:]
     }()
 
     private class func isLayoutSymbol(_ name: String) -> Bool {
@@ -754,11 +748,11 @@ public class LayoutNode: NSObject {
                     switch tail {
                     case "width":
                         getter = { [unowned self] in
-                            return self.view.superview?.bounds.width ?? self.view.frame.width
+                            self.view.superview?.bounds.width ?? self.view.frame.width
                         }
                     case "height":
                         getter = { [unowned self] in
-                            return self.view.superview?.bounds.height ?? self.view.frame.height
+                            self.view.superview?.bounds.height ?? self.view.frame.height
                         }
                     default:
                         getter = {
@@ -1096,11 +1090,11 @@ public class LayoutNode: NSObject {
         }
         if let type = viewExpressionTypes["delegate"],
             view.value(forKey: "delegate") == nil, type.matches(owner) {
-                view.setValue(owner, forKey: "delegate")
+            view.setValue(owner, forKey: "delegate")
         }
         if let type = viewExpressionTypes["dataSource"],
             view.value(forKey: "dataSource") == nil, type.matches(owner) {
-                view.setValue(owner, forKey: "dataSource")
+            view.setValue(owner, forKey: "dataSource")
         }
         for child in children {
             try child.bind(to: owner)

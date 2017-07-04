@@ -1,10 +1,4 @@
-//
-//  UIColor+Hex.swift
-//  SampleApp
-//
-//  Created by Nick Lockwood on 05/05/2017.
-//  Copyright © 2017 Nick Lockwood. All rights reserved.
-//
+//  Copyright © 2017 Schibsted. All rights reserved.
 
 import UIKit
 
@@ -31,10 +25,10 @@ public extension UIColor {
                 return nil
             }
             if let rgba = Double("0x" + string).flatMap({ UInt32(exactly: $0) }) {
-                let red = CGFloat((rgba & 0xFF000000) >> 24) / 255
-                let green = CGFloat((rgba & 0x00FF0000) >> 16) / 255
-                let blue = CGFloat((rgba & 0x0000FF00) >> 8) / 255
-                let alpha = CGFloat((rgba & 0x000000FF) >> 0) / 255
+                let red = CGFloat((rgba & 0xFF00_0000) >> 24) / 255
+                let green = CGFloat((rgba & 0x00FF_0000) >> 16) / 255
+                let blue = CGFloat((rgba & 0x0000_FF00) >> 8) / 255
+                let alpha = CGFloat((rgba & 0x0000_00FF) >> 0) / 255
                 self.init(red: red, green: green, blue: blue, alpha: alpha)
                 return
             }
