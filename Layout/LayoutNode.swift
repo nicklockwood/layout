@@ -1038,10 +1038,11 @@ public class LayoutNode: NSObject {
     // Note: thrown error is always a LayoutError
     private weak var _owner: NSObject?
     private func bind(to owner: NSObject) throws {
-        if let error = _unhandledError, !"\(error)".contains("XML") {
+        if let error = _unhandledError, "\(error)".contains("XML") {
             // Hack to prevent XML validation errors being swallowed
-            _unhandledError = nil
+            try throwUnhandledError()
         }
+        _unhandledError = nil
         guard _owner == nil || _owner == owner || _owner == viewController else {
             throw LayoutError.message("Cannot re-bind an already bound node.")
         }
