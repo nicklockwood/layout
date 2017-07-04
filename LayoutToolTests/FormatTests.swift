@@ -4,6 +4,18 @@ import XCTest
 
 class FormatTests: XCTestCase {
 
+    // MARK: Identification
+
+    func testValidLayout() {
+        let input = "<Foo left=\"5\"/>"
+        XCTAssertTrue(isLayout(input))
+    }
+
+    func testInvalidLayout() {
+        let input = "<html><p> Hello </p></html>"
+        XCTAssertFalse(isLayout(input))
+    }
+
     // MARK: Attributes
 
     func testNoAttributes() {

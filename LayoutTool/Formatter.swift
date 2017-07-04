@@ -2,6 +2,18 @@
 
 import Foundation
 
+func isLayout(_ xml: String) -> Bool {
+    return xml.data(using: .utf8, allowLossyConversion: true).flatMap(isLayout) ?? false
+}
+
+func isLayout(_ xmlData: Data) -> Bool {
+    let parser = LayoutParser()
+    guard let xml = try? parser.parse(XMLParser(data: xmlData)) else {
+        return false
+    }
+    return xml.isLayout
+}
+
 func format(_ files: [String]) -> [Error] {
     var errors = [Error]()
     for path in files {
@@ -9,8 +21,12 @@ func format(_ files: [String]) -> [Error] {
         errors += enumerateFiles(withInputURL: url, concurrent: false) { inputURL, outputURL in
             do {
                 let data = try Data(contentsOf: inputURL)
-                let xml = try format(data)
-                try xml.write(to: outputURL, atomically: true, encoding: .utf8)
+                let parser = LayoutParser()
+                let input = try parser.parse(XMLParser(data: data))
+                if input.isLayout {
+                    let output = try format(data)
+                    try output.write(to: outputURL, atomically: true, encoding: .utf8)
+                }
                 return { _ in }
             } catch {
                 return {
@@ -23,7 +39,10 @@ func format(_ files: [String]) -> [Error] {
 }
 
 func format(_ xml: String) throws -> String {
-    return try format(xml.data(using: .utf8)!)
+    guard let data = xml.data(using: .utf8, allowLossyConversion: true) else {
+        throw FormatError.parsing("Invalid xml string")
+    }
+    return try format(data)
 }
 
 func format(_ xmlData: Data) throws -> String {
@@ -32,7 +51,20 @@ func format(_ xmlData: Data) throws -> String {
     return root.toString(withIndent: "")
 }
 
+func format(_ xml: [XMLNode]) throws -> String {
+    return xml.toString(withIndent: "")
+}
+
 extension Collection where Iterator.Element == XMLNode {
+    var isLayout: Bool {
+        for node in self {
+            if node.isLayout {
+                return true
+            }
+        }
+        return false
+    }
+
     var isHTML: Bool {
         return contains(where: { $0.isHTML })
     }
@@ -79,6 +111,27 @@ extension Collection where Iterator.Element == XMLNode {
 private let attributeWrap = 1
 
 extension XMLNode {
+    var isLayout: Bool {
+        switch self {
+        case let .node(elementName, attributes, children):
+            guard let firstChar = elementName.characters.first.map({ String($0) }),
+                firstChar.uppercased() == firstChar else {
+                return false
+            }
+            for key in attributes.keys {
+                if ["top", "left", "bottom", "right", "width", "height", "backgroundColor"].contains(key) {
+                    return true
+                }
+                if key.hasPrefix("layer.") {
+                    return true
+                }
+            }
+            return children.isLayout
+        default:
+            return false
+        }
+    }
+
     func toString(withIndent indent: String, indentFirstLine: Bool = true) -> String {
         switch self {
         case let .node(elementName, attributes, children):

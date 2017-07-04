@@ -154,9 +154,23 @@ func list(_ files: [String]) -> [Error] {
     var errors = [Error]()
     for path in files {
         let url = expandPath(path)
-        errors += enumerateFiles(withInputURL: url) { inputURL, _ in
-            return {
-                print("\(inputURL)")
+        errors += enumerateFiles(withInputURL: url, concurrent: false) { inputURL, _ in
+            do {
+                let data = try Data(contentsOf: inputURL)
+                if isLayout(data) {
+                    return { _ in
+                        var path = inputURL.path
+                        if path.hasPrefix(url.path) {
+                            path = path.substring(from: url.path.endIndex)
+                        }
+                        print("\(path)")
+                    }
+                }
+                return { _ in }
+            } catch {
+                return {
+                    throw error
+                }
             }
         }
     }
