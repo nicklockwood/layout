@@ -14,17 +14,33 @@
     "git": "git@github.schibsted.io:Rocket/layout.git",
     "tag": "0.3.4"
   },
-  "platforms": {
-    "ios": "9.0"
-  },
+  "default_subspecs": "Core",
   "pod_target_xcconfig": {
     "SWIFT_VERSION": "3.1"
   },
   "requires_arc": true,
-  "source_files": "Layout/*.swift",
-  "dependencies": {
-    "Expression": [
-      "~> 0.7.0"
-    ]
-  }
+  "platforms": {
+    "osx": null,
+    "ios": null,
+    "tvos": null,
+    "watchos": null
+  },
+  "subspecs": [
+    {
+      "name": "Core",
+      "source_files": "Layout/*.swift",
+      "dependencies": {
+        "Expression": [
+          "~> 0.7.0"
+        ]
+      },
+      "platforms": {
+        "ios": "9.0"
+      }
+    },
+    {
+      "name": "CLI",
+      "preserve_paths": "LayoutTool/LayoutTool"
+    }
+  ]
 }

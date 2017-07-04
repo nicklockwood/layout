@@ -2,76 +2,69 @@
     backgroundColor="#fee">
 
     <UIScrollView
-        contentSize.height="auto + 20"
-        contentInset.top="max(topLayoutGuide.length + 10, 20)"
         contentInset.bottom="bottomLayoutGuide.length"
-        scrollIndicatorInsets.top="topLayoutGuide.length"
-        scrollIndicatorInsets.bottom="bottomLayoutGuide.length">
+        contentInset.top="max(topLayoutGuide.length + 10, 20)"
+        contentSize.height="auto + 20"
+        scrollIndicatorInsets.bottom="bottomLayoutGuide.length"
+        scrollIndicatorInsets.top="topLayoutGuide.length">
 
         <UILabel
+            backgroundColor="#0001"
+            font="bold"
             left="20"
             text="Left-aligned bold text"
-            font="bold"
-            backgroundColor="#0001"
         />
-
         <UILabel
-            top="previous.bottom + 20"
-            left="20"
-            right="100% - 20"
-            textAlignment="center"
-            text="Center-aligned italic text"
+            backgroundColor="#0001"
             font="italic"
-            backgroundColor="#0001"
-        />
-
-        <UILabel
-            top="previous.bottom + 20"
             left="20"
             right="100% - 20"
-            textAlignment="right"
-            text="Right-aligned bold italic text"
-            font="bold italic"
-            backgroundColor="#0001"
+            text="Center-aligned italic text"
+            textAlignment="center"
+            top="previous.bottom + 20"
         />
-
         <UILabel
+            backgroundColor="#0001"
+            font="bold italic"
+            left="20"
+            right="100% - 20"
+            text="Right-aligned bold italic text"
+            textAlignment="right"
+            top="previous.bottom + 20"
+        />
+        <UILabel
+            backgroundColor="#0001"
+            font="courier"
+            left="50% - width/2"
+            numberOfLines="0"
+            text="This text is left-aligned, but the paragraph itself is centered. It also uses a custom font"
             top="previous.bottom + 20"
             width="50%"
-            left="50% - width/2"
-            text="This text is left-aligned, but the paragraph itself is centered. It also uses a custom font"
-            numberOfLines="0"
-            font="courier"
-            backgroundColor="#0001"
         />
-
         <UILabel
-            top="previous.bottom + 20"
+            backgroundColor="#0001"
             left="20"
             text="This text is colored"
             textColor="#09f"
-            backgroundColor="#0001"
-        />
-
-        <UILabel
             top="previous.bottom + 20"
-            left="20"
-            right="100% - 20"
+        />
+        <UILabel
             backgroundColor="#0001"
-            numberOfLines="0">
+            left="20"
+            numberOfLines="0"
+            right="100% - 20"
+            top="previous.bottom + 20">
 
-            <p>This text has inline <b>bold</b>, <i>italic</i> and <u>underlined</u>
-            styles, specified using HTML markup.</p>
-
+            <p>
+                This text has inline <b>bold</b>, <i>italic</i> and <u>underlined</u>
+                styles, specified using HTML markup.
+            </p>
             <ul>
                 <li>We can</li>
                 <li>even do</li>
                 <li>lists</li>
             </ul>
-
             <br/>And embedded {attributedString} constants!
-
         </UILabel>
-
     </UIScrollView>
 </UIViewController>

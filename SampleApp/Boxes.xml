@@ -1,73 +1,74 @@
 <BoxesViewController
-    outlet="layoutNode"
-    backgroundColor="#fff">
+    backgroundColor="#fff"
+    outlet="layoutNode">
 
     <UIScrollView
-        contentInset.top="max(topLayoutGuide.length + 10, 15)"
         contentInset.bottom="scrollIndicatorInsets.bottom + 15"
-        scrollIndicatorInsets.top="topLayoutGuide.length"
-        scrollIndicatorInsets.bottom="bottomLayoutGuide.length + 50">
+        contentInset.top="max(topLayoutGuide.length + 10, 15)"
+        scrollIndicatorInsets.bottom="bottomLayoutGuide.length + 50"
+        scrollIndicatorInsets.top="topLayoutGuide.length">
 
         <!-- First column -->
         <UIView
+            backgroundColor="colors.red"
+            height="width"
             left="15"
             width="toggleLayout ? (100% - 45)/2 : (100% - 60)/3"
-            height="width"
-            backgroundColor="colors.red"
         />
         <UIView
-            top="15 + previous.bottom"
-            left="previous.left"
-            width="previous.width"
-            height="width"
             backgroundColor="colors.orange"
+            height="width"
+            left="previous.left"
+            top="15 + previous.bottom"
+            width="previous.width"
         />
         <UILabel
-            top="15 + previous.bottom"
             left="previous.left"
-            width="toggleLayout ? previous.width : 100% - 30"
-            text="Lorem ipsum dolor sit amet, consectetur adipiscing elit."
             numberOfLines="0"
+            text="Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+            top="15 + previous.bottom"
+            width="toggleLayout ? previous.width : 100% - 30"
         />
 
         <!-- Second column -->
         <UIView
+            backgroundColor="colors.blue"
+            height="width/2"
             left="width + 30"
             width="toggleLayout ? (100% - 45)/2 : (100% - 60)/3"
-            height="width/2"
-            backgroundColor="colors.blue"
         />
         <UIView
-            top="15 + previous.bottom"
-            left="previous.left"
-            width="previous.width"
-            height="width"
             backgroundColor="colors.green"
+            height="width"
+            left="previous.left"
+            top="15 + previous.bottom"
+            width="previous.width"
         />
         <UIView
-            top="toggleLayout ? 15 + previous.bottom : 0"
-            left="toggleLayout ? previous.left : previous.right + 15"
-            width="previous.width"
-            height="width"
             backgroundColor="colors.pink"
+            height="width"
+            left="toggleLayout ? previous.left : previous.right + 15"
+            top="toggleLayout ? 15 + previous.bottom : 0"
+            width="previous.width"
         />
     </UIScrollView>
 
     <!-- Floating button -->
     <UIView
+        backgroundColor="#fff9"
+        bottom="previous.bottom - bottomLayoutGuide.length"
         height="50"
         left="0"
-        width="100%"
-        bottom="previous.bottom - bottomLayoutGuide.length"
-        backgroundColor="#fff9">
+        width="100%">
+
         <UIButton
-            top="10"
+            backgroundColor="toggleLayout ? colors.blue : colors.red"
             bottom="100% - 10"
+            layer.cornerRadius="5"
             left="15"
             right="100% - 15"
             title="Toggle"
-            backgroundColor="toggleLayout ? colors.blue : colors.red"
-            layer.cornerRadius="5"
+            top="10"
             touchUpInside="toggle"
         />
     </UIView>

@@ -3,26 +3,29 @@
 
     <!-- Boxes -->
     <BoxesViewController
-        title="Boxes"
         tabBarItem.image="Boxes"
-        xml="Boxes.xml"/>
+        title="Boxes"
+        xml="Boxes.xml"
+    />
 
     <!-- Pages -->
     <PagesViewController
-        title="Pages"
         tabBarItem.image="Pages"
-        xml="Pages.xml"/>
+        title="Pages"
+        xml="Pages.xml"
+    />
 
     <!-- Text -->
     <UIViewController
-        title="Text"
         tabBarItem.image="Text"
-        xml="Text.xml"/>
+        title="Text"
+        xml="Text.xml"
+    />
 
     <!-- Table -->
     <TableViewController
-        title="Table"
         tabBarItem.image="Table"
-        xml="Table.xml"/>
-
+        title="Table"
+        xml="Table.xml"
+    />
 </UITabBarController>

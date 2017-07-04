@@ -2,74 +2,76 @@
     backgroundColor="#ddd">
 
     <UIScrollView
-        outlet="scrollView"
-        isPagingEnabled="true"
-        contentInset.top="max(topLayoutGuide.length + 10, 20)"
         contentInset.bottom="bottomLayoutGuide.length"
-        showsHorizontalScrollIndicator="false"
+        contentInset.top="max(topLayoutGuide.length + 10, 20)"
+        contentSize.height="100% - contentInset.top - contentInset.bottom"
         contentSize.width="300%"
-        contentSize.height="100% - contentInset.top - contentInset.bottom">
+        isPagingEnabled="true"
+        outlet="scrollView"
+        showsHorizontalScrollIndicator="false">
 
         <!-- Page 1 -->
         <UIView
-            top="0"
-            left="20"
-            width="100% - 40"
+            backgroundColor="#f33"
             height="parent.contentSize.height - 20"
             layer.cornerRadius="10"
-            backgroundColor="#f33">
+            left="20"
+            top="0"
+            width="100% - 40">
+
             <UILabel
-                width="100%"
-                height="100%"
-                textAlignment="center"
-                text="Page 1"
-                textColor="#fff"
                 font="30 bold"
+                height="100%"
+                text="Page 1"
+                textAlignment="center"
+                textColor="#fff"
+                width="100%"
             />
         </UIView>
 
         <!-- Page 2 -->
         <UIView
-            top="previous.top"
-            left="previous.right + 40"
-            width="previous.width"
+            backgroundColor="#3a3"
             height="previous.height"
             layer.cornerRadius="previous.layer.cornerRadius"
-            backgroundColor="#3a3">
+            left="previous.right + 40"
+            top="previous.top"
+            width="previous.width">
+
             <UILabel
-                width="100%"
-                height="100%"
-                textAlignment="center"
-                text="Page 2"
-                textColor="#fff"
                 font="30 bold"
+                height="100%"
+                text="Page 2"
+                textAlignment="center"
+                textColor="#fff"
+                width="100%"
             />
         </UIView>
 
         <!-- Page 3 -->
         <UIView
-            top="previous.top"
-            left="previous.right + 40"
-            width="previous.width"
+            backgroundColor="#09f"
             height="previous.height"
             layer.cornerRadius="previous.layer.cornerRadius"
-            backgroundColor="#09f">
+            left="previous.right + 40"
+            top="previous.top"
+            width="previous.width">
+
             <UILabel
-                width="100%"
-                height="100%"
-                textAlignment="center"
-                text="Page 3"
-                textColor="#fff"
                 font="30 bold"
+                height="100%"
+                text="Page 3"
+                textAlignment="center"
+                textColor="#fff"
+                width="100%"
             />
         </UIView>
-
     </UIScrollView>
     <UIPageControl
-        outlet="pageControl"
-        left="50% - width / 2"
         bottom="100% - bottomLayoutGuide.length - 40"
         isUserInteractionEnabled="false"
+        left="50% - width / 2"
         numberOfPages="3"
+        outlet="pageControl"
     />
 </PagesViewController>

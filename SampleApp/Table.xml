@@ -2,13 +2,12 @@
     backgroundColor="#fee">
 
     <UITableView
-        outlet="tableView"
-        style="plain"
-        contentOffset.y="-topLayoutGuide.length"
-        contentInset.top="topLayoutGuide.length"
         contentInset.bottom="bottomLayoutGuide.length"
-        scrollIndicatorInsets.top="topLayoutGuide.length"
+        contentInset.top="topLayoutGuide.length"
+        contentOffset.y="-topLayoutGuide.length"
+        outlet="tableView"
         scrollIndicatorInsets.bottom="bottomLayoutGuide.length"
+        scrollIndicatorInsets.top="topLayoutGuide.length"
+        style="plain"
     />
-
 </TableViewController>
