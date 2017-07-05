@@ -221,32 +221,41 @@ public class LayoutNode: NSObject {
     private var _unhandledError: LayoutError?
     private func throwUnhandledError() throws {
         try _unhandledError.map {
-            _unhandledError = nil
+            if $0.isTransient {
+                _unhandledError = nil
+            }
+            unbind()
             throw $0
         }
     }
 
     private func bubbleUnhandledError() {
-        guard let error = _unhandledError else { return }
-
-        if let parent = parent {
-            parent._unhandledError = LayoutError(error, for: parent)
-            _unhandledError = nil
-            parent.bubbleUnhandledError()
-        }
-
-        if let delegate = _owner as? LayoutDelegate {
-            delegate.layoutNode?(self, didDetectError: LayoutError(error))
-            _unhandledError = nil
+        guard let error = _unhandledError else {
             return
         }
-
+        if let parent = parent {
+            parent._unhandledError = LayoutError(error, for: parent)
+            if error.isTransient {
+                _unhandledError = nil
+            }
+            parent.bubbleUnhandledError()
+            return
+        }
+        if let delegate = _owner as? LayoutDelegate {
+            delegate.layoutNode?(self, didDetectError: error)
+            if error.isTransient {
+                _unhandledError = nil
+            }
+            return
+        }
         if var responder = _owner as? UIResponder {
             // Pass error up the chain to the first VC that can handle it
             while let nextResponder = responder.next {
                 if let delegate = nextResponder as? LayoutDelegate {
-                    delegate.layoutNode?(self, didDetectError: LayoutError(error))
-                    _unhandledError = nil
+                    delegate.layoutNode?(self, didDetectError: error)
+                    if error.isTransient {
+                        _unhandledError = nil
+                    }
                     return
                 }
                 responder = nextResponder
@@ -405,13 +414,13 @@ public class LayoutNode: NSObject {
     internal func update(with node: LayoutNode) throws {
         node.stopObserving()
         guard view.classForCoder == node.view.classForCoder else {
-            throw LayoutError.message("Cannot replace \(view.classForCoder) with \(node.view.classForCoder)")
+            throw LayoutError("Cannot replace \(view.classForCoder) with \(node.view.classForCoder)", for: self)
         }
         guard (viewController == nil) == (node.viewController == nil) else {
-            throw LayoutError.message("Cannot replace \(viewController.map { "\($0.classForCoder)" } ?? "nil") with \(node.viewController.map { "\($0.classForCoder)" } ?? "nil")")
+            throw LayoutError("Cannot replace \(viewController.map { "\($0.classForCoder)" } ?? "nil") with \(node.viewController.map { "\($0.classForCoder)" } ?? "nil")", for: self)
         }
         guard viewController?.classForCoder == node.viewController?.classForCoder else {
-            throw LayoutError.message("Cannot replace \(viewController!.classForCoder) with \(node.viewController!.classForCoder)")
+            throw LayoutError("Cannot replace \(viewController!.classForCoder) with \(node.viewController!.classForCoder)", for: self)
         }
 
         for child in children {
@@ -426,7 +435,7 @@ public class LayoutNode: NSObject {
 
         if let outlet = node.outlet {
             self.outlet = outlet
-            try _owner.map { try bind(to: $0) }
+            try LayoutError.wrap({ try _owner.map { try bind(to: $0) }}, for: self)
         }
 
         for child in node.children {
@@ -478,6 +487,9 @@ public class LayoutNode: NSObject {
     }
 
     private func cleanUp() {
+        if let error = _unhandledError, error.isTransient {
+            _unhandledError = nil
+        }
         _evaluating.removeAll()
         _getters.removeAll()
         _cachedExpressions.removeAll()
@@ -961,7 +973,7 @@ public class LayoutNode: NSObject {
         _suppressUpdates = true
         try LayoutError.wrap(updateExpressionValues, for: self)
         for child in children {
-            try child.update()
+            try LayoutError.wrap(child.update, for: self)
         }
         _frame = nil // Recalculate frame
         if view.translatesAutoresizingMaskIntoConstraints {
@@ -1038,25 +1050,22 @@ public class LayoutNode: NSObject {
     // Note: thrown error is always a LayoutError
     private weak var _owner: NSObject?
     private func bind(to owner: NSObject) throws {
-        if let error = _unhandledError, "\(error)".contains("XML") {
-            // Hack to prevent XML validation errors being swallowed
-            try throwUnhandledError()
-        }
-        _unhandledError = nil
         guard _owner == nil || _owner == owner || _owner == viewController else {
-            throw LayoutError.message("Cannot re-bind an already bound node.")
+            throw LayoutError("Cannot re-bind an already bound node.", for: self)
         }
         if let viewController = viewController, owner != viewController {
             do {
                 try bind(to: viewController)
                 return
-            } catch {}
+            } catch {
+                unbind()
+            }
         }
         cleanUp()
         _owner = owner
         if let outlet = outlet {
             guard let type = Swift.type(of: owner).allPropertyTypes()[outlet] else {
-                throw LayoutError.message("`\(Swift.type(of: owner))` does not have an outlet named `\(outlet)`")
+                throw LayoutError("`\(Swift.type(of: owner))` does not have an outlet named `\(outlet)`", for: self)
             }
             var didMatch = false
             var expectedType = "UIView or LayoutNode"
@@ -1086,7 +1095,7 @@ public class LayoutNode: NSObject {
                 }
             }
             if !didMatch {
-                throw LayoutError.message("outlet `\(outlet)` of `\(owner.classForCoder)` is not a \(expectedType)")
+                throw LayoutError("outlet `\(outlet)` of `\(owner.classForCoder)` is not a \(expectedType)", for: self)
             }
         }
         if let type = viewExpressionTypes["delegate"],
@@ -1098,7 +1107,7 @@ public class LayoutNode: NSObject {
             view.setValue(owner, forKey: "dataSource")
         }
         for child in children {
-            try child.bind(to: owner)
+            try LayoutError.wrap({ try child.bind(to: owner) }, for: self)
         }
         try throwUnhandledError()
     }

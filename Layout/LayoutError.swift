@@ -10,7 +10,7 @@ public struct SymbolError: Error, Hashable, CustomStringConvertible {
     public var description: String {
         var description = String(describing: error)
         if !description.contains(symbol) {
-            description = "\(description) in \(symbol)"
+            description = "\(description) in expression `\(symbol)`"
         }
         return description
     }
@@ -48,6 +48,7 @@ public struct SymbolError: Error, Hashable, CustomStringConvertible {
 public enum LayoutError: Error, Hashable, CustomStringConvertible {
     case message(String)
     case generic(Error, AnyClass?)
+    case multipleMatches([URL], for: String)
 
     public var description: String {
         var description = ""
@@ -59,11 +60,25 @@ public enum LayoutError: Error, Hashable, CustomStringConvertible {
             if let viewClass = viewClass {
                 let className = "\(viewClass)"
                 if !description.contains(className) {
-                    description = "\(description) in \(className)"
+                    description = "\(description) in `\(className)`"
                 }
             }
+        case let .multipleMatches(_, path):
+            description = "Layout found multiple source files matching \(path)"
         }
         return description
+    }
+
+    // Returns true if the error can be cleared, or false if the
+    // error is fundamental, and requires a code change + reload to fix it
+    public var isTransient: Bool {
+        switch self {
+        case .multipleMatches,
+             _ where description.contains("XML"): // TODO: less hacky
+            return false
+        default:
+            return true // TODO: handle expression parsing errors
+        }
     }
 
     public var hashValue: Int {

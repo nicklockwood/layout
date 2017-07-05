@@ -88,11 +88,6 @@ open class LayoutViewController: UIViewController {
         }
     }
 
-    @objc private func _reloadLayout() {
-        print("Reloading \(type(of: self))")
-        reloadLayout(withCompletion: nil)
-    }
-
     public func reloadLayout(withCompletion completion: ((LayoutError?) -> Void)? = nil) {
         if let loader = _loader {
             loader.reloadLayout { layoutNode, error in
@@ -140,6 +135,18 @@ open class LayoutViewController: UIViewController {
         // Override in subclass
     }
 
+    @objc private func _reloadLayout() {
+        print("Reloading \(type(of: self))")
+        reloadLayout(withCompletion: nil)
+    }
+
+    @objc private func _selectMatch(_ sender: UIButton) {
+        if let error = _error, case let .multipleMatches(matches, path) = error {
+            _loader?.setSourceURL(matches[sender.tag], for: path)
+        }
+        _reloadLayout()
+    }
+
     open func layoutError(_ error: LayoutError) {
 
         // If error has no changes, just re-display it
@@ -155,42 +162,87 @@ open class LayoutViewController: UIViewController {
         // Display error
         _dismissError()
         _error = error
-        _errorNode = LayoutNode(
-            view: UIControl(),
-            constants: [
-                "error": error,
-            ],
-            expressions: [
-                "width": "100%",
-                "height": "100%",
-                "backgroundColor": "#f00",
-                "touchDown": "_reloadLayout",
-            ],
-            children: [
+        switch error {
+        case let .multipleMatches(matches, _):
+            var children = [
                 LayoutNode(
                     view: UILabel(),
                     expressions: [
                         "top": "40% - (height) / 2",
                         "width": "min(auto, 100% - 40)",
                         "left": "(100% - width) / 2",
-                        "text": "{error}",
+                        "text": "{error}. Select the correct one:",
                         "textColor": "#fff",
                         "numberOfLines": "0",
                     ]
                 ),
-                LayoutNode(
-                    view: UILabel(),
-                    expressions: [
-                        "top": "previous.bottom + 30",
-                        "width": "auto",
-                        "left": "(100% - width) / 2",
-                        "text": "[\(reloadMessage)]",
-                        "textColor": "rgba(255,255,255,0.6)",
-                        "isHidden": "\(!isReloadable)",
-                    ]
-                ),
             ]
-        )
+            for (i, match) in matches.enumerated() {
+                children.append(
+                    LayoutNode(
+                        view: UIButton(),
+                        expressions: [
+                            "top": "previous.bottom + 20",
+                            "width": "100% - 40",
+                            "left": "20",
+                            "text": "\(i + 1). \(match.path)",
+                            "titleColor": "rgba(255,255,255,0.6)",
+                            "touchUpInside": "_selectMatch:",
+                            "tag": "\(i)",
+                        ]
+                    )
+                )
+            }
+            _errorNode = LayoutNode(
+                view: UIView(),
+                constants: [
+                    "error": error,
+                ],
+                expressions: [
+                    "width": "100%",
+                    "height": "100%",
+                    "backgroundColor": "#f00",
+                ],
+                children: children
+            )
+        default:
+            _errorNode = LayoutNode(
+                view: UIControl(),
+                constants: [
+                    "error": error,
+                ],
+                expressions: [
+                    "width": "100%",
+                    "height": "100%",
+                    "backgroundColor": "#f00",
+                    "touchDown": "_reloadLayout",
+                ],
+                children: [
+                    LayoutNode(
+                        view: UILabel(),
+                        expressions: [
+                            "top": "40% - (height) / 2",
+                            "width": "min(auto, 100% - 40)",
+                            "left": "(100% - width) / 2",
+                            "text": "{error}",
+                            "textColor": "#fff",
+                            "numberOfLines": "0",
+                        ]
+                    ),
+                    LayoutNode(
+                        view: UILabel(),
+                        expressions: [
+                            "top": "previous.bottom + 30",
+                            "width": "auto",
+                            "left": "(100% - width) / 2",
+                            "text": "[\(reloadMessage)]",
+                            "textColor": "rgba(255,255,255,0.6)",
+                            "isHidden": "\(!isReloadable)",
+                        ]
+                    ),
+                ]
+            )
+        }
         _errorNode!.view.alpha = 0
         try? _errorNode!.mount(in: self)
         UIView.animate(withDuration: 0.25) {
