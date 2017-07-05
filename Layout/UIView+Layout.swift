@@ -207,19 +207,48 @@ extension UIControl {
 
     open override func setValue(_ value: Any, forExpression name: String) throws {
         if let action = value as? String, let event = controlEvents[name] {
-            var actions = objc_getAssociatedObject(self, &layoutActionsKey) as? [String: String] ?? [String: String]()
-            if let oldAction = actions[name] {
+            var actions = objc_getAssociatedObject(self, &layoutActionsKey) as? NSMutableDictionary
+            if actions == nil {
+                actions = NSMutableDictionary()
+                objc_setAssociatedObject(self, &layoutActionsKey, actions, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+            }
+            if let oldAction = actions?[name] as? String {
                 if oldAction == action {
                     return
                 }
                 removeTarget(nil, action: Selector(action), for: event)
             }
-            addTarget(nil, action: Selector(action), for: event)
-            actions[name] = action
-            objc_setAssociatedObject(self, &layoutActionsKey, actions, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+            actions?[name] = action
             return
         }
         try super.setValue(value, forExpression: name)
+    }
+
+    func bindActions(for target: AnyObject) throws {
+        guard let actions = objc_getAssociatedObject(self, &layoutActionsKey) as? NSMutableDictionary else {
+            return
+        }
+        for (name, action) in actions {
+            guard let name = name as? String, let event = controlEvents[name], let action = action as? String else {
+                assertionFailure()
+                return
+            }
+            if let actions = self.actions(forTarget: target, forControlEvent: event), actions.contains(action) {
+                // Already bound
+            } else {
+                let selector = Selector(action)
+                if !target.responds(to: selector) {
+                    throw LayoutError.message("`\(target.classForCoder ?? type(of: target))` does not respond to `\(action)`")
+                }
+                addTarget(target, action: selector, for: event)
+            }
+        }
+    }
+
+    func unbindActions(for target: AnyObject) {
+        for action in actions(forTarget: target, forControlEvent: .allEvents) ?? [] {
+            removeTarget(target, action: Selector(action), for: .allEvents)
+        }
     }
 }
 

@@ -825,6 +825,7 @@ public class LayoutNode: NSObject {
             let anyValue = try value(forSymbol: name)
             try setValue(anyValue, forExpression: name)
         }
+        try bindActions()
     }
 
     // Note: thrown error is always a SymbolError
@@ -1106,6 +1107,7 @@ public class LayoutNode: NSObject {
             view.value(forKey: "dataSource") == nil, type.matches(owner) {
             view.setValue(owner, forKey: "dataSource")
         }
+        try bindActions()
         for child in children {
             try LayoutError.wrap({ try child.bind(to: owner) }, for: self)
         }
@@ -1113,14 +1115,25 @@ public class LayoutNode: NSObject {
     }
 
     private func unbind() {
-        if let outlet = outlet, let owner = _owner,
-            type(of: owner).allPropertyTypes()[outlet] != nil {
-            owner.setValue(nil, forKey: outlet)
+        if let owner = _owner {
+            if let outlet = outlet, type(of: owner).allPropertyTypes()[outlet] != nil {
+                owner.setValue(nil, forKey: outlet)
+            }
+            if let control = view as? UIControl {
+                control.unbindActions(for: owner)
+            }
+            _owner = nil
         }
         for child in children {
             child.unbind()
         }
-        _owner = nil
         cleanUp()
+    }
+
+    private func bindActions() throws {
+        guard let control = view as? UIControl, let owner = _owner else {
+            return
+        }
+        try LayoutError.wrap({ try control.bindActions(for: owner) }, for: self)
     }
 }

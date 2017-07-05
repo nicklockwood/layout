@@ -5,18 +5,27 @@ import Layout
 
 class BoxesViewController: UIViewController {
 
-    var toggled = false
-
-    var layoutNode: LayoutNode? {
+    var toggled = false {
         didSet {
-            layoutNode?.state = ["toggleLayout": toggled]
+            layoutNode?.state = ["isToggled": toggled]
         }
     }
 
-    func toggle() {
-        toggled = !toggled
+    var layoutNode: LayoutNode? {
+        didSet {
+            layoutNode?.state = ["isToggled": toggled]
+        }
+    }
+
+    func setToggled() {
         UIView.animate(withDuration: 0.4) {
-            self.layoutNode?.state = ["toggleLayout": self.toggled]
+            self.toggled = true
+        }
+    }
+
+    func setUntoggled() {
+        UIView.animate(withDuration: 0.4) {
+            self.toggled = false
         }
     }
 }

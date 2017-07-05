@@ -13,7 +13,7 @@
             backgroundColor="colors.red"
             height="width"
             left="15"
-            width="toggleLayout ? (100% - 45)/2 : (100% - 60)/3"
+            width="isToggled ? (100% - 45)/2 : (100% - 60)/3"
         />
         <UIView
             backgroundColor="colors.orange"
@@ -27,7 +27,7 @@
             numberOfLines="0"
             text="Lorem ipsum dolor sit amet, consectetur adipiscing elit."
             top="15 + previous.bottom"
-            width="toggleLayout ? previous.width : 100% - 30"
+            width="isToggled ? previous.width : 100% - 30"
         />
 
         <!-- Second column -->
@@ -35,7 +35,7 @@
             backgroundColor="colors.blue"
             height="width/2"
             left="width + 30"
-            width="toggleLayout ? (100% - 45)/2 : (100% - 60)/3"
+            width="isToggled ? (100% - 45)/2 : (100% - 60)/3"
         />
         <UIView
             backgroundColor="colors.green"
@@ -47,8 +47,8 @@
         <UIView
             backgroundColor="colors.pink"
             height="width"
-            left="toggleLayout ? previous.left : previous.right + 15"
-            top="toggleLayout ? 15 + previous.bottom : 0"
+            left="isToggled ? previous.left : previous.right + 15"
+            top="isToggled ? 15 + previous.bottom : 0"
             width="previous.width"
         />
     </UIScrollView>
@@ -62,14 +62,14 @@
         width="100%">
 
         <UIButton
-            backgroundColor="toggleLayout ? colors.blue : colors.red"
+            backgroundColor="isToggled ? colors.blue : colors.red"
             bottom="100% - 10"
             layer.cornerRadius="5"
             left="15"
             right="100% - 15"
             title="Toggle"
             top="10"
-            touchUpInside="toggle"
+            touchUpInside="{isToggled ? 'setUntoggled' : 'setToggled'}"
         />
     </UIView>
 </BoxesViewController>
