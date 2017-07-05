@@ -1,5 +1,13 @@
 # Change Log
 
+## [0.3.5](https://github.schibsted.io/Rocket/layout/releases/tag/0.3.5) (2017-07-05)
+
+- Added conflict resolution for when multiple strings or XML layout files have the same name
+- UIControl event bindings are now more reliable, and added error detection for misspellings
+- Fixed bug where XML validation errors were not displayed
+- Added LayoutTool project and tests
+- Restructured project and removed Northstar example
+
 ## [0.3.4](https://github.schibsted.io/Rocket/layout/releases/tag/0.3.4) (2017-06-29)
 
 - Added support for dynamic table cell height based on AutoLayout

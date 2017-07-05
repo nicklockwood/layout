@@ -33,6 +33,9 @@
 - [Example Projects](#example-projects)
 	- [SampleApp](#sampleapp)
 	- [UIDesigner](#uidesigner)
+- [LayoutTool](#layouttool)
+    - [Installation](#installation)
+    - [Formatting](#formatting)
 - [FAQ](#faq)
 
 # Introduction
@@ -64,7 +67,7 @@ Layout also includes a replacement for AutoLayout that aims to be:
 
 Layout introduces a new node hierarchy for managing views, similar to the "virtual DOM" used by React Native.
 
-Unlike UIViews (which use NSCoding for serialization), this hierarchy can be deserialized from a lightweight, human-readable XML format, and also offers a concise API for programatically generating view layouts in code when you don't want to use a separate resource file.
+Unlike UIViews (which use NSCoding for serialization), this hierarchy can be deserialized from a lightweight, human-readable XML format, and also offers a concise API for programmatically generating view layouts in code when you don't want to use a separate resource file.
 
 View properties are specified using *expressions*, which are simple, pure functions stored as strings and evaluated at runtime. Now, I know what you're thinking - stringly typed code is horrible! - but Layout's expressions are strongly-typed, and designed to fail early, with detailed error messages to help you debug.
 
@@ -161,7 +164,9 @@ The `LayoutViewController` provides a number of helpful features to improve your
 
 If the Layout framework throws an error during XML parsing, node mounting or updating, the `LayoutViewController` will detect it and display the *red box*, which is a full-screen overlay displaying the error message along with a reload button. Pressing reload will reset the layout state and re-load the layout.
 
-When you load an XML layout file in the iOS Simulator, the Layout framework will attempt to find the original source XML file for the layout and load that instead of the static version bundled into the compiled app. This means that you can go ahead and fix the error in your XML file, then reload it *without restarting the simulator, or recompiling the app*.
+When you load an XML layout file in the iOS Simulator, the Layout framework will attempt to find the original source XML file for the layout and load that instead of the static version bundled into the compiled app (if multiple source files match the bundled file name, you will be asked to choose which one to load).
+
+This means that you can go ahead and fix the error in your XML file, then reload it *without restarting the simulator, or recompiling the app*.
 
 You can reload at any time, even if there was no error, by pressing Cmd-R in the simulator (not in Xcode itself). `LayoutViewController` will detect that key combination and reload the XML, provided that it is the current first responder on screen.
 
@@ -237,7 +242,7 @@ For more dynamic layouts, you may have properties of the view that need to chang
 		self.layoutNode.state = ["isSelected": true]
 	}
 	
-Note that you can used both constants and state in the same Layout. If a state variable has the same name as a constant, the state variable takese precedence.
+Note that you can used both constants and state in the same Layout. If a state variable has the same name as a constant, the state variable takes precedence.
 
 Although state can be updated dynamically, all state properties must be given default values when the `LayoutNode` is first initialized. Adding or removing state properties later on is not permitted. 
 
@@ -356,7 +361,7 @@ So for example, if your layout contains a `UIScrollView`, and your view controll
         		view: UIView()
         		children: [
         			LayoutNode(
-        				view: UItextField(), // delegate is automatically bound to MyViewController
+        				view: UITextField(), // delegate is automatically bound to MyViewController
         				expressions: [ ... ]
         			)
         		]
@@ -567,7 +572,7 @@ The `UIFont` class encapsulates the font family, size, weight and style, so a fo
 	<font-name>
 	<font-size>
 	
-The foont name is a string and font size is a number. Any attribute that isn't specified will be set to the system default - typically 17pt San Francisco. Here are some examples:
+The font name is a string and font size is a number. Any attribute that isn't specified will be set to the system default - typically 17pt San Francisco. Here are some examples:
 
 	<UILabel font="bold"/>
 	
@@ -646,17 +651,17 @@ Layout has good support for most built-in UIKit views and view controllers out o
 
 As you are probably aware, Swift classes are name-spaced to a particular module. If you have an app called MyApp and it declares a custom `UIView` subclass called `FooView`, then the fully-qualified class name of the view would be `MyApp.FooView`, and not just `FooView` as it would have been in Objective-C.
 
-Layout deals with the common case for you by inserting the main module's namespace automatically if you don't include it yourself. Either of these will work for referenceing a custom view in your XML:
+Layout deals with the common case for you by inserting the main module's namespace automatically if you don't include it yourself. Either of these will work for referencing a custom view in your XML:
 
 	<MyApp.FooView/>
 	
 	<FooView/>
 	
-And generally, in the interests of avoiding boilerplate, you should use the latter form. However, if you package custom components into a separate module (as we have done with the Northstar components in the SampleApp) then you will need to refer to them using their fully-qualifed name in your XML.
+And generally, in the interests of avoiding boilerplate, you should use the latter form. However, if you package custom components into a separate module (as we have done with the Northstar components in the SampleApp) then you will need to refer to them using their fully-qualified name in your XML.
 
 ## Custom Property Types
 
-As mentioned above, Layout uses the Objective-C runtime to automatically detect property names and types for use with expressions. The Objective-C runtime only supports a subset of possible Swift types, and even for Objective-C types, some runtime information is lost. For example, it's impossible to autoamtically detect the valid set of values and case names for enum types.
+As mentioned above, Layout uses the Objective-C runtime to automatically detect property names and types for use with expressions. The Objective-C runtime only supports a subset of possible Swift types, and even for Objective-C types, some runtime information is lost. For example, it's impossible to automatically detect the valid set of values and case names for enum types.
 
 There are also some situations where properties may be exposed in a way that doesn't show up as an Objective-C property at runtime, or the property setter may not be compatible with KVC (Key-Value Coding), resulting in a crash when it is accessed using `setValue(forKey:)`.
 
@@ -793,7 +798,7 @@ Using a Layout-based `UITableViewCell` is also possible, but slightly more invol
         }
     }
     
-Note the use of two extension methods on `UITableview`: `registerLayout(...)` and `dequeueReusableLayoutNode(...)`. These work in pretty-much the same way as their UIKit counterparts, but are desiged to work with xml Layout-based cells instead of nibs.
+Note the use of two extension methods on `UITableview`: `registerLayout(...)` and `dequeueReusableLayoutNode(...)`. These work in pretty-much the same way as their UIKit counterparts, but are designed to work with xml Layout-based cells instead of nibs.
 
 The XML for the cell itself might look something like this:
 
@@ -833,6 +838,44 @@ The SampleApp project demonstrates a range of Layout features. It is split into 
 The UIDesigner project is an experimental WYSIWYG tool for constructing layouts. It's written as an iPad app which you can run in the simulator or on a device.
 
 UIDesigner is currently in a very early stage of development. It supports most of the features exposed by the Layout XML format, but lacks import/export, and the ability to specify constants or outlet bindings.
+
+
+# LayoutTool
+
+The Layout project includes the source code for a command-line tool called LayoutTool, which provides some useful functions to help with development using Layout. You do not need to install the LayoutTool to use Layout, but you may find it helpful.
+
+## Installation
+
+To install LayoutTool using CocoaPods, add the following to the top of your Podfile:
+
+	source 'git@github.schibsted.io:Rocket/cocoapod-specs.git'
+	
+Then, add the following to the list of pod dependencies:
+
+	pod 'Layout/CLI'
+
+This will install the LayoutTool binary inside the `Pods/Layout/LayoutTool` directory inside your project folder. You can then reference this using other scripts in your project.
+
+## Formatting
+
+Currently the main function provided by LayoutTool is automatic formatting of Layout XML files. The `LayoutTool format` command will find any Layout XML files at the specfied path(s) and apply standard formatting. You can use the tool as follows:
+
+    LayoutTool format /path/to/xml/file(s) [/another/path]
+
+For more information, use `LayoutTool help`.
+
+To automatically apply `LayoutTool format` to your project every time it is built, you can add a Run Script build phase that applies the tool. Assuming you've installed the LayoutTool CLI using CocoaPods, that script will look something like:
+
+    "${SRCROOT}/Pods/Layout/LayoutTool/LayoutTool" "${SRCROOT}/path/to/your/layout/xml/"
+
+The formatting applied by LayoutTool is specifically designed for Layout files. It is better to use LayoutTool for formatting these files rather than a generic XML-formatting tool.
+
+Conversely, LayoutTool is only appropriate for formatting *Layout* XML files. It is not a general-purpose XML formatting tool, and may not behave as expected when applied to arbitrary XML source.
+
+LayoutTool ignores XML files that do not appear to belong to Layout, but if your project contains non-Layout XML files then it is a good idea to exclude these paths from the `LayoutTool format` command, to improve formatting performance and avoid accidental false positives.
+
+To safely determine which files the formatting will be applies to, without overwriting anything, you can use `LayoutTool list` to display all the Layout XML files that LayoutTool can find in your project.
+
 
 # FAQ
 
