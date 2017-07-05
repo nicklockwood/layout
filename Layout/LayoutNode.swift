@@ -234,11 +234,14 @@ public class LayoutNode: NSObject {
             return
         }
         if let parent = parent {
-            parent._unhandledError = LayoutError(error, for: parent)
-            if error.isTransient {
-                _unhandledError = nil
+            if parent._unhandledError == nil ||
+                (parent._unhandledError?.isTransient == true && !error.isTransient) {
+                parent._unhandledError = LayoutError(error, for: parent)
+                if error.isTransient {
+                    _unhandledError = nil
+                }
+                parent.bubbleUnhandledError()
             }
-            parent.bubbleUnhandledError()
             return
         }
         if let delegate = _owner as? LayoutDelegate {
@@ -264,8 +267,11 @@ public class LayoutNode: NSObject {
     }
 
     internal func logError(_ error: Error) {
-        _unhandledError = LayoutError(error, for: self)
-        bubbleUnhandledError()
+        let error = LayoutError(error, for: self)
+        if _unhandledError == nil || (_unhandledError?.isTransient == true && !error.isTransient) {
+            _unhandledError = error
+            bubbleUnhandledError()
+        }
     }
 
     private func attempt<T>(_ closure: () throws -> T) -> T? {

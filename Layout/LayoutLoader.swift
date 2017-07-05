@@ -80,12 +80,15 @@ class LayoutLoader {
         _state = state
         _constants = constants
         if xmlURL.isFileURL {
-            if let relativeTo = relativeTo {
-                let bundlePath = Bundle.main.bundleURL.absoluteString
-                if xmlURL.absoluteString.hasPrefix(bundlePath),
+            let bundlePath = Bundle.main.bundleURL.absoluteString
+            if xmlURL.absoluteString.hasPrefix(bundlePath) {
+                if _projectDirectory == nil, let relativeTo = relativeTo,
                     let projectDirectory = findProjectDirectory(at: "\(relativeTo)") {
                     _projectDirectory = projectDirectory
-                    var parts = xmlURL.absoluteString.substring(from: bundlePath.endIndex).components(separatedBy: "/")
+                }
+                if let projectDirectory = _projectDirectory {
+                    var parts = xmlURL.absoluteString
+                        .substring(from: bundlePath.endIndex).components(separatedBy: "/")
                     for (i, part) in parts.enumerated().reversed() {
                         if part.hasSuffix(".bundle") {
                             parts.removeFirst(i + 1)
@@ -93,16 +96,14 @@ class LayoutLoader {
                         }
                     }
                     let path = parts.joined(separator: "/")
-                    let urls = findSourceURLs(forRelativePath: path, in: projectDirectory)
-                    guard let url = urls.first else {
-                        completion(nil, .message("Unable to locate source file for \(path)"))
+                    do {
+                        if let url = try findSourceURL(forRelativePath: path, in: projectDirectory) {
+                            _xmlURL = url
+                        }
+                    } catch {
+                        completion(nil, LayoutError(error))
                         return
                     }
-                    guard urls.count == 1 else {
-                        completion(nil, .multipleMatches(urls, for: path))
-                        return
-                    }
-                    _xmlURL = url
                 }
             }
             if Thread.isMainThread {
@@ -159,21 +160,21 @@ class LayoutLoader {
         )
     }
 
-    public var localizedStrings: [String: String] {
+    public func loadLocalizedStrings() throws -> [String: String] {
         if let strings = _strings {
             return strings
         }
-        var stringsPath = "Localizable.strings"
-        if let resourcePath = Bundle.main.resourcePath,
-            let localizedPath = Bundle.main.path(forResource: "Localizable", ofType: "strings") {
-            stringsPath = localizedPath.substring(from: resourcePath.endIndex)
+        var path = "Localizable.strings"
+        let localizedPath = Bundle.main.path(forResource: "Localizable", ofType: "strings")
+        if let resourcePath = Bundle.main.resourcePath, let localizedPath = localizedPath {
+            path = localizedPath.substring(from: resourcePath.endIndex)
         }
         if let projectDirectory = _projectDirectory,
-            let url = findSourceURLs(forRelativePath: stringsPath, in: projectDirectory).first {
+            let url = try findSourceURL(forRelativePath: path, in: projectDirectory) {
             _strings = NSDictionary(contentsOf: url) as? [String: String] ?? [:]
             return _strings!
         }
-        if let stringsFile = Bundle.main.path(forResource: "Localizable", ofType: "strings") {
+        if let stringsFile = localizedPath {
             _strings = NSDictionary(contentsOfFile: stringsFile) as? [String: String] ?? [:]
             return _strings!
         }
@@ -220,12 +221,12 @@ class LayoutLoader {
         return findProjectDirectory(at: parent.path)
     }
 
-    private func findSourceURLs(forRelativePath path: String, in directory: URL, usingCache: Bool = true) -> [URL] {
+    private func findSourceURL(forRelativePath path: String, in directory: URL, usingCache: Bool = true) throws -> URL? {
         if let url = _sourceURLCache[path], FileManager.default.fileExists(atPath: url.path) {
-            return [url]
+            return url
         }
         guard let files = try? FileManager.default.contentsOfDirectory(atPath: directory.path) else {
-            return []
+            return nil
         }
         var parts = URL(fileURLWithPath: path).pathComponents
         if parts[0] == "/" {
@@ -239,22 +240,32 @@ class LayoutLoader {
                     results.append(directory) // Not actually a directory
                     continue
                 }
-                results += findSourceURLs(
+                try findSourceURL(
                     forRelativePath: parts.dropFirst().joined(separator: "/"),
                     in: directory,
                     usingCache: false
-                )
+                ).map {
+                    results.append($0)
+                }
             }
-            results += findSourceURLs(
+            try findSourceURL(
                 forRelativePath: path,
                 in: directory,
                 usingCache: false
-            )
+            ).map {
+                results.append($0)
+            }
         }
-        if results.count == 1, usingCache {
-            _sourceURLCache[path] = results[0]
+        guard results.count <= 1 else {
+            throw LayoutError.multipleMatches(results, for: path)
         }
-        return results
+        if usingCache {
+            guard let url = results.first else {
+                throw LayoutError.message("Unable to locate source file for \(path)")
+            }
+            _sourceURLCache[path] = url
+        }
+        return results.first
     }
 
     private func _setSourceURL(_ sourceURL: URL, for path: String) {
@@ -264,7 +275,7 @@ class LayoutLoader {
 #else
 
     private func findProjectDirectory(at _: String) -> URL? { return nil }
-    private func findSourceURL(forRelativePath _: String, in _: URL) -> URL? { return nil }
+    private func findSourceURL(forRelativePath _: String, in _: URL) throws -> URL? { return nil }
     private func _setSourceURL(_: URL, for _: String) {}
 
 #endif

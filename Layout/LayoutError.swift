@@ -103,6 +103,11 @@ public enum LayoutError: Error, Hashable, CustomStringConvertible {
     }
 
     init(_ error: Error, for node: LayoutNode? = nil) {
+        if let error = error as? LayoutError, case .multipleMatches = error {
+            // Should never be wrapped or it's hard to treat as special case
+            self = error
+            return
+        }
         guard let node = node else {
             switch error {
             case let LayoutError.generic(error, viewClass):

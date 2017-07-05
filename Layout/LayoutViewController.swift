@@ -149,6 +149,12 @@ open class LayoutViewController: UIViewController {
 
     open func layoutError(_ error: LayoutError) {
 
+        // Check error priority
+        var error = error
+        if let oldError = _error, !oldError.isTransient || error.isTransient {
+            error = oldError // Don't replace the old error
+        }
+
         // If error has no changes, just re-display it
         if let errorNode = _errorNode, error == _error {
             view.bringSubview(toFront: errorNode.view)
@@ -162,9 +168,10 @@ open class LayoutViewController: UIViewController {
         // Display error
         _dismissError()
         _error = error
+        var children: [LayoutNode]
         switch error {
         case let .multipleMatches(matches, _):
-            var children = [
+            children = [
                 LayoutNode(
                     view: UILabel(),
                     expressions: [
@@ -193,56 +200,45 @@ open class LayoutViewController: UIViewController {
                     )
                 )
             }
-            _errorNode = LayoutNode(
-                view: UIView(),
-                constants: [
-                    "error": error,
-                ],
-                expressions: [
-                    "width": "100%",
-                    "height": "100%",
-                    "backgroundColor": "#f00",
-                ],
-                children: children
-            )
         default:
-            _errorNode = LayoutNode(
-                view: UIControl(),
-                constants: [
-                    "error": error,
-                ],
-                expressions: [
-                    "width": "100%",
-                    "height": "100%",
-                    "backgroundColor": "#f00",
-                    "touchDown": "_reloadLayout",
-                ],
-                children: [
-                    LayoutNode(
-                        view: UILabel(),
-                        expressions: [
-                            "top": "40% - (height) / 2",
-                            "width": "min(auto, 100% - 40)",
-                            "left": "(100% - width) / 2",
-                            "text": "{error}",
-                            "textColor": "#fff",
-                            "numberOfLines": "0",
-                        ]
-                    ),
-                    LayoutNode(
-                        view: UILabel(),
-                        expressions: [
-                            "top": "previous.bottom + 30",
-                            "width": "auto",
-                            "left": "(100% - width) / 2",
-                            "text": "[\(reloadMessage)]",
-                            "textColor": "rgba(255,255,255,0.6)",
-                            "isHidden": "\(!isReloadable)",
-                        ]
-                    ),
-                ]
-            )
+            children = [
+                LayoutNode(
+                    view: UILabel(),
+                    expressions: [
+                        "top": "40% - (height) / 2",
+                        "width": "min(auto, 100% - 40)",
+                        "left": "(100% - width) / 2",
+                        "text": "{error}",
+                        "textColor": "#fff",
+                        "numberOfLines": "0",
+                    ]
+                ),
+                LayoutNode(
+                    view: UILabel(),
+                    expressions: [
+                        "top": "previous.bottom + 30",
+                        "width": "auto",
+                        "left": "(100% - width) / 2",
+                        "text": "[\(reloadMessage)]",
+                        "textColor": "rgba(255,255,255,0.6)",
+                        "isHidden": "\(!isReloadable)",
+                    ]
+                ),
+            ]
         }
+        _errorNode = LayoutNode(
+            view: UIControl(),
+            constants: [
+                "error": error,
+            ],
+            expressions: [
+                "width": "100%",
+                "height": "100%",
+                "backgroundColor": "#f00",
+                "touchDown": "_reloadLayout",
+            ],
+            children: children
+        )
         _errorNode!.view.alpha = 0
         try? _errorNode!.mount(in: self)
         UIView.animate(withDuration: 0.25) {
@@ -296,6 +292,11 @@ extension LayoutViewController: LayoutDelegate {
     }
 
     open func layoutNode(_: LayoutNode, localizedStringForKey key: String) -> String? {
-        return _loader?.localizedStrings[key]
+        do {
+            return try _loader?.loadLocalizedStrings()[key]
+        } catch {
+            layoutError(LayoutError(error))
+            return nil
+        }
     }
 }

@@ -63,6 +63,7 @@
 		011CE6CA1F053D530034771C /* LayoutNodeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 011CE6C01F053D530034771C /* LayoutNodeTests.swift */; };
 		011CE6CB1F053D530034771C /* OptionalExpressionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 011CE6C11F053D530034771C /* OptionalExpressionTests.swift */; };
 		011CE6CC1F053D530034771C /* StateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 011CE6C21F053D530034771C /* StateTests.swift */; };
+		0176B8F91F0D153700431A11 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 0176B8F81F0D153700431A11 /* Localizable.strings */; };
 		3FC478FDE0F3EF65150E975A /* Pods_UIDesigner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 53F1B12A3E800D0CF1C1C2D3 /* Pods_UIDesigner.framework */; };
 		7572EAFFC9E6F878F0246ECE /* Pods_LayoutTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 05DA996CC29E3F6DB7194413 /* Pods_LayoutTests.framework */; };
 		993ECB87ED36B221AEB02060 /* Pods_Layout.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4118130BF7EC77593CF35CF1 /* Pods_Layout.framework */; };
@@ -164,6 +165,7 @@
 		011CE6C01F053D530034771C /* LayoutNodeTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LayoutNodeTests.swift; sourceTree = "<group>"; };
 		011CE6C11F053D530034771C /* OptionalExpressionTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OptionalExpressionTests.swift; sourceTree = "<group>"; };
 		011CE6C21F053D530034771C /* StateTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StateTests.swift; sourceTree = "<group>"; };
+		0176B8F81F0D153700431A11 /* Localizable.strings */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; path = Localizable.strings; sourceTree = "<group>"; };
 		01DA95861EABFF5F00868113 /* Expression.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Expression.framework; path = "../../../Library/Developer/Xcode/DerivedData/Layout-cidlxdzqvadfbngzwtfaldjrmjir/Build/Products/Debug-iphonesimulator/Expression.framework"; sourceTree = "<group>"; };
 		05DA996CC29E3F6DB7194413 /* Pods_LayoutTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_LayoutTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		112BC42B887D6AFE2BE726FB /* Pods-Layout.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Layout.release.xcconfig"; path = "Pods/Target Support Files/Pods-Layout/Pods-Layout.release.xcconfig"; sourceTree = "<group>"; };
@@ -270,6 +272,7 @@
 				011CE64C1F05338A0034771C /* Assets.xcassets */,
 				011CE64E1F05338A0034771C /* LaunchScreen.storyboard */,
 				011CE6511F05338A0034771C /* Info.plist */,
+				0176B8F81F0D153700431A11 /* Localizable.strings */,
 			);
 			path = SampleApp;
 			sourceTree = "<group>";
@@ -599,6 +602,7 @@
 				011CE65F1F05343F0034771C /* Boxes.xml in Resources */,
 				011CE6631F05343F0034771C /* Pages.xml in Resources */,
 				011CE6501F05338A0034771C /* LaunchScreen.storyboard in Resources */,
+				0176B8F91F0D153700431A11 /* Localizable.strings in Resources */,
 				011CE6681F05343F0034771C /* Text.xml in Resources */,
 				011CE6661F05343F0034771C /* TableCell.xml in Resources */,
 				011CE6611F05343F0034771C /* Examples.xml in Resources */,

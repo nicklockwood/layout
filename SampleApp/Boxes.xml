@@ -25,7 +25,7 @@
         <UILabel
             left="previous.left"
             numberOfLines="0"
-            text="Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+            text="{strings.Lorem.Ipsum}"
             top="15 + previous.bottom"
             width="isToggled ? previous.width : 100% - 30"
         />
