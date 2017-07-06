@@ -25,44 +25,6 @@ private let ignoredSymbols: Set<Expression.Symbol> = [
     .variable("nil"),
 ]
 
-private enum ParsedExpressionPart {
-    case string(String)
-    case expression(ParsedExpression)
-}
-
-private var expressionCache = [String: [ParsedExpressionPart]]()
-private var stringExpressionCache = [String: [ParsedExpressionPart]]()
-private func parseExpression(_ expression: String, isString: Bool) -> [ParsedExpressionPart] {
-    assert(Thread.isMainThread)
-    if let parts = (isString ? stringExpressionCache : expressionCache)[expression] {
-        return parts
-    }
-    var parts = [ParsedExpressionPart]()
-    var range = expression.startIndex ..< expression.endIndex
-    while let subrange = expression.range(of: "\\{[^}]*\\}", options: .regularExpression, range: range) {
-        let string = expression.substring(with: range.lowerBound ..< subrange.lowerBound)
-        if !string.isEmpty {
-            parts.append(.string(string))
-        }
-        let expressionString = String(expression.characters[subrange].dropFirst().dropLast())
-        let parsedExpression = Expression.parse(expressionString, usingCache: false)
-        parts.append(.expression(parsedExpression))
-        range = subrange.upperBound ..< range.upperBound
-    }
-    if !range.isEmpty {
-        parts.append(.string(expression.substring(with: range)))
-    }
-    if isString {
-        stringExpressionCache[expression] = parts
-        return parts
-    }
-    if parts.count == 1, case let .string(string) = parts[0] {
-        parts[0] = .expression(Expression.parse(string, usingCache: false))
-    }
-    expressionCache[expression] = parts
-    return parts
-}
-
 struct LayoutExpression {
     let evaluate: () throws -> Any
     let symbols: Set<String>
@@ -90,6 +52,7 @@ struct LayoutExpression {
     private init(numberExpression: String,
                  symbols: [Expression.Symbol: Expression.Symbol.Evaluator],
                  for node: LayoutNode) {
+
         self.init(
             anyExpression: numberExpression,
             type: RuntimeType(Double.self),
@@ -106,6 +69,7 @@ struct LayoutExpression {
     private init(percentageExpression: String,
                  for prop: String, in node: LayoutNode,
                  symbols: [Expression.Symbol: Expression.Symbol.Evaluator] = [:]) {
+
         let prop = "parent.\(prop)"
         var symbols = symbols
         symbols[.postfix("%")] = { [unowned node] args in
@@ -174,8 +138,8 @@ struct LayoutExpression {
                  numericSymbols: [AnyExpression.Symbol: Expression.Symbol.Evaluator] = [:],
                  lookup: @escaping (String) -> Any? = { _ in nil },
                  for node: LayoutNode) {
-        let parts = parseExpression(anyExpression, isString: false)
-        guard parts.count == 1, case let .expression(parsedExpression) = parts[0] else {
+
+        guard let parsedExpression = parseExpression(anyExpression) else {
             self.init(malformedExpression: anyExpression)
             return
         }
@@ -197,6 +161,7 @@ struct LayoutExpression {
                  numericSymbols: [AnyExpression.Symbol: Expression.Symbol.Evaluator] = [:],
                  lookup: @escaping (String) -> Any? = { _ in nil },
                  for node: LayoutNode) {
+
         var constants = [String: Any]()
         var symbols = symbols
         for symbol in parsedExpression.symbols where symbols[symbol] == nil &&
@@ -326,7 +291,7 @@ struct LayoutExpression {
         }
 
         var symbols = Set<String>()
-        let parts: [ExpressionPart] = parseExpression(expression, isString: true).map { part in
+        let parts: [ExpressionPart] = parseStringExpression(expression).map { part in
             switch part {
             case let .expression(parsedExpression):
                 let expression = LayoutExpression(
