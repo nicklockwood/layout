@@ -19,7 +19,7 @@ Pod::Spec.new do |s|
   
   s.subspec 'Core' do |core|
     core.source_files = "Layout/*.swift"
-    core.dependency 'Expression', '~> 0.7.0'
+    core.dependency 'Expression', '~> 0.7.1'
     core.ios.deployment_target = '9.0'
   end
   

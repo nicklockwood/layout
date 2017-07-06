@@ -1,6 +1,6 @@
 {
   "name": "Layout",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "summary": "XML templates + expression-based layout system",
   "homepage": "https://github.schibsted.io/Rocket/layout/",
   "license": {
@@ -12,7 +12,7 @@
   },
   "source": {
     "git": "git@github.schibsted.io:Rocket/layout.git",
-    "tag": "0.3.4"
+    "tag": "0.3.5"
   },
   "default_subspecs": "Core",
   "pod_target_xcconfig": {
@@ -31,7 +31,7 @@
       "source_files": "Layout/*.swift",
       "dependencies": {
         "Expression": [
-          "~> 0.7.0"
+          "~> 0.7.1"
         ]
       },
       "platforms": {

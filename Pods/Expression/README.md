@@ -226,7 +226,7 @@ The parser also accepts quoted strings as identifiers. Single quotes (') , doubl
 
 These symbols represent *operators*. Operators can be one or more characters long, and can contain almost any symbol that wouldn't conflict with a valid identifier name. You can overload existing infix operators with a post/prefix variant, or vice-versa. Disambiguation depends on the white-space surrounding the operator (which is the same approach used by Swift).
 
-Any valid identifier may also be used as a postfix operator, by placing it after an operator or literal value. For example, you could define `m` and `cm` as postfix operators when handling distance logic, or `hours`, `minutes` and `seconds` operators for computing times.
+Any valid identifier may also be used as an infix operator, by placing it between two operands, or as a postfix operator, by placing it after an operand. For example, you could define `m` and `cm` as postfix operators when handling distance logic, or use `and` as a more readable alternative to the boolean `&&` operator.
 
 Operator precedence follows standard BODMAS order, with multiplication/division given precedence over addition/subtraction. Prefix operators take precedence over postfix operators, which take precedence over infix ones. There is currently no way to specify precedence for custom operators - they all have equal priority to addition/subtraction.
 
