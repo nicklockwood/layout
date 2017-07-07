@@ -2,7 +2,7 @@
 //  Expression.swift
 //  Expression
 //
-//  Version 0.7.1
+//  Version 0.8.0
 //
 //  Created by Nick Lockwood on 15/09/2016.
 //  Copyright © 2016 Nick Lockwood. All rights reserved.
@@ -180,11 +180,6 @@ public class Expression: CustomStringConvertible {
     /// Options for configuring an expression
     public struct Options: OptionSet {
 
-        /// This option is deprecated, as it has no effect when using a pre-parsed
-        /// expression. To bypass the cache, use `parse(_, usingCache:)` instead
-        @available(*, deprecated)
-        public static let noCache = Options(rawValue: 1 << 0)
-
         /// Disable optimizations such as constant substitution
         public static let noOptimize = Options(rawValue: 1 << 1)
 
@@ -215,9 +210,8 @@ public class Expression: CustomStringConvertible {
                             constants: [String: Double] = [:],
                             symbols: [Symbol: Symbol.Evaluator] = [:],
                             evaluator: Evaluator? = nil) {
-
         self.init(
-            Expression.parse(expression, usingCache: !options.contains(.noCache)),
+            Expression.parse(expression),
             options: options,
             constants: constants,
             symbols: symbols,
@@ -350,10 +344,21 @@ public class Expression: CustomStringConvertible {
         }
 
         // Parse
-        let subexpression: Subexpression
+        var subexpression: Subexpression
         do {
             var characters = expression.unicodeScalars
             subexpression = try characters.parseSubexpression()
+            // Check for trailing junk
+            if let junk = characters.scanCharacters({
+                switch $0 {
+                case " ", "\t", "\n", "\r":
+                    return false
+                default:
+                    return true
+                }
+            }) {
+                subexpression = .error(.unexpectedToken(junk), expression)
+            }
         } catch {
             subexpression = .error(error as! Error, expression)
         }
@@ -362,6 +367,16 @@ public class Expression: CustomStringConvertible {
         if usingCache {
             queue.async { cache[expression] = subexpression }
         }
+        return ParsedExpression(root: subexpression)
+    }
+
+    /// Parse an expression directly from the provided UnicodeScalarView
+    /// Unlike `parse(_: String)`, this method will not raise an error if it
+    /// encounters an unexpected token after the expression, but will simply
+    /// return. This is convenient if you wish to parse expressions that are
+    /// nested inside another string, e.g. for implementing string interpolation
+    public static func parse(_ input: inout String.UnicodeScalarView) throws -> ParsedExpression {
+        let subexpression = try input.parseSubexpression()
         return ParsedExpression(root: subexpression)
     }
 
@@ -538,7 +553,7 @@ private enum Subexpression: CustomStringConvertible {
                 let arg = args[0]
                 let description = "\(arg)"
                 switch arg {
-                case .operand(.infix, _, _), .error,
+                case .operand(.infix, _, _), .operand(.postfix, _, _), .error,
                      .operand where isOperator(name.unicodeScalars.first!)
                          == isOperator(description.unicodeScalars.last!):
                     return "(\(description))\(name)" // Parens required
@@ -551,8 +566,7 @@ private enum Subexpression: CustomStringConvertible {
                 let lhs = args[0]
                 let lhsDescription: String
                 switch lhs {
-                case let .operand(.infix(opName), _, _) where
-                    isRightAssociative(opName) && isRightAssociative(name):
+                case let .operand(.infix(opName), _, _) where !op(opName, takesPrecedenceOver: name):
                     lhsDescription = "(\(lhs))"
                 default:
                     lhsDescription = "\(lhs)"
@@ -597,6 +611,7 @@ private enum Subexpression: CustomStringConvertible {
 
     func optimized(withSymbols impureSymbols: [Expression.Symbol: Expression.Symbol.Evaluator],
                    pureSymbols: [Expression.Symbol: Expression.Symbol.Evaluator]) -> Subexpression {
+
         guard case .operand(let symbol, var args, _) = self else {
             return self
         }
@@ -635,9 +650,50 @@ private let comparisonOperators = Set([
     "lt", "le", "lte", "gt", "ge", "gte", "eq", "ne",
 ])
 
-private func isRightAssociative(_ op: String) -> Bool {
-    return comparisonOperators.contains(op) || assignmentOperators.contains(op)
+private func op(_ lhs: String, takesPrecedenceOver rhs: String) -> Bool {
+
+    // https://github.com/apple/swift-evolution/blob/master/proposals/0077-operator-precedence.md
+    func precedence(of op: String) -> Int {
+        switch op {
+        case "<<", ">>", ">>>": // bitshift
+            return 2
+        case "*", "/", "%", "&": // multiplication
+            return 1
+        case "..", "...", "..<": // range formation
+            return -1
+        case "is", "as", "isa": // casting
+            return -2
+        case "??", "?:": // null-coalescing
+            return -3
+        case _ where comparisonOperators.contains(op): // comparison
+            return -4
+        case "&&", "and": // and
+            return -5
+        case "||", "or": // or
+            return -6
+        case "?", ":": // ternary
+            return -7
+        case _ where assignmentOperators.contains(op): // assignment
+            return -8
+        case ",":
+            return -100
+        default: // +, -, |, ^, etc
+            return 0
+        }
+    }
+
+    func isRightAssociative(_ op: String) -> Bool {
+        return comparisonOperators.contains(op) || assignmentOperators.contains(op)
+    }
+
+    let p1 = precedence(of: lhs)
+    let p2 = precedence(of: rhs)
+    if p1 == p2 {
+        return !isRightAssociative(lhs)
+    }
+    return p1 > p2
 }
+
 
 private func isOperator(_ char: UnicodeScalar) -> Bool {
     // Strangely, this is faster than switching on value
@@ -926,45 +982,6 @@ private extension String.UnicodeScalarView {
         var stack: [Subexpression] = []
         var scopes: [[Subexpression]] = []
 
-        // https://github.com/apple/swift-evolution/blob/master/proposals/0077-operator-precedence.md
-        func precedence(of op: String) -> Int {
-            switch op {
-            case "<<", ">>", ">>>": // bitshift
-                return 2
-            case "*", "/", "%", "&": // multiplication
-                return 1
-            case "..", "...", "..<": // range formation
-                return -1
-            case "is", "as", "isa": // casting
-                return -2
-            case "??", "?:": // null-coalescing
-                return -3
-            case _ where comparisonOperators.contains(op): // comparison
-                return -4
-            case "&&", "and": // and
-                return -5
-            case "||", "or": // or
-                return -6
-            case "?", ":": // ternary
-                return -7
-            case _ where assignmentOperators.contains(op): // assignment
-                return -8
-            case ",":
-                return -100
-            default: // +, -, |, ^, etc
-                return 0
-            }
-        }
-
-        func op(_ op1: String, takesPrecedenceOver op2: String) -> Bool {
-            let p1 = precedence(of: op1)
-            let p2 = precedence(of: op2)
-            if p1 == p2 {
-                return !isRightAssociative(op1)
-            }
-            return p1 > p2
-        }
-
         func collapseStack(from i: Int) throws {
             guard stack.count > 1 else {
                 return
@@ -996,17 +1013,14 @@ private extension String.UnicodeScalarView {
             case .literal, .operand:
                 let rhs = stack[i + 1]
                 switch rhs {
-                case .literal:
-                    // cannot follow an operand
-                    throw Expression.Error.unexpectedToken("\(rhs)")
-                case let .operand(symbol, _, _):
-                    guard case let .variable(name) = symbol else {
-                        // operand cannot follow another operand
-                        // TODO: the symbol may not be the first part of the operand
-                        throw Expression.Error.unexpectedToken(symbol.name)
+                case .literal, .operand:
+                    guard case let .operand(.postfix(op), args, _) = lhs, let arg = args.first else {
+                        // cannot follow an operand
+                        throw Expression.Error.unexpectedToken("\(rhs)")
                     }
-                    // treat as operator
-                    stack[i + 1] = .infix(name)
+                    // assume prefix operator was actually an infix operator
+                    stack[i] = arg
+                    stack.insert(.infix(op), at: i + 1)
                     try collapseStack(from: i)
                 case let .postfix(op1):
                     stack[i ... i + 1] = [.operand(.postfix(op1), [lhs], placeholder)]
@@ -1047,6 +1061,7 @@ private extension String.UnicodeScalarView {
             }
         }
 
+        var operandPosition = true
         var precededByWhitespace = true
         while let expression =
             try parseNumericLiteral() ??
@@ -1055,15 +1070,22 @@ private extension String.UnicodeScalarView {
             parseEscapedIdentifier() {
 
             // prepare for next iteration
-            let followedByWhitespace = skipWhitespace() || count == 0
+            let followedByWhitespace = skipWhitespace() || isEmpty
 
             switch expression {
             case .infix("("):
+                operandPosition = true
                 scopes.append(stack)
                 stack = []
             case .infix(")"):
-                if let previous = stack.last, case let .infix(op) = previous {
-                    stack[stack.count - 1] = .postfix(op)
+                operandPosition = false
+                if let previous = stack.last {
+                    switch previous {
+                    case let .infix(op), let .prefix(op):
+                        stack[stack.count - 1] = .postfix(op)
+                    default:
+                        break
+                    }
                 }
                 try collapseStack(from: 0)
                 guard var oldStack = scopes.last else {
@@ -1085,11 +1107,13 @@ private extension String.UnicodeScalarView {
                 }
                 stack = oldStack + stack
             case .infix(","):
+                operandPosition = true
                 if let previous = stack.last, case let .infix(op) = previous {
                     stack[stack.count - 1] = .postfix(op)
                 }
                 stack.append(expression)
             case let .infix(name):
+                operandPosition = true
                 switch (precededByWhitespace, followedByWhitespace) {
                 case (true, true), (false, false):
                     stack.append(expression)
@@ -1098,23 +1122,19 @@ private extension String.UnicodeScalarView {
                 case (false, true):
                     stack.append(.postfix(name))
                 }
+            case let .operand(.variable(name), _, _):
+                if operandPosition {
+                    fallthrough
+                }
+                operandPosition = true
+                stack.append(.infix(name))
             default:
+                operandPosition = false
                 stack.append(expression)
             }
 
             // next iteration
             precededByWhitespace = followedByWhitespace
-        }
-        if let junk = scanCharacters({
-            switch $0 {
-            case " ", "\t", "\n", "\r":
-                return false
-            default:
-                return true
-            }
-        }) {
-            // Unexpected token
-            throw Expression.Error.unexpectedToken(junk)
         }
         if stack.count < 1 {
             // Empty expression

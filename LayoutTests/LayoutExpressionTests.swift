@@ -8,83 +8,85 @@ class LayoutExpressionTests: XCTestCase {
     // MARK: Expression parsing
 
     func testParseExpressionWithoutBraces() {
-        let expression = parseExpression("4 + 5")
+        let expression = try? parseExpression("4 + 5")
         XCTAssertNotNil(expression)
         XCTAssertEqual(expression?.symbols, [.infix("+")])
     }
 
     func testParseExpressionWithBraces() {
-        let expression = parseExpression("{4 + 5}")
+        let expression = try? parseExpression("{4 + 5}")
         XCTAssertNotNil(expression)
         XCTAssertEqual(expression?.symbols, [.infix("+")])
     }
 
     func testParseExpressionWithBracesAndWhitespace() {
-        let expression = parseExpression(" {4 + 5} ")
+        let expression = try? parseExpression(" {4 + 5} ")
         XCTAssertNotNil(expression)
         XCTAssertEqual(expression?.symbols, [.infix("+")])
     }
 
     func testParseExpressionWithLeadingGarbage() {
-        let expression = parseExpression("foo {4 + 5}")
-        XCTAssertNil(expression)
+        XCTAssertThrowsError(try parseExpression("foo {4 + 5}"))
     }
 
     func testParseExpressionWithTrailingGarbage() {
-        let expression = parseExpression("{4 + 5} foo")
-        XCTAssertNil(expression)
+        XCTAssertThrowsError(try parseExpression("{4 + 5} foo"))
     }
 
     func testParseEmptyExpression() {
-        let expression = parseExpression("")
-        XCTAssertNil(expression)
+        XCTAssertThrowsError(try parseExpression(""))
     }
 
     func testParseExpressionWithEmptyBraces() {
-        let expression = parseExpression("{}")
-        XCTAssertNotNil(expression)
-        XCTAssertNotNil(expression?.error)
+        XCTAssertThrowsError(try parseExpression("{}"))
     }
 
     func testParseExpressionOpeningBrace() {
-        let expression = parseExpression("{")
-        XCTAssertNotNil(expression)
-        XCTAssertNotNil(expression?.error)
+        XCTAssertThrowsError(try parseExpression("{"))
     }
 
     func testParseExpressionWithClosingBrace() {
-        let expression = parseExpression("}")
-        XCTAssertNotNil(expression)
-        XCTAssertNotNil(expression?.error)
+        XCTAssertThrowsError(try parseExpression("}"))
     }
 
     func testParseExpressionWithMissingClosingBrace() {
-        let expression = parseExpression("{4 + 5")
-        XCTAssertNotNil(expression)
-        XCTAssertNotNil(expression?.error)
+        XCTAssertThrowsError(try parseExpression("{4 + 5"))
     }
 
     func testParseExpressionWithMissingOpeningBrace() {
-        let expression = parseExpression("4 + 5}")
-        XCTAssertNotNil(expression)
-        XCTAssertNotNil(expression?.error)
+        XCTAssertThrowsError(try parseExpression("4 + 5}"))
     }
 
     func testParseExpressionWithExtraOpeningBrace() {
-        let expression = parseExpression("{{4 + 5}")
-        XCTAssertNotNil(expression)
-        XCTAssertNotNil(expression?.error)
+        XCTAssertThrowsError(try parseExpression("{{4 + 5}"))
     }
 
     func testParseExpressionWithExtraClosingBrace() {
-        let expression = parseExpression("{4 + 5}}")
-        XCTAssertNil(expression)
+        XCTAssertThrowsError(try parseExpression("{4 + 5}}"))
+    }
+
+    func testParseExpressionWithClosingBraceInQuotes() {
+        let expression = try? parseExpression("{'}'}")
+        XCTAssertNotNil(expression)
+        XCTAssertNil(expression?.error)
+    }
+
+    func testParseExpressionWithOpeningBraceInQuotes() {
+        let expression = try? parseExpression("{'{'}")
+        XCTAssertNotNil(expression)
+        XCTAssertNil(expression?.error)
+    }
+
+    func testParseExpressionWithBracesInQuotes() {
+        let expression = try? parseExpression("{'{foo}'}")
+        XCTAssertNotNil(expression)
+        XCTAssertNil(expression?.error)
     }
 
     // MARK: String expression parsing
 
     func testParseStringExpressionWithoutBraces() {
-        let parts = parseStringExpression("4 + 5")
+        let parts = (try? parseStringExpression("4 + 5")) ?? []
         XCTAssertEqual(parts.count, 1)
         guard let part = parts.first, case let .string(string) = part else {
             XCTFail()
@@ -94,7 +96,7 @@ class LayoutExpressionTests: XCTestCase {
     }
 
     func testParseStringExpressionWithBraces() {
-        let parts = parseStringExpression("{4 + 5}")
+        let parts = (try? parseStringExpression("{4 + 5}")) ?? []
         XCTAssertEqual(parts.count, 1)
         guard let part = parts.first, case let .expression(expression) = part else {
             XCTFail()
@@ -104,7 +106,7 @@ class LayoutExpressionTests: XCTestCase {
     }
 
     func testParseStringExpressionWithBracesAndWhitespace() {
-        let parts = parseStringExpression(" {4 + 5} ")
+        let parts = (try? parseStringExpression(" {4 + 5} ")) ?? []
         guard parts.count == 3 else {
             XCTFail()
             return
@@ -124,7 +126,7 @@ class LayoutExpressionTests: XCTestCase {
     }
 
     func testParseStringExpressionWithMultipleBraces() {
-        let parts = parseStringExpression("{4} + {5}")
+        let parts = (try? parseStringExpression("{4} + {5}")) ?? []
         guard parts.count == 3 else {
             XCTFail()
             return
@@ -144,84 +146,70 @@ class LayoutExpressionTests: XCTestCase {
     }
 
     func testParseEmptyStringExpression() {
-        let parts = parseStringExpression("")
-        XCTAssertTrue(parts.isEmpty)
+        do {
+            let parts = try parseStringExpression("")
+            XCTAssertTrue(parts.isEmpty)
+        } catch {
+            XCTFail()
+        }
     }
 
     func testParseStringExpressionWithEmptyBraces() {
-        let parts = parseStringExpression("{}")
-        XCTAssertEqual(parts.count, 1)
-        guard let part = parts.first, case let .expression(expression) = part else {
-            XCTFail()
-            return
-        }
-        XCTAssertNotNil(expression.error)
+        XCTAssertThrowsError(try parseStringExpression("{}"))
     }
 
     func testParseStringExpressionOpeningBrace() {
-        let parts = parseStringExpression("{")
-        XCTAssertEqual(parts.count, 1)
-        guard let part = parts.first, case let .string(string) = part else {
-            XCTFail()
-            return
-        }
-        XCTAssertEqual(string, "{")
+        XCTAssertThrowsError(try parseStringExpression("{"))
     }
 
     func testParseStringExpressionClosingBrace() {
-        let parts = parseStringExpression("}")
-        XCTAssertEqual(parts.count, 1)
-        guard let part = parts.first, case let .string(string) = part else {
-            XCTFail()
-            return
-        }
-        XCTAssertEqual(string, "}")
+        XCTAssertThrowsError(try parseStringExpression("}"))
     }
 
     func testParseStringExpressionWithMissingClosingBrace() {
-        let parts = parseStringExpression("{4 + 5")
-        XCTAssertEqual(parts.count, 1)
-        guard let part = parts.first, case let .string(string) = part else {
-            XCTFail()
-            return
-        }
-        XCTAssertEqual(string, "{4 + 5")
+        XCTAssertThrowsError(try parseStringExpression("{4 + 5"))
     }
 
     func testParseStringExpressionWithMissingOpeningBrace() {
-        let parts = parseStringExpression("4 + 5}")
-        XCTAssertEqual(parts.count, 1)
-        guard let part = parts.first, case let .string(string) = part else {
-            XCTFail()
-            return
-        }
-        XCTAssertEqual(string, "4 + 5}")
+        XCTAssertThrowsError(try parseStringExpression("4 + 5}"))
     }
 
     func testParseStringExpressionWithExtraOpeningBrace() {
-        let parts = parseStringExpression("{{4 + 5}")
+        XCTAssertThrowsError(try parseStringExpression("{{4 + 5}"))
+    }
+
+    func testParseStringExpressionWithExtraClosingBrace() {
+        XCTAssertThrowsError(try parseStringExpression("{4 + 5}}"))
+    }
+
+    func testParseStringExpressionWithClosingBraceInQuotes() {
+        let parts = (try? parseStringExpression("{'}'}")) ?? []
         XCTAssertEqual(parts.count, 1)
         guard let part = parts.first, case let .expression(expression) = part else {
             XCTFail()
             return
         }
-        XCTAssertNotNil(expression.error)
+        XCTAssertNil(expression.error)
     }
 
-    func testParseStringExpressionWithExtraClosingBrace() {
-        let parts = parseStringExpression("{4 + 5}}")
-        guard parts.count == 2 else {
+    func testParseStringExpressionWithOpeningBraceInQuotes() {
+        let parts = (try? parseStringExpression("{'{'}")) ?? []
+        XCTAssertEqual(parts.count, 1)
+        guard let part = parts.first, case let .expression(expression) = part else {
             XCTFail()
             return
         }
-        guard case let .expression(a) = parts[0], a.symbols == [.infix("+")] else {
+        XCTAssertNil(expression.error)
+    }
+
+    func testParseStringExpressionWithBracesInQuotes() {
+        let parts = (try? parseStringExpression("{'{foo}'}")) ?? []
+        XCTAssertEqual(parts.count, 1)
+        guard let part = parts.first, case let .expression(expression) = part else {
             XCTFail()
             return
         }
-        guard case let .string(b) = parts[1], b == "}" else {
-            XCTFail()
-            return
-        }
+        XCTAssertNil(expression.error)
     }
 
     // MARK: Integration tests

@@ -40,13 +40,6 @@ struct LayoutExpression {
         }
     }
 
-    init(malformedExpression: String) {
-        symbols = []
-        evaluate = {
-            throw Expression.Error.message("Malformed expression `\(malformedExpression)`")
-        }
-    }
-
     // Symbols are assumed to be impure - i.e. they won't always return the same value
     private init(numberExpression: String,
                  symbols: [Expression.Symbol: Expression.Symbol.Evaluator],
@@ -137,19 +130,21 @@ struct LayoutExpression {
                  numericSymbols: [AnyExpression.Symbol: Expression.Symbol.Evaluator] = [:],
                  lookup: @escaping (String) -> Any? = { _ in nil },
                  for node: LayoutNode) {
-
-        guard let parsedExpression = parseExpression(anyExpression) else {
-            self.init(malformedExpression: anyExpression)
-            return
+        do {
+            self.init(
+                anyExpression: try parseExpression(anyExpression),
+                type: type,
+                symbols: symbols,
+                numericSymbols: numericSymbols,
+                lookup: lookup,
+                for: node
+            )
+        } catch {
+            self.init(
+                evaluate: { throw error },
+                symbols: []
+            )
         }
-        self.init(
-            anyExpression: parsedExpression,
-            type: type,
-            symbols: symbols,
-            numericSymbols: numericSymbols,
-            lookup: lookup,
-            for: node
-        )
     }
 
     // symbols are assumed to be pure - i.e. they will always return the same value
@@ -289,34 +284,41 @@ struct LayoutExpression {
             case expression(() throws -> Any)
         }
 
-        var symbols = Set<String>()
-        let parts: [ExpressionPart] = parseStringExpression(expression).map { part in
-            switch part {
-            case let .expression(parsedExpression):
-                let expression = LayoutExpression(
-                    anyExpression: parsedExpression,
-                    type: RuntimeType(Any.self),
-                    for: node
-                )
-                symbols.formUnion(expression.symbols)
-                return .expression(expression.evaluate)
-            case let .string(string):
-                return .string(string)
-            }
-        }
-        self.init(
-            evaluate: {
-                try parts.map { part -> Any in
-                    switch part {
-                    case let .expression(evaluate):
-                        return try evaluate()
-                    case let .string(string):
-                        return string
-                    }
+        do {
+            var symbols = Set<String>()
+            let parts: [ExpressionPart] = try parseStringExpression(expression).map { part in
+                switch part {
+                case let .expression(parsedExpression):
+                    let expression = LayoutExpression(
+                        anyExpression: parsedExpression,
+                        type: RuntimeType(Any.self),
+                        for: node
+                    )
+                    symbols.formUnion(expression.symbols)
+                    return .expression(expression.evaluate)
+                case let .string(string):
+                    return .string(string)
                 }
-            },
-            symbols: symbols
-        )
+            }
+            self.init(
+                evaluate: {
+                    try parts.map { part -> Any in
+                        switch part {
+                        case let .expression(evaluate):
+                            return try evaluate()
+                        case let .string(string):
+                            return string
+                        }
+                    }
+                },
+                symbols: symbols
+            )
+        } catch {
+            self.init(
+                evaluate: { throw error },
+                symbols: []
+            )
+        }
     }
 
     init(stringExpression: String, for node: LayoutNode) {
