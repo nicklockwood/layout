@@ -1,6 +1,0 @@
-framework module Pods_UIDesigner {
-  umbrella header "Pods-UIDesigner-umbrella.h"
-
-  export *
-  module * { export * }
-}

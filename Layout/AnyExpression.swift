@@ -30,7 +30,6 @@
 //
 
 import Foundation
-import Expression
 
 private let mask: UInt64 = 0b11111111_11111000_00000000_00000000_00000000_00000000_00000000_00000000
 

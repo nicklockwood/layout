@@ -2,7 +2,6 @@
 
 import UIKit
 import Foundation
-import Expression
 
 private func stringify(_ value: Any) throws -> String {
     switch try unwrap(value) {

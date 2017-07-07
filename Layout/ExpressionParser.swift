@@ -1,6 +1,6 @@
 //  Copyright © 2017 Schibsted. All rights reserved.
 
-import Expression
+import Foundation
 
 enum ParsedExpressionPart {
     case string(String)
@@ -8,6 +8,7 @@ enum ParsedExpressionPart {
 }
 
 // Preprocess the expression to find brace-delimited sub-expressions
+// TODO: handle closing brace inside quotes within an expression
 private func _parseExpression(_ expression: String) -> [ParsedExpressionPart] {
     var parts = [ParsedExpressionPart]()
     var range = expression.startIndex ..< expression.endIndex
@@ -27,9 +28,9 @@ private func _parseExpression(_ expression: String) -> [ParsedExpressionPart] {
     return parts
 }
 
+// NOTE: it is not safe to access this concurrently from multiple threads due to cache
 private var _expressionCache = [String: ParsedExpression]()
 func parseExpression(_ expression: String) -> ParsedExpression? {
-    assert(Thread.isMainThread)
     if let parsedExpression = _expressionCache[expression] {
         return parsedExpression
     }
@@ -48,9 +49,9 @@ func parseExpression(_ expression: String) -> ParsedExpression? {
     return parsedExpression
 }
 
+// NOTE: it is not safe to access this concurrently from multiple threads due to cache
 private var _stringExpressionCache = [String: [ParsedExpressionPart]]()
 func parseStringExpression(_ expression: String) -> [ParsedExpressionPart] {
-    assert(Thread.isMainThread)
     if let parts = _stringExpressionCache[expression] {
         return parts
     }

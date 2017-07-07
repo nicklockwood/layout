@@ -1,7 +1,6 @@
 //  Copyright © 2017 Schibsted. All rights reserved.
 
 import XCTest
-import Expression
 @testable import Layout
 
 class AnyExpressionTests: XCTestCase {

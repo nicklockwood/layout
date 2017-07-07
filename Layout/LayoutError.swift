@@ -1,7 +1,6 @@
 //  Copyright © 2017 Schibsted. All rights reserved.
 
 import Foundation
-import Expression
 
 public struct SymbolError: Error, Hashable, CustomStringConvertible {
     let symbol: String
