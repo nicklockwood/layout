@@ -171,4 +171,30 @@ class FormatTests: XCTestCase {
         let output = "<!-- <Foo>\"bar & baz\"</Foo> -->\n<Bar/>\n"
         XCTAssertEqual(try format(input), output)
     }
+
+    // MARK: Expressions
+
+    func testFormatKnownExpressionAttribute() {
+        let input = "<Foo\n    top=\"10-5* 4\"\n/>"
+        let output = "<Foo\n    top=\"10 - (5 * 4)\"\n/>\n"
+        XCTAssertEqual(try format(input), output)
+    }
+
+    func testFormatUnknownExpressionAttribute() {
+        let input = "<Foo\n    bar=\"foo-bar\"\n/>"
+        let output = "<Foo\n    bar=\"foo-bar\"\n/>\n"
+        XCTAssertEqual(try format(input), output)
+    }
+
+    func testFormatUnknownEscapedExpressionAttribute() {
+        let input = "<Foo\n    bar=\"{foo-bar}\"\n/>"
+        let output = "<Foo\n    bar=\"{foo - bar}\"\n/>\n"
+        XCTAssertEqual(try format(input), output)
+    }
+
+    func testFormatUnknownColorAttribute() {
+        let input = "<Foo\n    barColor=\"rgb(255,255,0)\"\n/>"
+        let output = "<Foo\n    barColor=\"rgb(255, 255, 0)\"\n/>\n"
+        XCTAssertEqual(try format(input), output)
+    }
 }

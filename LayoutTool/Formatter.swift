@@ -132,6 +132,32 @@ extension XMLNode {
         }
     }
 
+    private func formatAttribute(key: String, value: String) -> String {
+        var description = value
+        switch key {
+        case "top", "left", "bottom", "right", "width", "height", "color",
+             _ where key.hasSuffix("Color"):
+            if let expression = try? parseExpression(value) {
+                description = expression.description
+            }
+        default:
+            // We have to treat everying else as a string expression, because if we attempt
+            // to format text outside of {...} as an expression, it will get messed up
+            if let parts = try? parseStringExpression(value) {
+                description = ""
+                for part in parts {
+                    switch part {
+                    case let .string(string):
+                        description += string
+                    case let .expression(expression):
+                        description += "{\(expression)}"
+                    }
+                }
+            }
+        }
+        return "\(key)=\"\(description.xmlEncoded(forAttribute: true))\""
+    }
+
     func toString(withIndent indent: String, indentFirstLine: Bool = true) -> String {
         switch self {
         case let .node(elementName, attributes, children):
@@ -142,11 +168,11 @@ extension XMLNode {
             })
             if attributes.count < attributeWrap || isHTML {
                 for (key, value) in attributes {
-                    xml += " \(key)=\"\(value.xmlEncoded(forAttribute: true))\""
+                    xml += " \(formatAttribute(key: key, value: value))"
                 }
             } else {
                 for (key, value) in attributes {
-                    xml += "\n\(indent)    \(key)=\"\(value.xmlEncoded(forAttribute: true))\""
+                    xml += "\n\(indent)    \(formatAttribute(key: key, value: value))"
                 }
             }
             if isEmpty {
