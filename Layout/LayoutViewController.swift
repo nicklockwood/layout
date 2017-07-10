@@ -175,7 +175,6 @@ open class LayoutViewController: UIViewController {
                 LayoutNode(
                     view: UILabel(),
                     expressions: [
-                        "top": "40% - (height) / 2",
                         "width": "min(auto, 100% - 40)",
                         "left": "(100% - width) / 2",
                         "text": "{error}. Select the correct one:",
@@ -193,6 +192,7 @@ open class LayoutViewController: UIViewController {
                             "width": "100% - 40",
                             "left": "20",
                             "text": "\(i + 1). \(match.path)",
+                            "contentHorizontalAlignment": "left",
                             "titleColor": "rgba(255,255,255,0.6)",
                             "touchUpInside": "_selectMatch:",
                             "tag": "\(i)",
@@ -205,7 +205,6 @@ open class LayoutViewController: UIViewController {
                 LayoutNode(
                     view: UILabel(),
                     expressions: [
-                        "top": "40% - (height) / 2",
                         "width": "min(auto, 100% - 40)",
                         "left": "(100% - width) / 2",
                         "text": "{error}",
@@ -237,7 +236,19 @@ open class LayoutViewController: UIViewController {
                 "backgroundColor": "#f00",
                 "touchDown": "_reloadLayout",
             ],
-            children: children
+            children: [
+                LayoutNode(
+                    view: UIScrollView(),
+                    expressions: [
+                        "top": "50% - height / 2",
+                        "height": "min(100%, auto + 40)",
+                        "width": "100%",
+                        "contentInset.top": "20",
+                        "contentInset.bottom": "20",
+                    ],
+                    children: children
+                ),
+            ]
         )
         _errorNode!.view.alpha = 0
         try? _errorNode!.mount(in: self)
