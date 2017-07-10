@@ -233,7 +233,7 @@ class LayoutLoader {
             parts.removeFirst()
         }
         var results = [URL]()
-        for file in files {
+        for file in files where !file.hasSuffix(".build") && !file.hasSuffix(".app") {
             let directory = directory.appendingPathComponent(file)
             if file == parts[0] {
                 if parts.count == 1 {
