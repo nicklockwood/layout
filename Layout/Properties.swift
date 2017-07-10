@@ -5,6 +5,7 @@ import Foundation
 public class RuntimeType: NSObject {
     public enum Kind {
         case any(Any.Type)
+        case objCType(String)
         case `protocol`(Protocol)
         case `enum`(Any.Type, [String: Any], (Any) -> Any)
     }
@@ -17,6 +18,10 @@ public class RuntimeType: NSObject {
 
     @nonobjc public init(_ type: Protocol) {
         self.type = .protocol(type)
+    }
+
+    @nonobjc public init(objCType: String) {
+        self.type = .objCType(objCType)
     }
 
     @nonobjc public init<T: RawRepresentable>(_ type: T.Type, _ values: [String: T]) {
@@ -32,6 +37,8 @@ public class RuntimeType: NSObject {
         case let .any(type),
              let .enum(type, _, _):
             return "\(type)"
+        case let .objCType(type):
+            return type
         case let .protocol(type):
             return "\(type)"
         }
@@ -68,6 +75,11 @@ public class RuntimeType: NSObject {
             default:
                 return subtype == Swift.type(of: value) || "\(subtype)" == "\(Swift.type(of: value))" ? value : nil
             }
+        case let .objCType(type):
+            if let value = value as? NSValue, String(cString: value.objCType) == type {
+                return value
+            }
+            return nil
         case let .enum(type, enumValues, _):
             if let key = value as? String, let value = enumValues[key] {
                 return value
@@ -109,8 +121,7 @@ extension NSObject {
         if let memoized = objc_getAssociatedObject(self, &propertiesKey) as? [String: RuntimeType] {
             return memoized
         }
-        if "\(self)".hasPrefix("_") {
-            // We don't want to mess with private stuff
+        if "\(self)".hasPrefix("_") { // We don't want to mess with private stuff
             return [:]
         }
         // Gather properties
@@ -123,8 +134,8 @@ extension NSObject {
             let cprop = properties[i]
             if let cname = property_getName(cprop), let cattribs = property_getAttributes(cprop) {
                 var name = String(cString: cname)
-                if name.hasPrefix("_") {
-                    // We don't want to mess with private stuff
+                guard !name.hasPrefix("_"), // We don't want to mess with private stuff
+                    allProperties[name] == nil else {
                     continue
                 }
                 // Get attributes
@@ -135,7 +146,7 @@ extension NSObject {
                 }
                 let type: RuntimeType
                 let typeAttrib = attribs[0]
-                switch typeAttrib.characters.dropFirst().first! {
+                switch typeAttrib.unicodeScalars.dropFirst().first! {
                 case "c" where OBJC_BOOL_IS_BOOL == 0, "B":
                     type = RuntimeType(Bool.self)
                     for attrib in attribs where attrib.hasPrefix("Gis") {
@@ -175,45 +186,25 @@ extension NSObject {
                 case ":":
                     type = RuntimeType(Selector.self)
                 case "{":
+                    type = RuntimeType(objCType: String(typeAttrib.unicodeScalars.dropFirst()))
                     if typeAttrib.hasPrefix("T{CGPoint") {
-                        type = RuntimeType(CGPoint.self)
-                        if allProperties[name] == nil {
-                            allProperties["\(name).x"] = RuntimeType(CGFloat.self)
-                            allProperties["\(name).y"] = RuntimeType(CGFloat.self)
-                        }
+                        allProperties["\(name).x"] = RuntimeType(CGFloat.self)
+                        allProperties["\(name).y"] = RuntimeType(CGFloat.self)
                     } else if typeAttrib.hasPrefix("T{CGSize") {
-                        type = RuntimeType(CGSize.self)
-                        if allProperties[name] == nil {
-                            allProperties["\(name).width"] = RuntimeType(CGFloat.self)
-                            allProperties["\(name).height"] = RuntimeType(CGFloat.self)
-                        }
+                        allProperties["\(name).width"] = RuntimeType(CGFloat.self)
+                        allProperties["\(name).height"] = RuntimeType(CGFloat.self)
                     } else if typeAttrib.hasPrefix("T{CGRect") {
-                        type = RuntimeType(CGRect.self)
-                        if allProperties[name] == nil {
-                            allProperties["\(name).x"] = RuntimeType(CGFloat.self)
-                            allProperties["\(name).y"] = RuntimeType(CGFloat.self)
-                            allProperties["\(name).width"] = RuntimeType(CGFloat.self)
-                            allProperties["\(name).height"] = RuntimeType(CGFloat.self)
-                            allProperties["\(name).origin"] = RuntimeType(CGPoint.self)
-                            allProperties["\(name).size"] = RuntimeType(CGSize.self)
-                        }
+                        allProperties["\(name).x"] = RuntimeType(CGFloat.self)
+                        allProperties["\(name).y"] = RuntimeType(CGFloat.self)
+                        allProperties["\(name).width"] = RuntimeType(CGFloat.self)
+                        allProperties["\(name).height"] = RuntimeType(CGFloat.self)
+                        allProperties["\(name).origin"] = RuntimeType(CGPoint.self)
+                        allProperties["\(name).size"] = RuntimeType(CGSize.self)
                     } else if typeAttrib.hasPrefix("T{UIEdgeInsets") {
-                        type = RuntimeType(UIEdgeInsets.self)
-                        if allProperties[name] == nil {
-                            allProperties["\(name).top"] = RuntimeType(CGFloat.self)
-                            allProperties["\(name).left"] = RuntimeType(CGFloat.self)
-                            allProperties["\(name).bottom"] = RuntimeType(CGFloat.self)
-                            allProperties["\(name).right"] = RuntimeType(CGFloat.self)
-                        }
-                    } else if typeAttrib.hasPrefix("T{CGAffineTransform") {
-                        // TODO: provide some kind of access to transform members
-                        type = RuntimeType(CGAffineTransform.self)
-                    } else if typeAttrib.hasPrefix("T{CATransform3D") {
-                        // TODO: provide some kind of access to transform members
-                        type = RuntimeType(CATransform3D.self)
-                    } else {
-                        // Generic (possibly unsupported) struct type
-                        type = RuntimeType(NSValue.self)
+                        allProperties["\(name).top"] = RuntimeType(CGFloat.self)
+                        allProperties["\(name).left"] = RuntimeType(CGFloat.self)
+                        allProperties["\(name).bottom"] = RuntimeType(CGFloat.self)
+                        allProperties["\(name).right"] = RuntimeType(CGFloat.self)
                     }
                 case "^":
                     if typeAttrib.hasPrefix("T^{CGColor") {
@@ -229,9 +220,7 @@ extension NSObject {
                     continue
                 }
                 // Store
-                if allProperties[name] == nil {
-                    allProperties[name] = type
-                }
+                allProperties[name] = type
             }
         }
         // Memoize properties

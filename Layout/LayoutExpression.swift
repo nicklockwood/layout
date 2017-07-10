@@ -559,6 +559,12 @@ struct LayoutExpression {
                     symbols: expression.symbols
                 )
             }
+        case .objCType:
+            let expression = LayoutExpression(anyExpression: expression, type: type, for: node)
+            self.init(
+                evaluate: { try unwrap(expression.evaluate()) }, // Handle nil
+                symbols: expression.symbols
+            )
         case .enum:
             self.init(enumExpression: expression, type: type, for: node)
         case .protocol:
