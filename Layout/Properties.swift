@@ -20,8 +20,60 @@ public class RuntimeType: NSObject {
         self.type = .protocol(type)
     }
 
-    @nonobjc public init(objCType: String) {
-        type = .objCType(objCType)
+    @nonobjc public init?(objCType: String) {
+        guard let first = objCType.unicodeScalars.first else {
+            assertionFailure("Empty objCType")
+            return nil
+        }
+        switch first {
+        case "c" where OBJC_BOOL_IS_BOOL == 0, "B":
+            type = .any(Bool.self)
+        case "c", "i", "s", "l", "q":
+            type = .any(Int.self)
+        case "C", "I", "S", "L", "Q":
+            type = .any(UInt.self)
+        case "f":
+            type = .any(Float.self)
+        case "d":
+            type = .any(Double.self)
+        case "*":
+            type = .any(UnsafePointer<Int8>.self)
+        case "@":
+            if objCType.hasPrefix("@\"") {
+                let range = "@\"".endIndex ..< objCType.index(before: objCType.endIndex)
+                let className = objCType.substring(with: range)
+                if className.hasPrefix("<") {
+                    let range = "<".endIndex ..< className.index(before: className.endIndex)
+                    let protocolName = className.substring(with: range)
+                    if let proto = NSProtocolFromString(protocolName) {
+                        type = .protocol(proto)
+                        return
+                    }
+                } else if let cls = NSClassFromString(className) {
+                    type = .any(cls)
+                    return
+                }
+            }
+            type = .any(AnyObject.self)
+        case "#":
+            type = .any(AnyClass.self)
+        case ":":
+            type = .any(Selector.self)
+        case "{":
+            type = .objCType(objCType)
+        case "^":
+            if objCType.hasPrefix("^{CGColor") {
+                type = .any(CGColor.self)
+            } else if objCType.hasPrefix("^{CGImage") {
+                type = .any(CGImage.self)
+            } else {
+                // Unsupported struct ref type
+                return nil
+            }
+        default:
+            // Unsupported type
+            return nil
+        }
     }
 
     @nonobjc public init<T: RawRepresentable>(_ type: T.Type, _ values: [String: T]) {
@@ -124,104 +176,103 @@ extension NSObject {
         if "\(self)".hasPrefix("_") { // We don't want to mess with private stuff
             return [:]
         }
-        // Gather properties
         var allProperties = [String: RuntimeType]()
-        var numberOfProperties: CUnsignedInt = 0
-        guard let properties = class_copyPropertyList(self, &numberOfProperties) else {
-            return [:]
+        func addProperty(name: String, type: RuntimeType) {
+            allProperties[name] = type
+            switch type.type {
+            case let .objCType(objCType):
+                if objCType.hasPrefix("{CGPoint") {
+                    allProperties[name] = RuntimeType(CGPoint.self)
+                    allProperties["\(name).x"] = RuntimeType(CGFloat.self)
+                    allProperties["\(name).y"] = RuntimeType(CGFloat.self)
+                } else if objCType.hasPrefix("{CGSize") {
+                    allProperties[name] = RuntimeType(CGSize.self)
+                    allProperties["\(name).width"] = RuntimeType(CGFloat.self)
+                    allProperties["\(name).height"] = RuntimeType(CGFloat.self)
+                } else if objCType.hasPrefix("{CGRect") {
+                    allProperties[name] = RuntimeType(CGRect.self)
+                    allProperties["\(name).x"] = RuntimeType(CGFloat.self)
+                    allProperties["\(name).y"] = RuntimeType(CGFloat.self)
+                    allProperties["\(name).width"] = RuntimeType(CGFloat.self)
+                    allProperties["\(name).height"] = RuntimeType(CGFloat.self)
+                    allProperties["\(name).origin"] = RuntimeType(CGPoint.self)
+                    allProperties["\(name).size"] = RuntimeType(CGSize.self)
+                } else if objCType.hasPrefix("{UIEdgeInsets") {
+                    allProperties[name] = RuntimeType(UIEdgeInsets.self)
+                    allProperties["\(name).top"] = RuntimeType(CGFloat.self)
+                    allProperties["\(name).left"] = RuntimeType(CGFloat.self)
+                    allProperties["\(name).bottom"] = RuntimeType(CGFloat.self)
+                    allProperties["\(name).right"] = RuntimeType(CGFloat.self)
+                }
+            default:
+                break
+            }
         }
-        for i in 0 ..< Int(numberOfProperties) {
-            let cprop = properties[i]
-            if let cname = property_getName(cprop), let cattribs = property_getAttributes(cprop) {
-                var name = String(cString: cname)
-                guard !name.hasPrefix("_"), // We don't want to mess with private stuff
-                    allProperties[name] == nil else {
-                    continue
-                }
-                // Get attributes
-                let attribs = String(cString: cattribs).components(separatedBy: ",")
-                if attribs.contains("R") {
-                    // skip read-only properties
-                    continue
-                }
-                let type: RuntimeType
-                let typeAttrib = attribs[0]
-                switch typeAttrib.unicodeScalars.dropFirst().first! {
-                case "c" where OBJC_BOOL_IS_BOOL == 0, "B":
-                    type = RuntimeType(Bool.self)
-                    for attrib in attribs where attrib.hasPrefix("Gis") {
-                        name = attrib.substring(from: "G".endIndex)
-                        break
-                    }
-                case "c", "i", "s", "l", "q":
-                    type = RuntimeType(Int.self)
-                case "C", "I", "S", "L", "Q":
-                    type = RuntimeType(UInt.self)
-                case "f":
-                    type = RuntimeType(Float.self)
-                case "d":
-                    type = RuntimeType(Double.self)
-                case "*":
-                    type = RuntimeType(UnsafePointer<Int8>.self)
-                case "@":
-                    if typeAttrib.hasPrefix("T@\"") {
-                        let range = "T@\"".endIndex ..< typeAttrib.index(before: typeAttrib.endIndex)
-                        let className = typeAttrib.substring(with: range)
-                        if let cls = NSClassFromString(className) {
-                            type = RuntimeType(cls)
-                            break
-                        }
-                        if className.hasPrefix("<") {
-                            let range = "<".endIndex ..< className.index(before: className.endIndex)
-                            let protocolName = className.substring(with: range)
-                            if let proto = NSProtocolFromString(protocolName) {
-                                type = RuntimeType(proto)
-                                break
-                            }
-                        }
-                    }
-                    type = RuntimeType(AnyObject.self)
-                case "#":
-                    type = RuntimeType(AnyClass.self)
-                case ":":
-                    type = RuntimeType(Selector.self)
-                case "{":
-                    type = RuntimeType(objCType: String(typeAttrib.unicodeScalars.dropFirst()))
-                    if typeAttrib.hasPrefix("T{CGPoint") {
-                        allProperties["\(name).x"] = RuntimeType(CGFloat.self)
-                        allProperties["\(name).y"] = RuntimeType(CGFloat.self)
-                    } else if typeAttrib.hasPrefix("T{CGSize") {
-                        allProperties["\(name).width"] = RuntimeType(CGFloat.self)
-                        allProperties["\(name).height"] = RuntimeType(CGFloat.self)
-                    } else if typeAttrib.hasPrefix("T{CGRect") {
-                        allProperties["\(name).x"] = RuntimeType(CGFloat.self)
-                        allProperties["\(name).y"] = RuntimeType(CGFloat.self)
-                        allProperties["\(name).width"] = RuntimeType(CGFloat.self)
-                        allProperties["\(name).height"] = RuntimeType(CGFloat.self)
-                        allProperties["\(name).origin"] = RuntimeType(CGPoint.self)
-                        allProperties["\(name).size"] = RuntimeType(CGSize.self)
-                    } else if typeAttrib.hasPrefix("T{UIEdgeInsets") {
-                        allProperties["\(name).top"] = RuntimeType(CGFloat.self)
-                        allProperties["\(name).left"] = RuntimeType(CGFloat.self)
-                        allProperties["\(name).bottom"] = RuntimeType(CGFloat.self)
-                        allProperties["\(name).right"] = RuntimeType(CGFloat.self)
-                    }
-                case "^":
-                    if typeAttrib.hasPrefix("T^{CGColor") {
-                        type = RuntimeType(CGColor.self)
-                    } else if typeAttrib.hasPrefix("T^{CGImage") {
-                        type = RuntimeType(CGImage.self)
-                    } else {
-                        // Unsupported struct ref type
+        // Gather properties
+        var numberOfProperties: CUnsignedInt = 0
+        if let properties = class_copyPropertyList(self, &numberOfProperties) {
+            for i in 0 ..< Int(numberOfProperties) {
+                let cprop = properties[i]
+                if let cname = property_getName(cprop), let cattribs = property_getAttributes(cprop) {
+                    var name = String(cString: cname)
+                    guard !name.hasPrefix("_"), // We don't want to mess with private stuff
+                        allProperties[name] == nil else {
                         continue
                     }
-                default:
-                    // Unsupported type
-                    continue
+                    // Get attributes
+                    let attribs = String(cString: cattribs).components(separatedBy: ",")
+                    if attribs.contains("R") {
+                        // skip read-only properties
+                        continue
+                    }
+                    let objCType = String(attribs[0].unicodeScalars.dropFirst())
+                    guard let type = RuntimeType(objCType: objCType) else {
+                        continue
+                    }
+                    if case let .any(type) = type.type, type is Bool.Type,
+                        let attrib = attribs.first(where: { $0.hasPrefix("Gis") }) {
+                        name = attrib.substring(from: "G".endIndex)
+                    }
+                    addProperty(name: name, type: type)
                 }
-                // Store
-                allProperties[name] = type
             }
+        }
+        // Gather setter methods
+        var numberOfMethods: CUnsignedInt = 0
+        if let methods = class_copyMethodList(self, &numberOfMethods) {
+            let maxChars = 256
+            let ctype = UnsafeMutablePointer<Int8>.allocate(capacity: maxChars)
+            for i in 0 ..< Int(numberOfMethods) {
+                let method = methods[i]
+                if let selector = method_getName(method) {
+                    var name = "\(selector)"
+                    guard name.hasPrefix("set"), let colonRange = name.range(of: ":"),
+                        colonRange.upperBound == name.endIndex, !name.hasPrefix("set_") else {
+                        continue
+                    }
+                    name = name.substring(with: "set".endIndex ..< colonRange.lowerBound)
+                    let isName = "is\(name)"
+                    guard allProperties[isName] == nil else {
+                        continue
+                    }
+                    let characters = name.unicodeScalars
+                    name = (characters.first.map { String($0) } ?? "").lowercased() + String(characters.dropFirst())
+                    guard allProperties[name] == nil else {
+                        continue
+                    }
+                    method_getArgumentType(method, 2, ctype, maxChars)
+                    let objCType = String(cString: ctype)
+                    guard let type = RuntimeType(objCType: objCType) else {
+                        continue
+                    }
+                    if case let .any(type) = type.type, type is Bool.Type,
+                        self.instancesRespond(to: Selector(isName)) {
+                        name = isName
+                    }
+                    addProperty(name: name, type: type)
+                }
+            }
+            ctype.deallocate(capacity: maxChars)
         }
         // Memoize properties
         objc_setAssociatedObject(self, &propertiesKey, allProperties, .OBJC_ASSOCIATION_RETAIN)

@@ -24,9 +24,7 @@ extension UIView {
     @objc open class var expressionTypes: [String: RuntimeType] {
         var types = allPropertyTypes()
         // TODO: support more properties
-        types["alpha"] = RuntimeType(CGFloat.self)
         types["backgroundColor"] = RuntimeType(UIColor.self)
-        types["clipsToBounds"] = RuntimeType(Bool.self)
         types["contentMode"] = RuntimeType(UIViewContentMode.self, [
             "scaleToFill": .scaleToFill,
             "scaleAspectFit": .scaleAspectFit,
@@ -42,13 +40,6 @@ extension UIView {
             "bottomLeft": .bottomLeft,
             "bottomRight": .bottomRight,
         ])
-        types["isHidden"] = RuntimeType(Bool.self)
-        types["layoutMargins"] = RuntimeType(UIEdgeInsets.self)
-        types["layoutMargins.top"] = RuntimeType(CGFloat.self)
-        types["layoutMargins.left"] = RuntimeType(CGFloat.self)
-        types["layoutMargins.bottom"] = RuntimeType(CGFloat.self)
-        types["layoutMargins.right"] = RuntimeType(CGFloat.self)
-        types["preservesSuperviewLayoutMargins"] = RuntimeType(Bool.self)
         types["tintColor"] = RuntimeType(UIColor.self)
         // TODO: better approach to layer properties?
         for (name, type) in (layerClass as! NSObject.Type).allPropertyTypes() {
@@ -57,28 +48,51 @@ extension UIView {
         types["layer.contents"] = RuntimeType(CGImage.self)
         // Explicitly disabled properties
         for name in [
+            "bounds",
+            "bounds.height",
+            "bounds.origin",
+            "bounds.size",
+            "bounds.width",
+            "bounds.x",
+            "bounds.y",
             "center",
             "center.x",
             "center.y",
+            "frame.height",
+            "frame.origin",
+            "frame.size",
+            "frame.width",
+            "frame.x",
+            "frame.y",
+            "frameOrigin.x",
+            "frameOrigin.y",
             "layer.anchorPoint",
+            "layer.anchorPoint.x",
+            "layer.anchorPoint.y",
             "layer.bounds",
-            "layer.bounds.x",
-            "layer.bounds.y",
-            "layer.bounds.width",
             "layer.bounds.height",
             "layer.bounds.origin",
             "layer.bounds.size",
+            "layer.bounds.width",
+            "layer.bounds.x",
+            "layer.bounds.y",
             "layer.frame",
-            "layer.frame.x",
-            "layer.frame.y",
-            "layer.frame.width",
             "layer.frame.height",
             "layer.frame.origin",
             "layer.frame.size",
+            "layer.frame.width",
+            "layer.frame.x",
+            "layer.frame.y",
             "layer.position",
             "layer.position.x",
             "layer.position.y",
             "layer.sublayers",
+            "origin.x",
+            "origin.y",
+            "position.x",
+            "position.y",
+            "size.width",
+            "size.height",
         ] {
             assert(types[name] != nil)
             types.removeValue(forKey: name)
