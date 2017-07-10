@@ -108,7 +108,8 @@ extension Collection where Iterator.Element == XMLNode {
     }
 }
 
-private let attributeWrap = 1
+// Threshold for min number of attributes to begin linewrapping
+private let attributeWrap = 2
 
 extension XMLNode {
     var isLayout: Bool {
@@ -198,7 +199,8 @@ extension XMLNode {
                 xml += "</\(elementName)>"
             } else {
                 xml += ">\n"
-                if !attributes.isEmpty || children.first(where: { $0 != .text("\n") })?.isComment == true {
+                if attributes.count >= attributeWrap ||
+                    children.first(where: { $0 != .text("\n") })?.isComment == true {
                     xml += "\n"
                 }
                 let body = children.toString(withIndent: indent + "    ")

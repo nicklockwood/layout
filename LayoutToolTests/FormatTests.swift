@@ -24,6 +24,12 @@ class FormatTests: XCTestCase {
         XCTAssertEqual(try format(input), output)
     }
 
+    func testSingleAttribute() {
+        let input = "<Foo bar=\"baz\"/>"
+        let output = "<Foo bar=\"baz\"/>\n"
+        XCTAssertEqual(try format(input), output)
+    }
+
     func testMultipleAttributes() {
         let input = "<Foo bar=\"baz\" baz=\"quux\" />"
         let output = "<Foo\n    bar=\"baz\"\n    baz=\"quux\"\n/>\n"
@@ -47,6 +53,12 @@ class FormatTests: XCTestCase {
     func testWhiteSpaceAroundNodeWithNoAttributes() {
         let input = "<Foo> <Bar/> </Foo>"
         let output = "<Foo>\n    <Bar/>\n</Foo>\n"
+        XCTAssertEqual(try format(input), output)
+    }
+
+    func testWhiteSpaceAroundNodeWithOneAttribute() {
+        let input = "<Foo bar=\"bar\"> <Bar/> </Foo>"
+        let output = "<Foo bar=\"bar\">\n    <Bar/>\n</Foo>\n"
         XCTAssertEqual(try format(input), output)
     }
 
@@ -175,26 +187,26 @@ class FormatTests: XCTestCase {
     // MARK: Expressions
 
     func testFormatKnownExpressionAttribute() {
-        let input = "<Foo\n    top=\"10-5* 4\"\n/>"
-        let output = "<Foo\n    top=\"10 - (5 * 4)\"\n/>\n"
+        let input = "<Foo top=\"10-5* 4\"/>"
+        let output = "<Foo top=\"10 - (5 * 4)\"/>\n"
         XCTAssertEqual(try format(input), output)
     }
 
     func testFormatUnknownExpressionAttribute() {
-        let input = "<Foo\n    bar=\"foo-bar\"\n/>"
-        let output = "<Foo\n    bar=\"foo-bar\"\n/>\n"
+        let input = "<Foo bar=\"foo-bar\"/>"
+        let output = "<Foo bar=\"foo-bar\"/>\n"
         XCTAssertEqual(try format(input), output)
     }
 
     func testFormatUnknownEscapedExpressionAttribute() {
-        let input = "<Foo\n    bar=\"{foo-bar}\"\n/>"
-        let output = "<Foo\n    bar=\"{foo - bar}\"\n/>\n"
+        let input = "<Foo bar=\"{foo-bar}\"/>"
+        let output = "<Foo bar=\"{foo - bar}\"/>\n"
         XCTAssertEqual(try format(input), output)
     }
 
     func testFormatUnknownColorAttribute() {
-        let input = "<Foo\n    barColor=\"rgb(255,255,0)\"\n/>"
-        let output = "<Foo\n    barColor=\"rgb(255, 255, 0)\"\n/>\n"
+        let input = "<Foo barColor=\"rgb(255,255,0)\"/>"
+        let output = "<Foo barColor=\"rgb(255, 255, 0)\"/>\n"
         XCTAssertEqual(try format(input), output)
     }
 }
