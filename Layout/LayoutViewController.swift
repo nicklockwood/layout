@@ -10,11 +10,11 @@ open class LayoutViewController: UIViewController {
                 // TODO: should this use case be allowed at all?
                 return
             }
+            _dismissError()
             oldValue?.unmount()
             if let layoutNode = layoutNode {
                 do {
                     try layoutNode.mount(in: self)
-                    _dismissError()
                     layoutDidLoad()
                 } catch {
                     layoutError(LayoutError(error, for: layoutNode))
