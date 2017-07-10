@@ -199,6 +199,18 @@ private var layoutActionsKey: UInt8 = 0
 extension UIControl {
     open override class var expressionTypes: [String: RuntimeType] {
         var types = super.expressionTypes
+        types["contentVerticalAlignment"] = RuntimeType(UIControlContentVerticalAlignment.self, [
+            "center": .center,
+            "top": .top,
+            "bottom": .bottom,
+            "fill": .fill,
+        ])
+        types["contentHorizontalAlignment"] = RuntimeType(UIControlContentHorizontalAlignment.self, [
+            "center": .center,
+            "left": .left,
+            "right": .right,
+            "fill": .fill,
+        ])
         for name in controlEvents.keys {
             types[name] = RuntimeType(String.self)
         }
@@ -271,6 +283,12 @@ extension UIButton {
         types["disabledTitle"] = RuntimeType(String.self)
         types["selectedTitle"] = RuntimeType(String.self)
         types["focusedTitle"] = RuntimeType(String.self)
+        // Attributed title
+        types["attributedTitle"] = RuntimeType(NSAttributedString.self)
+        types["highlightedAttributedTitle"] = RuntimeType(NSAttributedString.self)
+        types["disabledAttributedTitle"] = RuntimeType(NSAttributedString.self)
+        types["selectedAttributedTitle"] = RuntimeType(NSAttributedString.self)
+        types["focusedAttributedTitle"] = RuntimeType(NSAttributedString.self)
         // Title color
         types["titleColor"] = RuntimeType(UIColor.self)
         types["highlightedTitleColor"] = RuntimeType(UIColor.self)
@@ -283,24 +301,26 @@ extension UIButton {
         types["disabledTitleShadowColor"] = RuntimeType(UIColor.self)
         types["selectedTitleShadowColor"] = RuntimeType(UIColor.self)
         types["focusedTitleShadowColor"] = RuntimeType(UIColor.self)
+        // Title label
+        for (name, type) in UILabel.allPropertyTypes() {
+            types["titleLabel.\(name)"] = type
+        }
         // Image
         types["image"] = RuntimeType(UIImage.self)
         types["highlightedImage"] = RuntimeType(UIImage.self)
         types["disabledImage"] = RuntimeType(UIImage.self)
         types["selectedImage"] = RuntimeType(UIImage.self)
         types["focusedImage"] = RuntimeType(UIImage.self)
-        // Backgrounf image
+        // ImageView
+        for (name, type) in UIImageView.allPropertyTypes() {
+            types["imageView.\(name)"] = type
+        }
+        // Background image
         types["backgroundImage"] = RuntimeType(UIImage.self)
         types["highlightedBackgroundImage"] = RuntimeType(UIImage.self)
         types["disabledBackgroundImage"] = RuntimeType(UIImage.self)
         types["selectedBackgroundImage"] = RuntimeType(UIImage.self)
         types["focusedBackgroundImage"] = RuntimeType(UIImage.self)
-        // Attributed title
-        types["attributedTitle"] = RuntimeType(NSAttributedString.self)
-        types["highlightedAttributedTitle"] = RuntimeType(NSAttributedString.self)
-        types["disabledAttributedTitle"] = RuntimeType(NSAttributedString.self)
-        types["selectedAttributedTitle"] = RuntimeType(NSAttributedString.self)
-        types["focusedAttributedTitle"] = RuntimeType(NSAttributedString.self)
         // Setters used for embedded html
         types["text"] = RuntimeType(String.self)
         types["attributedText"] = RuntimeType(NSAttributedString.self)
