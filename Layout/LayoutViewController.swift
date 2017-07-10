@@ -183,6 +183,11 @@ open class LayoutViewController: UIViewController {
                     ]
                 ),
             ]
+            var commonPrefix = matches[0].path
+            for match in matches {
+                commonPrefix = commonPrefix.commonPrefix(with: match.path)
+            }
+            commonPrefix = (commonPrefix as NSString).deletingLastPathComponent
             for (i, match) in matches.enumerated() {
                 children.append(
                     LayoutNode(
@@ -191,7 +196,7 @@ open class LayoutViewController: UIViewController {
                             "top": "previous.bottom + 20",
                             "width": "100% - 40",
                             "left": "20",
-                            "text": "\(i + 1). \(match.path)",
+                            "text": "\(i + 1). \(match.path.substring(from: commonPrefix.endIndex))",
                             "contentHorizontalAlignment": "left",
                             "titleColor": "rgba(255,255,255,0.6)",
                             "touchUpInside": "_selectMatch:",
