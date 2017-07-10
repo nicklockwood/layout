@@ -441,7 +441,7 @@ public class LayoutNode: NSObject {
 
         if let outlet = node.outlet {
             self.outlet = outlet
-            try LayoutError.wrap({ try _owner.map { try bind(to: $0) }}, for: self)
+            try LayoutError.wrap({ try _owner.map { try bind(to: $0) } }, for: self)
         }
 
         for child in node.children {

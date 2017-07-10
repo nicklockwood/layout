@@ -2,9 +2,6 @@
 
 import Foundation
 
-/// The current LayoutTool version
-let version = "0.1"
-
 /// An enumeration of the types of error that may be thrown by LayoutTool
 enum FormatError: Error, CustomStringConvertible {
     case reading(String)

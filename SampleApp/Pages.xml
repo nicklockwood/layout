@@ -1,6 +1,4 @@
-<PagesViewController
-    backgroundColor="#ddd">
-
+<PagesViewController backgroundColor="#ddd">
     <UIScrollView
         contentInset.bottom="bottomLayoutGuide.length"
         contentInset.top="max(topLayoutGuide.length + 10, 20)"
@@ -70,7 +68,7 @@
     <UIPageControl
         bottom="100% - bottomLayoutGuide.length - 40"
         isUserInteractionEnabled="false"
-        left="50% - width / 2"
+        left="50% - (width / 2)"
         numberOfPages="3"
         outlet="pageControl"
     />

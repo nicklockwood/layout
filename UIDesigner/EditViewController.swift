@@ -111,7 +111,7 @@ class EditViewController: UIViewController, UITextFieldDelegate {
                 default:
                     return nil
                 }
-            case .protocol:
+            case .objCType, .protocol:
                 return nil
             case .enum:
                 return key

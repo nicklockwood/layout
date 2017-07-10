@@ -269,7 +269,7 @@ class LayoutLoader {
     }
 
     private func _setSourceURL(_ sourceURL: URL, for path: String) {
-         _sourceURLCache[path] = sourceURL
+        _sourceURLCache[path] = sourceURL
     }
 
 #else

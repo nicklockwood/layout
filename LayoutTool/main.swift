@@ -2,6 +2,9 @@
 
 import Foundation
 
+/// The current LayoutTool version
+let version = "0.2"
+
 extension String {
     var inDefault: String { return "\u{001B}[39m\(self)" }
     var inRed: String { return "\u{001B}[31m\(self)\u{001B}[0m" }

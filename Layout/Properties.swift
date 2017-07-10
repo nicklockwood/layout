@@ -21,7 +21,7 @@ public class RuntimeType: NSObject {
     }
 
     @nonobjc public init(objCType: String) {
-        self.type = .objCType(objCType)
+        type = .objCType(objCType)
     }
 
     @nonobjc public init<T: RawRepresentable>(_ type: T.Type, _ values: [String: T]) {

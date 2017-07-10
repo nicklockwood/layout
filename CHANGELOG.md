@@ -1,5 +1,14 @@
 # Change Log
 
+## [0.3.6](https://github.schibsted.io/Rocket/layout/releases/tag/0.3.6) (2017-07-10)
+
+- Conflict resolution now ignores xml or strings files inside build directory
+- Made conflict resolution urls more readable by removing common path prefixes
+- Fixed bug where error redbox would not update after the error was fixed
+- Improved support for standard Cocoa struct types
+- LayoutTool now formats expressions as well as general XML structure
+- Internalized the Expression library dependency, to simplify integration with LayoutTool
+
 ## [0.3.5](https://github.schibsted.io/Rocket/layout/releases/tag/0.3.5) (2017-07-05)
 
 - Added conflict resolution for when multiple strings or XML layout files have the same name
