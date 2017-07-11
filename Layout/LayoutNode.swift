@@ -14,7 +14,10 @@ import UIKit
 }
 
 public class LayoutNode: NSObject {
-    public var view: UIView { return _view }
+    public var view: UIView {
+        completeSetup()
+        return _view
+    }
     public private(set) var viewController: UIViewController?
     public private(set) var outlet: String?
     public private(set) var expressions: [String: String]
@@ -29,8 +32,12 @@ public class LayoutNode: NSObject {
         return [viewController]
     }
 
+    private var _setupComplete = false
     private func completeSetup() {
-        _usesAutoLayout = view.constraints.contains {
+        guard !_setupComplete else { return }
+        _setupComplete = true
+
+        _usesAutoLayout = _view.constraints.contains {
             [.top, .left, .bottom, .right, .width, .height].contains($0.firstAttribute)
         }
 
@@ -54,6 +61,7 @@ public class LayoutNode: NSObject {
 
         for (index, child) in children.enumerated() {
             child.parent = self
+            child.completeSetup()
             if let viewController = _view.viewController {
                 viewController.didInsertChildNode(child, at: index)
             } else {
@@ -118,8 +126,6 @@ public class LayoutNode: NSObject {
         default:
             throw LayoutError.message("`\(`class`)` is not a subclass of UIView or UIViewController")
         }
-
-        completeSetup()
     }
 
     public init(
@@ -153,8 +159,6 @@ public class LayoutNode: NSObject {
         _originalExpressions = expressions
 
         super.init()
-
-        completeSetup()
     }
 
     deinit {
@@ -180,6 +184,7 @@ public class LayoutNode: NSObject {
 
     /// Perform pre-validation on the node and (optionally) its children
     public func validate(recursive: Bool = true) -> Set<LayoutError> {
+        completeSetup()
         var errors = Set<LayoutError>()
         for name in expressions.keys {
             guard let expression = self.expression(for: name) else {
@@ -332,7 +337,7 @@ public class LayoutNode: NSObject {
                 }
             }
         }
-        if !equal {
+        if !equal, _setupComplete {
             // TODO: work out which expressions are actually affected
             attempt(update)
         }
@@ -343,10 +348,12 @@ public class LayoutNode: NSObject {
     public private(set) var children: [LayoutNode]
     public private(set) weak var parent: LayoutNode? {
         didSet {
-            cleanUp()
-            overrideExpressions()
-            bubbleUnhandledError()
-            updateObservers()
+            if _setupComplete {
+                cleanUp()
+                overrideExpressions()
+                bubbleUnhandledError()
+                updateObservers()
+            }
         }
     }
 
@@ -372,28 +379,32 @@ public class LayoutNode: NSObject {
     public func insertChild(_ child: LayoutNode, at index: Int) {
         child.removeFromParent()
         children.insert(child, at: index)
-        child.parent = self
-        if let owner = _owner {
-            try? child.bind(to: owner)
-        }
-        if let viewController = viewController {
-            viewController.didInsertChildNode(child, at: index)
-        } else {
-            view.didInsertChildNode(child, at: index)
+        if _setupComplete {
+            child.parent = self
+            if let owner = _owner {
+                try? child.bind(to: owner)
+            }
+            if let viewController = viewController {
+                viewController.didInsertChildNode(child, at: index)
+            } else {
+                _view.didInsertChildNode(child, at: index)
+            }
         }
     }
 
     public func replaceChild(at index: Int, with child: LayoutNode) {
         let oldChild = children[index]
         children[index] = child
-        child.parent = self
-        if let owner = _owner {
-            try? child.bind(to: owner)
-        }
-        if let viewController = viewController {
-            viewController.didInsertChildNode(child, at: index)
-        } else {
-            view.didInsertChildNode(child, at: index)
+        if _setupComplete {
+            child.parent = self
+            if let owner = _owner {
+                try? child.bind(to: owner)
+            }
+            if let viewController = viewController {
+                viewController.didInsertChildNode(child, at: index)
+            } else {
+                _view.didInsertChildNode(child, at: index)
+            }
         }
         oldChild.removeFromParent()
     }
@@ -410,7 +421,7 @@ public class LayoutNode: NSObject {
             parent = nil
             return
         }
-        view.removeFromSuperview()
+        _view.removeFromSuperview()
         for controller in viewControllers {
             controller.removeFromParentViewController()
         }
@@ -419,8 +430,8 @@ public class LayoutNode: NSObject {
     // Experimental - used for nested XML reference loading
     internal func update(with node: LayoutNode) throws {
         node.stopObserving()
-        guard view.classForCoder == node.view.classForCoder else {
-            throw LayoutError("Cannot replace \(view.classForCoder) with \(node.view.classForCoder)", for: self)
+        guard _view.classForCoder == node._view.classForCoder else {
+            throw LayoutError("Cannot replace \(_view.classForCoder) with \(node._view.classForCoder)", for: self)
         }
         guard (viewController == nil) == (node.viewController == nil) else {
             throw LayoutError("Cannot replace \(viewController.map { "\($0.classForCoder)" } ?? "nil") with \(node.viewController.map { "\($0.classForCoder)" } ?? "nil")", for: self)
@@ -436,8 +447,11 @@ public class LayoutNode: NSObject {
         for (name, expression) in node._originalExpressions where _originalExpressions[name] == nil {
             _originalExpressions[name] = expression
         }
-        cleanUp()
-        overrideExpressions()
+
+        if _setupComplete {
+            cleanUp()
+            overrideExpressions()
+        }
 
         if let outlet = node.outlet {
             self.outlet = outlet
@@ -447,7 +461,7 @@ public class LayoutNode: NSObject {
         for child in node.children {
             addChild(child)
         }
-        if view.window != nil || _owner != nil {
+        if _setupComplete, view.window != nil || _owner != nil {
             try update()
         }
     }
@@ -455,6 +469,7 @@ public class LayoutNode: NSObject {
     // MARK: expressions
 
     private func overrideExpressions() {
+        assert(_setupComplete)
         expressions = _originalExpressions
 
         // layout props
@@ -493,6 +508,7 @@ public class LayoutNode: NSObject {
     }
 
     private func cleanUp() {
+        assert(_setupComplete)
         if let error = _unhandledError, error.isTransient {
             _unhandledError = nil
         }
@@ -714,6 +730,7 @@ public class LayoutNode: NSObject {
         if let getter = _getters[symbol] {
             return try SymbolError.wrap(getter, for: symbol)
         }
+        completeSetup()
         if let expression = self.expression(for: symbol) {
             return try SymbolError.wrap(expression.evaluate, for: symbol)
         }
@@ -1061,6 +1078,7 @@ public class LayoutNode: NSObject {
         guard _suppressUpdates == false else { return }
         defer { _suppressUpdates = false }
         _suppressUpdates = true
+        completeSetup()
         try LayoutError.wrap(updateExpressionValues, for: self)
         for child in children {
             try LayoutError.wrap(child.update, for: self)
@@ -1151,7 +1169,11 @@ public class LayoutNode: NSObject {
                 unbind()
             }
         }
-        cleanUp()
+        if _setupComplete {
+            cleanUp()
+        } else {
+            completeSetup()
+        }
         _owner = owner
         if let outlet = outlet {
             guard let type = Swift.type(of: owner).allPropertyTypes()[outlet] else {
