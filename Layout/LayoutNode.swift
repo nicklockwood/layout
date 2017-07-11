@@ -507,6 +507,10 @@ public class LayoutNode: NSObject {
         }
     }
 
+    private func clearCachedValues() {
+        for fn in _valueClearers { fn() }
+    }
+
     private func cleanUp() {
         assert(_setupComplete)
         if let error = _unhandledError, error.isTransient {
@@ -515,6 +519,7 @@ public class LayoutNode: NSObject {
         _evaluating.removeAll()
         _getters.removeAll()
         _cachedExpressions.removeAll()
+        _valueClearers.removeAll()
         for child in children {
             child.cleanUp()
         }
@@ -523,6 +528,7 @@ public class LayoutNode: NSObject {
     private var _evaluating = [String]()
     private var _getters = [String: () throws -> Any]()
     private var _cachedExpressions = [String: LayoutExpression]()
+    private var _valueClearers = [() -> Void]()
     private func expression(for symbol: String) -> LayoutExpression? {
         if let expression = _cachedExpressions[symbol] {
             return expression.isVoid ? nil : expression
@@ -572,16 +578,23 @@ public class LayoutNode: NSObject {
                     return expression
                 }
             } else {
+                var cachedValue: Any?
+                _valueClearers.append {
+                    cachedValue = nil
+                }
                 let evaluate = expression.evaluate
                 expression = LayoutExpression(
                     evaluate: { [unowned self] in
-                        if self._evaluating.last == symbol,
-                            let value = self.value(forVariableOrConstant: symbol) {
-                            // If an expression directly references itself it may be shadowing
-                            // a constant or variable, so check for that first before throwing
+                        if let value = cachedValue {
                             return value
                         }
                         guard !self._evaluating.contains(symbol) else {
+                            // If an expression directly references itself it may be shadowing
+                            // a constant or variable, so check for that first before throwing
+                            if self._evaluating.last == symbol,
+                                let value = self.value(forVariableOrConstant: symbol) {
+                                return value
+                            }
                             throw SymbolError("Circular reference for \(symbol)", for: symbol)
                         }
                         self._evaluating.append(symbol)
@@ -589,7 +602,9 @@ public class LayoutNode: NSObject {
                             assert(self._evaluating.last == symbol)
                             self._evaluating.removeLast()
                         }
-                        return try SymbolError.wrap(evaluate, for: symbol)
+                        let value = try SymbolError.wrap(evaluate, for: symbol)
+                        cachedValue = value
+                        return value
                     },
                     symbols: expression.symbols
                 )
@@ -922,24 +937,16 @@ public class LayoutNode: NSObject {
         return view.isHidden
     }
 
-    private func computeFrame() throws -> CGRect {
-        return CGRect(
-            x: try CGFloat(doubleValue(forSymbol: "left")),
-            y: try CGFloat(doubleValue(forSymbol: "top")),
-            width: try CGFloat(doubleValue(forSymbol: "width")),
-            height: try CGFloat(doubleValue(forSymbol: "height"))
-        )
-    }
-
-    var _frame: CGRect?
-
     // TODO: should this be public?
     public var frame: CGRect {
-        guard let frame = _frame else {
-            _frame = attempt { try computeFrame() }
-            return _frame ?? .zero
-        }
-        return frame
+        return attempt {
+            CGRect(
+                x: try CGFloat(doubleValue(forSymbol: "left")),
+                y: try CGFloat(doubleValue(forSymbol: "top")),
+                width: try CGFloat(doubleValue(forSymbol: "width")),
+                height: try CGFloat(doubleValue(forSymbol: "height"))
+            )
+        } ?? .zero
     }
 
     private func inferContentSize() throws -> CGSize {
@@ -1079,11 +1086,11 @@ public class LayoutNode: NSObject {
         defer { _suppressUpdates = false }
         _suppressUpdates = true
         completeSetup()
+        clearCachedValues()
         try LayoutError.wrap(updateExpressionValues, for: self)
         for child in children {
             try LayoutError.wrap(child.update, for: self)
         }
-        _frame = try computeFrame()
         if view.translatesAutoresizingMaskIntoConstraints {
             let transform = view.layer.transform
             view.layer.transform = CATransform3DIdentity
