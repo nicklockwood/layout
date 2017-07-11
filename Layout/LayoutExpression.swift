@@ -86,32 +86,50 @@ struct LayoutExpression {
         self.init(percentageExpression: yExpression, for: "height", in: node)
     }
 
-    init(widthExpression: String, for node: LayoutNode) {
+    private init(sizeExpression: String, for prop: String, in node: LayoutNode) {
+        let sizeProp = "inferredSize.\(prop)"
         let expression = LayoutExpression(
-            percentageExpression: widthExpression,
-            for: "width", in: node,
+            percentageExpression: sizeExpression,
+            for: prop, in: node,
             symbols: [.variable("auto"): { [unowned node] _ in
-                Double(node.contentSize.width)
+                try node.doubleValue(forSymbol: sizeProp)
             }]
         )
         self.init(
             evaluate: { try expression.evaluate() },
-            symbols: Set(expression.symbols.map { $0 == "auto" ? "contentSize.width" : $0 })
+            symbols: Set(expression.symbols.map { $0 == "auto" ? sizeProp : $0 })
         )
     }
 
+    init(widthExpression: String, for node: LayoutNode) {
+        self.init(sizeExpression: widthExpression, for: "width", in: node)
+    }
+
     init(heightExpression: String, for node: LayoutNode) {
+        self.init(sizeExpression: heightExpression, for: "height", in: node)
+    }
+
+    private init(contentSizeExpression: String, for prop: String, in node: LayoutNode) {
+        let sizeProp = "inferredContentSize.\(prop)"
         let expression = LayoutExpression(
-            percentageExpression: heightExpression,
-            for: "height", in: node,
+            percentageExpression: contentSizeExpression,
+            for: prop, in: node,
             symbols: [.variable("auto"): { [unowned node] _ in
-                Double(node.contentSize.height)
+                try node.doubleValue(forSymbol: sizeProp)
             }]
         )
         self.init(
             evaluate: { try expression.evaluate() },
-            symbols: Set(expression.symbols.map { $0 == "auto" ? "contentSize.height" : $0 })
+            symbols: Set(expression.symbols.map { $0 == "auto" ? sizeProp : $0 })
         )
+    }
+
+    init(contentWidthExpression: String, for node: LayoutNode) {
+        self.init(contentSizeExpression: contentWidthExpression, for: "width", in: node)
+    }
+
+    init(contentHeightExpression: String, for node: LayoutNode) {
+        self.init(contentSizeExpression: contentHeightExpression, for: "height", in: node)
     }
 
     init(boolExpression: String, for node: LayoutNode) {

@@ -246,7 +246,7 @@ open class LayoutViewController: UIViewController {
                     view: UIScrollView(),
                     expressions: [
                         "top": "50% - height / 2",
-                        "height": "min(100%, auto + 40)",
+                        "height": "min(100%, auto)",
                         "width": "100%",
                         "contentInset.top": "20",
                         "contentInset.bottom": "20",

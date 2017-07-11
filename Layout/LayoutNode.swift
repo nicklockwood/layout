@@ -518,10 +518,14 @@ public class LayoutNode: NSObject {
                 expression = LayoutExpression(xExpression: string, for: self)
             case "top", "bottom":
                 expression = LayoutExpression(yExpression: string, for: self)
-            case "width", "contentSize.width":
+            case "width":
                 expression = LayoutExpression(widthExpression: string, for: self)
-            case "height", "contentSize.height":
+            case "contentSize.width":
+                expression = LayoutExpression(contentWidthExpression: string, for: self)
+            case "height":
                 expression = LayoutExpression(heightExpression: string, for: self)
+            case "contentSize.height":
+                expression = LayoutExpression(contentHeightExpression: string, for: self)
             default:
                 guard let type = viewControllerExpressionTypes[symbol] ?? viewExpressionTypes[symbol] else {
                     expression = .void // NOTE: if we don't set the expression variable, the app crashes (Swift bug?)
@@ -744,7 +748,52 @@ public class LayoutNode: NSObject {
                 self._layoutGuideController?.topLayoutGuide.length ?? 0
             }
         case "bottomLayoutGuide.length":
-            getter = { [unowned self] in self._layoutGuideController?.bottomLayoutGuide.length ?? 0
+            getter = { [unowned self] in
+                self._layoutGuideController?.bottomLayoutGuide.length ?? 0
+            }
+        case "inferredSize":
+            getter = { [unowned self] in
+                try self.inferSize()
+            }
+        case "inferredSize.width":
+            getter = { [unowned self] in
+                try self.inferSize().width
+            }
+        case "inferredSize.height":
+            getter = { [unowned self] in
+                try self.inferSize().height
+            }
+        case "inferredContentSize":
+            getter = { [unowned self] in
+                try self.inferContentSize()
+            }
+        case "inferredContentSize.width":
+            getter = { [unowned self] in
+                try self.inferContentSize().width
+            }
+        case "inferredContentSize.height":
+            getter = { [unowned self] in
+                try self.inferContentSize().height
+            }
+        case "contentInset":
+            getter = { [unowned self] in
+                return self.view.value(forSymbol: "contentInset") as? UIEdgeInsets ?? .zero
+            }
+        case "contentInset.top":
+            getter = { [unowned self] in
+                return try (self.value(forSymbol: "contentInset") as! UIEdgeInsets).top
+            }
+        case "contentInset.left":
+            getter = { [unowned self] in
+                return try (self.value(forSymbol: "contentInset") as! UIEdgeInsets).left
+            }
+        case "contentInset.bottom":
+            getter = { [unowned self] in
+                return try (self.value(forSymbol: "contentInset") as! UIEdgeInsets).bottom
+            }
+        case "contentInset.right":
+            getter = { [unowned self] in
+                return try (self.value(forSymbol: "contentInset") as! UIEdgeInsets).right
             }
         default:
             let head: String
@@ -856,105 +905,138 @@ public class LayoutNode: NSObject {
         return view.isHidden
     }
 
+    private func computeFrame() throws -> CGRect {
+        return CGRect(
+            x: try CGFloat(doubleValue(forSymbol: "left")),
+            y: try CGFloat(doubleValue(forSymbol: "top")),
+            width: try CGFloat(doubleValue(forSymbol: "width")),
+            height: try CGFloat(doubleValue(forSymbol: "height"))
+        )
+    }
+
     var _frame: CGRect?
+
+    // TODO: should this be public?
     public var frame: CGRect {
         guard let frame = _frame else {
-            _frame = attempt {
-                CGRect(
-                    x: try CGFloat(doubleValue(forSymbol: "left")),
-                    y: try CGFloat(doubleValue(forSymbol: "top")),
-                    width: try CGFloat(doubleValue(forSymbol: "width")),
-                    height: try CGFloat(doubleValue(forSymbol: "height"))
-                )
-            }
+            _frame = attempt { try computeFrame() }
             return _frame ?? .zero
         }
         return frame
     }
 
-    public var contentSize: CGSize {
-        return attempt({
-            if expressions["contentSize"] != nil, !_evaluating.contains("contentSize") {
-                return try value(forSymbol: "contentSize") as! CGSize
-            }
-            // Try AutoLayout
-            if _usesAutoLayout {
-                let transform = view.layer.transform
-                view.layer.transform = CATransform3DIdentity
-                let frame = view.frame
-                view.translatesAutoresizingMaskIntoConstraints = false
-                if expressions["contentSize.width"] != nil, !_evaluating.contains("contentSize.width") {
-                    _widthConstraint.isActive = true
-                    _widthConstraint.constant = try CGFloat(doubleValue(forSymbol: "contentSize.width"))
-                } else if !_evaluating.contains("width") {
-                    _widthConstraint.isActive = true
-                    _widthConstraint.constant = try CGFloat(doubleValue(forSymbol: "width"))
-                } else {
-                    _widthConstraint.isActive = false
-                }
-                if expressions["contentSize.height"] != nil, !_evaluating.contains("contentSize.height") {
-                    _heightConstraint.isActive = true
-                    _heightConstraint.constant = try CGFloat(doubleValue(forSymbol: "contentSize.height"))
-                } else if !_evaluating.contains("height") {
-                    _heightConstraint.isActive = true
-                    _heightConstraint.constant = try CGFloat(doubleValue(forSymbol: "height"))
-                } else {
-                    _heightConstraint.isActive = false
-                }
-                view.layoutIfNeeded()
-                let size = view.frame.size
-                _widthConstraint.isActive = false
-                _heightConstraint.isActive = false
-                view.translatesAutoresizingMaskIntoConstraints = true
-                view.frame = frame
-                view.layer.transform = transform
-                if size.width > 0 || size.height > 0 {
-                    return size
-                }
+    private func inferContentSize() throws -> CGSize {
+        // Check for explicit size
+        if expressions["contentSize"] != nil, !_evaluating.contains("contentSize") {
+            return attempt { try value(forSymbol: "contentSize") as? CGSize ?? .zero } ?? .zero
+        }
+        // Try best fit for subviews
+        var size = CGSize.zero
+        for child in children where !child.isHidden {
+            let frame = child.frame
+            size.width = max(size.width, frame.maxX)
+            size.height = max(size.height, frame.maxY)
+        }
+        // If zero, fill superview
+        let contentInset = try value(forSymbol: "contentInset") as! UIEdgeInsets
+        if size.width <= 0, let width = view.superview?.bounds.size.width {
+            size.width = width - contentInset.left - contentInset.right
+        }
+        if size.height <= 0, let height = view.superview?.bounds.size.height {
+            size.height = height - contentInset.top - contentInset.bottom
+        }
+        // Check for explicit width / height
+        if expressions["contentSize.width"] != nil, !_evaluating.contains("contentSize.width") {
+            size.width = try CGFloat(doubleValue(forSymbol: "contentSize.width"))
+        } else if expressions["contentSize.height"] != nil, !_evaluating.contains("contentSize.height") {
+            size.height = try CGFloat(doubleValue(forSymbol: "contentSize.height"))
+        }
+        return size
+    }
+
+    private func computeExplicitWidth() throws -> CGFloat? {
+        if !_evaluating.contains("width") {
+            return try CGFloat(doubleValue(forSymbol: "width"))
+        }
+        if expressions["contentSize.width"] != nil, !_evaluating.contains("contentSize.width") {
+            let contentInset = try value(forSymbol: "contentInset") as! UIEdgeInsets
+            return try CGFloat(doubleValue(forSymbol: "contentSize.width")) + contentInset.left + contentInset.right
+        }
+        return nil
+    }
+
+    private func computeExplicitHeight() throws -> CGFloat? {
+        if !_evaluating.contains("height") {
+            return try CGFloat(doubleValue(forSymbol: "height"))
+        }
+        if expressions["contentSize.height"] != nil, !_evaluating.contains("contentSize.height") {
+            let contentInset = try value(forSymbol: "contentInset") as! UIEdgeInsets
+            return try CGFloat(doubleValue(forSymbol: "contentSize.height")) + contentInset.top + contentInset.bottom
+        }
+        return nil
+    }
+
+    private func inferSize() throws -> CGSize {
+        // Try AutoLayout
+        if _usesAutoLayout {
+            let transform = view.layer.transform
+            view.layer.transform = CATransform3DIdentity
+            let frame = view.frame
+            view.translatesAutoresizingMaskIntoConstraints = false
+            if let width = try computeExplicitWidth() {
+                _widthConstraint.isActive = true
+                _widthConstraint.constant = width
             } else {
                 _widthConstraint.isActive = false
+            }
+            if let height = try computeExplicitHeight() {
+                _heightConstraint.isActive = true
+                _heightConstraint.constant = height
+            } else {
                 _heightConstraint.isActive = false
             }
-            // Try intrinsic size
-            let intrinsicSize = view.intrinsicContentSize
-            var size = intrinsicSize
-            if size.width != UIViewNoIntrinsicMetric || size.height != UIViewNoIntrinsicMetric {
-                var targetSize = CGSize(width: CGFloat.greatestFiniteMagnitude, height: .greatestFiniteMagnitude)
-                if expressions["contentSize.width"] != nil, !_evaluating.contains("contentSize.width") {
-                    targetSize.width = try CGFloat(doubleValue(forSymbol: "contentSize.width"))
-                } else if !_evaluating.contains("width") {
-                    targetSize.width = try CGFloat(doubleValue(forSymbol: "width"))
-                }
-                if expressions["contentSize.height"] != nil, !_evaluating.contains("contentSize.height") {
-                    targetSize.height = try CGFloat(doubleValue(forSymbol: "contentSize.height"))
-                } else if !_evaluating.contains("height") {
-                    targetSize.height = try CGFloat(doubleValue(forSymbol: "height"))
-                }
-                if targetSize.width < intrinsicSize.width || targetSize.height < intrinsicSize.height {
-                    size = view.systemLayoutSizeFitting(targetSize)
-                }
+            view.layoutIfNeeded()
+            let size = view.frame.size
+            _widthConstraint.isActive = false
+            _heightConstraint.isActive = false
+            view.translatesAutoresizingMaskIntoConstraints = true
+            view.frame = frame
+            view.layer.transform = transform
+            if size.width > 0 || size.height > 0 {
                 return size
             }
-            // Try best fit for subviews
-            for child in children where !child.isHidden {
-                let frame = child.frame
-                size.width = max(size.width, frame.maxX)
-                size.height = max(size.height, frame.maxY)
+        } else {
+            _widthConstraint.isActive = false
+            _heightConstraint.isActive = false
+        }
+        // Try intrinsic size
+        let intrinsicSize = view.intrinsicContentSize
+        var size = intrinsicSize
+        if size.width != UIViewNoIntrinsicMetric || size.height != UIViewNoIntrinsicMetric {
+            var targetSize = CGSize(width: CGFloat.greatestFiniteMagnitude, height: .greatestFiniteMagnitude)
+            if let width = try computeExplicitWidth() {
+                targetSize.width = width
             }
-            // Fill superview
-            if size.width <= 0 {
-                size.width = view.superview?.bounds.size.width ?? 0
+            if let height = try computeExplicitHeight() {
+                targetSize.height = height
             }
-            if size.height <= 0 {
-                size.height = view.superview?.bounds.size.height ?? 0
-            }
-            if expressions["contentSize.width"] != nil, !_evaluating.contains("contentSize.width") {
-                size.width = try CGFloat(doubleValue(forSymbol: "contentSize.width"))
-            } else if expressions["contentSize.height"] != nil, !_evaluating.contains("contentSize.height") {
-                size.height = try CGFloat(doubleValue(forSymbol: "contentSize.height"))
+            if targetSize.width < intrinsicSize.width || targetSize.height < intrinsicSize.height {
+                size = view.systemLayoutSizeFitting(targetSize)
             }
             return size
-        }) ?? .zero
+        }
+        // Try best fit for content
+        size = try inferContentSize()
+        let contentInset = try value(forSymbol: "contentInset") as! UIEdgeInsets
+        return CGSize(
+            width: size.width + contentInset.left + contentInset.right,
+            height: size.height + contentInset.top + contentInset.bottom
+        )
+    }
+
+    // TODO: currently this is only used by UIScrollView - should it be public?
+    public var contentSize: CGSize {
+        return attempt { try inferContentSize() } ?? .zero
     }
 
     // AutoLayout support
@@ -972,8 +1054,9 @@ public class LayoutNode: NSObject {
         return constraint
     }()
 
-    // Note: thrown error is always a LayoutError
     private var _suppressUpdates = false
+
+    // Note: thrown error is always a LayoutError
     public func update() throws {
         guard _suppressUpdates == false else { return }
         defer { _suppressUpdates = false }
@@ -982,7 +1065,7 @@ public class LayoutNode: NSObject {
         for child in children {
             try LayoutError.wrap(child.update, for: self)
         }
-        _frame = nil // Recalculate frame
+        _frame = try computeFrame()
         if view.translatesAutoresizingMaskIntoConstraints {
             let transform = view.layer.transform
             view.layer.transform = CATransform3DIdentity
