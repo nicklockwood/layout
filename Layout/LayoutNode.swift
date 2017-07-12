@@ -345,6 +345,10 @@ public class LayoutNode: NSObject {
     public private(set) var children: [LayoutNode]
     public private(set) weak var parent: LayoutNode? {
         didSet {
+            if let parent = parent, parent._setupComplete {
+                parent._widthDependsOnParent = nil
+                parent._heightDependsOnParent = nil
+            }
             if _setupComplete {
                 cleanUp()
                 overrideExpressions()
@@ -959,8 +963,8 @@ public class LayoutNode: NSObject {
             return true
         }
         if value(forSymbol: "width", dependsOn: "inferredSize.width"),
-            !_usesAutoLayout, view.intrinsicContentSize.width == UIViewNoIntrinsicMetric,
-            expressions["contentSize"] == nil, expressions["contentSize.width"] == nil {
+            expressions["contentSize"] == nil, expressions["contentSize.width"] == nil,
+            !_usesAutoLayout, view.intrinsicContentSize.width == UIViewNoIntrinsicMetric, children.isEmpty {
             _widthDependsOnParent = true
             return true
         }
@@ -979,8 +983,8 @@ public class LayoutNode: NSObject {
             return true
         }
         if value(forSymbol: "height", dependsOn: "inferredSize.height"),
-            !_usesAutoLayout, view.intrinsicContentSize.height == UIViewNoIntrinsicMetric,
-            expressions["contentSize"] == nil, expressions["contentSize.height"] == nil {
+            expressions["contentSize"] == nil, expressions["contentSize.height"] == nil,
+            !_usesAutoLayout, view.intrinsicContentSize.height == UIViewNoIntrinsicMetric, children.isEmpty {
             _heightDependsOnParent = true
             return true
         }
