@@ -5,6 +5,8 @@ import XCTest
 
 class LayoutFrameTests: XCTestCase {
 
+    // MARK: Frame/view consistency
+
     func testLayoutFrameMatchesView() {
         let frame = CGRect(x: 100, y: 50, width: 200, height: 300)
         let view = UIView(frame: frame)
@@ -69,5 +71,136 @@ class LayoutFrameTests: XCTestCase {
         view.frame = frame
         XCTAssertEqual(view.frame, frame)
         XCTAssertEqual(node.frame, view.frame)
+    }
+
+    // MARK: Auto-sizing
+
+    func testAutoSizeParentToFitChildren() {
+        let node = LayoutNode(
+            expressions: [
+                "width": "auto",
+                "height": "auto",
+            ],
+            children: [
+                LayoutNode(
+                    expressions: [
+                        "width": "100",
+                        "height": "20",
+                    ]
+                ),
+                LayoutNode(
+                    expressions: [
+                        "top": "previous.bottom + 10",
+                        "width": "150",
+                        "height": "20",
+                    ]
+                )
+            ]
+        )
+        XCTAssertEqual(node.frame.size, CGSize(width: 150, height: 50))
+    }
+
+    func testAutosizeParentHeightToFitChildren() {
+        let node = LayoutNode(
+            expressions: [
+                "width": "auto",
+                "height": "10",
+            ],
+            children: [
+                LayoutNode(
+                    expressions: [
+                        "width": "100",
+                        "height": "20",
+                    ]
+                ),
+                LayoutNode(
+                    expressions: [
+                        "top": "previous.bottom + 10",
+                        "width": "150",
+                        "height": "20",
+                    ]
+                )
+            ]
+        )
+        XCTAssertEqual(node.frame.size, CGSize(width: 150, height: 10))
+    }
+
+    func testAutosizeParentWidthToFitChildren() {
+        let node = LayoutNode(
+            expressions: [
+                "width": "50",
+                "height": "auto",
+            ],
+            children: [
+                LayoutNode(
+                    expressions: [
+                        "width": "100",
+                        "height": "20",
+                    ]
+                ),
+                LayoutNode(
+                    expressions: [
+                        "top": "previous.bottom + 10",
+                        "width": "150",
+                        "height": "20",
+                    ]
+                )
+            ]
+        )
+        XCTAssertEqual(node.frame.size, CGSize(width: 50, height: 50))
+    }
+
+    func testAutosizeParentWhenChildHasPercentageWidth() {
+        let node = LayoutNode(
+            expressions: [
+                "width": "auto",
+                "height": "auto",
+            ],
+            children: [
+                LayoutNode(
+                    expressions: [
+                        "width": "50%",
+                        "height": "20",
+                    ]
+                ),
+                LayoutNode(
+                    expressions: [
+                        "top": "previous.bottom + 10",
+                        "width": "150",
+                        "height": "20",
+                    ]
+                )
+            ]
+        )
+        XCTAssertNoThrow(try node.update())
+        XCTAssertEqual(node.frame.size, CGSize(width: 150, height: 50))
+        XCTAssertEqual(node.children[0].frame.size, CGSize(width: 75, height: 20))
+    }
+
+    func testAutosizeParentWhenChildHasAutoWidth() {
+        let node = LayoutNode(
+            expressions: [
+                "width": "auto",
+                "height": "auto",
+            ],
+            children: [
+                LayoutNode(
+                    expressions: [
+                        "width": "auto",
+                        "height": "20",
+                    ]
+                ),
+                LayoutNode(
+                    expressions: [
+                        "top": "previous.bottom + 10",
+                        "width": "150",
+                        "height": "20",
+                    ]
+                ),
+            ]
+        )
+        XCTAssertNoThrow(try node.update())
+        XCTAssertEqual(node.frame.size, CGSize(width: 150, height: 50))
+        XCTAssertEqual(node.children[0].frame.size, CGSize(width: 150, height: 20))
     }
 }

@@ -516,6 +516,8 @@ public class LayoutNode: NSObject {
         if let error = _unhandledError, error.isTransient {
             _unhandledError = nil
         }
+        _widthDependsOnParent = nil
+        _heightDependsOnParent = nil
         _evaluating.removeAll()
         _getters.removeAll()
         _cachedExpressions.removeAll()
@@ -761,7 +763,7 @@ public class LayoutNode: NSObject {
             }
         case "right":
             getter = { [unowned self] in
-                self.frame.maxX
+                try self.doubleValue(forSymbol: "left") + self.doubleValue(forSymbol: "width")
             }
         case "top":
             getter = { [unowned self] in
@@ -773,7 +775,7 @@ public class LayoutNode: NSObject {
             }
         case "bottom":
             getter = { [unowned self] in
-                self.frame.maxY
+                try self.doubleValue(forSymbol: "top") + self.doubleValue(forSymbol: "height")
             }
         case "topLayoutGuide.length":
             getter = { [unowned self] in
@@ -949,6 +951,46 @@ public class LayoutNode: NSObject {
         } ?? .zero
     }
 
+    private var _widthDependsOnParent: Bool?
+    private var widthDependsOnParent: Bool {
+        if let result = _widthDependsOnParent {
+            return result
+        }
+        if value(forSymbol: "width", dependsOn: "parent.width") ||
+            value(forSymbol: "left", dependsOn: "parent.width") {
+            _widthDependsOnParent = true
+            return true
+        }
+        if value(forSymbol: "width", dependsOn: "inferredSize.width"),
+            !_usesAutoLayout, view.intrinsicContentSize.width == UIViewNoIntrinsicMetric,
+            expressions["contentSize"] == nil, expressions["contentSize.width"] == nil {
+            _widthDependsOnParent = true
+            return true
+        }
+        _widthDependsOnParent = false
+        return false
+    }
+
+    private var _heightDependsOnParent: Bool?
+    private var heightDependsOnParent: Bool {
+        if let result = _heightDependsOnParent {
+            return result
+        }
+        if value(forSymbol: "height", dependsOn: "parent.height") ||
+            value(forSymbol: "top", dependsOn: "parent.height") {
+            _heightDependsOnParent = true
+            return true
+        }
+        if value(forSymbol: "height", dependsOn: "inferredSize.height"),
+            !_usesAutoLayout, view.intrinsicContentSize.height == UIViewNoIntrinsicMetric,
+            expressions["contentSize"] == nil, expressions["contentSize.height"] == nil {
+            _heightDependsOnParent = true
+            return true
+        }
+        _heightDependsOnParent = false
+        return false
+    }
+
     private func inferContentSize() throws -> CGSize {
         // Check for explicit size
         if expressions["contentSize"] != nil, !_evaluating.contains("contentSize") {
@@ -957,9 +999,18 @@ public class LayoutNode: NSObject {
         // Try best fit for subviews
         var size = CGSize.zero
         for child in children where !child.isHidden {
-            let frame = child.frame
-            size.width = max(size.width, frame.maxX)
-            size.height = max(size.height, frame.maxY)
+            if !child.widthDependsOnParent {
+                size.width = max(
+                    size.width,
+                    CGFloat(try child.doubleValue(forSymbol: "left") + child.doubleValue(forSymbol: "width"))
+                )
+            }
+            if !child.heightDependsOnParent {
+                size.height = max(
+                    size.height,
+                    CGFloat(try child.doubleValue(forSymbol: "top") + child.doubleValue(forSymbol: "height"))
+                )
+            }
         }
         // If zero, fill superview
         let contentInset = try value(forSymbol: "contentInset") as! UIEdgeInsets
@@ -1080,8 +1131,7 @@ public class LayoutNode: NSObject {
 
     private var _suppressUpdates = false
 
-    // Note: thrown error is always a LayoutError
-    public func update() throws {
+    private func updateValues() throws {
         guard _suppressUpdates == false else { return }
         defer { _suppressUpdates = false }
         _suppressUpdates = true
@@ -1089,8 +1139,14 @@ public class LayoutNode: NSObject {
         clearCachedValues()
         try LayoutError.wrap(updateExpressionValues, for: self)
         for child in children {
-            try LayoutError.wrap(child.update, for: self)
+            try LayoutError.wrap(child.updateValues, for: self)
         }
+    }
+
+    private func updateFrame() throws {
+        guard _suppressUpdates == false else { return }
+        defer { _suppressUpdates = false }
+        _suppressUpdates = true
         if view.translatesAutoresizingMaskIntoConstraints {
             let transform = view.layer.transform
             view.layer.transform = CATransform3DIdentity
@@ -1102,9 +1158,18 @@ public class LayoutNode: NSObject {
             _widthConstraint.constant = frame.width
             _widthConstraint.isActive = true
         }
+        for child in children {
+            try LayoutError.wrap(child.updateFrame, for: self)
+        }
         view.didUpdateLayout(for: self)
         view.viewController?.didUpdateLayout(for: self)
         try throwUnhandledError()
+    }
+
+    // Note: thrown error is always a LayoutError
+    public func update() throws {
+        try updateValues()
+        try updateFrame()
     }
 
     // MARK: binding
