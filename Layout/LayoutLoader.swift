@@ -79,6 +79,7 @@ class LayoutLoader {
         _xmlURL = xmlURL
         _state = state
         _constants = constants
+        _strings = nil
         if xmlURL.isFileURL {
             let bundlePath = Bundle.main.bundleURL.absoluteString
             if xmlURL.absoluteString.hasPrefix(bundlePath) {

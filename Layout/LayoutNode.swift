@@ -1119,13 +1119,13 @@ public class LayoutNode: NSObject {
     private var _usesAutoLayout = false
     private lazy var _widthConstraint: NSLayoutConstraint = {
         let constraint = self.view.widthAnchor.constraint(equalToConstant: 0)
-        constraint.priority = UILayoutPriorityDefaultHigh
+        constraint.priority = UILayoutPriorityRequired - 1
         constraint.identifier = "LayoutWidth"
         return constraint
     }()
     private lazy var _heightConstraint: NSLayoutConstraint = {
         let constraint = self.view.heightAnchor.constraint(equalToConstant: 0)
-        constraint.priority = UILayoutPriorityDefaultHigh
+        constraint.priority = UILayoutPriorityRequired - 1
         constraint.identifier = "LayoutHeight"
         return constraint
     }()

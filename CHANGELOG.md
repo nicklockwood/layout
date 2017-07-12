@@ -1,5 +1,17 @@
 # Change Log
 
+## [0.4.0](https://github.schibsted.io/Rocket/layout/releases/tag/0.4.0) (2017-07-12)
+
+- Breaking change: `UIScrollView.contentInset` is now taken into account when using `auto` in width/height
+- Using `auto` sizing on nodes whose children depend on parent size no longer creates circular reference errors
+- Spurious errors are no longer thrown during mounting of the `LayoutNode` due to premature evaluation
+- Setup of `LayoutNode` is now deferred until first update, which reduces unnecessary processing
+- Layout now automatically detects Obj-C setter methods and allows them to be used as expression properties
+- The `LayoutViewController` class now conforms to the `LayoutLoading` protocol
+- Fixed a bug introduced in version 0.3.4 that affected AutoLayout-based view sizing
+- Added caching for computed properties, which improves update performance
+- Fixed live reloading of strings
+
 ## [0.3.6](https://github.schibsted.io/Rocket/layout/releases/tag/0.3.6) (2017-07-10)
 
 - Conflict resolution now ignores xml or strings files inside build directory
