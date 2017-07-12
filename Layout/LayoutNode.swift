@@ -42,7 +42,7 @@ public class LayoutNode: NSObject {
         }
 
         overrideExpressions()
-        updateVariables()
+        _ = updateVariables()
         updateObservers()
 
         #if arch(i386) || arch(x86_64)
@@ -315,32 +315,29 @@ public class LayoutNode: NSObject {
                 assert(oldType == Void.self || oldType == type(of: state), "Cannot change type of state after initialization")
                 equal = areEqual(oldValue, state)
             }
-            if !equal {
-                updateVariables()
+            if !equal, updateVariables(), _setupComplete {
+                // TODO: work out which expressions are actually affected
+                attempt(update)
             }
         }
     }
 
     private var _variables = [String: Any]()
-    private func updateVariables() {
-        var equal = true
+    private func updateVariables() -> Bool {
         if let members = state as? [String: Any] {
-            equal = false // Shouldn't get here otherwise
             _variables = members
-        } else {
-            // TODO: what about nested objects?
-            let mirror = Mirror(reflecting: state)
-            for (name, value) in mirror.children {
-                if let name = name, (equal && areEqual(_variables[name] as Any, value)) == false {
-                    _variables[name] = value
-                    equal = false
-                }
+            return true
+        }
+        // TODO: what about nested objects?
+        var equal = true
+        let mirror = Mirror(reflecting: state)
+        for (name, value) in mirror.children {
+            if let name = name, (equal && areEqual(_variables[name] as Any, value)) == false {
+                _variables[name] = value
+                equal = false
             }
         }
-        if !equal, _setupComplete {
-            // TODO: work out which expressions are actually affected
-            attempt(update)
-        }
+        return !equal
     }
 
     // MARK: Hierarchy

@@ -355,10 +355,7 @@ struct LayoutExpression {
 
     init(attributedStringExpression: String, for node: LayoutNode) {
         let expression = LayoutExpression(interpolatedStringExpression: attributedStringExpression, for: node)
-        let symbols = expression.symbols
-        // TODO: find out why these break stuff
-        //        symbols.insert("font")
-        //        symbols.insert("textColor")
+        let symbols = Set(expression.symbols + ["font", "textColor"])
         self.init(
             evaluate: {
                 var substrings = [NSAttributedString]()
