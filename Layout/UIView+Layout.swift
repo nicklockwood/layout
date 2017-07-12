@@ -24,7 +24,6 @@ extension UIView {
     @objc open class var expressionTypes: [String: RuntimeType] {
         var types = allPropertyTypes()
         // TODO: support more properties
-        types["backgroundColor"] = RuntimeType(UIColor.self)
         types["contentMode"] = RuntimeType(UIViewContentMode.self, [
             "scaleToFill": .scaleToFill,
             "scaleAspectFit": .scaleAspectFit,
@@ -40,7 +39,6 @@ extension UIView {
             "bottomLeft": .bottomLeft,
             "bottomRight": .bottomRight,
         ])
-        types["tintColor"] = RuntimeType(UIColor.self)
         // TODO: better approach to layer properties?
         for (name, type) in (layerClass as! NSObject.Type).allPropertyTypes() {
             types["layer.\(name)"] = type

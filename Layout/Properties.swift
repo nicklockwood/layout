@@ -54,7 +54,8 @@ public class RuntimeType: NSObject {
                     return
                 }
             }
-            type = .any(AnyObject.self)
+            // Can't infer the object type, so ignore it
+            return nil
         case "#":
             type = .any(AnyClass.self)
         case ":":
@@ -66,6 +67,8 @@ public class RuntimeType: NSObject {
                 type = .any(CGColor.self)
             } else if objCType.hasPrefix("^{CGImage") {
                 type = .any(CGImage.self)
+            } else if objCType.hasPrefix("^{CGPath") {
+                type = .any(CGPath.self)
             } else {
                 // Unsupported struct ref type
                 return nil
@@ -261,7 +264,10 @@ extension NSObject {
                         continue
                     }
                     method_getArgumentType(method, 2, ctype, maxChars)
-                    let objCType = String(cString: ctype)
+                    var objCType = String(cString: ctype)
+                    if objCType == "@", name.hasSuffix("olor") {
+                        objCType = "@\"UIColor\"" // Workaround for runtime not knowing the type
+                    }
                     guard let type = RuntimeType(objCType: objCType) else {
                         continue
                     }
