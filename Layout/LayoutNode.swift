@@ -1184,9 +1184,13 @@ public class LayoutNode: NSObject {
         for controller in viewControllers {
             viewController.addChildViewController(controller)
         }
-        view.frame = viewController.view.bounds
         viewController.view.addSubview(view)
-        try update()
+        if view.frame != viewController.view.bounds {
+            view.frame = viewController.view.bounds
+            try throwUnhandledError()
+        } else {
+            try update()
+        }
     }
 
     // Note: thrown error is always a LayoutError

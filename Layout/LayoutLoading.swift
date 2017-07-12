@@ -40,7 +40,7 @@ public extension LayoutLoading {
         state: Any = (),
         constants: [String: Any]...,
         completion: ((LayoutError?) -> Void)? = nil) {
-        _loader.loadLayout(
+        loader.loadLayout(
             withContentsOfURL: xmlURL,
             relativeTo: relativeTo,
             state: state,
@@ -58,7 +58,7 @@ public extension LayoutLoading {
 
     /// Reload the previously loaded xml file
     func reloadLayout(withCompletion completion: ((LayoutError?) -> Void)? = nil) {
-        _loader.reloadLayout { layoutNode, error in
+        loader.reloadLayout { layoutNode, error in
             if let layoutNode = layoutNode {
                 self.layoutNode = layoutNode
             }
@@ -83,7 +83,8 @@ public extension LayoutLoading {
         print("Layout error: \(error)")
     }
 
-    private var _loader: LayoutLoader {
+    // Used by LayoutViewController
+    internal var loader: LayoutLoader {
         guard let loader = objc_getAssociatedObject(self, &loaderKey) as? LayoutLoader else {
             let loader = LayoutLoader()
             objc_setAssociatedObject(self, &loaderKey, loader, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)

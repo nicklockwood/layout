@@ -2,7 +2,7 @@
 
 import UIKit
 
-open class LayoutViewController: UIViewController {
+open class LayoutViewController: UIViewController, LayoutLoading {
 
     open var layoutNode: LayoutNode? {
         didSet {
@@ -23,89 +23,9 @@ open class LayoutViewController: UIViewController {
         }
     }
 
-    fileprivate var _loader: LayoutLoader?
     private var _state: Any = ()
     private var _errorNode: LayoutNode?
     private var _error: LayoutError?
-
-    private var isReloadable: Bool {
-        return layoutNode != nil || _loader != nil
-    }
-
-    private func merge(_ dictionaries: [[String: Any]]) -> [String: Any] {
-        var result = [String: Any]()
-        for dict in dictionaries {
-            for (key, value) in dict {
-                result[key] = value
-            }
-        }
-        return result
-    }
-
-    public func loadLayout(
-        named: String? = nil,
-        bundle: Bundle = Bundle.main,
-        relativeTo: String = #file,
-        state: Any = (),
-        constants: [String: Any]...) {
-        assert(Thread.isMainThread)
-        let name = named ?? "\(type(of: self))".components(separatedBy: ".").last!
-        guard let xmlURL = bundle.url(forResource: name, withExtension: nil) ??
-            bundle.url(forResource: name, withExtension: "xml") else {
-            layoutError(.message("No layout XML file found for `\(name)`"))
-            return
-        }
-        loadLayout(
-            withContentsOfURL: xmlURL,
-            relativeTo: relativeTo,
-            state: state,
-            constants: merge(constants)
-        )
-    }
-
-    public func loadLayout(
-        withContentsOfURL xmlURL: URL,
-        relativeTo: String? = #file,
-        state: Any = (),
-        constants: [String: Any]...,
-        completion: ((LayoutError?) -> Void)? = nil) {
-        if _loader == nil {
-            _loader = LayoutLoader()
-        }
-        _loader?.loadLayout(
-            withContentsOfURL: xmlURL,
-            relativeTo: relativeTo,
-            state: state,
-            constants: merge(constants)
-        ) { layoutNode, error in
-            if let layoutNode = layoutNode {
-                self.layoutNode = layoutNode
-            }
-            if let error = error {
-                self.layoutError(error)
-            }
-            completion?(error)
-        }
-    }
-
-    public func reloadLayout(withCompletion completion: ((LayoutError?) -> Void)? = nil) {
-        if let loader = _loader {
-            loader.reloadLayout { layoutNode, error in
-                if let layoutNode = layoutNode {
-                    self.layoutNode = layoutNode
-                }
-                if let error = error {
-                    self.layoutError(error)
-                }
-                completion?(error)
-            }
-        } else {
-            let node = layoutNode
-            layoutNode?.state = _state
-            layoutNode = node
-            completion?(nil)
-        }
-    }
 
     open override var canBecomeFirstResponder: Bool {
         // Ensure Cmd-R shortcut works inside modal view controller
@@ -142,7 +62,7 @@ open class LayoutViewController: UIViewController {
 
     @objc private func _selectMatch(_ sender: UIButton) {
         if let error = _error, case let .multipleMatches(matches, path) = error {
-            _loader?.setSourceURL(matches[sender.tag], for: path)
+            loader.setSourceURL(matches[sender.tag], for: path)
         }
         _reloadLayout()
     }
@@ -225,7 +145,6 @@ open class LayoutViewController: UIViewController {
                         "left": "(100% - width) / 2",
                         "text": "[\(reloadMessage)]",
                         "textColor": "rgba(255,255,255,0.6)",
-                        "isHidden": "\(!isReloadable)",
                     ]
                 ),
             ]
@@ -309,7 +228,7 @@ extension LayoutViewController: LayoutDelegate {
 
     open func layoutNode(_: LayoutNode, localizedStringForKey key: String) -> String? {
         do {
-            return try _loader?.loadLocalizedStrings()[key]
+            return try loader.loadLocalizedStrings()[key]
         } catch {
             layoutError(LayoutError(error))
             return nil
