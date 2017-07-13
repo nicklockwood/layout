@@ -405,6 +405,20 @@ struct LayoutExpression {
     // which is not the same as reported by `UIFont.systemFontSize`
     static let defaultFontSize: CGFloat = 17
 
+    // Needed because the Swift names don't match the rawValue constants
+    static let fontTextStyles: [String: UIFontTextStyle] = [
+        "title1": .title1,
+        "title2": .title2,
+        "title3": .title3,
+        "headline": .headline,
+        "subheadline": .subheadline,
+        "body": .body,
+        "callout": .callout,
+        "footnote": .footnote,
+        "caption1": .caption1,
+        "caption2": .caption2,
+    ]
+
     init(fontExpression: String, for node: LayoutNode) {
         let expression = LayoutExpression(interpolatedStringExpression: fontExpression, for: node)
         self.init(
@@ -460,19 +474,18 @@ struct LayoutExpression {
                             default:
                                 if let size = Double(part) {
                                     font = font.withSize(CGFloat(size))
-                                    break
-                                }
-                                if let newFont = UIFont(name: part, size: font.pointSize) {
+                                } else if let newFont = UIFont(name: part, size: font.pointSize) {
                                     font = newFont
-                                    break
-                                }
-                                if let familyName = UIFont.familyNames.first(where: {
+                                } else if let familyName = UIFont.familyNames.first(where: {
                                     $0.lowercased() == part
                                 }), let fontName = UIFont.fontNames(forFamilyName: familyName).first,
                                     let newFont = UIFont(name: fontName, size: font.pointSize) {
                                     font = newFont
+                                } else if let fontStyle = LayoutExpression.fontTextStyles[part] {
+                                    font = UIFont.preferredFont(forTextStyle: fontStyle)
+                                } else {
+                                    throw Expression.Error.message("Invalid font specifier `\(part)`")
                                 }
-                                throw Expression.Error.message("Invalid font specifier `\(part)`")
                             }
                         }
                     }

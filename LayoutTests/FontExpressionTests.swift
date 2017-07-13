@@ -65,4 +65,11 @@ class FontExpressionTests: XCTestCase {
             XCTAssert("\(error)".contains("nil"))
         }
     }
+
+    func testFontTextStyle() {
+        let node = LayoutNode()
+        let expression = LayoutExpression(fontExpression: "caption1", for: node)
+        let expected = UIFont.preferredFont(forTextStyle: .caption1)
+        XCTAssertEqual(try expression.evaluate() as? UIFont, expected)
+    }
 }
