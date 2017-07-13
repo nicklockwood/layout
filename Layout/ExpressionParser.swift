@@ -7,6 +7,9 @@ enum ParsedExpressionPart {
     case expression(ParsedExpression)
 }
 
+// Prevent cache from distorting performance test results
+private let runningInUnitTest = (NSClassFromString("XCTestCase") != nil)
+
 // NOTE: it is not safe to access this concurrently from multiple threads due to cache
 private var _expressionCache = [String: ParsedExpression]()
 func parseExpression(_ expression: String) throws -> ParsedExpression {
@@ -31,7 +34,9 @@ func parseExpression(_ expression: String) throws -> ParsedExpression {
     if !characters.isEmpty {
         throw Expression.Error.message("Unexpected token `\(String(characters))`")
     }
-    _expressionCache[expression] = parsedExpression
+    if !runningInUnitTest {
+        _expressionCache[expression] = parsedExpression
+    }
     return parsedExpression
 }
 
@@ -67,6 +72,8 @@ func parseStringExpression(_ expression: String) throws -> [ParsedExpressionPart
     if !string.isEmpty {
         parts.append(.string(string))
     }
-    _stringExpressionCache[expression] = parts
+    if !runningInUnitTest {
+        _stringExpressionCache[expression] = parts
+    }
     return parts
 }
