@@ -355,7 +355,6 @@ struct LayoutExpression {
 
     init(attributedStringExpression: String, for node: LayoutNode) {
         let expression = LayoutExpression(interpolatedStringExpression: attributedStringExpression, for: node)
-        let symbols = Set(expression.symbols + ["font", "textColor"])
         self.init(
             evaluate: {
                 var substrings = [NSAttributedString]()
@@ -397,7 +396,7 @@ struct LayoutExpression {
                 }
                 return result
             },
-            symbols: symbols
+            symbols: Set(expression.symbols + ["font", "textColor"])
         )
     }
 
@@ -493,7 +492,7 @@ struct LayoutExpression {
                 let descriptor = font.fontDescriptor.withSymbolicTraits(traits) ?? font.fontDescriptor
                 return UIFont(descriptor: descriptor, size: font.pointSize)
             },
-            symbols: expression.symbols
+            symbols: Set(expression.symbols + ["UIContentSizeCategory"])
         )
     }
 

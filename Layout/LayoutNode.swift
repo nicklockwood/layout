@@ -75,6 +75,7 @@ public class LayoutNode: NSObject {
         if _observing, parent != nil {
             stopObserving()
         } else if !_observing, parent == nil {
+            NotificationCenter.default.addObserver(self, selector: #selector(contentSizeChanged), name: .UIContentSizeCategoryDidChange, object: nil)
             addObserver(self, forKeyPath: "_view.frame", options: [], context: nil)
             _observing = true
         }
@@ -82,6 +83,7 @@ public class LayoutNode: NSObject {
 
     private func stopObserving() {
         if _observing {
+            NotificationCenter.default.removeObserver(self)
             removeObserver(self, forKeyPath: "_view.frame")
             _observing = false
         }
@@ -93,6 +95,10 @@ public class LayoutNode: NSObject {
         change _: [NSKeyValueChangeKey: Any]?,
         context _: UnsafeMutableRawPointer?
     ) {
+        attempt { try update() }
+    }
+
+    @objc private func contentSizeChanged() {
         attempt { try update() }
     }
 
