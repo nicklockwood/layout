@@ -420,80 +420,163 @@ struct LayoutExpression {
 
     init(fontExpression: String, for node: LayoutNode) {
         let expression = LayoutExpression(interpolatedStringExpression: fontExpression, for: node)
-        self.init(
-            evaluate: {
-                var font = UIFont.systemFont(ofSize: LayoutExpression.defaultFontSize)
-                var traits = font.fontDescriptor.symbolicTraits
-                for part in try expression.evaluate() as! [Any] {
-                    switch try unwrap(part) {
-                    case let part as UIFont:
-                        font = part
-                    default:
-                        // Split into space-delimited parts
-                        // TODO: can we support font names containing spaces without quotes?
-                        var parts = "\(part)".lowercased().components(separatedBy: " ")
-                        // Merge and un-escape quoted parts
-                        // TODO: can this be done as a pre-processing step rather than after evaluation?
-                        var stringEnd: Int?
-                        for i in parts.indices.reversed() {
-                            let part = parts[i]
-                            for c in ["\"", "'"] {
-                                if part.hasSuffix(c) {
-                                    stringEnd = i
-                                }
-                                if part.hasPrefix(c), let end = stringEnd {
-                                    var result = ""
-                                    for part in parts[i ... end] {
-                                        result += part
+
+        // Parse a stringified font part
+        func fontPart(for string: String) -> Any? {
+            switch string {
+            case "bold":
+                return UIFontDescriptorSymbolicTraits.traitBold
+            case "italic":
+                return UIFontDescriptorSymbolicTraits.traitItalic
+            case "condensed":
+                return UIFontDescriptorSymbolicTraits.traitCondensed
+            case "expanded":
+                return UIFontDescriptorSymbolicTraits.traitExpanded
+            case "monospace", "monospaced":
+                return UIFontDescriptorSymbolicTraits.traitMonoSpace
+            case "system":
+                return UIFont.systemFont(ofSize: LayoutExpression.defaultFontSize)
+            default:
+                if let size = Double(string) {
+                    return size
+                }
+                if let font = UIFont(name: string, size: LayoutExpression.defaultFontSize) {
+                    return font
+                }
+                if let fontStyle = LayoutExpression.fontTextStyles[string] {
+                    return fontStyle
+                }
+                if let familyName = UIFont.familyNames.first(where: {
+                    $0.lowercased() == string
+                }), let fontName = UIFont.fontNames(forFamilyName: familyName).first,
+                    let font = UIFont(name: fontName, size: LayoutExpression.defaultFontSize) {
+                    return font
+                }
+                return nil
+            }
+        }
+
+        // Preprocess the evaluated expression into parts
+        func preprocess() throws -> [Any] {
+            var parts = [Any]()
+            var string = ""
+            func processString() throws {
+                if !string.isEmpty {
+                    var characters = string.unicodeScalars
+                    var result = String.UnicodeScalarView()
+                    var delimiter: UnicodeScalar?
+                    var fontName: String?
+                    while let char = characters.popFirst() {
+                        switch char {
+                        case "'", "\"":
+                            if char == delimiter {
+                                if !result.isEmpty {
+                                    let string = String(result)
+                                    result.removeAll()
+                                    guard let part = fontPart(for: string) else {
+                                        throw Expression.Error.message("Invalid font specifier `\(string)`")
                                     }
-                                    result = result.substring(with:
-                                        result.index(after: result.startIndex) ..< result.index(before: result.endIndex)
-                                    )
-                                    parts[i ... end] = [result]
-                                    stringEnd = nil
-                                    break
+                                    fontName = part is UIFont ? string : nil
+                                    parts.append(part)
                                 }
+                                delimiter = nil
+                            } else {
+                                delimiter = char
                             }
-                        }
-                        // Build font
-                        for part in parts where !part.isEmpty {
-                            switch part {
-                            case "bold":
-                                traits.insert(.traitBold)
-                            case "italic":
-                                traits.insert(.traitItalic)
-                            case "condensed":
-                                traits.insert(.traitCondensed)
-                            case "expanded":
-                                traits.insert(.traitExpanded)
-                            case "monospace", "monospaced":
-                                traits.insert(.traitMonoSpace)
-                            case "system":
-                                font = UIFont.systemFont(ofSize: font.pointSize)
-                            default:
-                                if let size = Double(part) {
-                                    font = font.withSize(CGFloat(size))
-                                } else if let newFont = UIFont(name: part, size: font.pointSize) {
-                                    font = newFont
-                                } else if let familyName = UIFont.familyNames.first(where: {
-                                    $0.lowercased() == part
-                                }), let fontName = UIFont.fontNames(forFamilyName: familyName).first,
-                                    let newFont = UIFont(name: fontName, size: font.pointSize) {
-                                    font = newFont
-                                } else if let fontStyle = LayoutExpression.fontTextStyles[part] {
-                                    font = UIFont.preferredFont(forTextStyle: fontStyle)
+                        case " ":
+                            if delimiter != nil {
+                                fallthrough
+                            }
+                            if !result.isEmpty {
+                                let string = String(result)
+                                result.removeAll()
+                                if let part = fontPart(for: string) {
+                                    fontName = part is UIFont ? string : nil
+                                    parts.append(part)
+                                } else if let prevName = fontName {
+                                    // Might form a longer font name with the previous part
+                                    fontName = "\(prevName) \(string)"
+                                    if let part = fontPart(for: fontName!) {
+                                        fontName = nil
+                                        parts.removeLast()
+                                        parts.append(part)
+                                    }
                                 } else {
-                                    throw Expression.Error.message("Invalid font specifier `\(part)`")
+                                    fontName = string
                                 }
                             }
+                        default:
+                            result.append(char)
                         }
                     }
+                    if !result.isEmpty {
+                        let string = String(result)
+                        guard let part = fontPart(for: string) else {
+                            throw Expression.Error.message("Invalid font specifier `\(string)`")
+                        }
+                        parts.append(part)
+                    }
+                    string = ""
                 }
-                let descriptor = font.fontDescriptor.withSymbolicTraits(traits) ?? font.fontDescriptor
-                return UIFont(descriptor: descriptor, size: font.pointSize)
-            },
-            symbols: Set(expression.symbols + ["UIContentSizeCategory"])
-        )
+            }
+            for part in try expression.evaluate() as! [Any] {
+                switch try unwrap(part) {
+                case let part as UIFont:
+                    try processString()
+                    parts.append(part)
+                case let part:
+                    string += "\(part)"
+                }
+            }
+            try processString()
+            return parts
+        }
+
+        // Create a font from a pre-processed parts array
+        func buildFont(with parts: [Any]) throws -> UIFont {
+            var font = UIFont.systemFont(ofSize: LayoutExpression.defaultFontSize)
+            var traits = font.fontDescriptor.symbolicTraits
+            var fontSize: CGFloat?
+            for part in parts {
+                switch part {
+                case let part as UIFont:
+                    font = part
+                case let trait as UIFontDescriptorSymbolicTraits:
+                    traits.insert(trait)
+                case let size as NSNumber:
+                    fontSize = CGFloat(size)
+                case let style as UIFontTextStyle:
+                    font = UIFont.preferredFont(forTextStyle: style)
+                    fontSize = font.pointSize
+                default:
+                    throw Expression.Error.message("Invalid font specifier `\(part)`")
+                }
+            }
+            let descriptor = font.fontDescriptor.withSymbolicTraits(traits) ?? font.fontDescriptor
+            return UIFont(descriptor: descriptor, size: fontSize ?? font.pointSize)
+        }
+
+        // Generate evaluator
+        var symbols = expression.symbols
+        let evaluate: () throws -> Any
+        if symbols.isEmpty {
+            // Minimize re-evaluation for constant font expressions
+            do {
+                let parts = try preprocess()
+                if parts.contains(where: { $0 is UIFontTextStyle }) {
+                    symbols.insert("UIContentSizeCategory")
+                }
+                evaluate = { try buildFont(with: parts) }
+            } catch {
+                evaluate = { throw error }
+            }
+        } else {
+            // We can't tell if this expression relies on dynamic
+            // text or not at this point, so we'll assume it does
+            symbols.insert("UIContentSizeCategory")
+            evaluate = { try buildFont(with: preprocess()) }
+        }
+        self.init(evaluate: evaluate, symbols: symbols)
     }
 
     init(imageExpression: String, for node: LayoutNode) {

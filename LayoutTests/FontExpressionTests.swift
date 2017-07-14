@@ -47,6 +47,16 @@ class FontExpressionTests: XCTestCase {
         XCTAssertEqual(try expression.evaluate() as? UIFont, expected)
     }
 
+    func testBoldUnescapedFontNameWithSpaces() {
+        let node = LayoutNode()
+        let name = "helvetica neue"
+        let expression = LayoutExpression(fontExpression: "\(name) bold", for: node)
+        let descriptor = UIFont(name: name, size: LayoutExpression.defaultFontSize)!.fontDescriptor
+        let traits = descriptor.symbolicTraits.union([.traitBold])
+        let expected = UIFont(descriptor: descriptor.withSymbolicTraits(traits)!, size: LayoutExpression.defaultFontSize)
+        XCTAssertEqual(try expression.evaluate() as? UIFont, expected)
+    }
+
     func testExplicitFontWithBoldAttributes() {
         let font = UIFont(name: "courier", size: 15)!
         let node = LayoutNode(constants: ["font": font])
