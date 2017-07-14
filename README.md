@@ -570,19 +570,37 @@ The `UIFont` class encapsulates the font family, size, weight and style, so a fo
 	expanded
 	monospace
 	<font-name>
+	<font-style>
 	<font-size>
 	
-The font name is a string and font size is a number. Any attribute that isn't specified will be set to the system default - typically 17pt San Francisco. Here are some examples:
+The `<font-name>` is a string and `<font-size>` is a number. Any attribute that isn't specified will be set to the system default - typically 17pt San Francisco. Here are some examples:
 
 	<UILabel font="bold"/>
 	
 	<UILabel font="Courier 15"/>
 	
 	<UILabel font="Helvetica 30 italic"/>
+	
+The `<font-style>` is a UIFontTextStyle constant, from the following list:
 
-These literal properties can be mixed with inline expressions, so for example to override the weight and size of a `UIFont` constant called "themeFont" you could use:
+    title1
+    title2
+    title3
+    headline
+    subheadline
+    body
+    callout
+    footnote
+    caption1
+    caption2
+    
+Specifiying one of these values sets the font size to match the user's font size setting for that style, and enables dynamic text sizing, so that changing the font size setting will automatically update the font. You can mix and match these with the other properties, e.g.
 
-	<UILabel font="{themeFont} {size} bold"/>
+    <UILabel font="helvetica body bold"/>
+
+These literal font properties can be mixed with inline expressions, so, for example, to override the weight and size of a `UIFont` constant called "themeFont" you could use:
+
+	<UILabel font="{themeFont} 25 bold"/>
 
 ## Attributed Strings
 

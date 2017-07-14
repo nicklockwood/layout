@@ -521,7 +521,9 @@ struct LayoutExpression {
             }
             for part in try expression.evaluate() as! [Any] {
                 switch try unwrap(part) {
-                case let part as UIFont:
+                case is UIFont,
+                     is UIFontTextStyle,
+                     is UIFontDescriptorSymbolicTraits:
                     try processString()
                     parts.append(part)
                 case let part:
@@ -534,9 +536,9 @@ struct LayoutExpression {
 
         // Create a font from a pre-processed parts array
         func buildFont(with parts: [Any]) throws -> UIFont {
-            var font = UIFont.systemFont(ofSize: LayoutExpression.defaultFontSize)
-            var traits = font.fontDescriptor.symbolicTraits
-            var fontSize: CGFloat?
+            var font: UIFont!
+            var fontSize: CGFloat!
+            var traits = UIFontDescriptorSymbolicTraits()
             for part in parts {
                 switch part {
                 case let part as UIFont:
@@ -546,14 +548,17 @@ struct LayoutExpression {
                 case let size as NSNumber:
                     fontSize = CGFloat(size)
                 case let style as UIFontTextStyle:
-                    font = UIFont.preferredFont(forTextStyle: style)
-                    fontSize = font.pointSize
+                    let preferredFont = UIFont.preferredFont(forTextStyle: style)
+                    fontSize = preferredFont.pointSize
+                    font = font ?? preferredFont
                 default:
                     throw Expression.Error.message("Invalid font specifier `\(part)`")
                 }
             }
+            fontSize = fontSize ?? font?.pointSize ?? LayoutExpression.defaultFontSize
+            font = font ?? UIFont.systemFont(ofSize: fontSize)
             let descriptor = font.fontDescriptor.withSymbolicTraits(traits) ?? font.fontDescriptor
-            return UIFont(descriptor: descriptor, size: fontSize ?? font.pointSize)
+            return UIFont(descriptor: descriptor, size: fontSize)
         }
 
         // Generate evaluator

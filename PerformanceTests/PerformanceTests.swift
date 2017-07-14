@@ -18,6 +18,7 @@ class PerformanceTests: XCTestCase {
                         "left": "10",
                         "width": "100% - 20",
                         "height": "auto",
+                        "font": "helvetica body italic",
                         "text": "\(i). Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
                     ]
                 )

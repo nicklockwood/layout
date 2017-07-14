@@ -82,4 +82,13 @@ class FontExpressionTests: XCTestCase {
         let expected = UIFont.preferredFont(forTextStyle: .caption1)
         XCTAssertEqual(try expression.evaluate() as? UIFont, expected)
     }
+
+    func testCustomFontTextStyle() {
+        let node = LayoutNode()
+        let name = "courier"
+        let expression = LayoutExpression(fontExpression: "\(name) title1", for: node)
+        let expectedSize = UIFont.preferredFont(forTextStyle: .title1).pointSize
+        let expected = UIFont(name: name, size: expectedSize)
+        XCTAssertEqual(try expression.evaluate() as? UIFont, expected)
+    }
 }
