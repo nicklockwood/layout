@@ -99,6 +99,10 @@ public class LayoutNode: NSObject {
     }
 
     @objc private func contentSizeChanged() {
+        guard _setupComplete else {
+            return
+        }
+        cleanUp()
         attempt { try update() }
     }
 

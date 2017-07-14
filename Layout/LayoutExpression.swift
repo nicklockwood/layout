@@ -456,132 +456,112 @@ struct LayoutExpression {
             }
         }
 
-        // Preprocess the evaluated expression into parts
-        func preprocess() throws -> [Any] {
-            var parts = [Any]()
-            var string = ""
-            func processString() throws {
-                if !string.isEmpty {
-                    var characters = string.unicodeScalars
-                    var result = String.UnicodeScalarView()
-                    var delimiter: UnicodeScalar?
-                    var fontName: String?
-                    while let char = characters.popFirst() {
-                        switch char {
-                        case "'", "\"":
-                            if char == delimiter {
+        // Generate evaluator
+        self.init(
+            evaluate: {
+
+                // Parse font parts
+                var parts = [Any]()
+                var string = ""
+                func processString() throws {
+                    if !string.isEmpty {
+                        var characters = string.unicodeScalars
+                        var result = String.UnicodeScalarView()
+                        var delimiter: UnicodeScalar?
+                        var fontName: String?
+                        while let char = characters.popFirst() {
+                            switch char {
+                            case "'", "\"":
+                                if char == delimiter {
+                                    if !result.isEmpty {
+                                        let string = String(result)
+                                        result.removeAll()
+                                        guard let part = fontPart(for: string) else {
+                                            throw Expression.Error.message("Invalid font specifier `\(string)`")
+                                        }
+                                        fontName = part is UIFont ? string : nil
+                                        parts.append(part)
+                                    }
+                                    delimiter = nil
+                                } else {
+                                    delimiter = char
+                                }
+                            case " ":
+                                if delimiter != nil {
+                                    fallthrough
+                                }
                                 if !result.isEmpty {
                                     let string = String(result)
                                     result.removeAll()
-                                    guard let part = fontPart(for: string) else {
-                                        throw Expression.Error.message("Invalid font specifier `\(string)`")
-                                    }
-                                    fontName = part is UIFont ? string : nil
-                                    parts.append(part)
-                                }
-                                delimiter = nil
-                            } else {
-                                delimiter = char
-                            }
-                        case " ":
-                            if delimiter != nil {
-                                fallthrough
-                            }
-                            if !result.isEmpty {
-                                let string = String(result)
-                                result.removeAll()
-                                if let part = fontPart(for: string) {
-                                    fontName = part is UIFont ? string : nil
-                                    parts.append(part)
-                                } else if let prevName = fontName {
-                                    // Might form a longer font name with the previous part
-                                    fontName = "\(prevName) \(string)"
-                                    if let part = fontPart(for: fontName!) {
-                                        fontName = nil
-                                        parts.removeLast()
+                                    if let part = fontPart(for: string) {
+                                        fontName = part is UIFont ? string : nil
                                         parts.append(part)
+                                    } else if let prevName = fontName {
+                                        // Might form a longer font name with the previous part
+                                        fontName = "\(prevName) \(string)"
+                                        if let part = fontPart(for: fontName!) {
+                                            fontName = nil
+                                            parts.removeLast()
+                                            parts.append(part)
+                                        }
+                                    } else {
+                                        fontName = string
                                     }
-                                } else {
-                                    fontName = string
                                 }
+                            default:
+                                result.append(char)
                             }
-                        default:
-                            result.append(char)
                         }
+                        if !result.isEmpty {
+                            let string = String(result)
+                            guard let part = fontPart(for: string) else {
+                                throw Expression.Error.message("Invalid font specifier `\(string)`")
+                            }
+                            parts.append(part)
+                        }
+                        string = ""
                     }
-                    if !result.isEmpty {
-                        let string = String(result)
-                        guard let part = fontPart(for: string) else {
-                            throw Expression.Error.message("Invalid font specifier `\(string)`")
-                        }
+                }
+                for part in try expression.evaluate() as! [Any] {
+                    switch try unwrap(part) {
+                    case is UIFont,
+                         is UIFontTextStyle,
+                         is UIFontDescriptorSymbolicTraits:
+                        try processString()
                         parts.append(part)
+                    case let part:
+                        string += "\(part)"
                     }
-                    string = ""
                 }
-            }
-            for part in try expression.evaluate() as! [Any] {
-                switch try unwrap(part) {
-                case is UIFont,
-                     is UIFontTextStyle,
-                     is UIFontDescriptorSymbolicTraits:
-                    try processString()
-                    parts.append(part)
-                case let part:
-                    string += "\(part)"
-                }
-            }
-            try processString()
-            return parts
-        }
+                try processString()
 
-        // Create a font from a pre-processed parts array
-        func buildFont(with parts: [Any]) throws -> UIFont {
-            var font: UIFont!
-            var fontSize: CGFloat!
-            var traits = UIFontDescriptorSymbolicTraits()
-            for part in parts {
-                switch part {
-                case let part as UIFont:
-                    font = part
-                case let trait as UIFontDescriptorSymbolicTraits:
-                    traits.insert(trait)
-                case let size as NSNumber:
-                    fontSize = CGFloat(size)
-                case let style as UIFontTextStyle:
-                    let preferredFont = UIFont.preferredFont(forTextStyle: style)
-                    fontSize = preferredFont.pointSize
-                    font = font ?? preferredFont
-                default:
-                    throw Expression.Error.message("Invalid font specifier `\(part)`")
+                // Build the font
+                var font: UIFont!
+                var fontSize: CGFloat!
+                var traits = UIFontDescriptorSymbolicTraits()
+                for part in parts {
+                    switch part {
+                    case let part as UIFont:
+                        font = part
+                    case let trait as UIFontDescriptorSymbolicTraits:
+                        traits.insert(trait)
+                    case let size as NSNumber:
+                        fontSize = CGFloat(size)
+                    case let style as UIFontTextStyle:
+                        let preferredFont = UIFont.preferredFont(forTextStyle: style)
+                        fontSize = preferredFont.pointSize
+                        font = font ?? preferredFont
+                    default:
+                        throw Expression.Error.message("Invalid font specifier `\(part)`")
+                    }
                 }
-            }
-            fontSize = fontSize ?? font?.pointSize ?? LayoutExpression.defaultFontSize
-            font = font ?? UIFont.systemFont(ofSize: fontSize)
-            let descriptor = font.fontDescriptor.withSymbolicTraits(traits) ?? font.fontDescriptor
-            return UIFont(descriptor: descriptor, size: fontSize)
-        }
-
-        // Generate evaluator
-        var symbols = expression.symbols
-        let evaluate: () throws -> Any
-        if symbols.isEmpty {
-            // Minimize re-evaluation for constant font expressions
-            do {
-                let parts = try preprocess()
-                if parts.contains(where: { $0 is UIFontTextStyle }) {
-                    symbols.insert("UIContentSizeCategory")
-                }
-                evaluate = { try buildFont(with: parts) }
-            } catch {
-                evaluate = { throw error }
-            }
-        } else {
-            // We can't tell if this expression relies on dynamic
-            // text or not at this point, so we'll assume it does
-            symbols.insert("UIContentSizeCategory")
-            evaluate = { try buildFont(with: preprocess()) }
-        }
-        self.init(evaluate: evaluate, symbols: symbols)
+                fontSize = fontSize ?? font?.pointSize ?? LayoutExpression.defaultFontSize
+                font = font ?? UIFont.systemFont(ofSize: fontSize)
+                let descriptor = font.fontDescriptor.withSymbolicTraits(traits) ?? font.fontDescriptor
+                return UIFont(descriptor: descriptor, size: fontSize)
+            },
+            symbols: expression.symbols
+        )
     }
 
     init(imageExpression: String, for node: LayoutNode) {
