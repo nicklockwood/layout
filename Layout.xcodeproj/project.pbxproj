@@ -190,17 +190,9 @@
 		0176B8F81F0D153700431A11 /* Localizable.strings */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; path = Localizable.strings; sourceTree = "<group>"; };
 		01DA95861EABFF5F00868113 /* Expression.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Expression.framework; path = "../../../Library/Developer/Xcode/DerivedData/Layout-cidlxdzqvadfbngzwtfaldjrmjir/Build/Products/Debug-iphonesimulator/Expression.framework"; sourceTree = "<group>"; };
 		05DA996CC29E3F6DB7194413 /* Pods_LayoutTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_LayoutTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		112BC42B887D6AFE2BE726FB /* Pods-Layout.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Layout.release.xcconfig"; path = "Pods/Target Support Files/Pods-Layout/Pods-Layout.release.xcconfig"; sourceTree = "<group>"; };
-		24D690DDDBBCC803A84A8627 /* Pods-Layout.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Layout.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Layout/Pods-Layout.debug.xcconfig"; sourceTree = "<group>"; };
 		4118130BF7EC77593CF35CF1 /* Pods_Layout.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Layout.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		53F1B12A3E800D0CF1C1C2D3 /* Pods_UIDesigner.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_UIDesigner.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		80E0F6593B454D6A167E9FAB /* Pods-UIDesigner.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-UIDesigner.release.xcconfig"; path = "Pods/Target Support Files/Pods-UIDesigner/Pods-UIDesigner.release.xcconfig"; sourceTree = "<group>"; };
-		84354FF5F36C5F95E1F0E93E /* Pods-SampleApp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SampleApp.debug.xcconfig"; path = "Pods/Target Support Files/Pods-SampleApp/Pods-SampleApp.debug.xcconfig"; sourceTree = "<group>"; };
 		8470F0AD644C109EF8FEA9C4 /* Pods_SampleApp.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_SampleApp.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		8D964DE3AFF4315EACADB670 /* Pods-LayoutTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LayoutTests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-LayoutTests/Pods-LayoutTests.debug.xcconfig"; sourceTree = "<group>"; };
-		A139A65B8D96C84A643CF424 /* Pods-SampleApp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SampleApp.release.xcconfig"; path = "Pods/Target Support Files/Pods-SampleApp/Pods-SampleApp.release.xcconfig"; sourceTree = "<group>"; };
-		E23D7EDB2A25307D2F401E65 /* Pods-LayoutTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LayoutTests.release.xcconfig"; path = "Pods/Target Support Files/Pods-LayoutTests/Pods-LayoutTests.release.xcconfig"; sourceTree = "<group>"; };
-		F3D598F320ADD83ECAE728F2 /* Pods-UIDesigner.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-UIDesigner.debug.xcconfig"; path = "Pods/Target Support Files/Pods-UIDesigner/Pods-UIDesigner.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -408,21 +400,6 @@
 				53F1B12A3E800D0CF1C1C2D3 /* Pods_UIDesigner.framework */,
 			);
 			name = Frameworks;
-			sourceTree = "<group>";
-		};
-		674E0BB82C5CB1407887DA7F /* Pods */ = {
-			isa = PBXGroup;
-			children = (
-				24D690DDDBBCC803A84A8627 /* Pods-Layout.debug.xcconfig */,
-				112BC42B887D6AFE2BE726FB /* Pods-Layout.release.xcconfig */,
-				8D964DE3AFF4315EACADB670 /* Pods-LayoutTests.debug.xcconfig */,
-				E23D7EDB2A25307D2F401E65 /* Pods-LayoutTests.release.xcconfig */,
-				84354FF5F36C5F95E1F0E93E /* Pods-SampleApp.debug.xcconfig */,
-				A139A65B8D96C84A643CF424 /* Pods-SampleApp.release.xcconfig */,
-				F3D598F320ADD83ECAE728F2 /* Pods-UIDesigner.debug.xcconfig */,
-				80E0F6593B454D6A167E9FAB /* Pods-UIDesigner.release.xcconfig */,
-			);
-			name = Pods;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */

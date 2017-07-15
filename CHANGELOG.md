@@ -1,5 +1,11 @@
 # Change Log
 
+## [0.4.1](https://github.schibsted.io/Rocket/layout/releases/tag/0.4.1) (2017-07-15)
+
+- Added support for dynamic text resizing based on user font size settings
+- Improved font expression parsing. Now handles font names containing spaces, even without quotes
+- Fixed an occasional glitch where auto-sized table cells would all be positioned at the top of the table
+
 ## [0.4.0](https://github.schibsted.io/Rocket/layout/releases/tag/0.4.0) (2017-07-12)
 
 - Breaking change: `UIScrollView.contentInset` is now taken into account when using `auto` in width/height

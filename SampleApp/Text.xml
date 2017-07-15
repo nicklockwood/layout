@@ -69,8 +69,8 @@
             font="body"
             left="20"
             numberOfLines="0"
-            text="This text is using the 'body' UIFontTextStyle, and respects the user's dynamic font size setting"
             right="100% - 20"
+            text="This text is using the 'body' UIFontTextStyle, and respects the user's dynamic font size setting"
             top="previous.bottom + 20"
         />
     </UIScrollView>

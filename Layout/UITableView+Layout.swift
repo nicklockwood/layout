@@ -102,7 +102,6 @@ extension UITableView {
             guard let node = cell.layoutNode else {
                 preconditionFailure("\(type(of: cell)) is not a Layout-managed view")
             }
-            node.view.translatesAutoresizingMaskIntoConstraints = (rowHeight != UITableViewAutomaticDimension)
             return node
         }
         guard let xmlData = objc_getAssociatedObject(self, &nodeDataKey) as? NSMutableDictionary,
@@ -124,7 +123,6 @@ extension UITableView {
             )
             nodes?.add(node)
             node.view.setValue(identifier, forKey: "reuseIdentifier")
-            node.view.translatesAutoresizingMaskIntoConstraints = (rowHeight != UITableViewAutomaticDimension)
             return node
         } catch {
             var responder: UIResponder? = self
@@ -227,5 +225,12 @@ extension UITableViewCell {
         }
         // Insert child views into `contentView` instead of directly
         contentView.insertSubview(node.view, at: index)
+    }
+
+    open override func sizeThatFits(_ size: CGSize) -> CGSize {
+        guard let layoutNode = layoutNode else {
+            return super.sizeThatFits(size)
+        }
+        return CGSize(width: size.width, height: layoutNode.frame.height)
     }
 }

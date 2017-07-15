@@ -62,7 +62,8 @@ class PerformanceTests: XCTestCase {
         let view = UIView(frame: CGRect(x: 0, y: 0, width: 300, height: 400))
         try! rootNode.mount(in: view)
         measure {
-            view.frame.size = CGSize(width: 200, height: 500)
+            view.frame.size.width += 1
+            view.frame.size.height -= 1
             try! rootNode.update()
         }
     }
