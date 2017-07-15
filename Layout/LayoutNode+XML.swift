@@ -10,11 +10,15 @@ public extension LayoutNode {
             relativeTo: relativeTo
         ))
     }
+}
 
-    static func with(xmlFileURL url: URL, relativeTo: String? = #file) throws -> LayoutNode? {
-        return try XMLParser(contentsOf: url).map {
-            try LayoutNode(layout: LayoutParser().parse($0, relativeTo: relativeTo))
-        }
+extension Layout {
+
+    init(xmlData: Data, relativeTo: String? = #file) throws {
+        self = try LayoutParser().parse(
+            XMLParser(data: xmlData),
+            relativeTo: relativeTo
+        )
     }
 }
 
