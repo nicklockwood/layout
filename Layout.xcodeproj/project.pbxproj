@@ -71,6 +71,7 @@
 		0136F1BC1F17863C00C44673 /* PerformanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0136F1BB1F17863C00C44673 /* PerformanceTests.swift */; };
 		0136F1BE1F17863C00C44673 /* Layout.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 011CE6991F053ABD0034771C /* Layout.framework */; };
 		0176B8F91F0D153700431A11 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 0176B8F81F0D153700431A11 /* Localizable.strings */; };
+		01E7E0491F1A96F600B7F9DB /* Layout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01E7E0481F1A96F600B7F9DB /* Layout.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -189,6 +190,7 @@
 		0136F1BD1F17863C00C44673 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		0176B8F81F0D153700431A11 /* Localizable.strings */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; path = Localizable.strings; sourceTree = "<group>"; };
 		01DA95861EABFF5F00868113 /* Expression.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Expression.framework; path = "../../../Library/Developer/Xcode/DerivedData/Layout-cidlxdzqvadfbngzwtfaldjrmjir/Build/Products/Debug-iphonesimulator/Expression.framework"; sourceTree = "<group>"; };
+		01E7E0481F1A96F600B7F9DB /* Layout.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Layout.swift; sourceTree = "<group>"; };
 		05DA996CC29E3F6DB7194413 /* Pods_LayoutTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_LayoutTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		4118130BF7EC77593CF35CF1 /* Pods_Layout.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Layout.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		53F1B12A3E800D0CF1C1C2D3 /* Pods_UIDesigner.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_UIDesigner.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -314,6 +316,7 @@
 				01181E081F0F7E430011C4DE /* Expression.swift */,
 				0105F77C1F0547910067B313 /* AnyExpression.swift */,
 				0105F77D1F0547910067B313 /* LayoutError.swift */,
+				01E7E0481F1A96F600B7F9DB /* Layout.swift */,
 				01181E031F0E1FE80011C4DE /* ExpressionParser.swift */,
 				0105F77E1F0547910067B313 /* LayoutExpression.swift */,
 				0105F77F1F0547910067B313 /* LayoutLoader.swift */,
@@ -371,7 +374,6 @@
 				0136F1BA1F17863C00C44673 /* PerformanceTests */,
 				01DA95551EABC1E300868113 /* Products */,
 				01DA95851EABFF5F00868113 /* Frameworks */,
-				674E0BB82C5CB1407887DA7F /* Pods */,
 			);
 			sourceTree = "<group>";
 		};
@@ -762,6 +764,7 @@
 				0105F7911F0547910067B313 /* Optional+Layout.swift in Sources */,
 				0105F78A1F0547910067B313 /* LayoutError.swift in Sources */,
 				0105F7901F0547910067B313 /* LayoutViewController.swift in Sources */,
+				01E7E0491F1A96F600B7F9DB /* Layout.swift in Sources */,
 				0105F78F1F0547910067B313 /* LayoutNode+XML.swift in Sources */,
 				0105F7891F0547910067B313 /* AnyExpression.swift in Sources */,
 				0105F78C1F0547910067B313 /* LayoutLoader.swift in Sources */,
@@ -900,7 +903,6 @@
 		};
 		011CE6531F05338A0034771C /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 84354FF5F36C5F95E1F0E93E /* Pods-SampleApp.debug.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -916,7 +918,6 @@
 		};
 		011CE6541F05338A0034771C /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = A139A65B8D96C84A643CF424 /* Pods-SampleApp.release.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -932,7 +933,6 @@
 		};
 		011CE67F1F05372B0034771C /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = F3D598F320ADD83ECAE728F2 /* Pods-UIDesigner.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				DEVELOPMENT_TEAM = 8VQKF583ED;
@@ -948,7 +948,6 @@
 		};
 		011CE6801F05372B0034771C /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 80E0F6593B454D6A167E9FAB /* Pods-UIDesigner.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				DEVELOPMENT_TEAM = 8VQKF583ED;
@@ -964,7 +963,6 @@
 		};
 		011CE6A31F053ABD0034771C /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 24D690DDDBBCC803A84A8627 /* Pods-Layout.debug.xcconfig */;
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "";
@@ -987,7 +985,6 @@
 		};
 		011CE6A41F053ABD0034771C /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 112BC42B887D6AFE2BE726FB /* Pods-Layout.release.xcconfig */;
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "";
@@ -1009,7 +1006,6 @@
 		};
 		011CE6B61F053D090034771C /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 8D964DE3AFF4315EACADB670 /* Pods-LayoutTests.debug.xcconfig */;
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
 				DEVELOPMENT_TEAM = 8VQKF583ED;
@@ -1026,7 +1022,6 @@
 		};
 		011CE6B71F053D090034771C /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = E23D7EDB2A25307D2F401E65 /* Pods-LayoutTests.release.xcconfig */;
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
 				DEVELOPMENT_TEAM = 8VQKF583ED;
@@ -1231,6 +1226,7 @@
 				0136F1C31F17863C00C44673 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		01DA954E1EABC1E300868113 /* Build configuration list for PBXProject "Layout" */ = {
 			isa = XCConfigurationList;

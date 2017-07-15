@@ -5,36 +5,35 @@ import Foundation
 public extension LayoutNode {
 
     static func with(xmlData: Data, relativeTo: String? = #file) throws -> LayoutNode {
-        return try LayoutParser().parse(
+        return try LayoutNode(layout: LayoutParser().parse(
             XMLParser(data: xmlData),
             relativeTo: relativeTo
-        )
+        ))
     }
 
     static func with(xmlFileURL url: URL, relativeTo: String? = #file) throws -> LayoutNode? {
         return try XMLParser(contentsOf: url).map {
-            try LayoutParser().parse($0, relativeTo: relativeTo)
+            try LayoutNode(layout: LayoutParser().parse($0, relativeTo: relativeTo))
         }
     }
 }
 
 private class LayoutParser: NSObject, XMLParserDelegate {
-    private var root: LayoutNode!
+    private var root: Layout!
     private var stack: [XMLNode] = []
     private var top: XMLNode?
     private var relativePath: String?
     private var error: LayoutError?
     private var text = ""
     private var isHTML = false
-    private var parseQueue = [() -> Void]()
 
     private struct XMLNode {
         var elementName: String
         var attributes: [String: String]
-        var children: [LayoutNode]
+        var children: [Layout]
     }
 
-    fileprivate func parse(_ parser: XMLParser, relativeTo: String?) throws -> LayoutNode {
+    fileprivate func parse(_ parser: XMLParser, relativeTo: String?) throws -> Layout {
         assert(Thread.isMainThread)
         defer {
             root = nil
@@ -46,7 +45,6 @@ private class LayoutParser: NSObject, XMLParserDelegate {
         if let error = error {
             throw error
         }
-        parseQueue.forEach { $0() }
         return root
     }
 
@@ -76,30 +74,6 @@ private class LayoutParser: NSObject, XMLParserDelegate {
         )
         text = ""
         isHTML = false
-    }
-
-    private func urlFromString(_ path: String) -> URL? {
-        if let url = URL(string: path), url.scheme != nil {
-            return url
-        }
-
-        // Check for scheme
-        if path.contains(":") {
-            let path = path.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? path
-            if let url = URL(string: path) {
-                return url
-            }
-        }
-
-        // Assume local path
-        let path = path.removingPercentEncoding ?? path
-        if path.hasPrefix("~") {
-            return URL(fileURLWithPath: (path as NSString).expandingTildeInPath)
-        } else if (path as NSString).isAbsolutePath {
-            return URL(fileURLWithPath: path)
-        } else {
-            return Bundle.main.resourceURL?.appendingPathComponent(path)
-        }
     }
 
     func parser(_ parser: XMLParser, didEndElement elementName: String, namespaceURI _: String?, qualifiedName _: String?) {
@@ -136,46 +110,21 @@ private class LayoutParser: NSObject, XMLParserDelegate {
             return
         }
 
-        let layoutNode: LayoutNode
-        do {
-            layoutNode = try LayoutNode(
-                class: anyClass,
-                outlet: outlet,
-                expressions: attributes,
-                children: node.children
-            )
-        } catch {
-            self.error = LayoutError(error)
-            parser.abortParsing()
-            return
-        }
-
-        if let xmlPath = xmlPath, let xmlURL = urlFromString(xmlPath) {
-            let loader = LayoutLoader()
-            let relativePath = self.relativePath
-            parseQueue.append { // Workaround for XMLParser not being re-entrant
-                loader.loadLayout(
-                    withContentsOfURL: xmlURL,
-                    relativeTo: relativePath
-                ) { node, error in
-                    if let node = node {
-                        do {
-                            try layoutNode.update(with: node)
-                        } catch {
-                            layoutNode.logError(error)
-                        }
-                    } else if let error = error {
-                        layoutNode.logError(error)
-                    }
-                }
-            }
-        }
+        let layout = Layout(
+            class: anyClass,
+            outlet: outlet,
+            constants: [:],
+            expressions: attributes,
+            children: node.children,
+            xmlPath: xmlPath,
+            relativePath: relativePath
+        )
 
         top = stack.popLast()
         if top != nil {
-            top?.children.append(layoutNode)
+            top?.children.append(layout)
         } else {
-            root = layoutNode
+            root = layout
         }
     }
 
