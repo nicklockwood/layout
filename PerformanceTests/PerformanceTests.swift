@@ -1,11 +1,13 @@
 //  Copyright © 2017 Schibsted. All rights reserved.
 
 import XCTest
-@testable import Layout
+import Layout
 
 private let nodeCount = 200
 
 class PerformanceTests: XCTestCase {
+
+    // MARK: Create and mount
 
     private func createNodes(_ count: Int) -> LayoutNode {
         var children = [LayoutNode]()
@@ -65,6 +67,24 @@ class PerformanceTests: XCTestCase {
             view.frame.size.width += 1
             view.frame.size.height -= 1
             try! rootNode.update()
+        }
+    }
+
+    // MARK: XML load and parsing
+
+    func testParseXML() {
+        let xmlURL = Bundle(for: type(of: self)).url(forResource: "Example", withExtension: "xml")!
+        let xmlData = try! Data(contentsOf: xmlURL)
+        measure {
+            _ = try! LayoutNode.with(xmlData: xmlData)
+        }
+    }
+
+    func testParseAndLoadXML() {
+        let xmlURL = Bundle(for: type(of: self)).url(forResource: "Example", withExtension: "xml")!
+        measure {
+            let xmlData = try! Data(contentsOf: xmlURL)
+            _ = try! LayoutNode.with(xmlData: xmlData)
         }
     }
 }
