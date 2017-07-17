@@ -1063,6 +1063,7 @@ public class LayoutNode: NSObject {
     }
 
     private func inferSize() throws -> CGSize {
+        let intrinsicSize = view.intrinsicContentSize
         // Try AutoLayout
         if _usesAutoLayout {
             let transform = view.layer.transform
@@ -1072,12 +1073,20 @@ public class LayoutNode: NSObject {
             if let width = try computeExplicitWidth() {
                 _widthConstraint.isActive = true
                 _widthConstraint.constant = width
+            } else if intrinsicSize.width != UIViewNoIntrinsicMetric,
+                view.constraints.contains( where: {$0.firstAttribute == .width }) {
+                _widthConstraint.isActive = true
+                _widthConstraint.constant = intrinsicSize.width
             } else {
                 _widthConstraint.isActive = false
             }
             if let height = try computeExplicitHeight() {
                 _heightConstraint.isActive = true
                 _heightConstraint.constant = height
+            } else if intrinsicSize.height != UIViewNoIntrinsicMetric,
+                view.constraints.contains( where: {$0.firstAttribute == .height }) {
+                _widthConstraint.isActive = true
+                _widthConstraint.constant = intrinsicSize.height
             } else {
                 _heightConstraint.isActive = false
             }
@@ -1096,7 +1105,6 @@ public class LayoutNode: NSObject {
             _heightConstraint.isActive = false
         }
         // Try intrinsic size
-        let intrinsicSize = view.intrinsicContentSize
         var size = intrinsicSize
         if size.width != UIViewNoIntrinsicMetric || size.height != UIViewNoIntrinsicMetric {
             var targetSize = CGSize(width: CGFloat.greatestFiniteMagnitude, height: .greatestFiniteMagnitude)
