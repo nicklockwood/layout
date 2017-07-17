@@ -1108,15 +1108,20 @@ public class LayoutNode: NSObject {
         // Try intrinsic size
         var size = intrinsicSize
         if size.width != UIViewNoIntrinsicMetric || size.height != UIViewNoIntrinsicMetric {
-            var targetSize = CGSize(width: CGFloat.greatestFiniteMagnitude, height: .greatestFiniteMagnitude)
-            if let width = try computeExplicitWidth() {
-                targetSize.width = width
+            let explicitWidth = try computeExplicitWidth()
+            if let explicitWidth = explicitWidth {
+                size.width = explicitWidth
             }
-            if let height = try computeExplicitHeight() {
-                targetSize.height = height
+            let explicitHeight = try computeExplicitHeight()
+            if let explicitHeight = explicitHeight {
+                size.height = explicitHeight
             }
-            if targetSize.width < intrinsicSize.width || targetSize.height < intrinsicSize.height {
-                size = view.systemLayoutSizeFitting(targetSize)
+            let fittingSize = view.systemLayoutSizeFitting(size)
+            if explicitWidth == nil, fittingSize.width > intrinsicSize.width {
+                size.width = fittingSize.width
+            }
+            if explicitHeight == nil, fittingSize.height > intrinsicSize.height {
+                size.height = fittingSize.height
             }
             return size
         }
