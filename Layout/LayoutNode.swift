@@ -18,6 +18,7 @@ public class LayoutNode: NSObject {
         completeSetup()
         return _view
     }
+
     public private(set) var viewController: UIViewController?
     public private(set) var outlet: String?
     public private(set) var expressions: [String: String]
@@ -822,23 +823,23 @@ public class LayoutNode: NSObject {
             }
         case "contentInset":
             getter = { [unowned self] in
-                return self.view.value(forSymbol: "contentInset") as? UIEdgeInsets ?? .zero
+                self.view.value(forSymbol: "contentInset") as? UIEdgeInsets ?? .zero
             }
         case "contentInset.top":
             getter = { [unowned self] in
-                return try (self.value(forSymbol: "contentInset") as! UIEdgeInsets).top
+                try (self.value(forSymbol: "contentInset") as! UIEdgeInsets).top
             }
         case "contentInset.left":
             getter = { [unowned self] in
-                return try (self.value(forSymbol: "contentInset") as! UIEdgeInsets).left
+                try (self.value(forSymbol: "contentInset") as! UIEdgeInsets).left
             }
         case "contentInset.bottom":
             getter = { [unowned self] in
-                return try (self.value(forSymbol: "contentInset") as! UIEdgeInsets).bottom
+                try (self.value(forSymbol: "contentInset") as! UIEdgeInsets).bottom
             }
         case "contentInset.right":
             getter = { [unowned self] in
-                return try (self.value(forSymbol: "contentInset") as! UIEdgeInsets).right
+                try (self.value(forSymbol: "contentInset") as! UIEdgeInsets).right
             }
         default:
             let head: String
@@ -1141,6 +1142,7 @@ public class LayoutNode: NSObject {
         constraint.identifier = "LayoutWidth"
         return constraint
     }()
+
     private lazy var _heightConstraint: NSLayoutConstraint = {
         let constraint = self.view.heightAnchor.constraint(equalToConstant: 0)
         constraint.priority = UILayoutPriorityRequired - 1

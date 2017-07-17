@@ -1,5 +1,11 @@
 # Change Log
 
+## [0.4.2](https://github.schibsted.io/Rocket/layout/releases/tag/0.4.2) (2017-07-17)
+
+- Improved auto-sizing behavior for views using both `intrinsicContentSize` and AutoLayout constraints
+- XML Layouts are now cached in memory after first load, removing the overhead of repeated parsing
+- Added performance tests for XML loading, and switched performance tests to release mode
+
 ## [0.4.1](https://github.schibsted.io/Rocket/layout/releases/tag/0.4.1) (2017-07-15)
 
 - Added support for dynamic text resizing based on user font size settings

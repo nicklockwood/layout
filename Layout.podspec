@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name               = "Layout"
-  s.version            = "0.4.1"
+  s.version            = "0.4.2"
   s.summary            = "XML templates + expression-based layout system"
 
   s.homepage           = "https://github.schibsted.io/Rocket/layout/"

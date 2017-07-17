@@ -272,7 +272,7 @@ extension NSObject {
                         continue
                     }
                     if case let .any(type) = type.type, type is Bool.Type,
-                        self.instancesRespond(to: Selector(isName)) {
+                        instancesRespond(to: Selector(isName)) {
                         name = isName
                     }
                     addProperty(name: name, type: type)

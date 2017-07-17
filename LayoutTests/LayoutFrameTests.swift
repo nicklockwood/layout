@@ -94,7 +94,7 @@ class LayoutFrameTests: XCTestCase {
                         "width": "150",
                         "height": "20",
                     ]
-                )
+                ),
             ]
         )
         XCTAssertEqual(node.frame.size, CGSize(width: 150, height: 50))
@@ -119,7 +119,7 @@ class LayoutFrameTests: XCTestCase {
                         "width": "150",
                         "height": "20",
                     ]
-                )
+                ),
             ]
         )
         XCTAssertEqual(node.frame.size, CGSize(width: 150, height: 10))
@@ -144,7 +144,7 @@ class LayoutFrameTests: XCTestCase {
                         "width": "150",
                         "height": "20",
                     ]
-                )
+                ),
             ]
         )
         XCTAssertEqual(node.frame.size, CGSize(width: 50, height: 50))
@@ -169,7 +169,7 @@ class LayoutFrameTests: XCTestCase {
                         "width": "150",
                         "height": "20",
                     ]
-                )
+                ),
             ]
         )
         XCTAssertNoThrow(try node.update())
