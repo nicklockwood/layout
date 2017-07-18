@@ -5,7 +5,8 @@ import Foundation
 public class RuntimeType: NSObject {
     public enum Kind {
         case any(Any.Type)
-        case objCType(String)
+        case `struct`(String)
+        case `pointer`(String)
         case `protocol`(Protocol)
         case `enum`(Any.Type, [String: Any], (Any) -> Any)
     }
@@ -13,7 +14,14 @@ public class RuntimeType: NSObject {
     public let type: Kind
 
     @nonobjc public init(_ type: Any.Type) {
-        self.type = .any(type)
+        switch "\(type)" {
+        case "CGColor":
+            self.type = .pointer("{CGColor=}")
+        case "CGImage":
+            self.type = .pointer("{CGImage=}")
+        default:
+            self.type = .any(type)
+        }
     }
 
     @nonobjc public init(_ type: Protocol) {
@@ -61,18 +69,13 @@ public class RuntimeType: NSObject {
         case ":":
             type = .any(Selector.self)
         case "{":
-            type = .objCType(objCType)
+            type = .struct(objCType)
         case "^":
-            if objCType.hasPrefix("^{CGColor") {
-                type = .any(CGColor.self)
-            } else if objCType.hasPrefix("^{CGImage") {
-                type = .any(CGImage.self)
-            } else if objCType.hasPrefix("^{CGPath") {
-                type = .any(CGPath.self)
-            } else {
-                // Unsupported struct ref type
+            guard objCType.hasPrefix("^{") else {
+                // Unsupported pointer type
                 return nil
             }
+            type = .pointer(objCType.substring(from: objCType.index(after: objCType.startIndex)))
         default:
             // Unsupported type
             return nil
@@ -92,7 +95,8 @@ public class RuntimeType: NSObject {
         case let .any(type),
              let .enum(type, _, _):
             return "\(type)"
-        case let .objCType(type):
+        case let .struct(type),
+             let .pointer(type):
             return type
         case let .protocol(type):
             return "\(type)"
@@ -103,9 +107,6 @@ public class RuntimeType: NSObject {
         switch type {
         case let .any(subtype):
             switch subtype {
-            case _ where "\(subtype)" == "\(CGColor.self)":
-                // Workaround for odd behavior in type matching
-                return (value as? UIColor).map({ $0.cgColor }) ?? value // No validation possible
             case is NSNumber.Type:
                 return value as? NSNumber
             case is CGFloat.Type:
@@ -128,13 +129,37 @@ public class RuntimeType: NSObject {
             case _ where subtype == Any.self:
                 return value
             default:
+                guard let value = optionaValue(of: value) else {
+                    return nil
+                }
                 return subtype == Swift.type(of: value) || "\(subtype)" == "\(Swift.type(of: value))" ? value : nil
             }
-        case let .objCType(type):
+        case let .struct(type):
             if let value = value as? NSValue, String(cString: value.objCType) == type {
                 return value
             }
             return nil
+        case let .pointer(type):
+            switch type {
+            case "{CGColor=}":
+                if let value = value as? UIColor {
+                    return value.cgColor
+                }
+                if let value = optionaValue(of: value), "\(value)".hasPrefix("<CGColor") {
+                    return value
+                }
+                return nil
+            case "{CGImage=}":
+                if let value = value as? UIImage {
+                    return value.cgImage
+                }
+                if let value = optionaValue(of: value), "\(value)".hasPrefix("<CGImage") {
+                     return value
+                }
+                return nil
+            default:
+                return value // No validation possible
+            }
         case let .enum(type, enumValues, _):
             if let key = value as? String, let value = enumValues[key] {
                 return value
@@ -183,7 +208,7 @@ extension NSObject {
         func addProperty(name: String, type: RuntimeType) {
             allProperties[name] = type
             switch type.type {
-            case let .objCType(objCType):
+            case let .struct(objCType):
                 if objCType.hasPrefix("{CGPoint") {
                     allProperties[name] = RuntimeType(CGPoint.self)
                     allProperties["\(name).x"] = RuntimeType(CGFloat.self)

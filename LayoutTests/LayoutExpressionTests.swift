@@ -231,4 +231,36 @@ class LayoutExpressionTests: XCTestCase {
         let expression = LayoutExpression(numberExpression: "{5}{6}", for: node)
         XCTAssertThrowsError(try expression.evaluate())
     }
+
+    func testSetLayerContentsWithCGImageConstant() {
+        UIGraphicsBeginImageContext(CGSize(width: 1, height: 1))
+        let image: AnyObject = UIGraphicsGetImageFromCurrentImageContext()!.cgImage!
+        UIGraphicsEndImageContext()
+        let node = LayoutNode(
+            constants: ["image": image],
+            expressions: ["layer.contents": "{image}"]
+        )
+        XCTAssertTrue(node.view.layer.contents as AnyObject === image)
+    }
+
+    func testSetLayerContentsWithUIImageConstant() {
+        UIGraphicsBeginImageContext(CGSize(width: 1, height: 1))
+        let image = UIGraphicsGetImageFromCurrentImageContext()!
+        UIGraphicsEndImageContext()
+        let node = LayoutNode(
+            constants: ["image": image],
+            expressions: ["layer.contents": "{image}"]
+        )
+        XCTAssertTrue(node.view.layer.contents as AnyObject === image.cgImage as AnyObject)
+    }
+
+    func testSetLayerShadowPathWithConstant() {
+        let rect = CGRect(x: 0, y: 0, width: 100, height: 100)
+        let path = CGPath(rect: rect, transform: nil)
+        let node = LayoutNode(
+            constants: ["path": path],
+            expressions: ["layer.shadowPath": "path"]
+        )
+        XCTAssertEqual(node.view.layer.shadowPath, path)
+    }
 }

@@ -94,8 +94,7 @@ class EditViewController: UIViewController, UITextFieldDelegate {
             switch type.type {
             case let .any(subtype):
                 switch subtype {
-                case _ where "\(subtype)" == "\(CGColor.self)",
-                     is CGFloat.Type,
+                case is CGFloat.Type,
                      is Double.Type,
                      is Float.Type,
                      is Int.Type,
@@ -111,10 +110,10 @@ class EditViewController: UIViewController, UITextFieldDelegate {
                 default:
                     return nil
                 }
-            case .objCType, .protocol:
-                return nil
-            case .enum:
+            case  .enum, .pointer("{CGImage=}"), .pointer("{CGColor=}"):
                 return key
+            case .struct, .pointer, .protocol:
+                return nil
             }
         }
         let fieldNames = ["top", "left", "width", "height", "bottom", "right"]

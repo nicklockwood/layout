@@ -237,10 +237,10 @@ struct LayoutExpression {
         )
     }
 
-    init(colorExpression: String, for node: LayoutNode) {
+    private init(colorExpression: String, type: RuntimeType, for node: LayoutNode) {
         self.init(
             anyExpression: colorExpression,
-            type: RuntimeType(UIColor.self),
+            type: type,
             symbols: [
                 .function("rgb", arity: 3): { args in
                     guard let r = args[0] as? Double, let g = args[1] as? Double, let b = args[2] as? Double else {
@@ -291,9 +291,12 @@ struct LayoutExpression {
         )
     }
 
+    init(colorExpression: String, for node: LayoutNode) {
+        self.init(colorExpression: colorExpression, type: RuntimeType(UIColor.self), for: node)
+    }
+
     init(cgColorExpression: String, for node: LayoutNode) {
-        let expression = LayoutExpression(colorExpression: cgColorExpression, for: node)
-        self.init(evaluate: { try (expression.evaluate() as! UIColor).cgColor }, symbols: expression.symbols)
+        self.init(colorExpression: cgColorExpression, type: RuntimeType(CGColor.self), for: node)
     }
 
     private init(interpolatedStringExpression expression: String, for node: LayoutNode) {
@@ -580,7 +583,11 @@ struct LayoutExpression {
                     case let part as UIImage:
                         image = part
                     default:
-                        string += try stringify(part)
+                        let stringified = try stringify(part)
+                        if stringified.hasPrefix("<CGImage") {
+                            return UIImage(cgImage: part as! CGImage)
+                        }
+                        string += stringified
                     }
                 }
                 string = string.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -610,6 +617,14 @@ struct LayoutExpression {
         )
     }
 
+    init(cgImageExpression: String, for node: LayoutNode) {
+        let expression = LayoutExpression(imageExpression: cgImageExpression, for: node)
+        self.init(
+            evaluate: { (try expression.evaluate() as! UIImage).cgImage as Any },
+            symbols: expression.symbols
+        )
+    }
+
     init(enumExpression: String, type: RuntimeType, for node: LayoutNode) {
         guard case let .enum(_, values, _) = type.type else { preconditionFailure() }
         self.init(
@@ -625,9 +640,6 @@ struct LayoutExpression {
         switch type.type {
         case let .any(subtype):
             switch subtype {
-            case _ where "\(subtype)" == "\(CGColor.self)":
-                // Workaround for odd behavior in type matching
-                self.init(cgColorExpression: expression, for: node)
             case is CGFloat.Type,
                  is Double.Type,
                  is Float.Type,
@@ -654,7 +666,7 @@ struct LayoutExpression {
                     symbols: expression.symbols
                 )
             }
-        case .objCType:
+        case .struct:
             let expression = LayoutExpression(anyExpression: expression, type: type, for: node)
             self.init(
                 evaluate: { try unwrap(expression.evaluate()) }, // Handle nil
@@ -662,7 +674,11 @@ struct LayoutExpression {
             )
         case .enum:
             self.init(enumExpression: expression, type: type, for: node)
-        case .protocol:
+        case .pointer("{CGColor=}"):
+            self.init(cgColorExpression: expression, for: node)
+        case .pointer("{CGImage=}"):
+            self.init(cgImageExpression: expression, for: node)
+        case .pointer, .protocol:
             self.init(anyExpression: expression, type: type, for: node)
         }
     }
