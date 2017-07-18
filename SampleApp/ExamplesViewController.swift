@@ -31,8 +31,8 @@ class ExamplesViewController: LayoutViewController, UITabBarControllerDelegate {
     }
 
     override var layoutNode: LayoutNode? {
-        willSet {
-            guard let tabBarController = newValue?.viewController as? UITabBarController else {
+        didSet {
+            guard let tabBarController = layoutNode?.viewController as? UITabBarController else {
                 return
             }
             tabBarController.selectedIndex = selectedTab
