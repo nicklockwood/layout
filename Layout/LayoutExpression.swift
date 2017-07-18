@@ -424,6 +424,10 @@ struct LayoutExpression {
     init(fontExpression: String, for node: LayoutNode) {
         let expression = LayoutExpression(interpolatedStringExpression: fontExpression, for: node)
 
+        struct RelativeFontSize {
+            let factor: CGFloat
+        }
+
         // Parse a stringified font part
         func fontPart(for string: String) -> Any? {
             switch string {
@@ -442,6 +446,10 @@ struct LayoutExpression {
             default:
                 if let size = Double(string) {
                     return size
+                }
+                if string.hasSuffix("%"),
+                    let size = Double(string.substring(to: string.index(before: string.endIndex))) {
+                    return RelativeFontSize(factor: CGFloat(size / 100))
                 }
                 if let font = UIFont(name: string, size: LayoutExpression.defaultFontSize) {
                     return font
@@ -526,10 +534,13 @@ struct LayoutExpression {
                     }
                 }
                 for part in try expression.evaluate() as! [Any] {
-                    switch try unwrap(part) {
+                    let part = try unwrap(part)
+                    switch part {
                     case is UIFont,
                          is UIFontTextStyle,
-                         is UIFontDescriptorSymbolicTraits:
+                         is UIFontDescriptorSymbolicTraits,
+                         is RelativeFontSize,
+                         is NSNumber:
                         try processString()
                         parts.append(part)
                     case let part:
@@ -550,6 +561,8 @@ struct LayoutExpression {
                         traits.insert(trait)
                     case let size as NSNumber:
                         fontSize = CGFloat(size)
+                    case let size as RelativeFontSize:
+                        fontSize = (fontSize ?? LayoutExpression.defaultFontSize) * size.factor
                     case let style as UIFontTextStyle:
                         let preferredFont = UIFont.preferredFont(forTextStyle: style)
                         fontSize = preferredFont.pointSize

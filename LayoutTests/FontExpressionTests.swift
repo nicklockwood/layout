@@ -91,4 +91,25 @@ class FontExpressionTests: XCTestCase {
         let expected = UIFont(name: name, size: expectedSize)
         XCTAssertEqual(try expression.evaluate() as? UIFont, expected)
     }
+
+    func testFontSize() {
+        let node = LayoutNode()
+        let expression = LayoutExpression(fontExpression: "19", for: node)
+        let expected = UIFont.systemFont(ofSize: 19)
+        XCTAssertEqual(try expression.evaluate() as? UIFont, expected)
+    }
+
+    func testRelativeFontSize() {
+        let node = LayoutNode()
+        let expression = LayoutExpression(fontExpression: "150%", for: node)
+        let expected = UIFont.systemFont(ofSize: LayoutExpression.defaultFontSize * 1.5)
+        XCTAssertEqual(try expression.evaluate() as? UIFont, expected)
+    }
+
+    func testFontTextStyleWithRelativeSize() {
+        let node = LayoutNode()
+        let expression = LayoutExpression(fontExpression: "body 150%", for: node)
+        let expectedSize = UIFont.preferredFont(forTextStyle: .body).pointSize * 1.5
+        XCTAssertEqual((try expression.evaluate() as? UIFont)?.pointSize, expectedSize)
+    }
 }
