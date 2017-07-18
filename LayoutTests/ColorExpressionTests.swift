@@ -35,6 +35,12 @@ class ColorExpressionTests: XCTestCase {
         }
     }
 
+    func testRGBColorWithIntConstant() {
+        let node = LayoutNode(constants: ["red": 255])
+        let expression = LayoutExpression(colorExpression: "rgb(red,0,0)", for: node)
+        XCTAssertEqual(try expression.evaluate() as? UIColor, .red)
+    }
+
     func testSetBackgroundColor() {
         let node = LayoutNode(expressions: ["backgroundColor": "#f00"])
         let expected = UIColor(red: 1, green: 0, blue: 0, alpha: 1)

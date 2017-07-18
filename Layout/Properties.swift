@@ -324,6 +324,7 @@ extension NSObject {
     }
 
     // Safe version of setValue(forKeyPath:)
+    // Checks that the property exists, and is settable, but doesn't validate the type
     func _setValue(_ value: Any, forKeyPath name: String) throws {
         var prevKey = name
         var prevTarget: NSObject?
