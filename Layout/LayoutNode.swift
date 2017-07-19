@@ -1075,6 +1075,7 @@ public class LayoutNode: NSObject {
             let transform = _view.layer.transform
             _view.layer.transform = CATransform3DIdentity
             let frame = _view.frame
+            let usesAutoresizing = _view.translatesAutoresizingMaskIntoConstraints
             _view.translatesAutoresizingMaskIntoConstraints = false
             if let width = try computeExplicitWidth() {
                 _widthConstraint.isActive = true
@@ -1100,7 +1101,7 @@ public class LayoutNode: NSObject {
             let size = _view.frame.size
             _widthConstraint.isActive = false
             _heightConstraint.isActive = false
-            _view.translatesAutoresizingMaskIntoConstraints = true
+            _view.translatesAutoresizingMaskIntoConstraints = usesAutoresizing
             _view.frame = frame
             _view.layer.transform = transform
             if size.width > 0 || size.height > 0 {
