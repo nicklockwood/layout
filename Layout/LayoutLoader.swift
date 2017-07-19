@@ -17,100 +17,115 @@ class LayoutLoader {
     private var _constants: [String: Any] = [:]
     private var _strings: [String: String]?
 
-    private func setNode(
-        withLayout layout: Layout?,
-        error: Error?,
-        state: Any,
-        constants: [String: Any],
-        completion: (LayoutNode?, LayoutError?) -> Void
-    ) {
-        _state = state
-        _constants = constants
-        guard let layout = layout else {
-            if let error = error {
-                completion(nil, LayoutError(error))
-            }
-            return
-        }
-        do {
-            let layoutNode = try LayoutNode(layout: layout)
-            layoutNode.constants = constants
-            layoutNode.state = state
-            completion(layoutNode, nil)
-        } catch {
-            completion(nil, LayoutError(error))
-        }
-    }
+    // MARK: LayoutNode loading
 
-    private func setNode(
-        withXMLData data: Data?,
-        relativeTo: String?,
-        error: Error?,
-        state: Any,
-        constants: [String: Any],
-        completion: (LayoutNode?, LayoutError?) -> Void
-    ) {
-        do {
-            guard let data = data else {
-                try error.map { throw $0 }
-                return
-            }
-            let layout = try Layout(xmlData: data, relativeTo: relativeTo)
-            queue.async { cache[self._xmlURL] = layout }
-            setNode(
-                withLayout: layout,
-                error: error,
-                state: state,
-                constants: constants,
-                completion: completion
-            )
-        } catch {
-            _state = state
-            _constants = constants
-            completion(nil, LayoutError(error))
-        }
-    }
-
-    public func loadLayout(
+    public func loadLayoutNode(
         named: String,
         bundle: Bundle = Bundle.main,
         relativeTo: String = #file,
         state: Any = (),
-        constants: [String: Any] = [:]) throws -> LayoutNode {
-        assert(Thread.isMainThread)
-        guard let xmlURL = bundle.url(forResource: named, withExtension: nil) ??
-            bundle.url(forResource: named, withExtension: "xml") else {
-            throw LayoutError.message("No layout XML file found for `\(named)`")
-        }
-        var _node: LayoutNode?
-        var _error: Error?
-        loadLayout(
-            withContentsOfURL: xmlURL,
-            relativeTo: relativeTo,
+        constants: [String: Any] = [:]
+    ) throws -> LayoutNode {
+        _state = state
+        _constants = constants
+
+        let layout = try loadLayout(
+            named: named,
+            bundle: bundle,
+            relativeTo: relativeTo
+        )
+        return try LayoutNode(
+            layout: layout,
             state: state,
             constants: constants
-        ) { node, error in
-            _node = node
-            _error = error
-        }
-        if let error = _error {
-            throw error
-        }
-        return _node!
+        )
     }
 
-    public func loadLayout(
+    public func loadLayoutNode(
         withContentsOfURL xmlURL: URL,
         relativeTo: String? = #file,
         state: Any = (),
         constants: [String: Any] = [:],
         completion: @escaping LayoutLoaderCallback
     ) {
+        _state = state
+        _constants = constants
+
+        loadLayout(
+            withContentsOfURL: xmlURL,
+            relativeTo: relativeTo,
+            completion: { [weak self] layout, error in
+                self?._state = state
+                self?._constants = constants
+                do {
+                    guard let layout = layout else {
+                        if let error = error {
+                            throw error
+                        }
+                        return
+                    }
+                    try completion(LayoutNode(
+                        layout: layout,
+                        state: state,
+                        constants: constants
+                    ), nil)
+                } catch {
+                    completion(nil, LayoutError(error))
+                }
+            }
+        )
+    }
+
+    public func reloadLayoutNode(withCompletion completion: @escaping LayoutLoaderCallback) {
+        queue.sync { cache.removeAll() }
+        guard let xmlURL = _xmlURL, _dataTask == nil else {
+            completion(nil, nil)
+            return
+        }
+        loadLayoutNode(
+            withContentsOfURL: xmlURL,
+            relativeTo: nil,
+            state: _state,
+            constants: _constants,
+            completion: completion
+        )
+    }
+
+    // MARK: Layout loading
+
+    public func loadLayout(
+        named: String,
+        bundle: Bundle = Bundle.main,
+        relativeTo: String = #file
+    ) throws -> Layout {
+        assert(Thread.isMainThread)
+        guard let xmlURL = bundle.url(forResource: named, withExtension: nil) ??
+            bundle.url(forResource: named, withExtension: "xml") else {
+                throw LayoutError.message("No layout XML file found for `\(named)`")
+        }
+        var _layout: Layout?
+        var _error: Error?
+        loadLayout(
+            withContentsOfURL: xmlURL,
+            relativeTo: relativeTo
+        ) { layout, error in
+            _layout = layout
+            _error = error
+        }
+        if let error = _error {
+            throw error
+        }
+        return _layout!
+    }
+
+    public func loadLayout(
+        withContentsOfURL xmlURL: URL,
+        relativeTo: String? = #file,
+        completion: @escaping (Layout?, LayoutError?) -> Void
+    ) {
         _dataTask?.cancel()
         _dataTask = nil
         _xmlURL = xmlURL
-        _state = state
-        _constants = constants
         _strings = nil
 
         // If it's a bundle resource url, replacw with equivalent source url
@@ -147,35 +162,20 @@ class LayoutLoader {
         var layout: Layout?
         queue.sync { layout = cache[_xmlURL] }
         if let layout = layout {
-            setNode(
-                withLayout: layout,
-                error: nil,
-                state: state,
-                constants: constants,
-                completion: completion
-            )
+            completion(layout, nil)
             return
         }
 
         // Load synchronously if it's a local file and we're on the main thread already
         if _xmlURL.isFileURL, Thread.isMainThread {
-            let data: Data?
-            let error: Error?
             do {
-                data = try Data(contentsOf: _xmlURL)
-                error = nil
-            } catch let _error {
-                data = nil
-                error = _error
+                let data = try Data(contentsOf: _xmlURL)
+                let layout = try Layout(xmlData: data, relativeTo: relativeTo ?? _xmlURL.path)
+                queue.async { cache[self._xmlURL] = layout }
+                completion(layout, nil)
+            } catch let error {
+                completion(nil, LayoutError(error))
             }
-            setNode(
-                withXMLData: data,
-                relativeTo: relativeTo ?? xmlURL.path, // TODO: is this fallback correct?
-                error: error,
-                state: state,
-                constants: constants,
-                completion: completion
-            )
             return
         }
 
@@ -183,37 +183,29 @@ class LayoutLoader {
         let xmlURL = _xmlURL!
         _dataTask = URLSession.shared.dataTask(with: xmlURL) { data, _, error in
             DispatchQueue.main.async {
+                self._dataTask = nil
                 if self._xmlURL != xmlURL {
                     return // Must have been cancelled
                 }
-                self.setNode(
-                    withXMLData: data,
-                    relativeTo: relativeTo,
-                    error: error,
-                    state: state,
-                    constants: constants,
-                    completion: completion
-                )
-                self._dataTask = nil
+                do {
+                    guard let data = data else {
+                        if let error = error {
+                            throw error
+                        }
+                        return
+                    }
+                    let layout = try Layout(xmlData: data, relativeTo: relativeTo)
+                    queue.async { cache[self._xmlURL] = layout }
+                    completion(layout, nil)
+                } catch let error {
+                    completion(nil, LayoutError(error))
+                }
             }
         }
         _dataTask?.resume()
     }
 
-    public func reloadLayout(withCompletion completion: @escaping LayoutLoaderCallback) {
-        queue.sync { cache.removeAll() }
-        guard let xmlURL = _xmlURL, _dataTask == nil else {
-            completion(nil, nil)
-            return
-        }
-        loadLayout(
-            withContentsOfURL: xmlURL,
-            relativeTo: nil,
-            state: _state,
-            constants: _constants,
-            completion: completion
-        )
-    }
+    // MARK: String loading
 
     public func loadLocalizedStrings() throws -> [String: String] {
         if let strings = _strings {

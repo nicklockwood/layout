@@ -56,11 +56,12 @@ extension LayoutNode {
         }
         var deferredError: Error?
         LayoutLoader().loadLayout(
-            withContentsOfURL: xmlURL, relativeTo: layout.relativePath
-        ) { [weak self] node, error in
-            if let node = node {
+            withContentsOfURL: xmlURL,
+            relativeTo: layout.relativePath
+        ) { [weak self] layout, error in
+            if let layout = layout {
                 do {
-                    try self?.update(with: node)
+                    try self?.update(with: layout)
                 } catch {
                     deferredError = error
                 }

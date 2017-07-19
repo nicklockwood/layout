@@ -40,7 +40,7 @@ public extension LayoutLoading {
         state: Any = (),
         constants: [String: Any]...,
         completion: ((LayoutError?) -> Void)? = nil) {
-        loader.loadLayout(
+        loader.loadLayoutNode(
             withContentsOfURL: xmlURL,
             relativeTo: relativeTo,
             state: state,
@@ -58,7 +58,7 @@ public extension LayoutLoading {
 
     /// Reload the previously loaded xml file
     func reloadLayout(withCompletion completion: ((LayoutError?) -> Void)? = nil) {
-        loader.reloadLayout { layoutNode, error in
+        loader.reloadLayoutNode { layoutNode, error in
             if let layoutNode = layoutNode {
                 self.layoutNode = layoutNode
             }

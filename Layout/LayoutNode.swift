@@ -444,23 +444,17 @@ public class LayoutNode: NSObject {
     }
 
     // Experimental - used for nested XML reference loading
-    internal func update(with node: LayoutNode) throws {
-        node.stopObserving()
-        guard viewClass == node.viewClass else {
-            throw LayoutError("Cannot replace \(viewClass) with \(node.viewClass)", for: self)
-        }
-        guard (viewController == nil) == (node.viewController == nil) else {
-            throw LayoutError("Cannot replace \(viewController.map { "\($0.classForCoder)" } ?? "nil") with \(node.viewController.map { "\($0.classForCoder)" } ?? "nil")", for: self)
-        }
-        guard viewController?.classForCoder == node.viewController?.classForCoder else {
-            throw LayoutError("Cannot replace \(viewController!.classForCoder) with \(node.viewController!.classForCoder)", for: self)
+    internal func update(with layout: Layout) throws {
+        let className = "\(viewController?.classForCoder ?? viewClass)"
+        guard className == layout.className else {
+            throw LayoutError("Cannot replace \(className) with \(layout.className)", for: self)
         }
 
         for child in children {
             child.removeFromParent()
         }
 
-        for (name, expression) in node._originalExpressions where _originalExpressions[name] == nil {
+        for (name, expression) in layout.expressions where _originalExpressions[name] == nil {
             _originalExpressions[name] = expression
         }
 
@@ -469,13 +463,13 @@ public class LayoutNode: NSObject {
             overrideExpressions()
         }
 
-        if let outlet = node.outlet {
+        if let outlet = layout.outlet {
             self.outlet = outlet
             try LayoutError.wrap({ try _owner.map { try bind(to: $0) } }, for: self)
         }
 
-        for child in node.children {
-            addChild(child)
+        for child in layout.children {
+            addChild(try LayoutNode(layout: child))
         }
         if _setupComplete, _view.window != nil || _owner != nil {
             try update()

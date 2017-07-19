@@ -40,6 +40,13 @@ extension LayoutError {
         } ?? node.viewClass)
     }
 
+    init?(_ error: Error?) {
+        guard let error = error else {
+            return nil
+        }
+        self.init(error)
+    }
+
     static func wrap<T>(_ closure: () throws -> T, for node: LayoutNode) throws -> T {
         do {
             return try closure()

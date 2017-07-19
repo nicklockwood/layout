@@ -50,18 +50,26 @@ extension UITableView {
         preconditionFailure("Inserting UITableViewCells directly in xml is not supported")
     }
 
-    private class LayoutData {
-        let name: String
-        let bundle: Bundle
-        let relativeTo: String
-        let state: Any
-        let constants: [String: Any]
-        init(name: String, bundle: Bundle, relativeTo: String, state: Any, constants: [String: Any]) {
-            self.name = name
-            self.bundle = bundle
-            self.relativeTo = relativeTo
-            self.state = state
-            self.constants = constants
+    private enum LayoutData {
+        case success(Layout, Any, [String: Any])
+        case failure(Error)
+
+        init(name: String,
+             bundle: Bundle,
+             relativeTo: String,
+             state: Any,
+             constants: [String: Any]
+        ) {
+            do {
+                let layout = try LayoutLoader().loadLayout(
+                    named: name,
+                    bundle: bundle,
+                    relativeTo: relativeTo
+                )
+                self = .success(layout, state, constants)
+            } catch {
+                self = .failure(error)
+            }
         }
     }
 
@@ -83,12 +91,12 @@ extension UITableView {
         constants: [String: Any]...,
         forCellReuseIdentifier identifier: String
     ) {
-        var xmlData = objc_getAssociatedObject(self, &nodeDataKey) as? NSMutableDictionary
-        if xmlData == nil {
-            xmlData = [:]
-            objc_setAssociatedObject(self, &nodeDataKey, xmlData, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+        var layoutsData = objc_getAssociatedObject(self, &nodeDataKey) as? NSMutableDictionary
+        if layoutsData == nil {
+            layoutsData = [:]
+            objc_setAssociatedObject(self, &nodeDataKey, layoutsData, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         }
-        xmlData?[identifier] = LayoutData(
+        layoutsData![identifier] = LayoutData(
             name: named,
             bundle: bundle,
             relativeTo: relativeTo,
@@ -104,8 +112,8 @@ extension UITableView {
             }
             return node
         }
-        guard let xmlData = objc_getAssociatedObject(self, &nodeDataKey) as? NSMutableDictionary,
-            let layoutData = xmlData[identifier] as? LayoutData else {
+        guard let layoutsData = objc_getAssociatedObject(self, &nodeDataKey) as? NSMutableDictionary,
+            let layoutData = layoutsData[identifier] as? LayoutData else {
             preconditionFailure("No Layout XML has been registered for `identifier`")
         }
         var nodes = objc_getAssociatedObject(self, &nodesKey) as? NSMutableArray
@@ -114,16 +122,19 @@ extension UITableView {
             objc_setAssociatedObject(self, &nodesKey, nodes, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         }
         do {
-            let node = try LayoutLoader().loadLayout(
-                named: layoutData.name,
-                bundle: layoutData.bundle,
-                relativeTo: layoutData.relativeTo,
-                state: layoutData.state,
-                constants: layoutData.constants
-            )
-            nodes?.add(node)
-            node.view.setValue(identifier, forKey: "reuseIdentifier")
-            return node
+            switch layoutData {
+            case let .success(layout, state, constants):
+                let node = try LayoutNode(
+                    layout: layout,
+                    state: state,
+                    constants: constants
+                )
+                nodes?.add(node)
+                node.view.setValue(identifier, forKey: "reuseIdentifier")
+                return node
+            case let .failure(error):
+                throw error
+            }
         } catch {
             var responder: UIResponder? = self
             while responder != nil {
