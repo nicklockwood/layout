@@ -6,6 +6,24 @@
         outlet="tableView"
         scrollIndicatorInsets.bottom="bottomLayoutGuide.length"
         scrollIndicatorInsets.top="topLayoutGuide.length"
-        style="plain"
-    />
+        style="plain">
+
+        <UITableViewCell
+            detailTextLabel.text="This cell is defined as a template in Table.xml"
+            detailTextLabel.textColor="#aaa"
+            height="auto + 20"
+            reuseIdentifier="templateCell"
+            style="subtitle"
+            textLabel.text="Title #{row}">
+
+            <UIImageView
+                height="auto"
+                image="{image}"
+                right="100% - 20"
+                tintColor="#999"
+                top="20"
+                width="auto"
+            />
+        </UITableViewCell>
+    </UITableView>
 </TableViewController>

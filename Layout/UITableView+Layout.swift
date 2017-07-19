@@ -43,34 +43,30 @@ extension UITableView {
     }
 
     open override func didInsertChildNode(_ node: LayoutNode, at index: Int) {
-        guard let _ = node.view as? UITableViewCell else {
+        guard node.viewClass is UITableViewCell.Type else {
             super.didInsertChildNode(node, at: index)
             return
         }
-        preconditionFailure("Inserting UITableViewCells directly in xml is not supported")
+        // TODO: it would be better if we never added cell template nodes to
+        // the hierarchy, rather than having to remove them afterwards
+        node.removeFromParent()
+        if let expression = node.expressions["reuseIdentifier"] {
+            let idExpression = LayoutExpression(
+                expression: expression,
+                type: RuntimeType(String.self),
+                for: node
+            )
+            if let reuseIdentifier = try? idExpression.evaluate() as! String {
+                registerLayout(Layout(node), forCellReuseIdentifier: reuseIdentifier)
+            }
+        } else {
+            print("UITableViewCell template missing reuseIdentifier")
+        }
     }
 
     private enum LayoutData {
         case success(Layout, Any, [String: Any])
         case failure(Error)
-
-        init(name: String,
-             bundle: Bundle,
-             relativeTo: String,
-             state: Any,
-             constants: [String: Any]
-        ) {
-            do {
-                let layout = try LayoutLoader().loadLayout(
-                    named: name,
-                    bundle: bundle,
-                    relativeTo: relativeTo
-                )
-                self = .success(layout, state, constants)
-            } catch {
-                self = .failure(error)
-            }
-        }
     }
 
     private func merge(_ dictionaries: [[String: Any]]) -> [String: Any] {
@@ -83,6 +79,27 @@ extension UITableView {
         return result
     }
 
+    private func registerLayoutData(
+        _ layoutData: LayoutData,
+        forCellReuseIdentifier identifier: String
+    ) {
+        var layoutsData = objc_getAssociatedObject(self, &nodeDataKey) as? NSMutableDictionary
+        if layoutsData == nil {
+            layoutsData = [:]
+            objc_setAssociatedObject(self, &nodeDataKey, layoutsData, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+        }
+        layoutsData![identifier] = layoutData
+    }
+
+    func registerLayout(
+        _ layout: Layout,
+        state: Any = (),
+        constants: [String: Any]...,
+        forCellReuseIdentifier identifier: String
+    ) {
+        registerLayoutData(.success(layout, state, merge(constants)), forCellReuseIdentifier: identifier)
+    }
+
     public func registerLayout(
         named: String,
         bundle: Bundle = Bundle.main,
@@ -91,18 +108,21 @@ extension UITableView {
         constants: [String: Any]...,
         forCellReuseIdentifier identifier: String
     ) {
-        var layoutsData = objc_getAssociatedObject(self, &nodeDataKey) as? NSMutableDictionary
-        if layoutsData == nil {
-            layoutsData = [:]
-            objc_setAssociatedObject(self, &nodeDataKey, layoutsData, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+        do {
+            let layout = try LayoutLoader().loadLayout(
+                named: named,
+                bundle: bundle,
+                relativeTo: relativeTo
+            )
+            registerLayout(
+                layout,
+                state: state,
+                constants: merge(constants),
+                forCellReuseIdentifier: identifier
+            )
+        } catch {
+            registerLayoutData(.failure(error), forCellReuseIdentifier: identifier)
         }
-        layoutsData![identifier] = LayoutData(
-            name: named,
-            bundle: bundle,
-            relativeTo: relativeTo,
-            state: state,
-            constants: merge(constants)
-        )
     }
 
     public func dequeueReusableLayoutNode(withIdentifier identifier: String, for _: IndexPath) -> LayoutNode {
@@ -112,16 +132,16 @@ extension UITableView {
             }
             return node
         }
-        guard let layoutsData = objc_getAssociatedObject(self, &nodeDataKey) as? NSMutableDictionary,
-            let layoutData = layoutsData[identifier] as? LayoutData else {
-            preconditionFailure("No Layout XML has been registered for `identifier`")
-        }
-        var nodes = objc_getAssociatedObject(self, &nodesKey) as? NSMutableArray
-        if nodes == nil {
-            nodes = []
-            objc_setAssociatedObject(self, &nodesKey, nodes, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
-        }
         do {
+            guard let layoutsData = objc_getAssociatedObject(self, &nodeDataKey) as? NSMutableDictionary,
+                let layoutData = layoutsData[identifier] as? LayoutData else {
+                throw LayoutError.message("No Table cell layout has been registered for `\(identifier)`")
+            }
+            var nodes = objc_getAssociatedObject(self, &nodesKey) as? NSMutableArray
+            if nodes == nil {
+                nodes = []
+                objc_setAssociatedObject(self, &nodesKey, nodes, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+            }
             switch layoutData {
             case let .success(layout, state, constants):
                 let node = try LayoutNode(

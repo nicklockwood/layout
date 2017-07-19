@@ -796,18 +796,24 @@ If you are loading XML templates from a external source, you may wish to catch a
     
 # Table Views
 
-You can use a `UITableView` inside a Layout template in much the same way as you would use any view. The delegate and datasource will automatically be bound to the file's owner, which is typically either the `LayoutViewController`, or the first nested view controller that conforms to one or both of the `UITableViewDelegate`/`DataSource` protocols.
+You can use a `UITableView` inside a Layout template in much the same way as you would use any other view:
 
-Using a Layout-based `UITableViewCell` is also possible, but slightly more involved. Currently, the implementation for a Layout-based table must be done primarily in code rather than in the layout template itself. A typical setup might look like this:
+    <UITableView
+        backgroundColor="#fff"
+        outlet="tableView"
+        style="plain"
+    />
+
+The tableView's `delegate` and `datasource` will automatically be bound to the file's owner, which is typically either your `LayoutViewController` subclass, or the first nested view controller that conforms to one or both of the `UITableViewDelegate`/`DataSource` protocols. You would define the view controller logic for this table in pretty much the same way as you would if not using Layout:
 
     class TableViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
     
         @IBOutlet var tableView: UITableView? {
             didSet {
-                tableView?.registerLayout(
-                    named: "MyCell.xml",
-                    forCellReuseIdentifier: "cell"
-                )
+
+                // Register your cells after the tableView has been created
+                // the `didSet` handler for the tableView property is a good place
+                tableView?.register(MyCellClass.self, forCellReuseIdentifier: "cell")
             }
         }
         
@@ -818,32 +824,88 @@ Using a Layout-based `UITableViewCell` is also possible, but slightly more invol
         }
     
         func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+            let cell =  tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! MyCellClass
+            cell.textLabel.text = rowData.title
+            return cell
+        }
+    }
+
+Using a Layout-based `UITableViewCell` is also possible, but slightly more involved. There are two ways to define a `UITableViewCell` in XML - either directly as a template inside your table XML, or in a standalone file. A cell defined inside the table XML might look like this:
+
+    <UITableView
+        backgroundColor="#fff"
+        outlet="tableView"
+        style="plain">
+        
+        <UITableViewCell
+            reuseIdentifier="cell"
+            textLabel.text="{title}">
+        
+            <UIImageView
+                top="50% - height / 2"
+                right="100% - 20"
+                width="auto"
+                height="auto"
+                image="{image}"
+                tintColor="#999"
+            />
+        </UITableViewCell>
+
+    </UITableView>
+
+Then the logic in your table view controller would be:
+
+    class TableViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
+    
+        @IBOutlet var tableView: UITableView? {
+            didSet {
+                
+                // No need to register the cell manually if it's defined as a template,
+                // but don't forget to set the estimated row height if you want
+                // your table cells to dynamically calculate their own height
+                tableView?.estimatedRowHeight = 50
+            }
+        }
+        
+        var rowData: [MyModel]
+    
+        func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+            return rowData.count
+        }
+    
+        func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        
+            // Use special Layout extension method to dequeue the node rather than the view itself
             let node = tableView.dequeueReusableLayoutNode(withIdentifier: "cell", for: indexPath)
+            
+            // Set the node state to update the cell
             node.state = rowData[indexPath.row]
+            
+            // Cast the node view to a table cell and return it
             return node.view as! UITableViewCell
         }
     }
-    
-Note the use of two extension methods on `UITableview`: `registerLayout(...)` and `dequeueReusableLayoutNode(...)`. These work in pretty-much the same way as their UIKit counterparts, but are designed to work with xml Layout-based cells instead of nibs.
 
-The XML for the cell itself might look something like this:
+Alternatively, you can define the cell in its own XML file. If you do that, the dequeueing process is the same, but you will need to register it manually:
 
-    <UITableViewCell
-        reuseIdentifier="cell"
-        textLabel.text="{title}">
+    class TableViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
     
-        <UIImageView
-            top="50% - height / 2"
-            right="100% - 20"
-            width="auto"
-            height="auto"
-            image="{image}"
-            tintColor="#999"
-        />
-    
-    </UITableViewCell>    
+        @IBOutlet var tableView: UITableView? {
+            didSet {
+            
+                // Use special Layout extension method to register the layout xml file for the cell
+                tableView?.registerLayout(named: "MyCell.xml", forCellReuseIdentifier: "cell")
+                
+                // Don't forget to set the estimated row height if you want
+                // your table cells to dynamically calculate their own height
+                tableView?.estimatedRowHeight = 50
+            }
+        }
+        
+        ...
+    }
 
-Layout supports dynamic table cell heights based on AutoLayout. To enable this, set a height expression for your cell, and ensure that you implement the `tableView(_: UITableView, estimatedHeightForRowAt:)` delegate method in `UITableViewDelegate`. If your cells all have the same height, it is more efficient to set the `rowHeight` expression for the `UITableView` instead.
+Layout supports dynamic table cell heights. To enable this, set a height expression for your cell, and ensure that you set the `estimatedRowHeight` property of the `UITableView`, or implement the `tableView(_: UITableView, estimatedHeightForRowAt:)` delegate method. If your cells all have the same height, it is more efficient to set an explicit `rowHeight` property on the `UITableView` instead.
 
 
 # Example Projects

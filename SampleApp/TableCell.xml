@@ -1,8 +1,8 @@
 <UITableViewCell
-    detailTextLabel.text="Subtitle #{row}"
+    detailTextLabel.text="This cell is defined in TableCell.xml"
     detailTextLabel.textColor="#aaa"
     height="auto + 20"
-    reuseIdentifier="cell"
+    reuseIdentifier="standaloneCell"
     style="subtitle"
     textLabel.text="Title #{row}">
 

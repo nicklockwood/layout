@@ -23,7 +23,7 @@ public class LayoutNode: NSObject {
     public private(set) var outlet: String?
     public private(set) var expressions: [String: String]
     public internal(set) var constants: [String: Any]
-    private var _originalExpressions: [String: String]
+    var _originalExpressions: [String: String]
     @objc private var _view: UIView!
 
     // Get the view class without side-effects of accessing view

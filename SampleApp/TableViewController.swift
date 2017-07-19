@@ -15,32 +15,31 @@ class TableViewController: UIViewController, UITableViewDataSource, UITableViewD
 
     @IBOutlet var tableView: UITableView? {
         didSet {
+            tableView?.estimatedRowHeight = 50
             tableView?.registerLayout(
                 named: "TableCell.xml",
-                forCellReuseIdentifier: "cell"
+                forCellReuseIdentifier: "standaloneCell"
             )
         }
-    }
-
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        tableView?.reloadData()
     }
 
     func tableView(_: UITableView, numberOfRowsInSection _: Int) -> Int {
         return 50
     }
 
-    func tableView(_: UITableView, estimatedHeightForRowAt _: IndexPath) -> CGFloat {
-        return 50
-    }
-
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let node = tableView.dequeueReusableLayoutNode(withIdentifier: "cell", for: indexPath)
+        let cellIdentifier = (indexPath.row % 2 == 0) ? "templateCell" : "standaloneCell"
+
+        let node = tableView.dequeueReusableLayoutNode(
+            withIdentifier: cellIdentifier,
+            for: indexPath
+        )
+
         node.state = [
             "row": indexPath.row,
             "image": images[indexPath.row % images.count] as Any,
         ]
+
         return node.view as! UITableViewCell
     }
 }

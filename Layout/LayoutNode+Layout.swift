@@ -75,3 +75,18 @@ extension LayoutNode {
         }
     }
 }
+
+extension Layout {
+
+    // Experimental - extracts a layout template from an existing node
+    init(_ node: LayoutNode) {
+        self.init(
+            className: "\(node.viewController?.classForCoder ?? node.viewClass)",
+            outlet: node.outlet,
+            expressions: node._originalExpressions,
+            children: node.children.map(Layout.init(_:)),
+            xmlPath: nil,
+            relativePath: nil
+        )
+    }
+}
