@@ -409,14 +409,24 @@ class DesignViewController: UIViewController, UIToolbarDelegate, EditViewControl
             if let oldViewController = child.viewController {
                 viewController = type(of: oldViewController).init()
             }
-            children.append(
-                LayoutNode(
-                    view: viewController?.view ?? type(of: child.view).init(),
-                    viewController: viewController,
-                    expressions: child.expressions,
-                    children: deepCopyChildren(of: child)
+            // TODO: update once class-based init is public
+            if let viewController = viewController {
+                children.append(
+                    LayoutNode(
+                        viewController: viewController,
+                        expressions: child.expressions,
+                        children: deepCopyChildren(of: child)
+                    )
                 )
-            )
+            } else {
+                children.append(
+                    LayoutNode(
+                        view: type(of: child.view).init(),
+                        expressions: child.expressions,
+                        children: deepCopyChildren(of: child)
+                    )
+                )
+            }
         }
         return children
     }
@@ -429,13 +439,21 @@ class DesignViewController: UIViewController, UIToolbarDelegate, EditViewControl
                 expressions[name] = nil
             }
         }
-        let viewController = (cls as? UIViewController.Type)?.init()
-        let newNode = LayoutNode(
-            view: viewController?.view ?? (cls as? UIView.Type)?.init(),
-            viewController: viewController,
-            expressions: expressions,
-            children: deepCopyChildren(of: node)
-        )
+        // TODO: update once class-based init is public
+        let newNode: LayoutNode
+        if let viewController = (cls as? UIViewController.Type)?.init() {
+            newNode = LayoutNode(
+                viewController: viewController,
+                expressions: expressions,
+                children: deepCopyChildren(of: node)
+            )
+        } else {
+            newNode = LayoutNode(
+                view: (cls as? UIView.Type)?.init(),
+                expressions: expressions,
+                children: deepCopyChildren(of: node)
+            )
+        }
         editViewController?.node = newNode
         replaceNode(node, with: newNode)
     }
@@ -452,12 +470,21 @@ class DesignViewController: UIViewController, UIToolbarDelegate, EditViewControl
         if let oldViewController = node.viewController {
             viewController = type(of: oldViewController).init()
         }
-        let newNode = LayoutNode(
-            view: viewController?.view ?? type(of: node.view).init(),
-            viewController: viewController,
-            expressions: expressions,
-            children: deepCopyChildren(of: node)
-        )
+        // TODO: update once class-based init is public
+        let newNode: LayoutNode
+        if let viewController = viewController {
+            newNode = LayoutNode(
+                viewController: viewController,
+                expressions: expressions,
+                children: deepCopyChildren(of: node)
+            )
+        } else {
+            newNode = LayoutNode(
+                view: type(of: node.view).init(),
+                expressions: expressions,
+                children: deepCopyChildren(of: node)
+            )
+        }
         editViewController?.node = newNode
         replaceNode(node, with: newNode)
         if let error = newNode.validate().first {

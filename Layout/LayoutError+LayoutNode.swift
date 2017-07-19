@@ -37,7 +37,7 @@ extension LayoutError {
         }
         self = LayoutError(error, for: node.viewController.map {
             $0.classForCoder
-        } ?? node.view.classForCoder)
+        } ?? node.viewClass)
     }
 
     static func wrap<T>(_ closure: () throws -> T, for node: LayoutNode) throws -> T {

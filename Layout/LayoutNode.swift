@@ -15,7 +15,7 @@ import UIKit
 
 public class LayoutNode: NSObject {
     public var view: UIView {
-        try? setUpExpressions() // Don't log error or we'll get an infinite loop
+        attempt(setUpExpressions)
         return _view
     }
 
@@ -26,6 +26,9 @@ public class LayoutNode: NSObject {
     private var _originalExpressions: [String: String]
     @objc private var _view: UIView!
 
+    // Get the view class without side-effects of accessing view
+    private(set) var viewClass: UIView.Type
+
     public var viewControllers: [UIViewController] {
         guard let viewController = viewController else {
             return children.flatMap { $0.viewControllers }
@@ -34,9 +37,13 @@ public class LayoutNode: NSObject {
     }
 
     private var _setupComplete = false
-    private func completeSetup() {
+    private func completeSetup() throws {
         guard !_setupComplete else { return }
         _setupComplete = true
+
+        if _view == nil {
+            _view = try viewClass.create(with: self)
+        }
 
         _usesAutoLayout = _view.constraints.contains {
             [.top, .left, .bottom, .right, .width, .height].contains($0.firstAttribute)
@@ -48,7 +55,7 @@ public class LayoutNode: NSObject {
 
         for (index, child) in children.enumerated() {
             child.parent = self
-            child.completeSetup()
+            try child.completeSetup()
             if let viewController = _view.viewController {
                 viewController.didInsertChildNode(child, at: index)
             } else {
@@ -93,41 +100,56 @@ public class LayoutNode: NSObject {
         attempt { try update() }
     }
 
-    init(
+    convenience init(
         class: AnyClass,
         outlet: String? = nil,
         state: Any = (),
-        constants: [String: Any] = [:],
+        constants: [String: Any]...,
         expressions: [String: String] = [:],
         children: [LayoutNode] = []
     ) throws {
-        assert(Thread.isMainThread)
-
-        self.outlet = outlet
-        self.state = state
-        self.constants = constants
-        self.expressions = expressions
-        self.children = children
-
-        _originalExpressions = expressions
-
-        super.init()
+        self.init(
+            outlet: outlet,
+            state: state,
+            constants: merge(constants),
+            expressions: expressions,
+            children: children
+        )
 
         switch `class` {
         case let viewClass as UIView.Type:
-            // Can't use `attempt()` here as it tries to access view
-            _view = try viewClass.create(with: self)
+            self.viewClass = viewClass
         case let controllerClass as UIViewController.Type:
             viewController = try controllerClass.create(with: self)
-            _view = viewController?.view ?? UIView()
+            _view = viewController!.view
+            viewClass = _view.classForCoder as! UIView.Type
         default:
             throw LayoutError.message("`\(`class`)` is not a subclass of UIView or UIViewController")
         }
     }
 
+    public convenience init(
+        viewController: UIViewController,
+        outlet: String? = nil,
+        state: Any = (),
+        constants: [String: Any]...,
+        expressions: [String: String] = [:],
+        children: [LayoutNode] = []
+    ) {
+        self.init(
+            view: viewController.view,
+            outlet: outlet,
+            state: state,
+            constants: merge(constants),
+            expressions: expressions,
+            children: children
+        )
+
+        self.viewController = viewController
+    }
+
     public init(
         view: UIView? = nil,
-        viewController: UIViewController? = nil,
         outlet: String? = nil,
         state: Any = (),
         constants: [String: Any]...,
@@ -136,26 +158,18 @@ public class LayoutNode: NSObject {
     ) {
         assert(Thread.isMainThread)
 
-        _view = view ?? viewController?.view ?? UIView()
-        viewController?.view = _view
-
-        self.viewController = viewController
+        self.viewClass = view?.classForCoder as? UIView.Type ?? UIView.self
         self.outlet = outlet
         self.state = try! unwrap(state)
+        self.constants = merge(constants)
         self.expressions = expressions
         self.children = children
-
-        // Merge constants
-        self.constants = constants.first ?? [:]
-        for consts in constants.dropFirst() {
-            for (key, value) in consts {
-                self.constants[key] = value
-            }
-        }
 
         _originalExpressions = expressions
 
         super.init()
+
+        _view = view
     }
 
     deinit {
@@ -423,7 +437,7 @@ public class LayoutNode: NSObject {
             parent = nil
             return
         }
-        _view.removeFromSuperview()
+        _view?.removeFromSuperview()
         for controller in viewControllers {
             controller.removeFromParentViewController()
         }
@@ -432,8 +446,8 @@ public class LayoutNode: NSObject {
     // Experimental - used for nested XML reference loading
     internal func update(with node: LayoutNode) throws {
         node.stopObserving()
-        guard _view.classForCoder == node._view.classForCoder else {
-            throw LayoutError("Cannot replace \(_view.classForCoder) with \(node._view.classForCoder)", for: self)
+        guard viewClass == node.viewClass else {
+            throw LayoutError("Cannot replace \(viewClass) with \(node.viewClass)", for: self)
         }
         guard (viewController == nil) == (node.viewController == nil) else {
             throw LayoutError("Cannot replace \(viewController.map { "\($0.classForCoder)" } ?? "nil") with \(node.viewController.map { "\($0.classForCoder)" } ?? "nil")", for: self)
@@ -471,7 +485,7 @@ public class LayoutNode: NSObject {
     // MARK: expressions
 
     private func overrideExpressions() {
-        assert(_setupComplete)
+        assert(_setupComplete && _view != nil)
         expressions = _originalExpressions
 
         // layout props
@@ -543,7 +557,7 @@ public class LayoutNode: NSObject {
         guard _getters.isEmpty else {
             return
         }
-        completeSetup()
+        try completeSetup()
         for (symbol, string) in expressions {
             var expression: LayoutExpression
             var isViewControllerExpression = false
@@ -709,7 +723,7 @@ public class LayoutNode: NSObject {
     }
 
     public lazy var viewExpressionTypes: [String: RuntimeType] = {
-        type(of: self._view!).cachedExpressionTypes
+        self.viewClass.cachedExpressionTypes
     }()
 
     public lazy var viewControllerExpressionTypes: [String: RuntimeType] = {
@@ -926,7 +940,7 @@ public class LayoutNode: NSObject {
                     }
                     // Then controller/view symbols
                     if let value = self.viewController?.value(forSymbol: symbol) ??
-                        self._view?.value(forSymbol: symbol) {
+                        self._view.value(forSymbol: symbol) {
                         return value
                     }
                     throw SymbolError("\(symbol) not found", for: symbol)
@@ -1163,6 +1177,7 @@ public class LayoutNode: NSObject {
 
     private var _suppressUpdates = false
 
+    // Note: thrown error is always a LayoutError
     private func updateValues() throws {
         guard _suppressUpdates == false else { return }
         defer { _suppressUpdates = false }
@@ -1175,6 +1190,7 @@ public class LayoutNode: NSObject {
         }
     }
 
+    // Note: thrown error is always a LayoutError
     private func updateFrame() throws {
         guard _suppressUpdates == false else { return }
         defer { _suppressUpdates = false }
@@ -1280,7 +1296,7 @@ public class LayoutNode: NSObject {
         if _setupComplete {
             cleanUp()
         } else {
-            completeSetup()
+            try completeSetup()
         }
         _owner = owner
         if let outlet = outlet {
@@ -1304,7 +1320,7 @@ public class LayoutNode: NSObject {
                     owner.setValue(view, forKey: outlet)
                     didMatch = true
                 } else {
-                    expectedType = "\(view.classForCoder)"
+                    expectedType = "\(viewClass)"
                 }
             } else if let viewController = viewController, type.matches(UIViewController.self) {
                 if type.matches(viewController) {
@@ -1356,3 +1372,14 @@ public class LayoutNode: NSObject {
         try LayoutError.wrap({ try control.bindActions(for: owner) }, for: self)
     }
 }
+
+private func merge(_ dictionaries: [[String: Any]]) -> [String: Any] {
+    var result = [String: Any]()
+    for dict in dictionaries {
+        for (key, value) in dict {
+            result[key] = value
+        }
+    }
+    return result
+}
+
