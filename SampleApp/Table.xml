@@ -8,16 +8,27 @@
         scrollIndicatorInsets.top="topLayoutGuide.length"
         style="plain">
 
+        <UITableViewHeaderFooterView
+            backgroundView.backgroundColor="rgba(255, 255, 255, 0.75)"
+            height="auto + 10"
+            textLabel.text="This header is defined as a template in Table.xml"
+            reuseIdentifier="templateHeader"
+        />
+
         <UITableViewCell
             detailTextLabel.text="This cell is defined as a template in Table.xml"
+            detailTextLabel.highlightedTextColor="#fff7"
             detailTextLabel.textColor="#aaa"
             height="auto + 20"
             reuseIdentifier="templateCell"
+            selectedBackgroundView.backgroundColor="tintColor"
             style="subtitle"
+            textLabel.highlightedTextColor="#fff"
             textLabel.text="Title #{row}">
 
             <UIImageView
                 height="auto"
+                highlightedImage="{whiteImage}"
                 image="{image}"
                 right="100% - 20"
                 tintColor="#999"

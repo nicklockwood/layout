@@ -1,13 +1,17 @@
 <UITableViewCell
     detailTextLabel.text="This cell is defined in TableCell.xml"
+    detailTextLabel.highlightedTextColor="#fff"
     detailTextLabel.textColor="#aaa"
     height="auto + 20"
     reuseIdentifier="standaloneCell"
+    selectedBackgroundView.backgroundColor="#aaa"
     style="subtitle"
+    textLabel.highlightedTextColor="#fff"
     textLabel.text="Title #{row}">
 
     <UIImageView
         height="auto"
+        highlightedImage="{whiteImage}"
         image="{image}"
         right="100% - 20"
         tintColor="#999"

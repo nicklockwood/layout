@@ -876,7 +876,7 @@ Then the logic in your table view controller would be:
         func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
             // Use special Layout extension method to dequeue the node rather than the view itself
-            let node = tableView.dequeueReusableLayoutNode(withIdentifier: "cell", for: indexPath)
+            let node = tableView.dequeueReusableCellNode(withIdentifier: "cell", for: indexPath)
             
             // Set the node state to update the cell
             node.state = rowData[indexPath.row]
@@ -906,6 +906,8 @@ Alternatively, you can define the cell in its own XML file. If you do that, the 
     }
 
 Layout supports dynamic table cell heights. To enable this, set a height expression for your cell, and ensure that you set the `estimatedRowHeight` property of the `UITableView`, or implement the `tableView(_: UITableView, estimatedHeightForRowAt:)` delegate method. If your cells all have the same height, it is more efficient to set an explicit `rowHeight` property on the `UITableView` instead.
+
+The same approach works for `UITableViewHeaderFooterView` layouts, and there are equivalent methods for registering and dequeueing UITableViewHeaderFooterView layout nodes.
 
 
 # Example Projects
