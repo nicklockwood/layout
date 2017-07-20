@@ -1283,7 +1283,7 @@ public class LayoutNode: NSObject {
 
     // Note: thrown error is always a LayoutError
     private weak var _owner: NSObject?
-    private func bind(to owner: NSObject) throws {
+    func bind(to owner: NSObject) throws {
         guard _owner == nil || _owner == owner || _owner == viewController else {
             throw LayoutError("Cannot re-bind an already bound node.", for: self)
         }
@@ -1351,7 +1351,7 @@ public class LayoutNode: NSObject {
         try throwUnhandledError()
     }
 
-    private func unbind() {
+    func unbind() {
         if let owner = _owner {
             if let outlet = outlet, type(of: owner).allPropertyTypes()[outlet] != nil {
                 owner.setValue(nil, forKey: outlet)

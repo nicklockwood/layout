@@ -149,6 +149,7 @@ open class LayoutViewController: UIViewController, LayoutLoading {
                 ),
             ]
         }
+        let scrollView = UIScrollView()
         _errorNode = LayoutNode(
             view: UIControl(),
             constants: [
@@ -162,7 +163,7 @@ open class LayoutViewController: UIViewController, LayoutLoading {
             ],
             children: [
                 LayoutNode(
-                    view: UIScrollView(),
+                    view: scrollView,
                     expressions: [
                         "top": "50% - height / 2",
                         "height": "min(100%, auto)",
@@ -175,7 +176,10 @@ open class LayoutViewController: UIViewController, LayoutLoading {
             ]
         )
         _errorNode!.view.alpha = 0
-        try? _errorNode!.mount(in: self)
+        try? _errorNode?.bind(to: self)
+        scrollView.delegate = nil // TODO: find a better solution
+        view.addSubview( _errorNode!.view)
+         _errorNode!.view.frame = view.bounds
         UIView.animate(withDuration: 0.25) {
             self._errorNode?.view.alpha = 1
         }
