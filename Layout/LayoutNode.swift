@@ -173,7 +173,7 @@ public class LayoutNode: NSObject {
     ) {
         assert(Thread.isMainThread)
 
-        self.viewClass = view?.classForCoder as? UIView.Type ?? UIView.self
+        viewClass = view?.classForCoder as? UIView.Type ?? UIView.self
         self.outlet = outlet
         self.state = try! unwrap(state)
         self.constants = merge(constants)
@@ -1097,7 +1097,7 @@ public class LayoutNode: NSObject {
                 _widthConstraint.isActive = true
                 _widthConstraint.constant = width
             } else if intrinsicSize.width != UIViewNoIntrinsicMetric,
-                _view.constraints.contains( where: {$0.firstAttribute == .width }) {
+                _view.constraints.contains(where: { $0.firstAttribute == .width }) {
                 _widthConstraint.isActive = true
                 _widthConstraint.constant = intrinsicSize.width
             } else {
@@ -1107,7 +1107,7 @@ public class LayoutNode: NSObject {
                 _heightConstraint.isActive = true
                 _heightConstraint.constant = height
             } else if intrinsicSize.height != UIViewNoIntrinsicMetric,
-                _view.constraints.contains( where: {$0.firstAttribute == .height }) {
+                _view.constraints.contains(where: { $0.firstAttribute == .height }) {
                 _widthConstraint.isActive = true
                 _widthConstraint.constant = intrinsicSize.height
             } else {
@@ -1384,4 +1384,3 @@ private func merge(_ dictionaries: [[String: Any]]) -> [String: Any] {
     }
     return result
 }
-

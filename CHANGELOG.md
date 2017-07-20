@@ -1,5 +1,19 @@
 # Change Log
 
+## [0.4.3](https://github.schibsted.io/Rocket/layout/releases/tag/0.4.3) (2017-07-20)
+
+- Added support for `UITableViewHeaderFooterView` layouts for table footers and headers
+- You can now define `UITableViewCell` and `UITableViewHeaderFooterView` templates inside the XML for a table
+- Enabled setting the properties of a `UITableViewCell.contentView` and `backgroundView` using expressions
+- Errors inside `UITableViewCell` layouts now appear in red box instead of being silently discarded
+- Added support for percentage-based font sizes
+- Improved performance when using nested XML file references by avoiding redundant view creation
+- Optimized view property update performance
+- Using CGColor and CGImage constants now works correctly
+- Added better support for CoreFoundation and Coregraphics types
+- Further improvements to auto-sizing behavior
+- Fixe bug where redbox scrollView delegate could get bound to a custom controller
+
 ## [0.4.2](https://github.schibsted.io/Rocket/layout/releases/tag/0.4.2) (2017-07-17)
 
 - Improved auto-sizing behavior for views using both `intrinsicContentSize` and AutoLayout constraints
@@ -28,7 +42,7 @@
 
 - Conflict resolution now ignores xml or strings files inside build directory
 - Made conflict resolution urls more readable by removing common path prefixes
-- Fixed bug where error redbox would not update after the error was fixed
+- Fixed bug where error red box would not update after the error was fixed
 - Improved support for standard Cocoa struct types
 - LayoutTool now formats expressions as well as general XML structure
 - Internalized the Expression library dependency, to simplify integration with LayoutTool

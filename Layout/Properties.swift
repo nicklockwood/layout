@@ -6,7 +6,7 @@ public class RuntimeType: NSObject {
     public enum Kind {
         case any(Any.Type)
         case `struct`(String)
-        case `pointer`(String)
+        case pointer(String)
         case `protocol`(Protocol)
         case `enum`(Any.Type, [String: Any], (Any) -> Any)
     }
@@ -154,7 +154,7 @@ public class RuntimeType: NSObject {
                     return value.cgImage
                 }
                 if let value = optionaValue(of: value), "\(value)".hasPrefix("<CGImage") {
-                     return value
+                    return value
                 }
                 return nil
             default:

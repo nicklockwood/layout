@@ -28,7 +28,7 @@ class TableViewController: UIViewController, UITableViewDataSource, UITableViewD
         return 50
     }
 
-    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+    func tableView(_ tableView: UITableView, viewForHeaderInSection _: Int) -> UIView? {
         let node = tableView.dequeueReusableHeaderFooterNode(withIdentifier: "templateHeader")
         return node?.view as? UITableViewHeaderFooterView
     }

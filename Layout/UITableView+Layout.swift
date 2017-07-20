@@ -162,7 +162,7 @@ extension UITableView: LayoutDelegate {
         }
         guard let layoutsData = objc_getAssociatedObject(self, &headerDataKey) as? NSMutableDictionary,
             let layoutData = layoutsData[identifier] as? LayoutData else {
-                return nil
+            return nil
         }
         var nodes = objc_getAssociatedObject(self, &nodesKey) as? NSMutableArray
         if nodes == nil {
@@ -255,7 +255,7 @@ extension UITableView: LayoutDelegate {
         }
         guard let layoutsData = objc_getAssociatedObject(self, &rowDataKey) as? NSMutableDictionary,
             let layoutData = layoutsData[identifier] as? LayoutData else {
-                return nil
+            return nil
         }
         var nodes = objc_getAssociatedObject(self, &nodesKey) as? NSMutableArray
         if nodes == nil {

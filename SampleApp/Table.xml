@@ -1,4 +1,4 @@
-<TableViewController backgroundColor="#fee">
+<TableViewController backgroundColor="#fff">
     <UITableView
         contentInset.bottom="bottomLayoutGuide.length"
         contentInset.top="topLayoutGuide.length"

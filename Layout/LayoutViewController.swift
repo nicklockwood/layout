@@ -15,7 +15,9 @@ open class LayoutViewController: UIViewController, LayoutLoading {
             if let layoutNode = layoutNode {
                 do {
                     try layoutNode.mount(in: self)
-                    layoutDidLoad()
+                    if _error == nil {
+                        layoutDidLoad()
+                    }
                 } catch {
                     layoutError(LayoutError(error, for: layoutNode))
                 }
