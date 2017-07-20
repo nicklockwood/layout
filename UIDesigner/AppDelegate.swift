@@ -9,6 +9,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UISplitViewControllerDele
 
     func application(_: UIApplication, didFinishLaunchingWithOptions _: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
 
+        precondition(UI_USER_INTERFACE_IDIOM() == .pad,
+                     "This application is designed for iPad only")
+
         window = UIWindow()
 
         let splitViewController = UISplitViewController()

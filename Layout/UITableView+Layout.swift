@@ -40,6 +40,7 @@ extension UITableView {
     }
 
     open override func didInsertChildNode(_ node: LayoutNode, at index: Int) {
+        let hadView = (node._view != nil)
         switch node.viewClass {
         case is UITableViewCell.Type:
             // TODO: it would be better if we never added cell template nodes to
@@ -73,7 +74,10 @@ extension UITableView {
             }
         default:
             super.didInsertChildNode(node, at: index)
+            return
         }
+        // Check we didn't accidentally instantiate the view
+        assert(hadView || node._view == nil)
     }
 }
 
@@ -81,7 +85,7 @@ private var rowDataKey = 0
 private var headerDataKey = 0
 private var nodesKey = 0
 
-extension UITableView {
+extension UITableView: LayoutDelegate {
 
     private enum LayoutData {
         case success(Layout, Any, [String: Any])
@@ -173,6 +177,7 @@ extension UITableView {
                     state: state,
                     constants: constants
                 )
+                node.delegate = self
                 nodes?.add(node)
                 node.view.setValue(identifier, forKey: "reuseIdentifier")
                 return node
@@ -265,6 +270,7 @@ extension UITableView {
                     state: state,
                     constants: constants
                 )
+                node.delegate = self
                 nodes?.add(node)
                 node.view.setValue(identifier, forKey: "reuseIdentifier")
                 return node
@@ -395,10 +401,11 @@ extension UITableViewHeaderFooterView {
     }
 
     open override func sizeThatFits(_ size: CGSize) -> CGSize {
-        guard let layoutNode = layoutNode else {
-            return super.sizeThatFits(size)
+        if let layoutNode = layoutNode {
+            let height = (try? layoutNode.doubleValue(forSymbol: "height")) ?? 0
+            return CGSize(width: size.width, height: CGFloat(height))
         }
-        return CGSize(width: size.width, height: layoutNode.frame.height)
+        return super.sizeThatFits(size)
     }
 }
 
@@ -489,10 +496,18 @@ extension UITableViewCell {
         contentView.insertSubview(node.view, at: index)
     }
 
-    open override func sizeThatFits(_ size: CGSize) -> CGSize {
-        guard let layoutNode = layoutNode else {
-            return super.sizeThatFits(size)
+    open override var intrinsicContentSize: CGSize {
+        guard let layoutNode = layoutNode, layoutNode.children.isEmpty else {
+            return super.intrinsicContentSize
         }
-        return CGSize(width: size.width, height: layoutNode.frame.height)
+        return CGSize(width: UIViewNoIntrinsicMetric, height: 44)
+    }
+
+    open override func sizeThatFits(_ size: CGSize) -> CGSize {
+        if let layoutNode = layoutNode {
+            let height = (try? layoutNode.doubleValue(forSymbol: "height")) ?? 0
+            return CGSize(width: size.width, height: CGFloat(height))
+        }
+        return super.sizeThatFits(size)
     }
 }

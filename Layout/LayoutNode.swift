@@ -24,7 +24,23 @@ public class LayoutNode: NSObject {
     public private(set) var expressions: [String: String]
     public internal(set) var constants: [String: Any]
     var _originalExpressions: [String: String]
-    @objc private var _view: UIView!
+    @objc var _view: UIView!
+
+    // The delegate used for handling errors
+    // Normally this is the same as the owner, but it can be overridden in special cases
+    private weak var _delegate: LayoutDelegate?
+    weak var delegate: LayoutDelegate? {
+        get {
+            return _delegate ??
+                (_owner as? LayoutDelegate) ??
+                (viewController as? LayoutDelegate) ??
+                (_view as? LayoutDelegate) ??
+                parent?.delegate
+        }
+        set {
+            _delegate = newValue
+        }
+    }
 
     // Get the view class without side-effects of accessing view
     private(set) var viewClass: UIView.Type
@@ -55,7 +71,6 @@ public class LayoutNode: NSObject {
 
         for (index, child) in children.enumerated() {
             child.parent = self
-            try child.completeSetup()
             if let viewController = _view.viewController {
                 viewController.didInsertChildNode(child, at: index)
             } else {
@@ -264,25 +279,18 @@ public class LayoutNode: NSObject {
             }
             return
         }
-        if let delegate = _owner as? LayoutDelegate {
-            delegate.layoutNode?(self, didDetectError: error)
-            if error.isTransient {
-                _unhandledError = nil
-            }
-            return
-        }
-        if var responder = _owner as? UIResponder {
-            // Pass error up the chain to the first VC that can handle it
-            while let nextResponder = responder.next {
-                if let delegate = nextResponder as? LayoutDelegate {
-                    delegate.layoutNode?(self, didDetectError: error)
-                    if error.isTransient {
-                        _unhandledError = nil
-                    }
-                    return
+        var delegate = self.delegate
+        var responder = delegate as? UIResponder
+        while delegate != nil || responder != nil {
+            if let errorFn = delegate?.layoutNode(_:didDetectError:) {
+                if error.isTransient {
+                    _unhandledError = nil
                 }
-                responder = nextResponder
+                errorFn(self, error)
+                return
             }
+            responder = responder?.next
+            delegate = responder as? LayoutDelegate
         }
     }
 
@@ -429,7 +437,7 @@ public class LayoutNode: NSObject {
         if let index = parent?.children.index(where: { $0 === self }) {
             if let viewController = parent?.viewController {
                 viewController.willRemoveChildNode(self, at: index)
-            } else {
+            } else if _view != nil {
                 parent?._view.willRemoveChildNode(self, at: index)
             }
             unbind()
@@ -522,7 +530,6 @@ public class LayoutNode: NSObject {
     }
 
     private func cleanUp() {
-        assert(_setupComplete)
         if let error = _unhandledError, error.isTransient {
             _unhandledError = nil
         }
@@ -663,15 +670,16 @@ public class LayoutNode: NSObject {
     // MARK: symbols
 
     func localizedString(forKey key: String) -> String? {
-        var responder = _owner as? UIResponder
-        while responder != nil {
-            if let delegate = responder as? LayoutDelegate,
-                let string = delegate.layoutNode?(self, localizedStringForKey: key) {
+        var delegate = self.delegate
+        var responder = delegate as? UIResponder
+        while delegate != nil || responder != nil {
+            if let string = delegate?.layoutNode?(self, localizedStringForKey: key) {
                 return string
             }
             responder = responder?.next
+            delegate = responder as? LayoutDelegate
         }
-        return parent?.localizedString(forKey: key)
+        return nil
     }
 
     private func value(forKeyPath keyPath: String, in dictionary: [String: Any]) -> Any? {
