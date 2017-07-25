@@ -1,5 +1,11 @@
 # Change Log
 
+## [0.4.4](https://github.schibsted.io/Rocket/layout/releases/tag/0.4.4) (2017-07-25)
+
+- Selected source paths are now persisted between application launches
+- Made the `LayoutNode.bind(to:)` and `LayoutNode.unbind()` methods public
+- More helpful errors for empty expressions
+
 ## [0.4.3](https://github.schibsted.io/Rocket/layout/releases/tag/0.4.3) (2017-07-20)
 
 - Added support for `UITableViewHeaderFooterView` layouts for table footers and headers
@@ -12,7 +18,7 @@
 - Using CGColor and CGImage constants now works correctly
 - Added better support for CoreFoundation and Coregraphics types
 - Further improvements to auto-sizing behavior
-- Fixe bug where redbox scrollView delegate could get bound to a custom controller
+- Fixed bug where redbox scrollView delegate could get bound to a custom controller
 
 ## [0.4.2](https://github.schibsted.io/Rocket/layout/releases/tag/0.4.2) (2017-07-17)
 

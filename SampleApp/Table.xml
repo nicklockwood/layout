@@ -11,13 +11,12 @@
         <UITableViewHeaderFooterView
             backgroundView.backgroundColor="rgba(255, 255, 255, 0.75)"
             height="auto + 10"
-            textLabel.text="This header is defined as a template in Table.xml"
             reuseIdentifier="templateHeader"
+            textLabel.text="This header is defined as a template in Table.xml"
         />
-
         <UITableViewCell
-            detailTextLabel.text="This cell is defined as a template in Table.xml"
             detailTextLabel.highlightedTextColor="#fff7"
+            detailTextLabel.text="This cell is defined as a template in Table.xml"
             detailTextLabel.textColor="#aaa"
             height="auto + 20"
             reuseIdentifier="templateCell"

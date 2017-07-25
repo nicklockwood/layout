@@ -13,18 +13,37 @@ import UIKit
     @objc optional func layoutNode(_ layoutNode: LayoutNode, localizedStringForKey key: String) -> String?
 }
 
+/// LayoutNode represents a single node of a layout tree
+/// The LayoutNode retains its view/view controller, so any references
+/// from the view back to the node should be weak
 public class LayoutNode: NSObject {
+
+    /// The view managed by this node
     public var view: UIView {
         attempt(setUpExpressions)
         return _view
     }
 
+    /// The (optional) view controller managed by this node
     public private(set) var viewController: UIViewController?
+
+    /// The name of an outlet belonging to the nodes' owne that the node should bind to
     public private(set) var outlet: String?
+
+    /// The expressions used to initialized the node
     public private(set) var expressions: [String: String]
+
+    /// Constants that can be referenced by expressions in the node and its children
     public internal(set) var constants: [String: Any]
-    var _originalExpressions: [String: String]
-    @objc var _view: UIView!
+
+    /// All top-level view controllers belonging to this node or its children
+    /// These should be added as child view controllers to the node's parent view controller
+    public var viewControllers: [UIViewController] {
+        guard let viewController = viewController else {
+            return children.flatMap { $0.viewControllers }
+        }
+        return [viewController]
+    }
 
     // The delegate used for handling errors
     // Normally this is the same as the owner, but it can be overridden in special cases
@@ -45,12 +64,9 @@ public class LayoutNode: NSObject {
     // Get the view class without side-effects of accessing view
     private(set) var viewClass: UIView.Type
 
-    public var viewControllers: [UIViewController] {
-        guard let viewController = viewController else {
-            return children.flatMap { $0.viewControllers }
-        }
-        return [viewController]
-    }
+    // For internal use
+    var _originalExpressions: [String: String]
+    @objc var _view: UIView!
 
     private var _setupComplete = false
     private func completeSetup() throws {
@@ -115,6 +131,7 @@ public class LayoutNode: NSObject {
         attempt { try update() }
     }
 
+    // Create the node using a UIView or UIViewController subclass
     convenience init(
         class: AnyClass,
         outlet: String? = nil,
@@ -143,6 +160,7 @@ public class LayoutNode: NSObject {
         }
     }
 
+    /// Create a node for managing a view controller instance
     public convenience init(
         viewController: UIViewController,
         outlet: String? = nil,
@@ -163,6 +181,7 @@ public class LayoutNode: NSObject {
         self.viewController = viewController
     }
 
+    /// Create a node for managing a view instance
     public init(
         view: UIView? = nil,
         outlet: String? = nil,
@@ -193,6 +212,7 @@ public class LayoutNode: NSObject {
 
     // MARK: Validation
 
+    /// Test if the specified expression is valid for a given view or view controller class
     public static func isValidExpressionName(
         _ name: String, for viewOrViewControllerClass: AnyClass) -> Bool {
         switch name {
@@ -209,6 +229,7 @@ public class LayoutNode: NSObject {
     }
 
     /// Perform pre-validation on the node and (optionally) its children
+    /// Returns a set of LayoutError's, or an empty set if the node is valid
     public func validate(recursive: Bool = true) -> Set<LayoutError> {
         var errors = Set<LayoutError>()
         do {
@@ -320,6 +341,8 @@ public class LayoutNode: NSObject {
         return false // Can't compare equality
     }
 
+    /// Update the node state and re-evaluate any expressions that are affected
+    /// There is no need to call `update()` after setting the state as it is done automatically
     public var state: Any {
         didSet {
             var equal = true
@@ -365,7 +388,10 @@ public class LayoutNode: NSObject {
 
     // MARK: Hierarchy
 
+    /// The immediate child-nodes of this layout (retained)
     public private(set) var children: [LayoutNode]
+
+    /// The parent node of this layout (unretained)
     public private(set) weak var parent: LayoutNode? {
         didSet {
             if let parent = parent, parent._setupComplete {
@@ -381,6 +407,8 @@ public class LayoutNode: NSObject {
         }
     }
 
+    /// The previous sibling of the node within its parent
+    /// Returns nil if this is a root node, or is the first child of its parent
     var previous: LayoutNode? {
         if let siblings = parent?.children, let index = siblings.index(where: { $0 === self }), index > 0 {
             return siblings[index - 1]
@@ -388,6 +416,8 @@ public class LayoutNode: NSObject {
         return nil
     }
 
+    /// The next sibling of the node within its parent
+    /// Returns nil if this is a root node, or is the last child of its parent
     var next: LayoutNode? {
         if let siblings = parent?.children, let index = siblings.index(where: { $0 === self }),
             index < siblings.count - 1 {
@@ -396,10 +426,14 @@ public class LayoutNode: NSObject {
         return nil
     }
 
+    /// Appends a new child node to this node's children
+    /// Note: this will not necessarily trigger an update
     public func addChild(_ child: LayoutNode) {
         insertChild(child, at: children.count)
     }
 
+    /// Inserts a new child node at the specified index
+    /// Note: this will not necessarily trigger an update
     public func insertChild(_ child: LayoutNode, at index: Int) {
         child.removeFromParent()
         children.insert(child, at: index)
@@ -416,6 +450,8 @@ public class LayoutNode: NSObject {
         }
     }
 
+    /// Replaces the child node at the specified index with this one
+    /// Note: this will not necessarily trigger an update
     public func replaceChild(at index: Int, with child: LayoutNode) {
         let oldChild = children[index]
         children[index] = child
@@ -433,6 +469,8 @@ public class LayoutNode: NSObject {
         oldChild.removeFromParent()
     }
 
+    /// Removes the node from its parent
+    /// Note: this will not necessarily trigger an update in either node
     public func removeFromParent() {
         if let index = parent?.children.index(where: { $0 === self }) {
             if let viewController = parent?.viewController {
@@ -669,7 +707,7 @@ public class LayoutNode: NSObject {
 
     // MARK: symbols
 
-    func localizedString(forKey key: String) -> String? {
+    private func localizedString(forKey key: String) -> String? {
         var delegate = self.delegate
         var responder = delegate as? UIResponder
         while delegate != nil || responder != nil {
@@ -697,6 +735,7 @@ public class LayoutNode: NSObject {
         return nil
     }
 
+    // Used by LayoutExpression
     func value(forConstant name: String) -> Any? {
         guard value(forKeyPath: name, in: _variables) == nil else {
             return nil
@@ -741,7 +780,7 @@ public class LayoutNode: NSObject {
         }
     }
 
-    func value(forSymbol name: String, dependsOn symbol: String) -> Bool {
+    private func value(forSymbol name: String, dependsOn symbol: String) -> Bool {
         if let expression = _layoutExpressions[name] ??
             _viewControllerExpressions[name] ?? _viewExpressions[name] {
             for name in expression.symbols where
@@ -752,6 +791,7 @@ public class LayoutNode: NSObject {
         return false
     }
 
+    // Used by LayoutExpression and for unit tests
     // Note: thrown error is always a SymbolError
     func doubleValue(forSymbol symbol: String) throws -> Double {
         let anyValue = try value(forSymbol: symbol)
@@ -767,6 +807,7 @@ public class LayoutNode: NSObject {
         throw SymbolError("\(symbol) is not a number", for: symbol)
     }
 
+    // Used by LayoutExpression
     // Note: thrown error is always a SymbolError
     func doubleValue(forConstant symbol: String) throws -> Double? {
         guard let anyValue = value(forConstant: symbol) else {
@@ -791,6 +832,7 @@ public class LayoutNode: NSObject {
             controller?.navigationController?.topViewController ?? controller
     }
 
+    // Used by LayoutExpression and for unit tests
     // Note: thrown error is always a SymbolError
     // TODO: numeric values may be returned as a Double, even if original type was something else
     // this was deliberate for performance reasons, but it's a bit confusing - find a better solution
@@ -968,10 +1010,12 @@ public class LayoutNode: NSObject {
 
     // MARK: layout
 
+    /// Is the layout's view hidden?
     public var isHidden: Bool {
         return view.isHidden
     }
 
+    /// The anticipated frame for the view, based on the current state
     // TODO: should this be public?
     public var frame: CGRect {
         return attempt {
@@ -1156,6 +1200,7 @@ public class LayoutNode: NSObject {
         )
     }
 
+    /// The current size of the layout node's contents
     // TODO: currently this is only used by UIScrollView - should it be public?
     public var contentSize: CGSize {
         return attempt { try inferContentSize() } ?? .zero
@@ -1216,7 +1261,8 @@ public class LayoutNode: NSObject {
         try throwUnhandledError()
     }
 
-    // Note: thrown error is always a LayoutError
+    /// Re-evaluates all expressions for the node and its children
+    /// Note: thrown error is always a LayoutError
     public func update() throws {
         try updateValues()
         try updateFrame()
@@ -1224,7 +1270,8 @@ public class LayoutNode: NSObject {
 
     // MARK: binding
 
-    // Note: thrown error is always a LayoutError
+    /// Mounts a node inside the specified view controller, and binds the VC as its owner
+    /// Note: thrown error is always a LayoutError
     public func mount(in viewController: UIViewController) throws {
         guard parent == nil else {
             throw LayoutError.message("The `mount()` method should only be used on a root node.")
@@ -1242,7 +1289,8 @@ public class LayoutNode: NSObject {
         }
     }
 
-    // Note: thrown error is always a LayoutError
+    /// Mounts a node inside the specified view, and binds the view as its owner
+    /// Note: thrown error is always a LayoutError
     @nonobjc public func mount(in view: UIView) throws {
         guard parent == nil else {
             throw LayoutError.message("The `mount()` method should only be used on a root node.")

@@ -1,6 +1,6 @@
 <UITableViewCell
-    detailTextLabel.text="This cell is defined in TableCell.xml"
     detailTextLabel.highlightedTextColor="#fff"
+    detailTextLabel.text="This cell is defined in TableCell.xml"
     detailTextLabel.textColor="#aaa"
     height="auto + 20"
     reuseIdentifier="standaloneCell"

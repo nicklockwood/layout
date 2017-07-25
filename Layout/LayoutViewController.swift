@@ -180,8 +180,8 @@ open class LayoutViewController: UIViewController, LayoutLoading {
         _errorNode!.view.alpha = 0
         try? _errorNode?.bind(to: self)
         scrollView.delegate = nil // TODO: find a better solution
-        view.addSubview( _errorNode!.view)
-         _errorNode!.view.frame = view.bounds
+        view.addSubview(_errorNode!.view)
+        _errorNode!.view.frame = view.bounds
         UIView.animate(withDuration: 0.25) {
             self._errorNode?.view.alpha = 1
         }
