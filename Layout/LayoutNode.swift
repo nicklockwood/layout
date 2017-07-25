@@ -1266,7 +1266,7 @@ public class LayoutNode: NSObject {
         try update()
     }
 
-    /// Unmounts and unbinds the node
+    /// Unmounts and unbinds the node from its owner
     public func unmount() {
         guard parent == nil else {
             // If not a root node, treat the same as `removeFromParent()`
@@ -1281,9 +1281,11 @@ public class LayoutNode: NSObject {
         view.removeFromSuperview()
     }
 
-    // Note: thrown error is always a LayoutError
     private weak var _owner: NSObject?
-    func bind(to owner: NSObject) throws {
+
+    /// Binds the node to the specified owner but doesn't attach the view or view controller(s)
+    /// Note: thrown error is always a LayoutError
+    public func bind(to owner: NSObject) throws {
         guard _owner == nil || _owner == owner || _owner == viewController else {
             throw LayoutError("Cannot re-bind an already bound node.", for: self)
         }
@@ -1351,7 +1353,9 @@ public class LayoutNode: NSObject {
         try throwUnhandledError()
     }
 
-    func unbind() {
+    /// Unbinds the node from its owner but doesn't remove
+    /// the view or view controller(s) from their respective parents
+    public func unbind() {
         if let owner = _owner {
             if let outlet = outlet, type(of: owner).allPropertyTypes()[outlet] != nil {
                 owner.setValue(nil, forKey: outlet)

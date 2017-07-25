@@ -281,7 +281,7 @@ You can define actions on any `UIControl` subclass using `actionName="methodName
 
     <UIButton touchUpInside="wasPressed"/>
     
-Layout uses a little-known feature of iOS called the *responder chain* to broadcast that action up the view hierarchy. It will then be intercepted by whichever is the first parent view or view controller that implements a compatible method, in this case:
+There is no need to specify a target - the action will be automatically bound to the first matching method encountered in the responder chain. If no matching method is found, Layout will display an error. **Note:** the error will be shown *when the node is mounted*, not deferred until the button is pressed, as it would be for actions bound using Interface Builder.
 
     func wasPressed() {
         ...
@@ -297,13 +297,11 @@ Then the corresponding method can be implemented as:
         ...
     }
 
-A downside of this approach is that no error is generated if your action method is misnamed - it will simply fail to be called when the button is pressed. It's possible that a future version of Layout will detect this situation and treat it as an error.
-
 ## Outlets
 
 The corresponding feature to action binding is *outlets*. When creating views inside a Nib or Storyboard, you typically create references to individual views by using properties in your view controller marked with the `@IBOutlet` attribute.
 
-This mechanism works pretty well, so Layout copies it wholesale, but with a few small enhancements. To create an outlet binding for a layout node, just declare a property of the correct type on your `LayoutViewController`, and then reference it using the `outlet` constructor argument for the `LayoutNode`:
+To create an outlet binding for a layout node, you can use the same approach: Declare a property of the correct type on your `LayoutViewController`, and then reference it using the `outlet` constructor argument for the `LayoutNode`:
 
     class MyViewController: LayoutViewController {
     
@@ -327,11 +325,11 @@ This mechanism works pretty well, so Layout copies it wholesale, but with a few 
     
 In this example we've bound the `LayoutNode` containing the `UILabel` to the `labelNode` property. A few things to note:
 
-* There's no need to use the `@IBOutlet` attribute for your outlet property, but you can do so if you feel it makes the purpose clearer
-* The type of the outlet property can be either `LayoutNode` or a `UIView` subclass that's compatible with the view used in the node. The syntax is the same in either case - the type will be checked at runtime, and an error will be thrown if it doesn't match up.
-* In the example we have used Swift's `#keyPath` syntax for the outlet value for better static validation. This is recommended, but not required.
+* There's no need to use the `@IBOutlet` attribute for your outlet property, but you can do so if you feel it makes the purpose clearer. If you do not use `@IBOutlet`, you may need to use `@objc` to ensure the property is visible to Layout at runtime.
+* The type of the outlet property can be either `LayoutNode` or a `UIView` subclass that's compatible with the view managed by the node. The syntax is the same in either case - the type will be checked at runtime, and an error will be thrown if it doesn't match up.
+* In the example above we have used Swift's `#keyPath` syntax to specify the outlet value, for better static validation. This is recommended, but not required.
 	
-It is also possible to specify outlet bindings when using XML templates as follows:
+It is also possible to specify outlet bindings when using XML templates, as follows:
 
 	<UIView>
 		<UILabel
@@ -786,13 +784,15 @@ If you would prefer not to use either the `LayoutViewController` base class or `
         }
     }
 
-This method of integration does not provide the automatic live reloading feature for local XML files, nor the "red box" debugging interface - both of those are implemented internally by the `LayoutViewController`. It also won't bubble errors up the responder chain to the next `LayoutLoading` handler.
+This method of integration does not provide the automatic live reloading feature for local XML files, nor the "red box" debugging interface - both of those are implemented internally by the `LayoutViewController`.
 
-Both the `mount(in:)` and `update()` methods may throw an error. An error will be thrown if there is a problems with your XML markup, or in an expression's syntax or logic.
+If you are using some fanyc archictecture that splits up view controllers into sub-components, you may find that you need to bind a `LayoutNode` to something other than a `UIView` or `UIViewController` subclass. In that case you can use the `bind(to:)` method, which will connect the node's outlets, actions and delegates to the specified owner object, but won't attempt to mount the view or view controllers.
 
-These errors are not expected to occur in a correctly implemented layout - they typically only happen if you have made a mistake in your code, so it should be OK to suppress them with `!` for release builds (assuming you've tested your app before releasing it!).
+The `mount(in:)`, `bind(to:)` and `update()` methods may each throw an error if there is a problem with your XML markup, or in an expression's syntax or logic.
 
-If you are loading XML templates from a external source, you may wish to catch and log errors instead of allowing them to crash, as there is a greater likelihood of an error making it into production if templates and native code are updated independently.
+These errors are not expected to occur in a correctly implemented layout - they typically only happen if you have made a mistake in your code - so for release builds it should be OK to suppress them with `try!` or `try?` (assuming you've tested your app properly before releasing it!).
+
+If you are loading XML templates from a external source, you might prefer to catch and log these errors instead of allowing them to crash or fail silently, as there is a greater likelihood of an error making it into production if templates and native code are updated independently.
     
 # Table Views
 
