@@ -237,8 +237,30 @@ class LayoutLoader {
 
     // MARK: Only applicable when running in the simulator
 
-    private var _projectDirectory: URL?
-    private var _sourceURLCache = [String: URL]()
+    private var layoutSettings: [String: Any] {
+        get { return UserDefaults.standard.dictionary(forKey: "com.Layout") ?? [:] }
+        set { UserDefaults.standard.set(newValue, forKey: "com.Layout") }
+    }
+
+    private var _projectDirectory: URL? {
+        didSet {
+            let path = _projectDirectory?.path
+            if path != layoutSettings["projectDirectory"] as? String {
+                sourcePaths.removeAll()
+                layoutSettings["projectDirectory"] = path
+            }
+        }
+    }
+    private var _sourcePaths: [String: String] = {
+        layoutSettings["sourcePaths"] as? [String: String] ?? [:]
+    }()
+    private var sourcePaths: [String: String] {
+        get { return _sourcePaths }
+        set {
+            _sourcePaths = newValue
+            layoutSettings["sourcePaths"] = _sourcePaths
+        }
+    }
 
     private func findProjectDirectory(at path: String) -> URL? {
         if let projectDirectory = _projectDirectory, path.hasPrefix(projectDirectory.path) {
@@ -269,8 +291,8 @@ class LayoutLoader {
     }
 
     private func findSourceURL(forRelativePath path: String, in directory: URL, usingCache: Bool = true) throws -> URL? {
-        if let url = _sourceURLCache[path], FileManager.default.fileExists(atPath: url.path) {
-            return url
+        if let filePath = sourcePaths[path], FileManager.default.fileExists(atPath: filePath) {
+            return URL(fileURLWithPath: filePath)
         }
         guard let files = try? FileManager.default.contentsOfDirectory(atPath: directory.path) else {
             return nil
@@ -310,13 +332,16 @@ class LayoutLoader {
             guard let url = results.first else {
                 throw LayoutError.message("Unable to locate source file for \(path)")
             }
-            _sourceURLCache[path] = url
+            _setSourceURL(url, for: path)
         }
         return results.first
     }
 
     private func _setSourceURL(_ sourceURL: URL, for path: String) {
-        _sourceURLCache[path] = sourceURL
+        guard sourceURL.isFileURL else {
+            preconditionFailure()
+        }
+        sourcePaths[path] = sourceURL.path
     }
 
 #else
