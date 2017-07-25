@@ -9,7 +9,8 @@ private let validClasses: [String] = {
     let classes = objc_copyClassList(&classCount)
     var names = [String]()
     for cls in UnsafeBufferPointer(start: classes, count: Int(classCount)) {
-        if let cls = cls, class_conformsToProtocol(cls, NSObjectProtocol.self),
+        if let cls = cls, class_getSuperclass(cls) != nil,
+            class_conformsToProtocol(cls, NSObjectProtocol.self),
             cls.isSubclass(of: UIView.self) || cls.isSubclass(of: UIViewController.self) {
             let name = "\(cls)"
             if !name.hasPrefix("_") {
