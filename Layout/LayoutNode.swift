@@ -65,8 +65,8 @@ public class LayoutNode: NSObject {
     private(set) var viewClass: UIView.Type
 
     // For internal use
-    var _originalExpressions: [String: String]
-    @objc var _view: UIView!
+    private(set) var _originalExpressions: [String: String]
+    @objc private(set) var _view: UIView!
 
     private var _setupComplete = false
     private func completeSetup() throws {
@@ -75,6 +75,7 @@ public class LayoutNode: NSObject {
 
         if _view == nil {
             _view = try viewClass.create(with: self)
+            assert(_view != nil)
         }
 
         _usesAutoLayout = _view.constraints.contains {
@@ -453,20 +454,8 @@ public class LayoutNode: NSObject {
     /// Replaces the child node at the specified index with this one
     /// Note: this will not necessarily trigger an update
     public func replaceChild(at index: Int, with child: LayoutNode) {
-        let oldChild = children[index]
-        children[index] = child
-        if _setupComplete {
-            child.parent = self
-            if let owner = _owner {
-                try? child.bind(to: owner)
-            }
-            if let viewController = viewController {
-                viewController.didInsertChildNode(child, at: index)
-            } else {
-                _view.didInsertChildNode(child, at: index)
-            }
-        }
-        oldChild.removeFromParent()
+        children[index].removeFromParent()
+        insertChild(child, at: index)
     }
 
     /// Removes the node from its parent
@@ -491,13 +480,49 @@ public class LayoutNode: NSObject {
 
     // Experimental - used for nested XML reference loading
     internal func update(with layout: Layout) throws {
-        let className = "\(viewController?.classForCoder ?? viewClass)"
-        guard className == layout.className else {
-            throw LayoutError("Cannot replace \(className) with \(layout.className)", for: self)
+        let newClass: AnyClass = try layout.getClass()
+        let oldClass: AnyClass = viewController?.classForCoder ?? viewClass
+        guard newClass.isSubclass(of: oldClass) else {
+            throw LayoutError("Cannot replace \(oldClass) with \(newClass)", for: self)
         }
 
         for child in children {
             child.removeFromParent()
+        }
+
+        if newClass != oldClass {
+            stopObserving()
+            let oldView = _view
+            let oldViewController = viewController
+            if let viewClass = newClass as? UIView.Type {
+                self.viewClass = viewClass
+                viewExpressionTypes = viewClass.cachedExpressionTypes
+                _view = nil
+            } else if let controllerClass = newClass as? UIViewController.Type {
+                viewController = try controllerClass.create(with: self)
+                _view = viewController!.view
+                viewClass = _view.classForCoder as! UIView.Type
+                viewExpressionTypes = viewClass.cachedExpressionTypes
+                viewControllerExpressionTypes = controllerClass.cachedExpressionTypes
+            } else {
+                preconditionFailure()
+            }
+            if _setupComplete {
+                _setupComplete = false
+                unmount()
+                if let parent = parent, let index = parent.children.index(of: self) {
+                    oldView?.removeFromSuperview()
+                    oldViewController?.removeFromParentViewController()
+                    parent.insertChild(self, at: index)
+                } else if let superview = oldView?.superview, let index = superview.subviews.index(of: _view) {
+                    if let parentViewController = oldViewController?.parent {
+                        oldViewController?.removeFromParentViewController()
+                        viewController.map { parentViewController.addChildViewController($0) }
+                    }
+                    oldView?.removeFromSuperview()
+                    superview.insertSubview(_view, at: index)
+                }
+            }
         }
 
         for (name, expression) in layout.expressions where _originalExpressions[name] == nil {
@@ -1326,7 +1351,7 @@ public class LayoutNode: NSObject {
         for controller in viewControllers {
             controller.removeFromParentViewController()
         }
-        view.removeFromSuperview()
+        _view?.removeFromSuperview()
     }
 
     private weak var _owner: NSObject?

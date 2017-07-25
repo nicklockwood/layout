@@ -1,14 +1,14 @@
 <UITabBarController backgroundColor="#fff">
 
     <!-- Boxes -->
-    <BoxesViewController
+    <UIViewController
         tabBarItem.image="Boxes"
         title="Boxes"
         xml="Boxes.xml"
     />
 
     <!-- Pages -->
-    <PagesViewController
+    <UIViewController
         tabBarItem.image="Pages"
         title="Pages"
         xml="Pages.xml"
@@ -22,7 +22,7 @@
     />
 
     <!-- Table -->
-    <TableViewController
+    <UIViewController
         tabBarItem.image="Table"
         title="Table"
         xml="Table.xml"

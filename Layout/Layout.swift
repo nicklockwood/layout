@@ -11,4 +11,13 @@ struct Layout {
     var children: [Layout]
     var xmlPath: String?
     var relativePath: String?
+
+    func getClass() throws -> AnyClass {
+        let classPrefix = Bundle.main.object(forInfoDictionaryKey: "CFBundleName") ?? ""
+        guard let anyClass = NSClassFromString(className) ??
+            NSClassFromString("\(classPrefix).\(className)") else {
+            throw LayoutError.message("Unknown class `\(className)`")
+        }
+        return anyClass
+    }
 }

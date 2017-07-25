@@ -35,14 +35,8 @@ extension LayoutNode {
         state: Any = (),
         constants: [String: Any] = [:]
     ) throws {
-
-        let classPrefix = Bundle.main.object(forInfoDictionaryKey: "CFBundleName") ?? ""
-        guard let anyClass = NSClassFromString(layout.className) ??
-            NSClassFromString("\(classPrefix).\(layout.className)") else {
-            throw LayoutError.message("Unknown class `\(layout.className)`")
-        }
         try self.init(
-            class: anyClass,
+            class: layout.getClass(),
             outlet: outlet ?? layout.outlet,
             state: state,
             constants: constants,
