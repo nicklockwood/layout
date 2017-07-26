@@ -639,13 +639,21 @@ struct LayoutExpression {
     }
 
     init(enumExpression: String, type: RuntimeType, for node: LayoutNode) {
-        guard case let .enum(_, values, _) = type.type else { preconditionFailure() }
+        guard case let .enum(_, values) = type.type else { preconditionFailure() }
         self.init(
             anyExpression: enumExpression,
             type: type,
             symbols: [:],
             lookup: { name in values[name] },
             for: node
+        )
+    }
+
+    init(selectorExpression: String, for node: LayoutNode) {
+        let expression = LayoutExpression(stringExpression: selectorExpression, for: node)
+        self.init(
+            evaluate: { Selector(try expression.evaluate() as! String) },
+            symbols: expression.symbols
         )
     }
 
@@ -664,6 +672,8 @@ struct LayoutExpression {
             case is String.Type,
                  is NSString.Type:
                 self.init(stringExpression: expression, for: node)
+            case is Selector.Type:
+                self.init(selectorExpression: expression, for: node)
             case is NSAttributedString.Type:
                 self.init(attributedStringExpression: expression, for: node)
             case is UIColor.Type:

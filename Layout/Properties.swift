@@ -8,10 +8,15 @@ public class RuntimeType: NSObject {
         case `struct`(String)
         case pointer(String)
         case `protocol`(Protocol)
-        case `enum`(Any.Type, [String: Any], (Any) -> Any)
+        case `enum`(Any.Type, [String: Any])
     }
 
+    public typealias Getter = (_ target: AnyObject, _ key: String) -> Any?
+    public typealias Setter = (_ target: AnyObject, _ key: String, _ value: Any) throws -> Void
+
     public let type: Kind
+    public private(set) var getter: Getter?
+    public private(set) var setter: Setter?
 
     @nonobjc public init(_ type: Any.Type) {
         switch "\(type)" {
@@ -68,6 +73,25 @@ public class RuntimeType: NSObject {
             type = .any(AnyClass.self)
         case ":":
             type = .any(Selector.self)
+            getter = { target, key in
+                let chars = key.characters
+                let selector = Selector(
+                    "set\(String(chars.first!).uppercased())\(String(chars.dropFirst())):"
+                )
+                let fn = unsafeBitCast(
+                    class_getMethodImplementation(type(of: target), selector),
+                    to: (@convention(c)(AnyObject?, Selector) -> Selector?).self
+                )
+                return fn(target, selector)
+            }
+            setter = { target, key, value in
+                let selector = Selector(key)
+                let fn = unsafeBitCast(
+                    class_getMethodImplementation(type(of: target), selector),
+                    to: (@convention(c)(AnyObject?, Selector, Selector?) -> Void).self
+                )
+                fn(target, selector, value as? Selector)
+            }
         case "{":
             type = .struct(objCType)
         case "^" where objCType.hasPrefix("^{"):
@@ -81,17 +105,23 @@ public class RuntimeType: NSObject {
     }
 
     @nonobjc public init<T: RawRepresentable>(_ type: T.Type, _ values: [String: T]) {
-        self.type = .enum(type, values, { ($0 as! T).rawValue })
+        self.type = .enum(type, values)
+        getter = { target, key in
+            (target.value(forKey: key) as? T.RawValue).flatMap { T.init(rawValue: $0) }
+        }
+        setter = { target, key, value in
+            target.setValue((value as? T)?.rawValue, forKey: key)
+        }
     }
 
     @nonobjc public init<T: Any>(_ type: T.Type, _ values: [String: T]) {
-        self.type = .enum(type, values, { $0 })
+        self.type = .enum(type, values)
     }
 
     public override var description: String {
         switch type {
         case let .any(type),
-             let .enum(type, _, _):
+             let .enum(type, _):
             return "\(type)"
         case let .struct(type),
              let .pointer(type):
@@ -158,7 +188,7 @@ public class RuntimeType: NSObject {
             default:
                 return value // No validation possible
             }
-        case let .enum(type, enumValues, _):
+        case let .enum(type, enumValues):
             if let key = value as? String, let value = enumValues[key] {
                 return value
             }
@@ -439,7 +469,7 @@ extension NSObject {
     func _value(forKeyPath name: String) -> Any? {
         var value = self as NSObject
         for key in name.components(separatedBy: ".") {
-            if value.responds(to: Selector(key)) == true,
+            if value.responds(to: Selector(key)),
                 let nextValue = value.value(forKey: key) as? NSObject {
                 value = nextValue
             } else {

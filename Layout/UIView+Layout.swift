@@ -114,15 +114,18 @@ extension UIView {
 
     // Set expression value
     @objc open func setValue(_ value: Any, forExpression name: String) throws {
-        var value = value
-        if let type = type(of: self).cachedExpressionTypes[name]?.type, case let .enum(_, _, adaptor) = type {
-            value = adaptor(value) // TODO: something nicer than this
+        if let type = type(of: self).cachedExpressionTypes[name], let setter = type.setter {
+            try setter(self, name, value)
+            return
         }
         try _setValue(value, forKeyPath: name)
     }
 
     /// Get symbol value
     @objc open func value(forSymbol name: String) -> Any? {
+        if let type = type(of: self).cachedExpressionTypes[name], let getter = type.getter {
+            return getter(self, name)
+        }
         return _value(forKeyPath: name)
     }
 
@@ -224,23 +227,23 @@ extension UIControl {
             "fill": .fill,
         ])
         for name in controlEvents.keys {
-            types[name] = RuntimeType(String.self)
+            types[name] = RuntimeType(Selector.self)
         }
         return types
     }
 
     open override func setValue(_ value: Any, forExpression name: String) throws {
-        if let action = value as? String, let event = controlEvents[name] {
+        if let action = value as? Selector, let event = controlEvents[name] {
             var actions = objc_getAssociatedObject(self, &layoutActionsKey) as? NSMutableDictionary
             if actions == nil {
                 actions = NSMutableDictionary()
                 objc_setAssociatedObject(self, &layoutActionsKey, actions, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
             }
-            if let oldAction = actions?[name] as? String {
+            if let oldAction = actions?[name] as? Selector {
                 if oldAction == action {
                     return
                 }
-                removeTarget(nil, action: Selector(action), for: event)
+                removeTarget(nil, action: action, for: event)
             }
             actions?[name] = action
             return
@@ -253,18 +256,17 @@ extension UIControl {
             return
         }
         for (name, action) in actions {
-            guard let name = name as? String, let event = controlEvents[name], let action = action as? String else {
+            guard let name = name as? String, let event = controlEvents[name], let action = action as? Selector else {
                 assertionFailure()
                 return
             }
-            if let actions = self.actions(forTarget: target, forControlEvent: event), actions.contains(action) {
+            if let actions = self.actions(forTarget: target, forControlEvent: event), actions.contains("\(action)") {
                 // Already bound
             } else {
-                let selector = Selector(action)
-                if !target.responds(to: selector) {
+                if !target.responds(to: action) {
                     throw LayoutError.message("`\(target.classForCoder ?? type(of: target))` does not respond to `\(action)`")
                 }
-                addTarget(target, action: selector, for: event)
+                addTarget(target, action: action, for: event)
             }
         }
     }

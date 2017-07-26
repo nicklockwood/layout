@@ -73,6 +73,7 @@
 		017539821F28B623005B7516 /* Renamer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 017539811F28B623005B7516 /* Renamer.swift */; };
 		017539841F28D055005B7516 /* RenameTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 017539831F28D055005B7516 /* RenameTests.swift */; };
 		017539851F28DAC5005B7516 /* Renamer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 017539811F28B623005B7516 /* Renamer.swift */; };
+		017539871F290085005B7516 /* SelectorExpressionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 017539861F290085005B7516 /* SelectorExpressionTests.swift */; };
 		0176B8F91F0D153700431A11 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 0176B8F81F0D153700431A11 /* Localizable.strings */; };
 		01E7E0491F1A96F600B7F9DB /* Layout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01E7E0481F1A96F600B7F9DB /* Layout.swift */; };
 		01E7E04B1F1BFD9100B7F9DB /* Example.xml in Resources */ = {isa = PBXBuildFile; fileRef = 01E7E04A1F1BFD9100B7F9DB /* Example.xml */; };
@@ -197,6 +198,7 @@
 		0136F1BD1F17863C00C44673 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		017539811F28B623005B7516 /* Renamer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Renamer.swift; sourceTree = "<group>"; };
 		017539831F28D055005B7516 /* RenameTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RenameTests.swift; sourceTree = "<group>"; };
+		017539861F290085005B7516 /* SelectorExpressionTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SelectorExpressionTests.swift; sourceTree = "<group>"; };
 		0176B8F81F0D153700431A11 /* Localizable.strings */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; path = Localizable.strings; sourceTree = "<group>"; };
 		01DA95861EABFF5F00868113 /* Expression.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Expression.framework; path = "../../../Library/Developer/Xcode/DerivedData/Layout-cidlxdzqvadfbngzwtfaldjrmjir/Build/Products/Debug-iphonesimulator/Expression.framework"; sourceTree = "<group>"; };
 		01E7E0481F1A96F600B7F9DB /* Layout.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Layout.swift; sourceTree = "<group>"; };
@@ -360,6 +362,7 @@
 				011CE6BA1F053D530034771C /* ColorExpressionTests.swift */,
 				011CE6BB1F053D530034771C /* EnumExpressionTests.swift */,
 				011CE6BC1F053D530034771C /* FontExpressionTests.swift */,
+				017539861F290085005B7516 /* SelectorExpressionTests.swift */,
 				011CE6BD1F053D530034771C /* GeometryExpressionTests.swift */,
 				011CE6BE1F053D530034771C /* LayoutExpressionTests.swift */,
 				011CE6BF1F053D530034771C /* LayoutFrameTests.swift */,
@@ -814,6 +817,7 @@
 				011CE6C81F053D530034771C /* LayoutExpressionTests.swift in Sources */,
 				011CE6C91F053D530034771C /* LayoutFrameTests.swift in Sources */,
 				011CE6C51F053D530034771C /* EnumExpressionTests.swift in Sources */,
+				017539871F290085005B7516 /* SelectorExpressionTests.swift in Sources */,
 				011CE6C71F053D530034771C /* GeometryExpressionTests.swift in Sources */,
 				011CE6CC1F053D530034771C /* StateTests.swift in Sources */,
 				011CE6CA1F053D530034771C /* LayoutNodeTests.swift in Sources */,

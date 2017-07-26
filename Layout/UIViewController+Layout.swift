@@ -66,9 +66,9 @@ extension UIViewController {
         case "tabBarItem.systemItem":
             tabBarItem = UITabBarItem(tabBarSystemItem: value as! UITabBarSystemItem, tag: 0)
         default:
-            var value = value
-            if let type = type(of: self).cachedExpressionTypes[name]?.type, case let .enum(_, _, adaptor) = type {
-                value = adaptor(value) // TODO: something nicer than this
+            if let type = type(of: self).cachedExpressionTypes[name], let setter = type.setter {
+                try setter(self, name, value)
+                return
             }
             try _setValue(value, forKeyPath: name)
         }
@@ -76,6 +76,9 @@ extension UIViewController {
 
     /// Get symbol value
     @objc open func value(forSymbol name: String) -> Any? {
+        if let type = type(of: self).cachedExpressionTypes[name], let getter = type.getter {
+            return getter(self, name)
+        }
         return _value(forKeyPath: name)
     }
 
