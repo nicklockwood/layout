@@ -70,12 +70,10 @@ public class RuntimeType: NSObject {
             type = .any(Selector.self)
         case "{":
             type = .struct(objCType)
-        case "^":
-            guard objCType.hasPrefix("^{") else {
-                // Unsupported pointer type
-                return nil
-            }
+        case "^" where objCType.hasPrefix("^{"):
             type = .pointer(objCType.substring(from: objCType.index(after: objCType.startIndex)))
+        case "r" where objCType.hasPrefix("r^{"):
+            type = .pointer(objCType.substring(from: "r^".endIndex))
         default:
             // Unsupported type
             return nil
