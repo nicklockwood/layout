@@ -22,9 +22,9 @@ func format(_ files: [String]) -> [Error] {
             do {
                 let data = try Data(contentsOf: inputURL)
                 let parser = LayoutParser()
-                let input = try parser.parse(XMLParser(data: data))
-                if input.isLayout {
-                    let output = try format(data)
+                let xml = try parser.parse(XMLParser(data: data))
+                if xml.isLayout {
+                    let output = try format(xml)
                     try output.write(to: outputURL, atomically: true, encoding: .utf8)
                 }
                 return { _ in }
@@ -42,13 +42,9 @@ func format(_ xml: String) throws -> String {
     guard let data = xml.data(using: .utf8, allowLossyConversion: true) else {
         throw FormatError.parsing("Invalid xml string")
     }
-    return try format(data)
-}
-
-func format(_ xmlData: Data) throws -> String {
     let parser = LayoutParser()
-    let root = try parser.parse(XMLParser(data: xmlData))
-    return root.toString(withIndent: "")
+    let xml = try parser.parse(XMLParser(data: data))
+    return try format(xml)
 }
 
 func format(_ xml: [XMLNode]) throws -> String {
