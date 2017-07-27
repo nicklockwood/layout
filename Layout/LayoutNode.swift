@@ -1405,12 +1405,10 @@ public class LayoutNode: NSObject {
                 throw LayoutError("outlet `\(outlet)` of `\(owner.classForCoder)` is not a \(expectedType)", for: self)
             }
         }
-        if let type = viewExpressionTypes["delegate"],
-            _view.value(forKey: "delegate") == nil, type.matches(owner) {
+        if let type = viewExpressionTypes["delegate"], expressions["delegate"] == nil, type.matches(owner) {
             _view.setValue(owner, forKey: "delegate")
         }
-        if let type = viewExpressionTypes["dataSource"],
-            _view.value(forKey: "dataSource") == nil, type.matches(owner) {
+        if let type = viewExpressionTypes["dataSource"], expressions["dataSource"] == nil, type.matches(owner) {
             _view.setValue(owner, forKey: "dataSource")
         }
         try bindActions()
