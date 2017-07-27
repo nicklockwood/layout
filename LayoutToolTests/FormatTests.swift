@@ -126,6 +126,18 @@ class FormatTests: XCTestCase {
         XCTAssertEqual(try format(input), output)
     }
 
+    func testLayoutdNodeInsideHTMLP() {
+        let input = "<p><Foo/></p>"
+        let output = "<p>\n    <Foo/>\n</p>\n"
+        XCTAssertEqual(try format(input), output)
+    }
+
+    func testLayoutNodeInsideHTMLBR() {
+        let input = "<br><Foo/></br>"
+        let output = "<br>\n    <Foo/>\n</br>\n"
+        XCTAssertEqual(try format(input), output)
+    }
+
     // MARK: Comments
 
     func testLeadingComment() {

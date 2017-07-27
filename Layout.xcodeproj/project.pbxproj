@@ -74,6 +74,7 @@
 		017539841F28D055005B7516 /* RenameTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 017539831F28D055005B7516 /* RenameTests.swift */; };
 		017539851F28DAC5005B7516 /* Renamer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 017539811F28B623005B7516 /* Renamer.swift */; };
 		017539871F290085005B7516 /* SelectorExpressionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 017539861F290085005B7516 /* SelectorExpressionTests.swift */; };
+		017539891F2A2F2F005B7516 /* XMLTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 017539881F2A2F2F005B7516 /* XMLTests.swift */; };
 		0176B8F91F0D153700431A11 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 0176B8F81F0D153700431A11 /* Localizable.strings */; };
 		01E7E0491F1A96F600B7F9DB /* Layout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01E7E0481F1A96F600B7F9DB /* Layout.swift */; };
 		01E7E04B1F1BFD9100B7F9DB /* Example.xml in Resources */ = {isa = PBXBuildFile; fileRef = 01E7E04A1F1BFD9100B7F9DB /* Example.xml */; };
@@ -199,6 +200,7 @@
 		017539811F28B623005B7516 /* Renamer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Renamer.swift; sourceTree = "<group>"; };
 		017539831F28D055005B7516 /* RenameTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RenameTests.swift; sourceTree = "<group>"; };
 		017539861F290085005B7516 /* SelectorExpressionTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SelectorExpressionTests.swift; sourceTree = "<group>"; };
+		017539881F2A2F2F005B7516 /* XMLTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = XMLTests.swift; sourceTree = "<group>"; };
 		0176B8F81F0D153700431A11 /* Localizable.strings */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; path = Localizable.strings; sourceTree = "<group>"; };
 		01DA95861EABFF5F00868113 /* Expression.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Expression.framework; path = "../../../Library/Developer/Xcode/DerivedData/Layout-cidlxdzqvadfbngzwtfaldjrmjir/Build/Products/Debug-iphonesimulator/Expression.framework"; sourceTree = "<group>"; };
 		01E7E0481F1A96F600B7F9DB /* Layout.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Layout.swift; sourceTree = "<group>"; };
@@ -369,6 +371,7 @@
 				011CE6C01F053D530034771C /* LayoutNodeTests.swift */,
 				011CE6C11F053D530034771C /* OptionalExpressionTests.swift */,
 				011CE6C21F053D530034771C /* StateTests.swift */,
+				017539881F2A2F2F005B7516 /* XMLTests.swift */,
 				011CE6B11F053D090034771C /* Info.plist */,
 			);
 			path = LayoutTests;
@@ -820,6 +823,7 @@
 				017539871F290085005B7516 /* SelectorExpressionTests.swift in Sources */,
 				011CE6C71F053D530034771C /* GeometryExpressionTests.swift in Sources */,
 				011CE6CC1F053D530034771C /* StateTests.swift in Sources */,
+				017539891F2A2F2F005B7516 /* XMLTests.swift in Sources */,
 				011CE6CA1F053D530034771C /* LayoutNodeTests.swift in Sources */,
 				011CE6CB1F053D530034771C /* OptionalExpressionTests.swift in Sources */,
 			);

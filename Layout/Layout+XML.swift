@@ -48,9 +48,14 @@ private class LayoutParser: NSObject, XMLParserDelegate {
 
     // MARK: XMLParserDelegate methods
 
-    func parser(_: XMLParser, didStartElement elementName: String, namespaceURI _: String?, qualifiedName _: String?, attributes: [String: String] = [:]) {
+    func parser(_ parser: XMLParser, didStartElement elementName: String, namespaceURI _: String?, qualifiedName _: String?, attributes: [String: String] = [:]) {
 
-        if top != nil, isHTMLNode(elementName) {
+        if isHTMLNode(elementName) {
+            guard top != nil else {
+                error = .message("Invalid node `<\(elementName)>` in XML. Root element must be a UIView or UIViewController.")
+                parser.abortParsing()
+                return
+            }
             text += "<\(elementName)"
             for (key, value) in attributes {
                 text += " \"\(key)\"=\"\(value)\""
