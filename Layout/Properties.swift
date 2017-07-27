@@ -252,13 +252,21 @@ extension NSObject {
                     allProperties["\(name).width"] = RuntimeType(CGFloat.self)
                     allProperties["\(name).height"] = RuntimeType(CGFloat.self)
                     allProperties["\(name).origin"] = RuntimeType(CGPoint.self)
+                    allProperties["\(name).origin.x"] = RuntimeType(CGFloat.self)
+                    allProperties["\(name).origin.y"] = RuntimeType(CGFloat.self)
                     allProperties["\(name).size"] = RuntimeType(CGSize.self)
+                    allProperties["\(name).size.width"] = RuntimeType(CGFloat.self)
+                    allProperties["\(name).size.height"] = RuntimeType(CGFloat.self)
                 } else if objCType.hasPrefix("{UIEdgeInsets") {
                     allProperties[name] = RuntimeType(UIEdgeInsets.self)
                     allProperties["\(name).top"] = RuntimeType(CGFloat.self)
                     allProperties["\(name).left"] = RuntimeType(CGFloat.self)
                     allProperties["\(name).bottom"] = RuntimeType(CGFloat.self)
                     allProperties["\(name).right"] = RuntimeType(CGFloat.self)
+                } else if objCType.hasPrefix("{UIOffset") {
+                    allProperties[name] = RuntimeType(UIOffset.self)
+                    allProperties["\(name).horizontal"] = RuntimeType(CGFloat.self)
+                    allProperties["\(name).vertical"] = RuntimeType(CGFloat.self)
                 }
             default:
                 break
@@ -353,172 +361,270 @@ extension NSObject {
 
     // Safe version of setValue(forKeyPath:)
     // Checks that the property exists, and is settable, but doesn't validate the type
-    func _setValue(_ value: Any, forKeyPath name: String) throws {
+    func _setValue(_ value: Any, ofType type: RuntimeType?, forKey key: String) throws {
+        if let setter = type?.setter {
+            try setter(self, key, value)
+            return
+        }
+        let chars = key.characters
+        if key.hasPrefix("is") {
+            let chars = chars.dropFirst(2)
+            let setter = "set\(String(chars)):"
+            if responds(to: Selector(setter)) {
+                setValue(value, forKey: "\(String(chars.first!).lowercased())\(String(chars.dropFirst()))")
+                return
+            }
+        }
+        let setter = "set\(String(chars.first!).uppercased())\(String(chars.dropFirst())):"
+        guard responds(to: Selector(setter)) else {
+            if self is NSValue {
+                throw SymbolError("Cannot set property `\(key)` of immutable `\(type(of: self))`", for: key)
+            }
+            throw SymbolError("Unknown property `\(key)` of `\(classForCoder)`", for: key)
+        }
+        setValue(value, forKey: key)
+    }
+
+    // Safe version of setValue(forKeyPath:)
+    // Checks that the property exists, and is settable, but doesn't validate the type
+    func _setValue(_ value: Any, ofType type: RuntimeType?, forKeyPath name: String) throws {
+        guard let range = name.range(of: ".", options: .backwards) else {
+            try _setValue(value, ofType: type, forKey: name)
+            return
+        }
         var prevKey = name
         var prevTarget: NSObject?
         var target = self as NSObject
-        let parts = name.components(separatedBy: ".")
-        for key in parts.dropLast() {
-            guard target.responds(to: Selector(key)) else {
-                throw SymbolError("Unknown property `\(key)` of `\(type(of: target))`", for: name)
+        var key = name.substring(from: range.upperBound)
+        for subkey in name.substring(to: range.lowerBound).components(separatedBy: ".") {
+            guard target.responds(to: Selector(subkey)) else {
+                if target is NSValue {
+                    key = "\(subkey).\(key)"
+                    break
+                }
+                throw SymbolError("Unknown property `\(subkey)` of `\(type(of: target))`", for: name)
             }
-            guard let nextTarget = target.value(forKey: key) as? NSObject else {
-                throw SymbolError("Encountered nil value for `\(key)` of `\(type(of: target))`", for: name)
+            guard let nextTarget = target.value(forKey: subkey) as? NSObject else {
+                throw SymbolError("Encountered nil value for `\(subkey)` of `\(type(of: target))`", for: name)
             }
-            prevKey = key
+            prevKey = subkey
             prevTarget = target
             target = nextTarget
         }
+        guard target is NSValue else {
+            try target._setValue(value, ofType: type, forKey: key)
+            return
+        }
         // TODO: optimize this
-        var key = parts.last!
-        let characters = key.characters
-        let setter = "set\(String(characters.first!).uppercased())\(String(characters.dropFirst())):"
-        guard target.responds(to: Selector(setter)) else {
-            if key.hasPrefix("is") {
-                let characters = characters.dropFirst(2)
-                let setter = "set\(String(characters)):"
-                if target.responds(to: Selector(setter)) {
-                    target.setValue(value, forKey: "\(String(characters.first!).lowercased())\(String(characters.dropFirst()))")
-                    return
-                }
-            }
-            var newValue: NSObject?
-            switch target {
-            case var point as CGPoint where value is NSNumber:
-                switch key {
-                case "x":
-                    point.x = CGFloat(value as! NSNumber)
-                    newValue = point as NSValue
-                case "y":
-                    point.y = CGFloat(value as! NSNumber)
-                    newValue = point as NSValue
-                default:
-                    break
-                }
-            case var size as CGSize where value is NSNumber:
-                switch key {
-                case "width":
-                    size.width = CGFloat(value as! NSNumber)
-                    newValue = size as NSValue
-                case "height":
-                    size.height = CGFloat(value as! NSNumber)
-                    newValue = size as NSValue
-                default:
-                    break
-                }
-            case var rect as CGRect:
-                if value is NSNumber {
-                    switch key {
-                    case "x":
-                        rect.origin.x = CGFloat(value as! NSNumber)
-                        newValue = rect as NSValue
-                    case "y":
-                        rect.origin.y = CGFloat(value as! NSNumber)
-                        newValue = rect as NSValue
-                    case "width":
-                        rect.size.width = CGFloat(value as! NSNumber)
-                        newValue = rect as NSValue
-                    case "height":
-                        rect.size.height = CGFloat(value as! NSNumber)
-                        newValue = rect as NSValue
-                    default:
-                        break
-                    }
-                } else if key == "origin", value is CGPoint {
-                    rect.origin = value as! CGPoint
-                    newValue = rect as NSValue
-                } else if key == "size", value is CGSize {
-                    rect.size = value as! CGSize
-                    newValue = rect as NSValue
-                }
-            case var insets as UIEdgeInsets:
-                if value is NSNumber {
-                    switch key {
-                    case "top":
-                        insets.top = CGFloat(value as! NSNumber)
-                        newValue = insets as NSValue
-                    case "left":
-                        insets.left = CGFloat(value as! NSNumber)
-                        newValue = insets as NSValue
-                    case "bottom":
-                        insets.bottom = CGFloat(value as! NSNumber)
-                        newValue = insets as NSValue
-                    case "right":
-                        insets.right = CGFloat(value as! NSNumber)
-                        newValue = insets as NSValue
-                    default:
-                        break
-                    }
-                }
+        var newValue: NSValue?
+        switch target {
+        case var point as CGPoint where value is NSNumber:
+            switch key {
+            case "x":
+                point.x = CGFloat(value as! NSNumber)
+                newValue = point as NSValue
+            case "y":
+                point.y = CGFloat(value as! NSNumber)
+                newValue = point as NSValue
             default:
                 break
             }
-            guard let value = newValue else {
-                throw SymbolError("No valid setter found for property `\(key)` of `\(type(of: target))`", for: name)
+        case var size as CGSize where value is NSNumber:
+            switch key {
+            case "width":
+                size.width = CGFloat(value as! NSNumber)
+                newValue = size as NSValue
+            case "height":
+                size.height = CGFloat(value as! NSNumber)
+                newValue = size as NSValue
+            default:
+                break
             }
-            guard let prevTarget = prevTarget else {
-                throw SymbolError("Cannot set property `\(key)` of immutable `\(type(of: target))`", for: name)
+        case var rect as CGRect:
+            if value is NSNumber {
+                switch key {
+                case "x":
+                    rect.origin.x = CGFloat(value as! NSNumber)
+                    newValue = rect as NSValue
+                case "y":
+                    rect.origin.y = CGFloat(value as! NSNumber)
+                    newValue = rect as NSValue
+                case "width":
+                    rect.size.width = CGFloat(value as! NSNumber)
+                    newValue = rect as NSValue
+                case "height":
+                    rect.size.height = CGFloat(value as! NSNumber)
+                    newValue = rect as NSValue
+                case "origin.x":
+                    rect.origin.x = CGFloat(value as! NSNumber)
+                    newValue = rect as NSValue
+                case "origin.y":
+                    rect.origin.y = CGFloat(value as! NSNumber)
+                    newValue = rect as NSValue
+                case "size.width":
+                    rect.size.width = CGFloat(value as! NSNumber)
+                    newValue = rect as NSValue
+                case "size.height":
+                    rect.size.height = CGFloat(value as! NSNumber)
+                    newValue = rect as NSValue
+                default:
+                    break
+                }
+            } else if key == "origin" {
+                if let value = value as? CGPoint {
+                    rect.origin = value
+                    newValue = rect as NSValue
+                }
+            } else if key == "size" {
+                if let value = value as? CGSize {
+                    rect.size = value
+                    newValue = rect as NSValue
+                }
             }
-            prevTarget.setValue(value, forKey: prevKey)
-            return
+        case var insets as UIEdgeInsets where value is NSNumber:
+            switch key {
+            case "top":
+                insets.top = CGFloat(value as! NSNumber)
+                newValue = insets as NSValue
+            case "left":
+                insets.left = CGFloat(value as! NSNumber)
+                newValue = insets as NSValue
+            case "bottom":
+                insets.bottom = CGFloat(value as! NSNumber)
+                newValue = insets as NSValue
+            case "right":
+                insets.right = CGFloat(value as! NSNumber)
+                newValue = insets as NSValue
+            default:
+                break
+            }
+        case var offset as UIOffset where value is NSNumber:
+            switch key {
+            case "horizontal":
+                offset.horizontal = CGFloat(value as! NSNumber)
+                newValue = offset as NSValue
+            case "vertical":
+                offset.vertical = CGFloat(value as! NSNumber)
+                newValue = offset as NSValue
+            default:
+                break
+            }
+        default:
+            break
         }
-        target.setValue(value, forKey: key)
+        if let value = newValue {
+            if let prevTarget = prevTarget {
+                prevTarget.setValue(value, forKey: prevKey)
+                return
+            }
+            throw SymbolError("No valid setter found for property `\(key)` of `\(type(of: target))`", for: name)
+        }
+        throw SymbolError("Cannot set property `\(key)` of immutable `\(type(of: target))`", for: name)
+    }
+
+    /// Safe version of value(forKey:)
+    /// Checks that the property exists, and is gettable, but doesn't validate the type
+    func _value(ofType type: RuntimeType?, forKey key: String) -> Any? {
+        if let getter = type?.getter {
+            return getter(self, key)
+        }
+        if responds(to: Selector(key)) {
+            return value(forKey: key)
+        }
+        switch self {
+        case let point as CGPoint:
+            switch key {
+            case "x":
+                return point.x
+            case "y":
+                return point.y
+            default:
+                return nil
+            }
+        case let size as CGSize:
+            switch key {
+            case "width":
+                return size.width
+            case "height":
+                return size.height
+            default:
+                return nil
+            }
+        case let rect as CGRect:
+            switch key {
+            case "x":
+                return rect.origin.x
+            case "y":
+                return rect.origin.y
+            case "width":
+                return rect.width
+            case "height":
+                return rect.height
+            case "origin":
+                return rect.origin
+            case "size":
+                return rect.size
+            case "minX":
+                return rect.minX
+            case "maxX":
+                return rect.maxX
+            case "minY":
+                return rect.minY
+            case "maxY":
+                return rect.maxY
+            case "midX":
+                return rect.midX
+            case "midY":
+                return rect.midY
+            default:
+                return nil
+            }
+        case let insets as UIEdgeInsets:
+            switch key {
+            case "top":
+                return insets.top
+            case "left":
+                return insets.left
+            case "bottom":
+                return insets.bottom
+            case "right":
+                return insets.right
+            default:
+                return nil
+            }
+        case let offset as UIOffset:
+            switch key {
+            case "horizontal":
+                return offset.horizontal
+            case "vertical":
+                return offset.vertical
+            default:
+                return nil
+            }
+        default:
+            return nil
+        }
     }
 
     /// Safe version of value(forKeyPath:)
-    func _value(forKeyPath name: String) -> Any? {
+    /// Checks that the property exists, and is gettable, but doesn't validate the type
+    func _value(ofType type: RuntimeType?, forKeyPath name: String) -> Any? {
+        guard let range = name.range(of: ".", options: .backwards) else {
+            return _value(ofType: type, forKey: name)
+        }
         var value = self as NSObject
-        for key in name.components(separatedBy: ".") {
+        for key in name.substring(to: range.lowerBound).components(separatedBy: ".") {
             if value.responds(to: Selector(key)),
                 let nextValue = value.value(forKey: key) as? NSObject {
                 value = nextValue
             } else {
                 switch value {
-                case let point as CGPoint:
-                    switch key {
-                    case "x":
-                        return point.x
-                    case "y":
-                        return point.y
-                    default:
-                        return nil
-                    }
-                case let size as CGSize:
-                    switch key {
-                    case "width":
-                        return size.width
-                    case "height":
-                        return size.height
-                    default:
-                        return nil
-                    }
                 case let rect as CGRect:
                     switch key {
-                    case "x":
-                        return rect.origin.x
-                    case "y":
-                        return rect.origin.y
-                    case "width":
-                        return rect.width
-                    case "height":
-                        return rect.height
                     case "origin":
                         value = rect.origin as NSValue
                     case "size":
                         value = rect.size as NSValue
-                    default:
-                        return nil
-                    }
-                case let insets as UIEdgeInsets:
-                    switch key {
-                    case "top":
-                        return insets.top
-                    case "left":
-                        return insets.left
-                    case "bottom":
-                        return insets.bottom
-                    case "right":
-                        return insets.right
                     default:
                         return nil
                     }
@@ -527,6 +633,6 @@ extension NSObject {
                 }
             }
         }
-        return value
+        return value._value(ofType: type, forKey: name.substring(from: range.upperBound))
     }
 }

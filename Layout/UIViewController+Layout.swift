@@ -66,20 +66,13 @@ extension UIViewController {
         case "tabBarItem.systemItem":
             tabBarItem = UITabBarItem(tabBarSystemItem: value as! UITabBarSystemItem, tag: 0)
         default:
-            if let type = type(of: self).cachedExpressionTypes[name], let setter = type.setter {
-                try setter(self, name, value)
-                return
-            }
-            try _setValue(value, forKeyPath: name)
+            try _setValue(value, ofType: type(of: self).cachedExpressionTypes[name], forKeyPath: name)
         }
     }
 
     /// Get symbol value
     @objc open func value(forSymbol name: String) -> Any? {
-        if let type = type(of: self).cachedExpressionTypes[name], let getter = type.getter {
-            return getter(self, name)
-        }
-        return _value(forKeyPath: name)
+        return _value(ofType: type(of: self).cachedExpressionTypes[name], forKeyPath: name)
     }
 
     /// Called immediately after a child node is added

@@ -47,53 +47,23 @@ extension UIView {
         // Explicitly disabled properties
         for name in [
             "bounds",
-            "bounds.height",
-            "bounds.origin",
-            "bounds.size",
-            "bounds.width",
-            "bounds.x",
-            "bounds.y",
             "center",
-            "center.x",
-            "center.y",
-            "frame.height",
-            "frame.origin",
-            "frame.size",
-            "frame.width",
-            "frame.x",
-            "frame.y",
-            "frameOrigin.x",
-            "frameOrigin.y",
+            "frame",
+            "frameOrigin",
             "layer.anchorPoint",
-            "layer.anchorPoint.x",
-            "layer.anchorPoint.y",
             "layer.bounds",
-            "layer.bounds.height",
-            "layer.bounds.origin",
-            "layer.bounds.size",
-            "layer.bounds.width",
-            "layer.bounds.x",
-            "layer.bounds.y",
             "layer.frame",
-            "layer.frame.height",
-            "layer.frame.origin",
-            "layer.frame.size",
-            "layer.frame.width",
-            "layer.frame.x",
-            "layer.frame.y",
             "layer.position",
-            "layer.position.x",
-            "layer.position.y",
             "layer.sublayers",
-            "origin.x",
-            "origin.y",
-            "position.x",
-            "position.y",
-            "size.width",
-            "size.height",
+            "origin",
+            "position",
+            "size",
         ] {
-            assert(types[name] != nil)
             types.removeValue(forKey: name)
+            let name = "\(name)."
+            for key in types.keys where key.hasPrefix(name) {
+                types.removeValue(forKey: key)
+            }
         }
         return types
     }
@@ -114,19 +84,12 @@ extension UIView {
 
     // Set expression value
     @objc open func setValue(_ value: Any, forExpression name: String) throws {
-        if let type = type(of: self).cachedExpressionTypes[name], let setter = type.setter {
-            try setter(self, name, value)
-            return
-        }
-        try _setValue(value, forKeyPath: name)
+        try _setValue(value, ofType: type(of: self).cachedExpressionTypes[name], forKeyPath: name)
     }
 
     /// Get symbol value
     @objc open func value(forSymbol name: String) -> Any? {
-        if let type = type(of: self).cachedExpressionTypes[name], let getter = type.getter {
-            return getter(self, name)
-        }
-        return _value(forKeyPath: name)
+        return _value(ofType: type(of: self).cachedExpressionTypes[name], forKeyPath: name)
     }
 
     /// Called immediately after a child node is added
