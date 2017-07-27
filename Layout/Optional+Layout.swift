@@ -44,3 +44,8 @@ extension Optional: _Optional {
     fileprivate var isNil: Bool { return value == nil ? true : false }
     fileprivate var value: Any? { return self }
 }
+
+extension ImplicitlyUnwrappedOptional: _Optional {
+    fileprivate var isNil: Bool { return value == nil ? true : false }
+    fileprivate var value: Any? { return self }
+}
