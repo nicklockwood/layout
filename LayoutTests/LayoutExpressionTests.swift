@@ -216,7 +216,7 @@ class LayoutExpressionTests: XCTestCase {
 
     func testOptionalBracesInNumberExpression() {
         let node = LayoutNode()
-        let expression = LayoutExpression(numberExpression: "{4 + 5}", for: node)
+        let expression = LayoutExpression(doubleExpression: "{4 + 5}", for: node)
         XCTAssertEqual(try expression.evaluate() as? Double, 9)
     }
 
@@ -228,7 +228,7 @@ class LayoutExpressionTests: XCTestCase {
 
     func testOptionalMultipleExpressionBodiesDisallowedInNumberExpression() {
         let node = LayoutNode()
-        let expression = LayoutExpression(numberExpression: "{5}{6}", for: node)
+        let expression = LayoutExpression(doubleExpression: "{5}{6}", for: node)
         XCTAssertThrowsError(try expression.evaluate())
     }
 

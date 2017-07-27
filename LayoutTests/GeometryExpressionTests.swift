@@ -152,23 +152,23 @@ class GeometryExpressionTests: XCTestCase {
     }
 
     func testSetContentsCenterX() {
-        let value = 5.0
+        let value: CGFloat = 5.0
         let node = LayoutNode(
             view: UIView(),
             expressions: ["layer.contentsCenter.x": "\(value)"]
         )
         XCTAssertTrue(node.validate().isEmpty)
-        XCTAssertEqual(try node.doubleValue(forSymbol: "layer.contentsCenter.x"), value)
+        XCTAssertEqual(try node.value(forSymbol: "layer.contentsCenter.x") as? CGFloat, value)
     }
 
     func testSetContentsCenterWidth() {
-        let value = 5.0
+        let value: CGFloat = 5.0
         let node = LayoutNode(
             view: UIView(),
             expressions: ["layer.contentsCenter.width": "\(value)"]
         )
         XCTAssertTrue(node.validate().isEmpty)
-        XCTAssertEqual(try node.doubleValue(forSymbol: "layer.contentsCenter.width"), value)
+        XCTAssertEqual(try node.value(forSymbol: "layer.contentsCenter.width") as? CGFloat, value)
     }
 
     func testSetContentsCenterOrigin() {
@@ -184,13 +184,13 @@ class GeometryExpressionTests: XCTestCase {
     }
 
     func testSetContentsCenterOriginX() {
-        let value = 5.0
+        let value: CGFloat = 5.0
         let node = LayoutNode(
             view: UIView(),
             expressions: ["layer.contentsCenter.origin.x": "\(value)"]
         )
         XCTAssertTrue(node.validate().isEmpty)
-        XCTAssertEqual(try node.doubleValue(forSymbol: "layer.contentsCenter.origin.x"), value)
+        XCTAssertEqual(try node.value(forSymbol: "layer.contentsCenter.origin.x") as? CGFloat, value)
     }
 
     func testSetContentsCenterSize() {
@@ -206,13 +206,13 @@ class GeometryExpressionTests: XCTestCase {
     }
 
     func testSetContentsCenterSizeWidth() {
-        let value = 5.0
+        let value: CGFloat = 5.0
         let node = LayoutNode(
             view: UIView(),
             expressions: ["layer.contentsCenter.size.width": "\(value)"]
         )
         XCTAssertTrue(node.validate().isEmpty)
-        XCTAssertEqual(try node.doubleValue(forSymbol: "layer.contentsCenter.size.width"), value)
+        XCTAssertEqual(try node.value(forSymbol: "layer.contentsCenter.size.width") as? CGFloat, value)
     }
 
     // MARK: CGAffineTransform

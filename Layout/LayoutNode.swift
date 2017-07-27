@@ -832,20 +832,17 @@ public class LayoutNode: NSObject {
         throw SymbolError("\(symbol) is not a number", for: symbol)
     }
 
-    // Used by LayoutExpression
     // Note: thrown error is always a SymbolError
-    func doubleValue(forConstant symbol: String) throws -> Double? {
-        guard let anyValue = value(forConstant: symbol) else {
-            return nil
+    private func cgFloatValue(forSymbol symbol: String) throws -> CGFloat {
+        let anyValue = try value(forSymbol: symbol)
+        if let cgFloatValue = anyValue as? CGFloat {
+            return cgFloatValue
         }
         if let doubleValue = anyValue as? Double {
-            return doubleValue
-        }
-        if let cgFloatValue = anyValue as? CGFloat {
-            return Double(cgFloatValue)
+            return CGFloat(doubleValue)
         }
         if let numberValue = anyValue as? NSNumber {
-            return Double(numberValue)
+            return CGFloat(numberValue)
         }
         throw SymbolError("\(symbol) is not a number", for: symbol)
     }
@@ -859,9 +856,6 @@ public class LayoutNode: NSObject {
 
     // Used by LayoutExpression and for unit tests
     // Note: thrown error is always a SymbolError
-    // TODO: numeric values may be returned as a Double, even if original type was something else
-    // this was deliberate for performance reasons, but it's a bit confusing - find a better solution
-    // before making this API public
     func value(forSymbol symbol: String) throws -> Any {
         try setUpExpressions()
         if let getter = _getters[symbol] {
@@ -879,7 +873,7 @@ public class LayoutNode: NSObject {
             }
         case "right":
             getter = { [unowned self] in
-                try self.doubleValue(forSymbol: "left") + self.doubleValue(forSymbol: "width")
+                try self.cgFloatValue(forSymbol: "left") + self.cgFloatValue(forSymbol: "width")
             }
         case "top":
             getter = { [unowned self] in
@@ -891,7 +885,7 @@ public class LayoutNode: NSObject {
             }
         case "bottom":
             getter = { [unowned self] in
-                try self.doubleValue(forSymbol: "top") + self.doubleValue(forSymbol: "height")
+                try self.cgFloatValue(forSymbol: "top") + self.cgFloatValue(forSymbol: "height")
             }
         case "topLayoutGuide.length":
             getter = { [unowned self] in
@@ -1045,10 +1039,10 @@ public class LayoutNode: NSObject {
     public var frame: CGRect {
         return attempt {
             CGRect(
-                x: try CGFloat(doubleValue(forSymbol: "left")),
-                y: try CGFloat(doubleValue(forSymbol: "top")),
-                width: try CGFloat(doubleValue(forSymbol: "width")),
-                height: try CGFloat(doubleValue(forSymbol: "height"))
+                x: try cgFloatValue(forSymbol: "left"),
+                y: try cgFloatValue(forSymbol: "top"),
+                width: try cgFloatValue(forSymbol: "width"),
+                height: try cgFloatValue(forSymbol: "height")
             )
         } ?? .zero
     }
@@ -1104,13 +1098,13 @@ public class LayoutNode: NSObject {
             if !child.widthDependsOnParent {
                 size.width = max(
                     size.width,
-                    CGFloat(try child.doubleValue(forSymbol: "left") + child.doubleValue(forSymbol: "width"))
+                    try child.cgFloatValue(forSymbol: "left") + child.cgFloatValue(forSymbol: "width")
                 )
             }
             if !child.heightDependsOnParent {
                 size.height = max(
                     size.height,
-                    CGFloat(try child.doubleValue(forSymbol: "top") + child.doubleValue(forSymbol: "height"))
+                    try child.cgFloatValue(forSymbol: "top") + child.cgFloatValue(forSymbol: "height")
                 )
             }
         }
@@ -1124,31 +1118,31 @@ public class LayoutNode: NSObject {
         }
         // Check for explicit width / height
         if expressions["contentSize.width"] != nil, !_evaluating.contains("contentSize.width") {
-            size.width = try CGFloat(doubleValue(forSymbol: "contentSize.width"))
+            size.width = try cgFloatValue(forSymbol: "contentSize.width")
         } else if expressions["contentSize.height"] != nil, !_evaluating.contains("contentSize.height") {
-            size.height = try CGFloat(doubleValue(forSymbol: "contentSize.height"))
+            size.height = try cgFloatValue(forSymbol: "contentSize.height")
         }
         return size
     }
 
     private func computeExplicitWidth() throws -> CGFloat? {
         if !_evaluating.contains("width") {
-            return try CGFloat(doubleValue(forSymbol: "width"))
+            return try cgFloatValue(forSymbol: "width")
         }
         if expressions["contentSize.width"] != nil, !_evaluating.contains("contentSize.width") {
             let contentInset = try value(forSymbol: "contentInset") as! UIEdgeInsets
-            return try CGFloat(doubleValue(forSymbol: "contentSize.width")) + contentInset.left + contentInset.right
+            return try cgFloatValue(forSymbol: "contentSize.width") + contentInset.left + contentInset.right
         }
         return nil
     }
 
     private func computeExplicitHeight() throws -> CGFloat? {
         if !_evaluating.contains("height") {
-            return try CGFloat(doubleValue(forSymbol: "height"))
+            return try cgFloatValue(forSymbol: "height")
         }
         if expressions["contentSize.height"] != nil, !_evaluating.contains("contentSize.height") {
             let contentInset = try value(forSymbol: "contentInset") as! UIEdgeInsets
-            return try CGFloat(doubleValue(forSymbol: "contentSize.height")) + contentInset.top + contentInset.bottom
+            return try cgFloatValue(forSymbol: "contentSize.height") + contentInset.top + contentInset.bottom
         }
         return nil
     }

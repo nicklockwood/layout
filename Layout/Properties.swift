@@ -138,15 +138,25 @@ public class RuntimeType: NSObject {
             case is NSNumber.Type:
                 return value as? NSNumber
             case is CGFloat.Type:
-                return value as? CGFloat ?? (value as? NSNumber).map { CGFloat($0) }
+                return value as? CGFloat ??
+                    (value as? Double).map { CGFloat($0) } ??
+                    (value as? NSNumber).map { CGFloat($0) }
             case is Double.Type:
-                return value as? Double ?? (value as? NSNumber).map { Double($0) }
+                return value as? Double ??
+                    (value as? CGFloat).map { Double($0) } ??
+                    (value as? NSNumber).map { Double($0) }
             case is Float.Type:
-                return value as? Float ?? (value as? NSNumber).map { Float($0) }
+                return value as? Float ??
+                    (value as? Double).map { Float($0) } ??
+                    (value as? NSNumber).map { Float($0) }
             case is Int.Type:
-                return value as? Int ?? (value as? NSNumber).map { Int($0) }
+                return value as? Int ??
+                    (value as? Double).map { Int($0) } ??
+                    (value as? NSNumber).map { Int($0) }
             case is Bool.Type:
-                return value as? Bool ?? (value as? NSNumber).map { Double($0) != 0 }
+                return value as? Bool ??
+                    (value as? Double).map { $0 != 0 } ??
+                    (value as? NSNumber).map { $0 != 0 }
             case is String.Type,
                  is NSString.Type:
                 return value as? String ?? "\(value)"

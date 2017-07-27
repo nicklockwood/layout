@@ -40,22 +40,20 @@ struct LayoutExpression {
         }
     }
 
-    // Symbols are assumed to be impure - i.e. they won't always return the same value
-    private init(numberExpression: String,
-                 symbols: [Expression.Symbol: Expression.Symbol.Evaluator],
-                 for node: LayoutNode) {
-
+    init(doubleExpression: String, for node: LayoutNode) {
         self.init(
-            anyExpression: numberExpression,
+            anyExpression: doubleExpression,
             type: RuntimeType(Double.self),
-            symbols: [:],
-            numericSymbols: symbols,
             for: node
         )
     }
 
-    init(numberExpression: String, for node: LayoutNode) {
-        self.init(numberExpression: numberExpression, symbols: [:], for: node)
+    init(boolExpression: String, for node: LayoutNode) {
+        self.init(
+            anyExpression: boolExpression,
+            type: RuntimeType(Bool.self),
+            for: node
+        )
     }
 
     private init(percentageExpression: String,
@@ -68,8 +66,9 @@ struct LayoutExpression {
             try node.doubleValue(forSymbol: prop) / 100 * args[0]
         }
         let expression = LayoutExpression(
-            numberExpression: percentageExpression,
-            symbols: symbols,
+            anyExpression: percentageExpression,
+            type: RuntimeType(CGFloat.self),
+            numericSymbols: symbols,
             for: node
         )
         self.init(
@@ -130,14 +129,6 @@ struct LayoutExpression {
 
     init(contentHeightExpression: String, for node: LayoutNode) {
         self.init(contentSizeExpression: contentHeightExpression, for: "height", in: node)
-    }
-
-    init(boolExpression: String, for node: LayoutNode) {
-        let expression = LayoutExpression(numberExpression: boolExpression, for: node)
-        self.init(
-            evaluate: { try expression.evaluate() as! Double == 0 ? false : true },
-            symbols: expression.symbols
-        )
     }
 
     // symbols are assumed to be pure - i.e. they will always return the same value
@@ -661,14 +652,6 @@ struct LayoutExpression {
         switch type.type {
         case let .any(subtype):
             switch subtype {
-            case is CGFloat.Type,
-                 is Double.Type,
-                 is Float.Type,
-                 is Int.Type,
-                 is NSNumber.Type:
-                self.init(numberExpression: expression, for: node)
-            case is Bool.Type:
-                self.init(boolExpression: expression, for: node)
             case is String.Type,
                  is NSString.Type:
                 self.init(stringExpression: expression, for: node)
