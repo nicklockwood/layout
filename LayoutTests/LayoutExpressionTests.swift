@@ -263,4 +263,16 @@ class LayoutExpressionTests: XCTestCase {
         )
         XCTAssertEqual(node.view.layer.shadowPath, path)
     }
+
+    func testThrowErrorForConstantExpression() {
+        let node = LayoutNode(
+            constants: ["foo": "Not a color"],
+            expressions: ["backgroundColor": "{foo}"]
+        )
+        XCTAssertThrowsError(try node.update()) { error in
+            XCTAssertTrue("\(error)".contains("String"))
+            XCTAssertTrue("\(error)".contains("UIColor"))
+            XCTAssertTrue("\(error)".contains("backgroundColor"))
+        }
+    }
 }

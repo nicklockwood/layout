@@ -296,10 +296,16 @@ Then the corresponding method can be implemented as:
     func wasPressed(_ button: UIButton) {
         ...
     }
+    
+Action expressions are treated as strings, and like other string expressions they can contain logic. Note however that the logic inside an action is executed when the layout is updated, *not* when the action is pressed. The kinds of situation where this is useful is if you wish to point the action at a different method, depending on some state, e.g.
+
+    <UIButton touchUpInside="{isSelected ? 'deselect:' : 'select:'}"/>
+    
+In this case, the button will call either `select(_:)` or `deselect(_:)` depending on the value of the `isSelected` state variable.
 
 ## Outlets
 
-The corresponding feature to action binding is *outlets*. When creating views inside a Nib or Storyboard, you typically create references to individual views by using properties in your view controller marked with the `@IBOutlet` attribute.
+The corresponding feature to actions are *outlets*. When creating views inside a Nib or Storyboard, you typically create references to individual views by using properties in your view controller marked with the `@IBOutlet` attribute.
 
 To create an outlet binding for a layout node, you can use the same approach: Declare a property of the correct type on your `LayoutViewController`, and then reference it using the `outlet` constructor argument for the `LayoutNode`:
 
@@ -379,6 +385,28 @@ There are a few caveats to watch out for, however:
 * The binding mechanism relies on Objective-C runtime protocol detection, so it won't work for Swift protocols that aren't `@objc`-compliant.
 
 * If you have multiple views in your layout that all use the same delegate protocol, e.g. several `UIScrollView`s or several `UITextField`s then they will *all* be bound to the view controller. If you are only interested in receiving events from some views and not others, you will need to add logic inside the delegate method implementations to determine which view is calling it. That may involve adding additional outlets in order to distinguish between views.
+
+If you want to disable this automatic binding, you can explicitly set the delegate to nil:
+
+    <UITextField delegate="nil"/>
+    
+You can also set the delegate to a specific object by passing a reference to it as a state variable or constant and then referencing that in your delegate expression:
+
+    self.layoutNode = LayoutNode(
+        view: UIView()
+        constants: [
+            "fieldDelegate": self
+        ],
+        children: [
+            LayoutNode(
+                view: UITextField(),
+                expressions: [
+                    "delegate": "fieldDelegate"
+                ]
+            )
+        ]
+    )
+
 
 ## Composition
 

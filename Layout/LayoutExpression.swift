@@ -213,7 +213,7 @@ struct LayoutExpression {
                 let anyValue = try expression.evaluate()
                 guard let value = type.cast(anyValue) else {
                     let value = try unwrap(anyValue)
-                    throw Expression.Error.message("Value `\(value)` is not of type `\(type)`")
+                    throw Expression.Error.message("`\(type(of: value))` is not compatible with expected type `\(type)`")
                 }
                 return value
             },

@@ -674,9 +674,13 @@ public class LayoutNode: NSObject {
                         try _view.setValue(value, forExpression: symbol)
                     }
                     _getters[symbol] = { value }
+                    continue // Don't add to expressions arrays for re-evaluations
                 } catch {
                     // Something went wrong
-                    _getters[symbol] = { throw SymbolError(error, for: symbol) }
+                    expression = LayoutExpression(
+                        evaluate: { throw SymbolError(error, for: symbol) },
+                        symbols: []
+                    )
                 }
             } else {
                 var cachedValue: Any?
@@ -709,14 +713,15 @@ public class LayoutNode: NSObject {
                     },
                     symbols: expression.symbols
                 )
-                if isViewControllerExpression {
-                    _viewControllerExpressions[symbol] = expression
-                } else if isViewExpression {
-                    _viewExpressions[symbol] = expression
-                } else {
-                    _layoutExpressions[symbol] = expression
-                }
-                _getters[symbol] = expression.evaluate
+            }
+            // Store getters and expressions
+            _getters[symbol] = expression.evaluate
+            if isViewControllerExpression {
+                _viewControllerExpressions[symbol] = expression
+            } else if isViewExpression {
+                _viewExpressions[symbol] = expression
+            } else {
+                _layoutExpressions[symbol] = expression
             }
         }
 
