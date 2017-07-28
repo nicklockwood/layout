@@ -73,8 +73,26 @@ extension UITableView {
                 print("UITableViewHeaderFooterView template missing reuseIdentifier")
             }
         default:
-            super.didInsertChildNode(node, at: index)
+            if tableHeaderView == nil {
+                tableHeaderView = node.view
+            } else if tableFooterView == nil {
+                tableFooterView = node.view
+            } else {
+                super.didInsertChildNode(node, at: index)
+            }
             return
+        }
+        // Check we didn't accidentally instantiate the view
+        assert(hadView || node._view == nil)
+    }
+
+    open override func willRemoveChildNode(_ node: LayoutNode, at index: Int) {
+        let hadView = (node._view != nil)
+        super.willRemoveChildNode(node, at: index)
+        if node._view == tableHeaderView {
+            tableHeaderView = nil
+        } else if node._view == tableFooterView {
+            tableFooterView = nil
         }
         // Check we didn't accidentally instantiate the view
         assert(hadView || node._view == nil)
