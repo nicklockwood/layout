@@ -19,7 +19,7 @@ func unwrap(_ value: Any) throws -> Any {
 }
 
 // Unwraps a potentially optional value or returns nil
-func optionaValue(of value: Any) -> Any? {
+func optionalValue(of value: Any) -> Any? {
     guard let optional = value as? _Optional else {
         return value
     }

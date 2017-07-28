@@ -1,6 +1,6 @@
 //  Copyright © 2017 Schibsted. All rights reserved.
 
-import Foundation
+import UIKit
 
 public class RuntimeType: NSObject {
     public enum Kind {
@@ -167,7 +167,7 @@ public class RuntimeType: NSObject {
             case _ where subtype == Any.self:
                 return value
             default:
-                guard let value = optionaValue(of: value) else {
+                guard let value = optionalValue(of: value) else {
                     return nil
                 }
                 return subtype == Swift.type(of: value) || "\(subtype)" == "\(Swift.type(of: value))" ? value : nil
@@ -183,7 +183,7 @@ public class RuntimeType: NSObject {
                 if let value = value as? UIColor {
                     return value.cgColor
                 }
-                if let value = optionaValue(of: value), "\(value)".hasPrefix("<CGColor") {
+                if let value = optionalValue(of: value), "\(value)".hasPrefix("<CGColor") {
                     return value
                 }
                 return nil
@@ -191,7 +191,7 @@ public class RuntimeType: NSObject {
                 if let value = value as? UIImage {
                     return value.cgImage
                 }
-                if let value = optionaValue(of: value), "\(value)".hasPrefix("<CGImage") {
+                if let value = optionalValue(of: value), "\(value)".hasPrefix("<CGImage") {
                     return value
                 }
                 return nil
@@ -392,7 +392,11 @@ extension NSObject {
             }
             throw SymbolError("Unknown property `\(key)` of `\(classForCoder)`", for: key)
         }
-        setValue(value, forKey: key)
+        if value is NSNull { // TODO: better solution for nulls
+            setValue(nil, forKey: key)
+        } else {
+            setValue(value, forKey: key)
+        }
     }
 
     // Safe version of setValue(forKeyPath:)

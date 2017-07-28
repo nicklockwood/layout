@@ -85,7 +85,7 @@ To install Layout using CocoaPods, add the following to the top of your Podfile:
 	
 Then, add the following to the list of pod dependencies:
 
-	pod 'Layout', '~> 0.4.0'
+	pod 'Layout', '~> 0.4.5'
 
 This will include the Layout framework itself, and the open source Expression library, which is the only dependency.
 

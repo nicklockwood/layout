@@ -1,6 +1,6 @@
 //  Copyright © 2017 Schibsted. All rights reserved.
 
-import Foundation
+import UIKit
 
 /// Protocol for views or view conrollers that can load and display a LayoutNode
 public protocol LayoutLoading: class {

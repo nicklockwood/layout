@@ -1,5 +1,17 @@
 # Change Log
 
+## [0.4.5](https://github.schibsted.io/Rocket/layout/releases/tag/0.4.5) (2017-07-28)
+
+- Added basic templating functionality for inheriting common layout attributes and elements
+- Nested xml file references now permit the root node of the referenced file to be a subclass
+- Datasource and delegate properties can now be set explicitly, or cleared with `nil`
+- Errors thrown when evaluating constant expressions are now correctly propagated
+- LayoutTool now has a rename function for renaming expression symbols inside xml files
+- Better handling of implictly-unwrapped Optionals in constants or state
+- Improved support for selectors and CGRect properties
+- Fixed crash in XML parser when handling a malformed layut structure
+- Fixed crash in UIDesigner example
+
 ## [0.4.4](https://github.schibsted.io/Rocket/layout/releases/tag/0.4.4) (2017-07-25)
 
 - Selected source paths are now persisted between application launches

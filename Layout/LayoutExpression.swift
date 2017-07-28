@@ -135,6 +135,7 @@ struct LayoutExpression {
     // numericSymbols are assumed to be impure - i.e. they won't always return the same value
     private init(anyExpression: String,
                  type: RuntimeType,
+                 nullable: Bool = false,
                  symbols: [AnyExpression.Symbol: AnyExpression.SymbolEvaluator] = [:],
                  numericSymbols: [AnyExpression.Symbol: Expression.Symbol.Evaluator] = [:],
                  lookup: @escaping (String) -> Any? = { _ in nil },
@@ -143,6 +144,7 @@ struct LayoutExpression {
             self.init(
                 anyExpression: try parseExpression(anyExpression),
                 type: type,
+                nullable: nullable,
                 symbols: symbols,
                 numericSymbols: numericSymbols,
                 lookup: lookup,
@@ -160,6 +162,7 @@ struct LayoutExpression {
     // numericSymbols are assumed to be impure - i.e. they won't always return the same value
     private init(anyExpression parsedExpression: ParsedExpression,
                  type: RuntimeType,
+                 nullable: Bool,
                  symbols: [AnyExpression.Symbol: AnyExpression.SymbolEvaluator] = [:],
                  numericSymbols: [AnyExpression.Symbol: Expression.Symbol.Evaluator] = [:],
                  lookup: @escaping (String) -> Any? = { _ in nil },
@@ -211,6 +214,9 @@ struct LayoutExpression {
         self.init(
             evaluate: {
                 let anyValue = try expression.evaluate()
+                if nullable, optionalValue(of: anyValue) == nil {
+                    return anyValue
+                }
                 guard let value = type.cast(anyValue) else {
                     let value = try unwrap(anyValue)
                     throw Expression.Error.message("`\(type(of: value))` is not compatible with expected type `\(type)`")
@@ -304,6 +310,7 @@ struct LayoutExpression {
                     let expression = LayoutExpression(
                         anyExpression: parsedExpression,
                         type: RuntimeType(Any.self),
+                        nullable: true,
                         for: node
                     )
                     symbols.formUnion(expression.symbols)
@@ -685,7 +692,7 @@ struct LayoutExpression {
         case .pointer("{CGImage=}"):
             self.init(cgImageExpression: expression, for: node)
         case .pointer, .protocol:
-            self.init(anyExpression: expression, type: type, for: node)
+            self.init(anyExpression: expression, type: type, nullable: true, for: node)
         }
     }
 }
