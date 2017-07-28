@@ -2,30 +2,6 @@
 
 import Foundation
 
-private func urlFromString(_ path: String) -> URL? {
-    if let url = URL(string: path), url.scheme != nil {
-        return url
-    }
-
-    // Check for scheme
-    if path.contains(":") {
-        let path = path.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? path
-        if let url = URL(string: path) {
-            return url
-        }
-    }
-
-    // Assume local path
-    let path = path.removingPercentEncoding ?? path
-    if path.hasPrefix("~") {
-        return URL(fileURLWithPath: (path as NSString).expandingTildeInPath)
-    } else if (path as NSString).isAbsolutePath {
-        return URL(fileURLWithPath: path)
-    } else {
-        return Bundle.main.resourceURL?.appendingPathComponent(path)
-    }
-}
-
 extension LayoutNode {
 
     /// Create a new LayoutNode instance from a Layout template
@@ -35,6 +11,9 @@ extension LayoutNode {
         state: Any = (),
         constants: [String: Any] = [:]
     ) throws {
+        if let path = layout.templatePath {
+            throw LayoutError("Cannot initialize `\(layout.className)` node until content for `\(path)` has been loaded.")
+        }
         try self.init(
             class: layout.getClass(),
             outlet: outlet ?? layout.outlet,
@@ -45,12 +24,12 @@ extension LayoutNode {
                 try LayoutNode(layout: $0)
             }
         )
-        guard let xmlPath = layout.xmlPath, let xmlURL = urlFromString(xmlPath) else {
+        guard let xmlPath = layout.xmlPath else {
             return
         }
         var deferredError: Error?
         LayoutLoader().loadLayout(
-            withContentsOfURL: xmlURL,
+            withContentsOfURL: urlFromString(xmlPath),
             relativeTo: layout.relativePath
         ) { [weak self] layout, error in
             if let layout = layout {
@@ -73,13 +52,15 @@ extension LayoutNode {
 extension Layout {
 
     // Experimental - extracts a layout template from an existing node
+    // TODO: this isn't a loss-free conversion - find a better approach
     init(_ node: LayoutNode) {
         self.init(
             className: "\(node.viewController?.classForCoder ?? node.viewClass)",
             outlet: node.outlet,
             expressions: node._originalExpressions,
             children: node.children.map(Layout.init(_:)),
-            xmlPath: nil,
+            xmlPath: nil, // TODO: what if the layout is currently loading this? Race condition!
+            templatePath: nil,
             relativePath: nil
         )
     }

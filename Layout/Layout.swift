@@ -10,6 +10,7 @@ struct Layout {
     var expressions: [String: String]
     var children: [Layout]
     var xmlPath: String?
+    var templatePath: String?
     var relativePath: String?
 
     func getClass() throws -> AnyClass {

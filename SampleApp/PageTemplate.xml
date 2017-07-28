@@ -1,0 +1,6 @@
+<UIView
+    height="parent.contentSize.height - 20"
+    layer.cornerRadius="10"
+    left="20"
+    width="100% - 40"
+/>

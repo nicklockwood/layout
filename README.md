@@ -13,7 +13,6 @@
     - [Actions](#actions)
     - [Outlets](#outlets)
     - [Delegates](#delegates)
-    - [Composition](#composition)
 - [Expressions](#expressions)
 	- [Layout Properties](#layout-properties)
 	- [Geometry](#geometry)
@@ -30,6 +29,8 @@
     - [Layout-based Components](#layout-based-components)
 	- [Manual Integration](#manual-integration)
     - [Table Views](#table-views)
+    - [Composition](#composition)
+    - [Templates](#templates)
 - [Example Projects](#example-projects)
 	- [SampleApp](#sampleapp)
 	- [UIDesigner](#uidesigner)
@@ -406,21 +407,6 @@ You can also set the delegate to a specific object by passing a reference to it 
             )
         ]
     )
-
-
-## Composition
-
-For large or complex layouts, you may wish to split your layout into multiple files. This can be done easily when creating a `LayoutNode` programmatically, by assigning subtrees of `LayoutNode`s to a temporary variable, but what about layouts defined in XML?
-
-Fortunately, Layout has a nice solution for this. Any layout node in your XML file can contain an `xml` attribute that references an external XML file. This reference can point to a local file, or even a remote URL:
-
-	<UIView xml="MyView.xml"/>
-	
-The attributes of the original node will be merged with the external node once it has loaded. Any children of the original node will be replaced by the contents of the loaded node, so you can insert a placeholder view to be displayed while the real content is loading:
-
-	<UIView backgroundColor="#fff" xml="MyView.xml">
-		<UILabel text="Loading..."/>
-	</UIView>
 
 
 # Expressions
@@ -821,7 +807,8 @@ The `mount(in:)`, `bind(to:)` and `update()` methods may each throw an error if 
 These errors are not expected to occur in a correctly implemented layout - they typically only happen if you have made a mistake in your code - so for release builds it should be OK to suppress them with `try!` or `try?` (assuming you've tested your app properly before releasing it!).
 
 If you are loading XML templates from a external source, you might prefer to catch and log these errors instead of allowing them to crash or fail silently, as there is a greater likelihood of an error making it into production if templates and native code are updated independently.
-    
+  
+  
 # Table Views
 
 You can use a `UITableView` inside a Layout template in much the same way as you would use any other view:
@@ -936,6 +923,45 @@ Alternatively, you can define the cell in its own XML file. If you do that, the 
 Layout supports dynamic table cell heights. To enable this, set a height expression for your cell, and ensure that you set the `estimatedRowHeight` property of the `UITableView`, or implement the `tableView(_: UITableView, estimatedHeightForRowAt:)` delegate method. If your cells all have the same height, it is more efficient to set an explicit `rowHeight` property on the `UITableView` instead.
 
 The same approach works for `UITableViewHeaderFooterView` layouts, and there are equivalent methods for registering and dequeueing UITableViewHeaderFooterView layout nodes.
+
+
+## Composition
+
+For large or complex layouts, you may wish to split your layout into multiple files. This can be done easily when creating a `LayoutNode` programmatically, by assigning subtrees of `LayoutNode`s to a temporary variable, but what about layouts defined in XML?
+
+Fortunately, Layout has a nice solution for this. Any layout node in your XML file can contain an `xml` attribute that references an external XML file. This reference can point to a local file, or even a remote URL:
+
+	<UIView xml="MyView.xml"/>
+	
+The attributes of the original node will be merged with the external node once it has loaded. Any children of the original node will be replaced by the contents of the loaded node, so you can insert a placeholder view to be displayed while the real content is loading:
+
+	<UIView backgroundColor="#fff" xml="MyView.xml">
+		<UILabel text="Loading..."/>
+	</UIView>
+	
+The root node of the referenced XML file must be of the same class, or a subclass, of the node that loads it. You can replace a `<UIView/>` node with a `<UIImageView/>` for example, or a `<UIViewController/>` with a `<UITableViewController/>`, but you cannot replace a `<UILabel/>` with a `<UIButton/>`, or a `<UIView/>` with a `<UIViewController/>`.
+	
+	
+## Templates
+
+Templates are sort of the opposite of the layout composition feature. When a layout node imports a template, the node's attributes and children are appended to those of the inherited layout. This is useful if you have a bunch of nodes with common attributes or elements:
+
+    <UIView template="MyTemplate.xml">
+        <UILabel>Some unique content</UILabel>
+    </UIView>
+    
+The template itself is just an ordinary layout file, and can be loaded and used normally:
+
+    <!-- MyTemplate.xml -->
+    <UIView backgroundColor="#fff">
+        <UILabel>Shared Heading</UILabel>
+        
+        <!-- children of the importing node will be inserted here -->
+    </UIView>
+
+Note that unlike with composition, the children are appended rather than being replaced. Also, the imported template's root node class must be the same class or a *superclass* of the importing node (unlike with composition, where it must be the same class or a subclass).
+
+Although you can override the attributes of the root node of an imported template, there is currently no way to override or parameterize the children, apart from by using state variables or constants in the normal fashion.
 
 
 # Example Projects

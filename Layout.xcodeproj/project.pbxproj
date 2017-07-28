@@ -76,6 +76,8 @@
 		017539871F290085005B7516 /* SelectorExpressionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 017539861F290085005B7516 /* SelectorExpressionTests.swift */; };
 		017539891F2A2F2F005B7516 /* XMLTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 017539881F2A2F2F005B7516 /* XMLTests.swift */; };
 		0176B8F91F0D153700431A11 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 0176B8F81F0D153700431A11 /* Localizable.strings */; };
+		018879ED1F2B456A00A64B6B /* PageTemplate.xml in Resources */ = {isa = PBXBuildFile; fileRef = 018879EC1F2B456A00A64B6B /* PageTemplate.xml */; };
+		018879EF1F2B675000A64B6B /* LabelTemplate.xml in Resources */ = {isa = PBXBuildFile; fileRef = 018879EE1F2B675000A64B6B /* LabelTemplate.xml */; };
 		01E7E0491F1A96F600B7F9DB /* Layout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01E7E0481F1A96F600B7F9DB /* Layout.swift */; };
 		01E7E04B1F1BFD9100B7F9DB /* Example.xml in Resources */ = {isa = PBXBuildFile; fileRef = 01E7E04A1F1BFD9100B7F9DB /* Example.xml */; };
 		01E7E04D1F1C033600B7F9DB /* LayoutNode+Layout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01E7E04C1F1C033600B7F9DB /* LayoutNode+Layout.swift */; };
@@ -202,6 +204,8 @@
 		017539861F290085005B7516 /* SelectorExpressionTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SelectorExpressionTests.swift; sourceTree = "<group>"; };
 		017539881F2A2F2F005B7516 /* XMLTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = XMLTests.swift; sourceTree = "<group>"; };
 		0176B8F81F0D153700431A11 /* Localizable.strings */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; path = Localizable.strings; sourceTree = "<group>"; };
+		018879EC1F2B456A00A64B6B /* PageTemplate.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = PageTemplate.xml; sourceTree = "<group>"; };
+		018879EE1F2B675000A64B6B /* LabelTemplate.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = LabelTemplate.xml; sourceTree = "<group>"; };
 		01DA95861EABFF5F00868113 /* Expression.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Expression.framework; path = "../../../Library/Developer/Xcode/DerivedData/Layout-cidlxdzqvadfbngzwtfaldjrmjir/Build/Products/Debug-iphonesimulator/Expression.framework"; sourceTree = "<group>"; };
 		01E7E0481F1A96F600B7F9DB /* Layout.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Layout.swift; sourceTree = "<group>"; };
 		01E7E04A1F1BFD9100B7F9DB /* Example.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = Example.xml; sourceTree = "<group>"; };
@@ -304,6 +308,8 @@
 				011CE6571F05343E0034771C /* Examples.xml */,
 				011CE6551F05343E0034771C /* Boxes.xml */,
 				011CE6591F05343E0034771C /* Pages.xml */,
+				018879EC1F2B456A00A64B6B /* PageTemplate.xml */,
+				018879EE1F2B675000A64B6B /* LabelTemplate.xml */,
 				011CE65E1F05343F0034771C /* Text.xml */,
 				011CE65B1F05343E0034771C /* Table.xml */,
 				011CE65C1F05343F0034771C /* TableCell.xml */,
@@ -654,6 +660,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				018879EF1F2B675000A64B6B /* LabelTemplate.xml in Resources */,
+				018879ED1F2B456A00A64B6B /* PageTemplate.xml in Resources */,
 				011CE6651F05343F0034771C /* Table.xml in Resources */,
 				011CE65F1F05343F0034771C /* Boxes.xml in Resources */,
 				011CE6631F05343F0034771C /* Pages.xml in Resources */,

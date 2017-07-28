@@ -11,57 +11,35 @@
         <!-- Page 1 -->
         <UIView
             backgroundColor="#f33"
-            height="parent.contentSize.height - 20"
-            layer.cornerRadius="10"
-            left="20"
-            top="0"
-            width="100% - 40">
+            template="PageTemplate.xml">
 
             <UILabel
-                font="30 bold"
-                height="100%"
+                template="LabelTemplate.xml"
                 text="Page 1"
-                textAlignment="center"
-                textColor="#fff"
-                width="100%"
             />
         </UIView>
 
         <!-- Page 2 -->
         <UIView
             backgroundColor="#3a3"
-            height="previous.height"
-            layer.cornerRadius="previous.layer.cornerRadius"
             left="previous.right + 40"
-            top="previous.top"
-            width="previous.width">
+            template="PageTemplate.xml">
 
             <UILabel
-                font="30 bold"
-                height="100%"
+                template="LabelTemplate.xml"
                 text="Page 2"
-                textAlignment="center"
-                textColor="#fff"
-                width="100%"
             />
         </UIView>
 
         <!-- Page 3 -->
         <UIView
             backgroundColor="#09f"
-            height="previous.height"
-            layer.cornerRadius="previous.layer.cornerRadius"
             left="previous.right + 40"
-            top="previous.top"
-            width="previous.width">
+            template="PageTemplate.xml">
 
             <UILabel
-                font="30 bold"
-                height="100%"
+                template="LabelTemplate.xml"
                 text="Page 3"
-                textAlignment="center"
-                textColor="#fff"
-                width="100%"
             />
         </UIView>
     </UIScrollView>

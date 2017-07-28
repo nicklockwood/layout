@@ -8,6 +8,100 @@ typealias LayoutLoaderCallback = (LayoutNode?, LayoutError?) -> Void
 private var cache = [URL: Layout]()
 private let queue = DispatchQueue(label: "com.Layout")
 
+// Internal API for converting a path to a full URL
+func urlFromString(_ path: String) -> URL {
+    if let url = URL(string: path), url.scheme != nil {
+        return url
+    }
+
+    // Check for scheme
+    if path.contains(":") {
+        let path = path.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? path
+        if let url = URL(string: path) {
+            return url
+        }
+    }
+
+    // Assume local path
+    let path = path.removingPercentEncoding ?? path
+    if path.hasPrefix("~") {
+        return URL(fileURLWithPath: (path as NSString).expandingTildeInPath)
+    } else if (path as NSString).isAbsolutePath {
+        return URL(fileURLWithPath: path)
+    } else {
+        return Bundle.main.resourceURL!.appendingPathComponent(path)
+    }
+}
+
+private extension Layout {
+
+    /// Merges the contents of the specified layout into this one
+    /// Will fail if the layout class is not a subclass of this one
+    func merged(with layout: Layout) throws -> Layout {
+        if let path = xmlPath {
+            throw LayoutError("Cannot extend `\(className)` template until content for `\(path)` has been loaded.")
+        }
+        let newClass: AnyClass = try layout.getClass()
+        let oldClass: AnyClass = try getClass()
+        guard newClass.isSubclass(of: oldClass) else {
+            throw LayoutError("Cannot replace \(oldClass) with \(newClass)")
+        }
+        var expressions = self.expressions
+        for (key, value) in layout.expressions {
+            expressions[key] = value
+        }
+        return Layout(
+            className: layout.className,
+            outlet: layout.outlet ?? outlet,
+            expressions: expressions,
+            children: children + layout.children,
+            xmlPath: layout.xmlPath,
+            templatePath: templatePath,
+            relativePath: layout.relativePath // TODO: is this correct?
+        )
+    }
+
+    /// Recursively load all nested layout templates
+    func processTemplates(completion: @escaping (Layout?, LayoutError?) -> Void) {
+        var result = self
+        var error: LayoutError?
+        var requestCount = 1 // Offset to 1 initially to prevent premature completion
+        func didComplete() {
+            requestCount -= 1
+            if requestCount == 0 {
+                completion(error == nil ? result : nil, error)
+            }
+        }
+        for (index, child) in children.enumerated() {
+            requestCount += 1
+            child.processTemplates { layout, _error in
+                if _error != nil {
+                    error = _error
+                } else if let layout = layout {
+                    result.children[index] = layout
+                }
+                didComplete()
+            }
+        }
+        if let templatePath = templatePath {
+            requestCount += 1
+            LayoutLoader().loadLayout(withContentsOfURL: urlFromString(templatePath)) { layout, _error in
+                if _error != nil {
+                    error = _error
+                } else if let layout = layout {
+                    do {
+                        result = try layout.merged(with: result)
+                    } catch let _error {
+                        error = LayoutError(_error)
+                    }
+                }
+                didComplete()
+            }
+        }
+        didComplete()
+    }
+}
+
 // API for loading a layout XML file
 class LayoutLoader {
     private var _xmlURL: URL!
@@ -115,7 +209,10 @@ class LayoutLoader {
         if let error = _error {
             throw error
         }
-        return _layout!
+        guard let layout = _layout else {
+            throw LayoutError("Unable to synchronously load layout `\(named)`. It may depend on a remote template. Try  `loadLayout(withContentsOfURL:)` instead.")
+        }
+        return layout
     }
 
     public func loadLayout(
@@ -128,7 +225,14 @@ class LayoutLoader {
         _xmlURL = xmlURL
         _strings = nil
 
-        // If it's a bundle resource url, replacw with equivalent source url
+        func processLayoutData(_ data: Data) throws {
+            assert(Thread.isMainThread) // TODO: can we parse XML in the background instead?
+            let layout = try Layout(xmlData: data, relativeTo: relativeTo ?? _xmlURL.path)
+            queue.async { cache[self._xmlURL] = layout }
+            layout.processTemplates(completion: completion)
+        }
+
+        // If it's a bundle resource url, replace with equivalent source url
         if xmlURL.isFileURL {
             let bundlePath = Bundle.main.bundleURL.absoluteString
             if xmlURL.absoluteString.hasPrefix(bundlePath) {
@@ -170,9 +274,7 @@ class LayoutLoader {
         if _xmlURL.isFileURL, Thread.isMainThread {
             do {
                 let data = try Data(contentsOf: _xmlURL)
-                let layout = try Layout(xmlData: data, relativeTo: relativeTo ?? _xmlURL.path)
-                queue.async { cache[self._xmlURL] = layout }
-                completion(layout, nil)
+                try processLayoutData(data)
             } catch let error {
                 completion(nil, LayoutError(error))
             }
@@ -194,9 +296,7 @@ class LayoutLoader {
                         }
                         return
                     }
-                    let layout = try Layout(xmlData: data, relativeTo: relativeTo)
-                    queue.async { cache[self._xmlURL] = layout }
-                    completion(layout, nil)
+                    try processLayoutData(data)
                 } catch let error {
                     completion(nil, LayoutError(error))
                 }

@@ -92,6 +92,8 @@ private class LayoutParser: NSObject, XMLParserDelegate {
         attributes["outlet"] = nil
         let xmlPath = attributes["xml"]
         attributes["xml"] = nil
+        let templatePath = attributes["template"]
+        attributes["template"] = nil
 
         text = text
             .trimmingCharacters(in: .whitespacesAndNewlines)
@@ -107,6 +109,7 @@ private class LayoutParser: NSObject, XMLParserDelegate {
             expressions: attributes,
             children: node.children,
             xmlPath: xmlPath,
+            templatePath: templatePath,
             relativePath: relativePath
         )
 
