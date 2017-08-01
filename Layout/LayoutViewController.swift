@@ -59,6 +59,7 @@ open class LayoutViewController: UIViewController, LayoutLoading {
 
     @objc private func _reloadLayout() {
         print("Reloading \(type(of: self))")
+        _dismissError()
         reloadLayout(withCompletion: nil)
     }
 
