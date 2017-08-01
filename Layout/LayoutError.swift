@@ -2,7 +2,8 @@
 
 import Foundation
 
-public struct SymbolError: Error, Hashable, CustomStringConvertible {
+/// An error relating to a specific symbol/expression
+internal struct SymbolError: Error, CustomStringConvertible {
     let symbol: String
     let error: Error
 
@@ -14,10 +15,6 @@ public struct SymbolError: Error, Hashable, CustomStringConvertible {
         return description
     }
 
-    public var hashValue: Int {
-        return description.hashValue
-    }
-
     init(_ error: Error, for symbol: String) {
         self.symbol = symbol
         if let error = error as? SymbolError, error.symbol == symbol {
@@ -27,10 +24,12 @@ public struct SymbolError: Error, Hashable, CustomStringConvertible {
         }
     }
 
+    /// Creates an error for the specified symbol
     init(_ message: String, for symbol: String) {
         self.init(Expression.Error.message(message), for: symbol)
     }
 
+    /// Associates error thrown by the wrapped closure with the given symbol
     static func wrap<T>(_ closure: () throws -> T, for symbol: String) throws -> T {
         do {
             return try closure()
@@ -38,34 +37,30 @@ public struct SymbolError: Error, Hashable, CustomStringConvertible {
             throw self.init(error, for: symbol)
         }
     }
-
-    public static func ==(lhs: SymbolError, rhs: SymbolError) -> Bool {
-        return lhs.symbol == rhs.symbol && lhs.description == rhs.description
-    }
 }
 
+/// The public interface for all Layout errors
 public enum LayoutError: Error, Hashable, CustomStringConvertible {
     case message(String)
     case generic(Error, AnyClass?)
     case multipleMatches([URL], for: String)
 
     public var description: String {
-        var description = ""
         switch self {
         case let .message(message):
-            description = message
+            return message
         case let .generic(error, viewClass):
-            description = "\(error)"
+            var description = "\(error)"
             if let viewClass = viewClass {
                 let className = "\(viewClass)"
                 if !description.contains(className) {
-                    description = "\(description) in `\(className)`"
+                    description = "\(description) in \(className)"
                 }
             }
+            return description
         case let .multipleMatches(_, path):
-            description = "Layout found multiple source files matching \(path)"
+            return "Layout found multiple source files matching \(path)"
         }
-        return description
     }
 
     // Returns true if the error can be cleared, or false if the

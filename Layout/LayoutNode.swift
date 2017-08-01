@@ -700,7 +700,7 @@ public class LayoutNode: NSObject {
                                 let value = self.value(forVariableOrConstant: symbol) {
                                 return value
                             }
-                            throw SymbolError("Circular reference for \(symbol)", for: symbol)
+                            throw SymbolError("Circular reference for symbol `\(symbol)`", for: symbol)
                         }
                         self._evaluating.append(symbol)
                         defer {
@@ -811,14 +811,23 @@ public class LayoutNode: NSObject {
     }
 
     private func value(forSymbol name: String, dependsOn symbol: String) -> Bool {
-        if let expression = _layoutExpressions[name] ??
-            _viewControllerExpressions[name] ?? _viewExpressions[name] {
-            for name in expression.symbols where
-                name == symbol || value(forSymbol: name, dependsOn: symbol) {
+        var checking = [String]()
+        func _value(forSymbol name: String, dependsOn symbol: String) -> Bool {
+            if checking.contains(name) {
                 return true
             }
+            if let expression = _layoutExpressions[name] ??
+                _viewControllerExpressions[name] ?? _viewExpressions[name] {
+                checking.append(name)
+                defer { checking.removeLast() }
+                for name in expression.symbols where
+                    name == symbol || _value(forSymbol: name, dependsOn: symbol) {
+                    return true
+                }
+            }
+            return false
         }
-        return false
+        return _value(forSymbol: name, dependsOn: symbol)
     }
 
     // Used by LayoutExpression and for unit tests

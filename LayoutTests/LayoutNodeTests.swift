@@ -34,6 +34,33 @@ class LayoutNodeTests: XCTestCase {
         }
     }
 
+    func testCircularReference3() {
+        UIGraphicsBeginImageContext(CGSize(width: 20, height: 10))
+        let node = LayoutNode(
+            expressions: [
+                "height": "auto",
+                "width": "100%",
+            ],
+            children: [
+                LayoutNode(
+                    view: UIImageView(image: UIGraphicsGetImageFromCurrentImageContext()),
+                    expressions: [
+                        "width": "max(auto, height)",
+                        "height": "max(auto, width)"
+                    ]
+                )
+            ]
+        )
+        UIGraphicsEndImageContext()
+        let errors = node.validate()
+        XCTAssertGreaterThanOrEqual(errors.count, 2)
+        for error in errors {
+            let description = error.description
+            XCTAssertTrue(description.contains("Circular reference"))
+            XCTAssertTrue(description.contains("width") || description.contains("height"))
+        }
+    }
+
     // MARK: State/constant shadowing
 
     func testExpressionShadowsConstant() {
