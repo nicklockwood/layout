@@ -9,7 +9,9 @@ class XMLTests: XCTestCase {
 
     func testViewInsideHTML() {
         let input = "<p><UIView/></p>"
-        XCTAssertThrowsError(try Layout(xmlData: input.data(using: .utf8)!))
+        XCTAssertThrowsError(try Layout(xmlData: input.data(using: .utf8)!)) { error in
+            XCTAssert("\(error)".contains("p"))
+        }
     }
 
     func testViewInsideHTMLInsideView() {
@@ -26,6 +28,14 @@ class XMLTests: XCTestCase {
             }
         } catch {
             XCTFail("\(error)")
+        }
+    }
+
+    func testInvalidHTML() {
+        let input = "<UILabel>Some <bold>bold</bold> text</UILabel>"
+        let layout = try! Layout(xmlData: input.data(using: .utf8)!)
+        XCTAssertThrowsError(try LayoutNode(layout: layout)) { error in
+            XCTAssert("\(error)".contains("bold"))
         }
     }
 }

@@ -42,8 +42,14 @@ private class LayoutParser: NSObject, XMLParserDelegate {
         return root
     }
 
+    private static let htmlTags: Set<String> = [
+        "b", "i", "u", "strong", "em", "strike",
+        "h1", "h2", "h3", "h4", "h5", "h6",
+        "p", "br", "sub", "sup", "center",
+        "ul", "ol", "li"
+    ]
     private func isHTMLNode(_ name: String) -> Bool {
-        return name.lowercased() == name
+        return LayoutParser.htmlTags.contains(name)
     }
 
     // MARK: XMLParserDelegate methods
@@ -52,7 +58,7 @@ private class LayoutParser: NSObject, XMLParserDelegate {
 
         if isHTMLNode(elementName) {
             guard top != nil else {
-                error = .message("Invalid node `<\(elementName)>` in XML. Root element must be a UIView or UIViewController.")
+                error = .message("Invalid root element `<\(elementName)>` in XML. Root element must be a UIView or UIViewController.")
                 parser.abortParsing()
                 return
             }
@@ -62,6 +68,10 @@ private class LayoutParser: NSObject, XMLParserDelegate {
             }
             text += ">"
             isHTML = true
+            return
+        } else if elementName.lowercased() == elementName, NSClassFromString(elementName) == nil {
+            error = .message("Unsupported HTML element `<\(elementName)>`.")
+            parser.abortParsing()
             return
         }
 
