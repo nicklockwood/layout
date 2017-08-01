@@ -1020,7 +1020,7 @@ public class LayoutNode: NSObject {
                         self._view.value(forSymbol: symbol) {
                         return value
                     }
-                    throw SymbolError("\(symbol) not found", for: symbol)
+                    throw SymbolError("Undefined symbol `\(symbol)`", for: symbol)
                 }
             }
         }
@@ -1066,8 +1066,7 @@ public class LayoutNode: NSObject {
         if let result = _widthDependsOnParent {
             return result
         }
-        if value(forSymbol: "width", dependsOn: "parent.width") ||
-            value(forSymbol: "left", dependsOn: "parent.width") {
+        if value(forSymbol: "width", dependsOn: "parent.width") {
             _widthDependsOnParent = true
             return true
         }
@@ -1086,8 +1085,7 @@ public class LayoutNode: NSObject {
         if let result = _heightDependsOnParent {
             return result
         }
-        if value(forSymbol: "height", dependsOn: "parent.height") ||
-            value(forSymbol: "top", dependsOn: "parent.height") {
+        if value(forSymbol: "height", dependsOn: "parent.height") {
             _heightDependsOnParent = true
             return true
         }
@@ -1110,16 +1108,18 @@ public class LayoutNode: NSObject {
         var size = CGSize.zero
         for child in children where !child.isHidden {
             if !child.widthDependsOnParent {
-                size.width = max(
-                    size.width,
-                    try child.cgFloatValue(forSymbol: "left") + child.cgFloatValue(forSymbol: "width")
-                )
+                var left: CGFloat = 0
+                if !child.value(forSymbol: "left", dependsOn: "parent.width") {
+                    left = try child.cgFloatValue(forSymbol: "left")
+                }
+                size.width = try max(size.width, left + child.cgFloatValue(forSymbol: "width"))
             }
             if !child.heightDependsOnParent {
-                size.height = max(
-                    size.height,
-                    try child.cgFloatValue(forSymbol: "top") + child.cgFloatValue(forSymbol: "height")
-                )
+                var top: CGFloat = 0
+                if !child.value(forSymbol: "top", dependsOn: "parent.height") {
+                    top = try child.cgFloatValue(forSymbol: "top")
+                }
+                size.height = try max(size.height, top + child.cgFloatValue(forSymbol: "height"))
             }
         }
         // If zero, fill superview
@@ -1140,7 +1140,8 @@ public class LayoutNode: NSObject {
     }
 
     private func computeExplicitWidth() throws -> CGFloat? {
-        if !_evaluating.contains("width") {
+        if !_evaluating.contains("width"),
+            !_evaluating.contains("height") || !value(forSymbol: "width", dependsOn: "height") {
             return try cgFloatValue(forSymbol: "width")
         }
         if expressions["contentSize.width"] != nil, !_evaluating.contains("contentSize.width") {
@@ -1151,7 +1152,8 @@ public class LayoutNode: NSObject {
     }
 
     private func computeExplicitHeight() throws -> CGFloat? {
-        if !_evaluating.contains("height") {
+        if !_evaluating.contains("height"),
+            !_evaluating.contains("width") || !value(forSymbol: "height", dependsOn: "width") {
             return try cgFloatValue(forSymbol: "height")
         }
         if expressions["contentSize.height"] != nil, !_evaluating.contains("contentSize.height") {
