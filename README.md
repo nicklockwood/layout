@@ -648,27 +648,32 @@ Using this feature inside an XML attribute would be awkward because the tags wou
 
 	<UILabel>This is a pretty <b>bold</b> solution</UILabel>
 	
-Any lowercase tags are interpreted as HTML markup instead of a `UIView` class. This  relies on the built-in `NSMutableAttributedString` HTML parser, which only supports a very minimal subset of HTML, however the following tags are all supported:
+Any lowercase tags are interpreted as HTML markup instead of a `UIView` class. This  relies on the built-in `NSMutableAttributedString` HTML parser, which only supports a very minimal subset of HTML, however the following tags are supported:
 	
 	<p>, // paragraph
-	<h1>, <h2>, etc // heading
+	<h1> ... <h6> // heading
 	<b>, <strong> // bold
 	<i>, <em> // italic
 	<u> // underlined
+	<strike> // strikethrough
 	<ol>, <li> // ordered list
 	<ul>, <li> // unordered list
 	<br/> // linebreak
-	
+	<sub // subscript
+	<sup> // superscript
+	<center> // centered text
+		
 And as with regular text attributes, inline HTML can contain embedded expressions, which can themselves contain either attributed or non-attributed string variables or constants:
 
 	<UILabel>Hello <b>{name}</b></UILabel>
 
 ## Optionals
 
-There is currently very limited support for optionals in expressions. There is no way to specify that an expression's return value is optional, and so returning `nil` from an expression is usually an error. There are two exceptions to this:
+There is currently very limited support for optionals in expressions. There is no way to specify that an expression's return value is optional, and so returning `nil` from an expression is usually an error. There are a few exceptions to this:
 
 1. Returning nil from a String expression will return an empty string
 2. Returning nil from a UIImage expression will return a blank image with zero width/height
+3. Returning nil for a delegate or other protocol property is permitted to override the default binding behavior
 
 The reason for these specific exceptions is that passing a nil image or text to a component is a common approach in UIKit for indicating that a given element is not needed, and by allowing nil values for these types, we avoid the need to pass additional flags into the component to mark these as unused.
 
@@ -975,13 +980,19 @@ The SampleApp project demonstrates a range of Layout features. It is split into 
 * Boxes - demonstrates use of state to manage an animated layout
 * Pages - demonstrates using a `UIScrollView` to create paged content
 * Text - demonstrates Layout's text features, include the use of HTML and attributed string constants
-* Northstar - demonstrates how Layout can be used to build a real-world layout using the Northstar components
+* Table - demonstrates Layout's support for `UITableView` and `UITableViewCell`
 
 ## UIDesigner
 
 The UIDesigner project is an experimental WYSIWYG tool for constructing layouts. It's written as an iPad app which you can run in the simulator or on a device.
 
 UIDesigner is currently in a very early stage of development. It supports most of the features exposed by the Layout XML format, but lacks import/export, and the ability to specify constants or outlet bindings.
+
+## Sandbox
+
+The Sandbox app is a simple playground for creating XML layouts. It runs on iPhone or iPad.
+
+Like UIDesigner, the Sandbox app currently lacks any load/save or import/export capability, although you can copy and paste XML to and from the edit screen.
 
 
 # LayoutTool
@@ -1041,4 +1052,4 @@ To safely determine which files the formatting will be applies to, without overw
 
 *Q. Do I really have to write my layouts in XML?*
 
-> You can create `LayoutNode`s manually in code, but XML is the recommended approach for now. I'm exploring other options such as other formats and GUI tools.
+> You can create `LayoutNode`s manually in code, but XML is the recommended approach for now. I'm exploring other options, such as alternative formats and GUI tools.

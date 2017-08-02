@@ -1,0 +1,85 @@
+<UIScrollView
+    backgroundColor="#fff"
+    contentInset.top=
+        "topLayoutGuide.length + 20"
+    contentSize.height="auto + 20"
+    scrollIndicatorInsets.top=
+        "topLayoutGuide.length">
+
+    <UILabel
+        font="title1 bold"
+        text="Welcome"
+        textAlignment="center"
+        width="100%"
+    />
+
+    <!-- First paragraph -->
+    <UIView
+        backgroundColor="#f33"
+        height="auto + 10"
+        left="20"
+        right="100% - 20"
+        top="previous.bottom + 20">
+
+        <UILabel
+            font="body"
+            left="10"
+            numberOfLines="0"
+            right="100% - 10"
+            textColor="#fff"
+            top="10">
+
+            This is the <b>Layout Sandbox</b>
+            app. It's a great place to try
+            out different UIKit components
+            and layout expressions without
+            setting up a new project.
+        </UILabel>
+    </UIView>
+
+    <!-- Second paragraph -->
+    <UIView
+        backgroundColor="#3a3"
+        height="auto + 10"
+        left="20"
+        right="100% - 20"
+        top="previous.bottom + 20">
+
+        <UILabel
+            font="body"
+            left="10"
+            numberOfLines="0"
+            right="100% - 10"
+            textColor="#fff"
+            top="10">
+
+            Hit the edit button in the <b>top
+            left</b> to modify the XML for
+            this screen.
+        </UILabel>
+    </UIView>
+
+    <!-- Third paragraph -->
+    <UIView
+        backgroundColor="#39f"
+        height="auto + 10"
+        left="20"
+        right="100% - 20"
+        top="previous.bottom + 20">
+
+        <UILabel
+            font="body"
+            left="10"
+            numberOfLines="0"
+            right="100% - 10"
+            textColor="#fff"
+            top="10">
+
+            You can put <i>any</i> kind of
+            UIKit view or view controller in
+            the XML. If you make a mistake
+            then the <b>Red Box</b> will tell
+            you what went wrong.
+        </UILabel>
+    </UIView>
+</UIScrollView>
