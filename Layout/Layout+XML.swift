@@ -13,7 +13,7 @@ extension Layout {
 }
 
 private class LayoutParser: NSObject, XMLParserDelegate {
-    private var root: Layout!
+    private var root: Layout?
     private var stack: [XMLNode] = []
     private var top: XMLNode?
     private var relativePath: String?
@@ -38,6 +38,9 @@ private class LayoutParser: NSObject, XMLParserDelegate {
         parser.parse()
         if let error = error {
             throw error
+        }
+        guard let root = root else {
+            throw LayoutError.message("Empty XML document.")
         }
         return root
     }

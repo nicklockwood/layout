@@ -45,6 +45,10 @@ public enum LayoutError: Error, Hashable, CustomStringConvertible {
     case generic(Error, AnyClass?)
     case multipleMatches([URL], for: String)
 
+    public init(_ error: Error) {
+        self = .generic(error, nil)
+    }
+
     public var description: String {
         switch self {
         case let .message(message):
