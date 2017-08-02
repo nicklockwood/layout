@@ -63,11 +63,20 @@ open class LayoutViewController: UIViewController, LayoutLoading {
         reloadLayout(withCompletion: nil)
     }
 
+    @objc private func _hardReloadLayout() {
+        loader.clearSourceURLs()
+        _reloadLayout()
+    }
+
     @objc private func _selectMatch(_ sender: UIButton) {
         if let error = _error, case let .multipleMatches(matches, path) = error {
             loader.setSourceURL(matches[sender.tag], for: path)
         }
         _reloadLayout()
+    }
+
+    override open var preferredStatusBarStyle: UIStatusBarStyle {
+        return _error == nil ? super.preferredStatusBarStyle : .lightContent
     }
 
     open func layoutError(_ error: LayoutError) {
@@ -91,16 +100,19 @@ open class LayoutViewController: UIViewController, LayoutLoading {
         // Display error
         _dismissError()
         _error = error
+        setNeedsStatusBarAppearanceUpdate()
+        let background: String
         var children: [LayoutNode]
         switch error {
         case let .multipleMatches(matches, _):
+            background = "#555"
             children = [
                 LayoutNode(
                     view: UILabel(),
                     expressions: [
                         "width": "min(auto, 100% - 40)",
                         "left": "(100% - width) / 2",
-                        "text": "{error}. Select the correct one:",
+                        "text": "{error}. Please select the correct one.\n\nYour selection will be remembered for subsequent launches. Reset it with ⌥⌘R.",
                         "textColor": "#fff",
                         "numberOfLines": "0",
                     ]
@@ -129,6 +141,7 @@ open class LayoutViewController: UIViewController, LayoutLoading {
                 )
             }
         default:
+            background = "#f00"
             children = [
                 LayoutNode(
                     view: UILabel(),
@@ -160,7 +173,7 @@ open class LayoutViewController: UIViewController, LayoutLoading {
             expressions: [
                 "width": "100%",
                 "height": "100%",
-                "backgroundColor": "#f00",
+                "backgroundColor": "\(background)",
                 "touchDown": "_reloadLayout",
             ],
             children: [
@@ -197,6 +210,7 @@ open class LayoutViewController: UIViewController, LayoutLoading {
             _errorNode = nil
         }
         _error = nil
+        setNeedsStatusBarAppearanceUpdate()
     }
 
     #if arch(i386) || arch(x86_64)
@@ -205,13 +219,14 @@ open class LayoutViewController: UIViewController, LayoutLoading {
 
         private let _keyCommands = [
             UIKeyCommand(input: "r", modifierFlags: .command, action: #selector(_reloadLayout)),
+            UIKeyCommand(input: "r", modifierFlags: [.command, .alternate], action: #selector(_hardReloadLayout)),
         ]
 
         open override var keyCommands: [UIKeyCommand]? {
             return _keyCommands
         }
 
-        private let reloadMessage = "Tap or Cmd-R to Reload"
+        private let reloadMessage = "Press ⌘R or Tap to Reload"
 
     #else
 

@@ -328,8 +328,14 @@ class LayoutLoader {
         return [:]
     }
 
-    public func setSourceURL(_ sourceURL: URL, for path: String) {
+    // MARK: Internal APIs exposed for LayoutViewController
+
+    func setSourceURL(_ sourceURL: URL, for path: String) {
         _setSourceURL(sourceURL, for: path)
+    }
+
+    func clearSourceURLs() {
+        _clearSourceURLs()
     }
 }
 
@@ -446,10 +452,15 @@ class LayoutLoader {
         sourcePaths[path] = sourceURL.path
     }
 
+    private func _clearSourceURLs() {
+        sourcePaths.removeAll()
+    }
+
 #else
 
     private func findProjectDirectory(at _: String) -> URL? { return nil }
     private func findSourceURL(forRelativePath _: String, in _: URL) throws -> URL? { return nil }
     private func _setSourceURL(_: URL, for _: String) {}
+    private func _clearSourceURLs() {}
 
 #endif
