@@ -139,7 +139,7 @@ public class LayoutNode: NSObject {
         change _: [NSKeyValueChangeKey: Any]?,
         context _: UnsafeMutableRawPointer?
     ) {
-        attempt { try update() }
+        attempt(update)
     }
 
     @objc private func contentSizeChanged() {
@@ -147,7 +147,7 @@ public class LayoutNode: NSObject {
             return
         }
         cleanUp()
-        attempt { try update() }
+        attempt(update)
     }
 
     // Create the node using a UIView or UIViewController subclass
@@ -331,19 +331,18 @@ public class LayoutNode: NSObject {
         }
     }
 
-    internal func logError(_ error: Error) {
-        let error = LayoutError(error, for: self)
-        if _unhandledError == nil || (_unhandledError?.isTransient == true && !error.isTransient) {
-            _unhandledError = error
-            bubbleUnhandledError()
-        }
-    }
-
     private func attempt<T>(_ closure: () throws -> T) -> T? {
         do {
             return try closure()
         } catch {
-            logError(error)
+            let error = LayoutError(error, for: self)
+            if _unhandledError == nil || (_unhandledError?.isTransient == true && !error.isTransient) {
+                _unhandledError = error
+                // Don't bubble if we're in the middle of evaluating an expression
+                if _evaluating.isEmpty {
+                    bubbleUnhandledError()
+                }
+            }
             return nil
         }
     }
@@ -612,12 +611,12 @@ public class LayoutNode: NSObject {
     }
 
     private func cleanUp() {
+        assert(_evaluating.isEmpty)
         if let error = _unhandledError, error.isTransient {
             _unhandledError = nil
         }
         _widthDependsOnParent = nil
         _heightDependsOnParent = nil
-        _evaluating.removeAll()
         _getters.removeAll()
         _layoutExpressions.removeAll()
         _viewControllerExpressions.removeAll()
@@ -723,8 +722,11 @@ public class LayoutNode: NSObject {
                         }
                         self._evaluating.append(symbol)
                         defer {
-                            assert(self._evaluating.last == symbol)
-                            self._evaluating.removeLast()
+                            if self._evaluating.last == symbol {
+                                self._evaluating.removeLast()
+                            } else {
+                                assertionFailure("symbol: `\(symbol)`, evaluating; `\(self._evaluating)`")
+                            }
                         }
                         let value = try SymbolError.wrap(evaluate, for: symbol)
                         cachedValue = value
@@ -1125,7 +1127,7 @@ public class LayoutNode: NSObject {
     private func inferContentSize() throws -> CGSize {
         // Check for explicit size
         if expressions["contentSize"] != nil, !_evaluating.contains("contentSize") {
-            return attempt { try value(forSymbol: "contentSize") as? CGSize ?? .zero } ?? .zero
+            return try value(forSymbol: "contentSize") as? CGSize ?? .zero
         }
         // Try best fit for subviews
         var size = CGSize.zero
@@ -1261,7 +1263,7 @@ public class LayoutNode: NSObject {
     /// The current size of the layout node's contents
     // TODO: currently this is only used by UIScrollView - should it be public?
     public var contentSize: CGSize {
-        return attempt { try inferContentSize() } ?? .zero
+        return attempt(inferContentSize) ?? .zero
     }
 
     // AutoLayout support
