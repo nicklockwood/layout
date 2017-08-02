@@ -55,7 +55,7 @@ extension Layout {
     // TODO: this isn't a loss-free conversion - find a better approach
     init(_ node: LayoutNode) {
         self.init(
-            className: "\(node.viewController?.classForCoder ?? node.viewClass)",
+            className: "\(node._class)",
             outlet: node.outlet,
             expressions: node._originalExpressions,
             children: node.children.map(Layout.init(_:)),

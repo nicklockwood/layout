@@ -35,9 +35,7 @@ extension LayoutError {
             }
             return
         }
-        self = LayoutError(error, for: node.viewController.map {
-            $0.classForCoder
-        } ?? node.viewClass)
+        self = LayoutError(error, for: node._class)
     }
 
     init?(_ error: Error?) {

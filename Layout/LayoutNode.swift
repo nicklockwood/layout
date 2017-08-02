@@ -19,13 +19,30 @@ import UIKit
 public class LayoutNode: NSObject {
 
     /// The view managed by this node
+    /// Accessing this property will create the view if it doesn't already exist
     public var view: UIView {
         attempt(setUpExpressions)
         return _view
     }
 
     /// The (optional) view controller managed by this node
-    public private(set) var viewController: UIViewController?
+    /// Accessing this property will create the view controller if it doesn't already exist
+    public var viewController: UIViewController? {
+        if _class is UIViewController.Type {
+            attempt(setUpExpressions)
+        }
+        return _viewController
+    }
+
+    /// All top-level view controllers belonging to this node or its children
+    /// These should be added as child view controllers to the node's parent view controller
+    /// Accessing this property will instantiate the view hierarchy if it doesn't already exist
+    public var viewControllers: [UIViewController] {
+        guard let viewController = viewController else {
+            return children.flatMap { $0.viewControllers }
+        }
+        return [viewController]
+    }
 
     /// The name of an outlet belonging to the nodes' owne that the node should bind to
     public private(set) var outlet: String?
@@ -35,15 +52,6 @@ public class LayoutNode: NSObject {
 
     /// Constants that can be referenced by expressions in the node and its children
     public internal(set) var constants: [String: Any]
-
-    /// All top-level view controllers belonging to this node or its children
-    /// These should be added as child view controllers to the node's parent view controller
-    public var viewControllers: [UIViewController] {
-        guard let viewController = viewController else {
-            return children.flatMap { $0.viewControllers }
-        }
-        return [viewController]
-    }
 
     // The delegate used for handling errors
     // Normally this is the same as the owner, but it can be overridden in special cases
@@ -62,11 +70,16 @@ public class LayoutNode: NSObject {
     }
 
     // Get the view class without side-effects of accessing view
-    private(set) var viewClass: UIView.Type
+    var viewClass: UIView.Type { return _class as? UIView.Type ?? UIView.self }
+
+    // Get the view controller class without side-effects of accessing view
+    var viewControllerClass: UIViewController.Type? { return _class as? UIViewController.Type }
 
     // For internal use
-    private(set) var _originalExpressions: [String: String]
+    private(set) var _class: AnyClass
     @objc private(set) var _view: UIView!
+    private(set) var _viewController: UIViewController?
+    private(set) var _originalExpressions: [String: String]
 
     private var _setupComplete = false
     private func completeSetup() throws {
@@ -74,8 +87,13 @@ public class LayoutNode: NSObject {
         _setupComplete = true
 
         if _view == nil {
-            _view = try viewClass.create(with: self)
-            assert(_view != nil)
+            if let controllerClass = viewControllerClass {
+                _viewController = try controllerClass.create(with: self)
+                _view = _viewController!.view
+            } else {
+                _view = try viewClass.create(with: self)
+                assert(_view != nil)
+            }
         }
 
         _usesAutoLayout = _view.constraints.contains {
@@ -133,7 +151,8 @@ public class LayoutNode: NSObject {
     }
 
     // Create the node using a UIView or UIViewController subclass
-    convenience init(
+    // TODO: is there any reason not to make this public?
+    init(
         class: AnyClass,
         outlet: String? = nil,
         state: Any = (),
@@ -141,24 +160,19 @@ public class LayoutNode: NSObject {
         expressions: [String: String] = [:],
         children: [LayoutNode] = []
     ) throws {
-        self.init(
-            outlet: outlet,
-            state: state,
-            constants: merge(constants),
-            expressions: expressions,
-            children: children
-        )
-
-        switch `class` {
-        case let viewClass as UIView.Type:
-            self.viewClass = viewClass
-        case let controllerClass as UIViewController.Type:
-            viewController = try controllerClass.create(with: self)
-            _view = viewController!.view
-            viewClass = _view.classForCoder as! UIView.Type
-        default:
+        guard `class` is UIView.Type || `class` is UIViewController.Type else {
             throw LayoutError.message("`\(`class`)` is not a subclass of UIView or UIViewController")
         }
+        _class = `class`
+        self.outlet = outlet
+        self.state = try! unwrap(state)
+        self.constants = merge(constants)
+        self.expressions = expressions
+        self.children = children
+
+        _originalExpressions = expressions
+
+        super.init()
     }
 
     /// Create a node for managing a view controller instance
@@ -170,8 +184,10 @@ public class LayoutNode: NSObject {
         expressions: [String: String] = [:],
         children: [LayoutNode] = []
     ) {
-        self.init(
-            view: viewController.view,
+        assert(Thread.isMainThread)
+
+        try! self.init(
+            class: viewController.classForCoder,
             outlet: outlet,
             state: state,
             constants: merge(constants),
@@ -179,11 +195,12 @@ public class LayoutNode: NSObject {
             children: children
         )
 
-        self.viewController = viewController
+        _viewController = viewController
+        _view = viewController.view
     }
 
     /// Create a node for managing a view instance
-    public init(
+    public convenience init(
         view: UIView? = nil,
         outlet: String? = nil,
         state: Any = (),
@@ -193,16 +210,14 @@ public class LayoutNode: NSObject {
     ) {
         assert(Thread.isMainThread)
 
-        viewClass = view?.classForCoder as? UIView.Type ?? UIView.self
-        self.outlet = outlet
-        self.state = try! unwrap(state)
-        self.constants = merge(constants)
-        self.expressions = expressions
-        self.children = children
-
-        _originalExpressions = expressions
-
-        super.init()
+        try! self.init(
+            class: view?.classForCoder ?? UIView.self,
+            outlet: outlet,
+            state: state,
+            constants: merge(constants),
+            expressions: expressions,
+            children: children
+        )
 
         _view = view
     }
@@ -443,7 +458,7 @@ public class LayoutNode: NSObject {
             if let owner = _owner {
                 try? child.bind(to: owner)
             }
-            if let viewController = viewController {
+            if let viewController = _viewController {
                 viewController.didInsertChildNode(child, at: index)
             } else {
                 _view.didInsertChildNode(child, at: index)
@@ -462,9 +477,9 @@ public class LayoutNode: NSObject {
     /// Note: this will not necessarily trigger an update in either node
     public func removeFromParent() {
         if let index = parent?.children.index(where: { $0 === self }) {
-            if let viewController = parent?.viewController {
+            if let viewController = parent?._viewController {
                 viewController.willRemoveChildNode(self, at: index)
-            } else if _view != nil {
+            } else {
                 parent?._view.willRemoveChildNode(self, at: index)
             }
             unbind()
@@ -492,35 +507,39 @@ public class LayoutNode: NSObject {
 
         if newClass != oldClass {
             stopObserving()
+
             let oldView = _view
-            let oldViewController = viewController
-            if let viewClass = newClass as? UIView.Type {
-                self.viewClass = viewClass
-                viewExpressionTypes = viewClass.cachedExpressionTypes
-                _view = nil
-            } else if let controllerClass = newClass as? UIViewController.Type {
-                viewController = try controllerClass.create(with: self)
-                _view = viewController!.view
-                viewClass = _view.classForCoder as! UIView.Type
-                viewExpressionTypes = viewClass.cachedExpressionTypes
-                viewControllerExpressionTypes = controllerClass.cachedExpressionTypes
-            } else {
-                preconditionFailure()
+            _view = nil
+
+            let oldViewController = _viewController
+            _viewController = nil
+
+            _class = newClass
+            viewExpressionTypes = viewClass.cachedExpressionTypes
+            viewControllerClass.map {
+                self.viewControllerExpressionTypes = $0.cachedExpressionTypes
             }
+
             if _setupComplete {
+
+                // NOTE: this convoluted update process is needed to ensure that if the
+                // class changes, the new view or controller is inserted at the correct
+                // position in the hierarchy
+
                 _setupComplete = false
                 unmount()
                 if let parent = parent, let index = parent.children.index(of: self) {
                     oldView?.removeFromSuperview()
                     oldViewController?.removeFromParentViewController()
                     parent.insertChild(self, at: index)
-                } else if let superview = oldView?.superview, let index = superview.subviews.index(of: _view) {
+                } else if let superview = oldView?.superview,
+                    let index = superview.subviews.index(of: oldView!) {
                     if let parentViewController = oldViewController?.parent {
                         oldViewController?.removeFromParentViewController()
-                        viewController.map { parentViewController.addChildViewController($0) }
+                        parentViewController.addChildViewController(viewController!)
                     }
-                    oldView?.removeFromSuperview()
-                    superview.insertSubview(_view, at: index)
+                    oldView!.removeFromSuperview()
+                    superview.insertSubview(view, at: index)
                 }
             }
         }
@@ -669,7 +688,7 @@ public class LayoutNode: NSObject {
                 do {
                     let value = try expression.evaluate()
                     if isViewControllerExpression {
-                        try viewController?.setValue(value, forExpression: symbol)
+                        try _viewController?.setValue(value, forExpression: symbol)
                     } else if isViewExpression {
                         try _view.setValue(value, forExpression: symbol)
                     }
@@ -798,7 +817,7 @@ public class LayoutNode: NSObject {
     }()
 
     public lazy var viewControllerExpressionTypes: [String: RuntimeType] = {
-        self.viewController.map { type(of: $0).cachedExpressionTypes } ?? [:]
+        self.viewControllerClass.map { $0.cachedExpressionTypes } ?? [:]
     }()
 
     private class func isLayoutSymbol(_ name: String) -> Bool {
@@ -1020,7 +1039,11 @@ public class LayoutNode: NSObject {
                         self._view.value(forSymbol: symbol) {
                         return value
                     }
-                    throw SymbolError("Undefined symbol `\(symbol)`", for: symbol)
+                    if self.viewExpressionTypes[symbol] == nil,
+                        self.viewExpressionTypes[symbol] == nil {
+                        throw SymbolError("Undefined symbol `\(symbol)`", for: symbol)
+                    }
+                    return (nil as Any?) as Any
                 }
             }
         }
@@ -1414,7 +1437,7 @@ public class LayoutNode: NSObject {
                     owner.setValue(viewController, forKey: outlet)
                     didMatch = true
                 } else {
-                    expectedType = "\(viewController.classForCoder)"
+                    expectedType = "\(_class)"
                 }
             }
             if !didMatch {

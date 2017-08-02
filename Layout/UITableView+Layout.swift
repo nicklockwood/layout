@@ -83,6 +83,7 @@ extension UITableView {
             return
         }
         // Check we didn't accidentally instantiate the view
+        // TODO: it would be better to do this in a unit test
         assert(hadView || node._view == nil)
     }
 
@@ -95,6 +96,7 @@ extension UITableView {
             tableFooterView = nil
         }
         // Check we didn't accidentally instantiate the view
+        // TODO: it would be better to do this in a unit test
         assert(hadView || node._view == nil)
     }
 }
