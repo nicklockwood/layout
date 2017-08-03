@@ -589,7 +589,9 @@ public class LayoutNode: NSObject {
             }
         }
         if expressions["height"] == nil {
-            if expressions["top"] != nil, expressions["bottom"] != nil {
+            if _class is UIStackView.Type {
+                expressions["height"] = "auto" // TODO: remove special case
+            } else if expressions["top"] != nil, expressions["bottom"] != nil {
                 expressions["height"] = "bottom - top"
             } else if _usesAutoLayout || _view.intrinsicContentSize.height != UIViewNoIntrinsicMetric {
                 expressions["height"] = "auto"
@@ -1128,6 +1130,13 @@ public class LayoutNode: NSObject {
         // Check for explicit size
         if expressions["contentSize"] != nil, !_evaluating.contains("contentSize") {
             return try value(forSymbol: "contentSize") as? CGSize ?? .zero
+        }
+        // TODO: remove special case
+        if _class is UIStackView.Type {
+            return _view.systemLayoutSizeFitting(CGSize(
+                width: try cgFloatValue(forSymbol: "width"),
+                height: .greatestFiniteMagnitude
+            ))
         }
         // Try best fit for subviews
         var size = CGSize.zero

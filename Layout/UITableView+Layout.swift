@@ -354,7 +354,7 @@ private class Box {
 }
 
 extension UITableViewHeaderFooterView {
-    public var layoutNode: LayoutNode? {
+    public weak var layoutNode: LayoutNode? {
         return (objc_getAssociatedObject(self, &layoutNodeKey) as? Box)?.node
     }
 

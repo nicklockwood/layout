@@ -42,6 +42,7 @@
 		01185CC91F32155300D34EA7 /* Layout.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 011CE6991F053ABD0034771C /* Layout.framework */; };
 		01185CCA1F32155700D34EA7 /* Layout.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 011CE6991F053ABD0034771C /* Layout.framework */; };
 		01185CCC1F3219E900D34EA7 /* Default.xml in Resources */ = {isa = PBXBuildFile; fileRef = 01185CCB1F3219E900D34EA7 /* Default.xml */; };
+		01185CCE1F334B0B00D34EA7 /* UIStackView+Layout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01185CCD1F334B0B00D34EA7 /* UIStackView+Layout.swift */; };
 		011CE6461F05338A0034771C /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 011CE6451F05338A0034771C /* AppDelegate.swift */; };
 		011CE64D1F05338A0034771C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 011CE64C1F05338A0034771C /* Assets.xcassets */; };
 		011CE6501F05338A0034771C /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 011CE64E1F05338A0034771C /* LaunchScreen.storyboard */; };
@@ -178,6 +179,7 @@
 		01185CC11F3207FC00D34EA7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		01185CC51F32130E00D34EA7 /* EditViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EditViewController.swift; sourceTree = "<group>"; };
 		01185CCB1F3219E900D34EA7 /* Default.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = Default.xml; sourceTree = "<group>"; };
+		01185CCD1F334B0B00D34EA7 /* UIStackView+Layout.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIStackView+Layout.swift"; sourceTree = "<group>"; };
 		011CE6431F05338A0034771C /* SampleApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SampleApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		011CE6451F05338A0034771C /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		011CE64C1F05338A0034771C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -398,6 +400,7 @@
 				0105F7841F0547910067B313 /* Optional+Layout.swift */,
 				0105F7851F0547910067B313 /* Properties.swift */,
 				0105F7861F0547910067B313 /* UITableView+Layout.swift */,
+				01185CCD1F334B0B00D34EA7 /* UIStackView+Layout.swift */,
 				0105F7871F0547910067B313 /* UIView+Layout.swift */,
 				0105F7881F0547910067B313 /* UIViewController+Layout.swift */,
 				011CE69B1F053ABD0034771C /* Layout.h */,
@@ -891,6 +894,7 @@
 				0105F7931F0547910067B313 /* UITableView+Layout.swift in Sources */,
 				0105F7911F0547910067B313 /* Optional+Layout.swift in Sources */,
 				0105F78A1F0547910067B313 /* LayoutError.swift in Sources */,
+				01185CCE1F334B0B00D34EA7 /* UIStackView+Layout.swift in Sources */,
 				0105F7901F0547910067B313 /* LayoutViewController.swift in Sources */,
 				01E7E0491F1A96F600B7F9DB /* Layout.swift in Sources */,
 				0105F78F1F0547910067B313 /* LayoutNode+XML.swift in Sources */,
