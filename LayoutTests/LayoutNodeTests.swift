@@ -46,9 +46,9 @@ class LayoutNodeTests: XCTestCase {
                     view: UIImageView(image: UIGraphicsGetImageFromCurrentImageContext()),
                     expressions: [
                         "width": "max(auto, height)",
-                        "height": "max(auto, width)"
+                        "height": "max(auto, width)",
                     ]
-                )
+                ),
             ]
         )
         UIGraphicsEndImageContext()

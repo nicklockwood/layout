@@ -72,7 +72,7 @@ struct LayoutExpression {
             for: node
         )
         self.init(
-            evaluate: { try expression.evaluate() },
+            evaluate: expression.evaluate,
             symbols: Set(expression.symbols.map { $0 == "%" ? prop : $0 })
         )
     }
@@ -95,7 +95,7 @@ struct LayoutExpression {
             }]
         )
         self.init(
-            evaluate: { try expression.evaluate() },
+            evaluate: expression.evaluate,
             symbols: Set(expression.symbols.map { $0 == "auto" ? sizeProp : $0 })
         )
     }
@@ -118,7 +118,7 @@ struct LayoutExpression {
             }]
         )
         self.init(
-            evaluate: { try expression.evaluate() },
+            evaluate: expression.evaluate,
             symbols: Set(expression.symbols.map { $0 == "auto" ? sizeProp : $0 })
         )
     }

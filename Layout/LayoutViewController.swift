@@ -75,7 +75,7 @@ open class LayoutViewController: UIViewController, LayoutLoading {
         _reloadLayout()
     }
 
-    override open var preferredStatusBarStyle: UIStatusBarStyle {
+    open override var preferredStatusBarStyle: UIStatusBarStyle {
         return _error == nil ? super.preferredStatusBarStyle : .lightContent
     }
 

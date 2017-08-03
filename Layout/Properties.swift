@@ -80,7 +80,7 @@ public class RuntimeType: NSObject {
                 )
                 let fn = unsafeBitCast(
                     class_getMethodImplementation(type(of: target), selector),
-                    to: (@convention(c)(AnyObject?, Selector) -> Selector?).self
+                    to: (@convention(c) (AnyObject?, Selector) -> Selector?).self
                 )
                 return fn(target, selector)
             }
@@ -88,7 +88,7 @@ public class RuntimeType: NSObject {
                 let selector = Selector(key)
                 let fn = unsafeBitCast(
                     class_getMethodImplementation(type(of: target), selector),
-                    to: (@convention(c)(AnyObject?, Selector, Selector?) -> Void).self
+                    to: (@convention(c) (AnyObject?, Selector, Selector?) -> Void).self
                 )
                 fn(target, selector, value as? Selector)
             }
@@ -107,7 +107,7 @@ public class RuntimeType: NSObject {
     @nonobjc public init<T: RawRepresentable>(_ type: T.Type, _ values: [String: T]) {
         self.type = .enum(type, values)
         getter = { target, key in
-            (target.value(forKey: key) as? T.RawValue).flatMap { T.init(rawValue: $0) }
+            (target.value(forKey: key) as? T.RawValue).flatMap { T(rawValue: $0) }
         }
         setter = { target, key, value in
             target.setValue((value as? T)?.rawValue, forKey: key)

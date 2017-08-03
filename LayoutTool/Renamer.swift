@@ -78,7 +78,7 @@ func rename(_ old: String, to new: String, in xml: [XMLNode]) -> [XMLNode] {
                     let lowercaseKey = key.lowercased()
                     for suffix in [
                         "title", "text", "label", "name", "identifier",
-                        "key", "font", "image", "icon"
+                        "key", "font", "image", "icon",
                     ] {
                         if lowercaseKey.hasSuffix(suffix) {
                             isString = true
@@ -98,7 +98,7 @@ func rename(_ old: String, to new: String, in xml: [XMLNode]) -> [XMLNode] {
             return .node(
                 elementName: elementName,
                 attributes: attributes,
-                children: rename(old, to: new, in :children)
+                children: rename(old, to: new, in: children)
             )
         }
     }
@@ -120,7 +120,6 @@ private func rename(_ old: String, to new: String, in parts: [ParsedExpressionPa
     }
     return changed ? parts.joined() : nil
 }
-
 
 private func rename(_ old: String, to new: String, in expression: ParsedExpression) -> String? {
     guard expression.symbols.contains(.variable(old)) else {

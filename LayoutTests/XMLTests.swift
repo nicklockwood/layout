@@ -33,8 +33,8 @@ class XMLTests: XCTestCase {
 
     func testInvalidHTML() {
         let input = "<UILabel>Some <bold>bold</bold> text</UILabel>"
-        let layout = try! Layout(xmlData: input.data(using: .utf8)!)
-        XCTAssertThrowsError(try LayoutNode(layout: layout)) { error in
+        let xmlData = input.data(using: .utf8)!
+        XCTAssertThrowsError(try Layout(xmlData: xmlData)) { error in
             XCTAssert("\(error)".contains("bold"))
         }
     }

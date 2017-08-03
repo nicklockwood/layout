@@ -1,5 +1,19 @@
 # Change Log
 
+## [0.4.6](https://github.schibsted.io/Rocket/layout/releases/tag/0.4.6) (2017-08-03)
+
+- Added support for UIStackView
+- Empty XML files no longer crash Layout
+- Changed styling of file disambiguation dialog to avoid confusion with Red Box error dialog
+- Added Cmd-alt-R hard reset keyboard shortcut for clearing user file selection
+- Unsupported HTML tags now raise an error
+- Auto-sizing calculations are now more tolerant of recursive width/height references
+- Fixed a circular reference crash in width/height expressions
+- Fixed a bug with Red Box error not updating after a reload
+- The first two subviews added to a UITableView now become the header and footer respectively
+- Fixed an intermittent crash due to reloading in the middle of expression evaluation
+- Added Sandbox example app
+
 ## [0.4.5](https://github.schibsted.io/Rocket/layout/releases/tag/0.4.5) (2017-07-28)
 
 - Added basic templating functionality for inheriting common layout attributes and elements
@@ -7,9 +21,9 @@
 - Datasource and delegate properties can now be set explicitly, or cleared with `nil`
 - Errors thrown when evaluating constant expressions are now correctly propagated
 - LayoutTool now has a rename function for renaming expression symbols inside xml files
-- Better handling of implictly-unwrapped Optionals in constants or state
+- Better handling of implicitly-unwrapped Optionals in constants or state
 - Improved support for selectors and CGRect properties
-- Fixed crash in XML parser when handling a malformed layut structure
+- Fixed crash in XML parser when handling a malformed layout structure
 - Fixed crash in UIDesigner example
 
 ## [0.4.4](https://github.schibsted.io/Rocket/layout/releases/tag/0.4.4) (2017-07-25)
@@ -28,9 +42,9 @@
 - Improved performance when using nested XML file references by avoiding redundant view creation
 - Optimized view property update performance
 - Using CGColor and CGImage constants now works correctly
-- Added better support for CoreFoundation and Coregraphics types
+- Added better support for CoreFoundation and CoreGraphics types
 - Further improvements to auto-sizing behavior
-- Fixed bug where redbox scrollView delegate could get bound to a custom controller
+- Fixed bug where Red Box scrollView delegate could get bound to a custom controller
 
 ## [0.4.2](https://github.schibsted.io/Rocket/layout/releases/tag/0.4.2) (2017-07-17)
 

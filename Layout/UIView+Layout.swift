@@ -104,7 +104,7 @@ extension UIView {
 
     /// Called immediately before a child node is removed
     // TODO: remove index argument as it isn't used
-    @objc open func willRemoveChildNode(_ node: LayoutNode, at index: Int) {
+    @objc open func willRemoveChildNode(_ node: LayoutNode, at _: Int) {
         if node._view == nil { return }
         for controller in node.viewControllers {
             controller.removeFromParentViewController()

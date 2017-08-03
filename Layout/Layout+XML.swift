@@ -49,7 +49,7 @@ private class LayoutParser: NSObject, XMLParserDelegate {
         "b", "i", "u", "strong", "em", "strike",
         "h1", "h2", "h3", "h4", "h5", "h6",
         "p", "br", "sub", "sup", "center",
-        "ul", "ol", "li"
+        "ul", "ol", "li",
     ]
     private func isHTMLNode(_ name: String) -> Bool {
         return LayoutParser.htmlTags.contains(name)

@@ -8,7 +8,7 @@ private class TestView: UIView {
 }
 
 private class TestViewController: UIViewController {
-    func foo(_ sender: UIView) {
+    func foo(_: UIView) {
         print("It works!")
     }
 }
