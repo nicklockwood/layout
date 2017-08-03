@@ -2,26 +2,7 @@
 
 import UIKit
 
-private var layoutNodeKey = 0
-
-private class Box {
-    weak var node: LayoutNode?
-    init(_ node: LayoutNode) {
-        self.node = node
-    }
-}
-
 extension UIStackView {
-    public weak var layoutNode: LayoutNode? {
-        return (objc_getAssociatedObject(self, &layoutNodeKey) as? Box)?.node
-    }
-
-    open override class func create(with node: LayoutNode) throws -> UIView {
-        let view = try super.create(with: node)
-        objc_setAssociatedObject(view, &layoutNodeKey, Box(node), .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
-        return view
-    }
-
     open override class var expressionTypes: [String: RuntimeType] {
         var types = super.expressionTypes
         types["axis"] = RuntimeType(UILayoutConstraintAxis.self, [
