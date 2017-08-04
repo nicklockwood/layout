@@ -96,10 +96,7 @@ public class LayoutNode: NSObject {
             }
         }
 
-        _usesAutoLayout = _view.constraints.contains {
-            [.top, .left, .bottom, .right, .width, .height].contains($0.firstAttribute)
-        }
-
+        setUpAutoLayout()
         overrideExpressions()
         _ = updateVariables()
         updateObservers()
@@ -526,6 +523,16 @@ public class LayoutNode: NSObject {
                 // position in the hierarchy
 
                 _setupComplete = false
+
+                (_widthConstraint as NSLayoutConstraint?).map {
+                    oldView?.removeConstraint($0)
+                    _widthConstraint = nil
+                }
+                (_heightConstraint as NSLayoutConstraint?).map {
+                    oldView?.removeConstraint($0)
+                    _heightConstraint = nil
+                }
+
                 unmount()
                 if let parent = parent, let index = parent.children.index(of: self) {
                     oldView?.removeFromSuperview()
@@ -1277,19 +1284,23 @@ public class LayoutNode: NSObject {
 
     // AutoLayout support
     private var _usesAutoLayout = false
-    private lazy var _widthConstraint: NSLayoutConstraint = {
-        let constraint = self._view.widthAnchor.constraint(equalToConstant: 0)
-        constraint.priority = UILayoutPriorityRequired - 1
-        constraint.identifier = "LayoutWidth"
-        return constraint
-    }()
-
-    private lazy var _heightConstraint: NSLayoutConstraint = {
-        let constraint = self._view.heightAnchor.constraint(equalToConstant: 0)
-        constraint.priority = UILayoutPriorityRequired - 1
-        constraint.identifier = "LayoutHeight"
-        return constraint
-    }()
+    private func setUpAutoLayout() {
+        _usesAutoLayout = _view.constraints.contains {
+            [.top, .left, .bottom, .right, .width, .height].contains($0.firstAttribute)
+        }
+        setUpConstraints()
+    }
+    private var _widthConstraint: NSLayoutConstraint!
+    private var _heightConstraint: NSLayoutConstraint!
+    private func setUpConstraints() {
+        if _widthConstraint != nil { return }
+        _widthConstraint = _view.widthAnchor.constraint(equalToConstant: 0)
+        _widthConstraint.priority = UILayoutPriorityRequired - 1
+        _widthConstraint.identifier = "LayoutWidth"
+        _heightConstraint = _view.heightAnchor.constraint(equalToConstant: 0)
+        _heightConstraint.priority = UILayoutPriorityRequired - 1
+        _heightConstraint.identifier = "LayoutHeight"
+    }
 
     private var _suppressUpdates = false
 
@@ -1317,6 +1328,7 @@ public class LayoutNode: NSObject {
             _view.frame = frame
             _view.layer.transform = transform
         } else {
+            setUpConstraints()
             _heightConstraint.constant = frame.height
             _heightConstraint.isActive = true
             _widthConstraint.constant = frame.width
