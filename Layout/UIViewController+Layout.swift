@@ -142,11 +142,6 @@ extension UINavigationController {
     }
 }
 
-private let tableViewStyle = RuntimeType(UITableViewStyle.self, [
-    "plain": .plain,
-    "grouped": .grouped,
-])
-
 extension UITableViewController {
     open override class func create(with node: LayoutNode) throws -> UIViewController {
         var style = UITableViewStyle.plain

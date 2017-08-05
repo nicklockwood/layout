@@ -77,7 +77,7 @@ public class LayoutNode: NSObject {
 
     // For internal use
     private(set) var _class: AnyClass
-    @objc private(set) var _view: UIView!
+    @objc var _view: UIView!
     private(set) var _viewController: UIViewController?
     private(set) var _originalExpressions: [String: String]
 
@@ -118,6 +118,7 @@ public class LayoutNode: NSObject {
         } else if !_observing, parent == nil {
             NotificationCenter.default.addObserver(self, selector: #selector(contentSizeChanged), name: .UIContentSizeCategoryDidChange, object: nil)
             addObserver(self, forKeyPath: "_view.frame", options: [], context: nil)
+            addObserver(self, forKeyPath: "_view.bounds", options: [], context: nil)
             _observing = true
         }
     }
@@ -126,6 +127,7 @@ public class LayoutNode: NSObject {
         if _observing {
             NotificationCenter.default.removeObserver(self)
             removeObserver(self, forKeyPath: "_view.frame")
+            removeObserver(self, forKeyPath: "_view.bounds")
             _observing = false
         }
     }
@@ -373,7 +375,7 @@ public class LayoutNode: NSObject {
                 assert(oldType == Void.self || oldType == type(of: state), "Cannot change type of state after initialization")
                 equal = areEqual(oldValue, state)
             }
-            if !equal, updateVariables(), _setupComplete {
+            if !equal, updateVariables() {
                 // TODO: work out which expressions are actually affected
                 attempt(update)
             }

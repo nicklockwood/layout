@@ -27,4 +27,11 @@
         title="Table"
         xml="Table.xml"
     />
+
+    <!-- Collection -->
+    <UIViewController
+        tabBarItem.image="Collection"
+        title="Collection"
+        xml="Collection.xml"
+    />
 </UITabBarController>

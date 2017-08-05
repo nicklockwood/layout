@@ -1,0 +1,27 @@
+<CollectionViewController>
+    <UICollectionView
+        backgroundColor="#fff"
+        contentInset.bottom="bottomLayoutGuide.length"
+        contentInset.top="topLayoutGuide.length"
+        contentOffset.y="-topLayoutGuide.length"
+        outlet="collectionView"
+        scrollIndicatorInsets.bottom="bottomLayoutGuide.length"
+        scrollIndicatorInsets.top="topLayoutGuide.length"
+        collectionViewLayout.scrollDirection="vertical"
+        collectionViewLayout.itemSize.width="(100% - (6 * 10)) / 7"
+        collectionViewLayout.itemSize.height="collectionViewLayout.itemSize.width"
+        collectionViewLayout.minimumInteritemSpacing="10">
+
+        <UICollectionViewCell
+            clipsToBounds="true"
+            reuseIdentifier="templateCell">
+
+            <UIImageView
+                contentMode="scaleAspectFit"
+                height="100%"
+                image="{image}"
+                width="100%"
+            />
+        </UICollectionViewCell>
+    </UICollectionView>
+</CollectionViewController>

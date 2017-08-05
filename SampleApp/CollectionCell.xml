@@ -1,0 +1,9 @@
+<UICollectionViewCell clipsToBounds="true">
+    <UIImageView
+        contentMode="scaleAspectFit"
+        height="100%"
+        image="{image}"
+        tintColor="#999"
+        width="100%"
+    />
+</UICollectionViewCell>

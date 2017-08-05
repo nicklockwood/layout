@@ -1,0 +1,286 @@
+//  Copyright © 2017 Schibsted. All rights reserved.
+
+import UIKit
+
+private let placeholderID = NSUUID().uuidString
+
+extension UICollectionView {
+    open override class func create(with node: LayoutNode) throws -> UICollectionView {
+        let layout: UICollectionViewLayout
+        if let expression = node.expressions["collectionViewLayout"] {
+            let layoutExpression = LayoutExpression(
+                expression: expression,
+                type: RuntimeType(UICollectionViewLayout.self),
+                for: node
+            )
+            layout = try layoutExpression.evaluate() as! UICollectionViewLayout
+        } else {
+            let flowLayout = UICollectionViewFlowLayout()
+            layout = flowLayout
+            // Enable auto-sizing
+            flowLayout.estimatedItemSize = flowLayout.itemSize
+            flowLayout.itemSize = UICollectionViewFlowLayoutAutomaticSize
+        }
+        let view = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        view.register(UICollectionViewCell.self, forCellWithReuseIdentifier: placeholderID)
+        return view
+    }
+
+    open override class var expressionTypes: [String: RuntimeType] {
+        var types = super.expressionTypes
+        for (key, type) in UICollectionViewFlowLayout.allPropertyTypes() {
+            types["collectionViewLayout.\(key)"] = type
+        }
+        types["collectionViewLayout.scrollDirection"] = RuntimeType(UICollectionViewScrollDirection.self, [
+            "horizontal": .horizontal,
+            "vertical": .vertical,
+        ])
+        return types
+    }
+
+    open override func didInsertChildNode(_ node: LayoutNode, at index: Int) {
+        let hadView = (node._view != nil)
+        switch node.viewClass {
+        case is UICollectionViewCell.Type:
+            // TODO: it would be better if we never added cell template nodes to
+            // the hierarchy, rather than having to remove them afterwards
+            node.removeFromParent()
+            if let expression = node.expressions["reuseIdentifier"] {
+                let idExpression = LayoutExpression(
+                    expression: expression,
+                    type: RuntimeType(String.self),
+                    for: node
+                )
+                if let reuseIdentifier = try? idExpression.evaluate() as! String {
+                    registerLayout(Layout(node), forCellReuseIdentifier: reuseIdentifier)
+                }
+            } else {
+                layoutError(.message("UICollectionViewCell template missing reuseIdentifier"))
+            }
+        default:
+            if backgroundView == nil {
+                backgroundView = node.view
+            } else {
+                super.didInsertChildNode(node, at: index)
+            }
+            return
+        }
+        // Check we didn't accidentally instantiate the view
+        // TODO: it would be better to do this in a unit test
+        assert(hadView || node._view == nil)
+    }
+
+    open override func willRemoveChildNode(_ node: LayoutNode, at index: Int) {
+        let hadView = (node._view != nil)
+        super.willRemoveChildNode(node, at: index)
+        if node._view == backgroundView {
+            backgroundView = nil
+        }
+        // Check we didn't accidentally instantiate the view
+        // TODO: it would be better to do this in a unit test
+        assert(hadView || node._view == nil)
+    }
+
+    public func layoutError(_ error: LayoutError) {
+        var responder: UIResponder? = self
+        while responder != nil {
+            if let errorHandler = responder as? LayoutLoading {
+                errorHandler.layoutError(error)
+                break
+            }
+            responder = responder?.next
+        }
+        print("Layout error: \(error)")
+    }
+}
+
+private var cellDataKey = 0
+private var nodesKey = 0
+
+extension UICollectionView: LayoutDelegate {
+    
+    private enum LayoutData {
+        case success(Layout, Any, [String: Any])
+        case failure(Error)
+    }
+
+    private func merge(_ dictionaries: [[String: Any]]) -> [String: Any] {
+        var result = [String: Any]()
+        for dict in dictionaries {
+            for (key, value) in dict {
+                result[key] = value
+            }
+        }
+        return result
+    }
+
+    private func registerLayoutData(
+        _ layoutData: LayoutData,
+        forCellReuseIdentifier identifier: String
+    ) {
+        var layoutsData = objc_getAssociatedObject(self, &cellDataKey) as? NSMutableDictionary
+        if layoutsData == nil {
+            layoutsData = [:]
+            objc_setAssociatedObject(self, &cellDataKey, layoutsData, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+        }
+        layoutsData![identifier] = layoutData
+    }
+
+    fileprivate func registerLayout(
+        _ layout: Layout,
+        state: Any = (),
+        constants: [String: Any]...,
+        forCellReuseIdentifier identifier: String
+    ) {
+        do {
+            let viewClass: AnyClass = try layout.getClass()
+            guard let cellClass = viewClass as? UICollectionViewCell.Type else {
+                throw LayoutError.message("\(viewClass)) is not a subclass of UICollectionViewCell")
+            }
+            register(cellClass as AnyClass, forCellWithReuseIdentifier: identifier)
+            registerLayoutData(.success(layout, state, merge(constants)), forCellReuseIdentifier: identifier)
+        } catch {
+            layoutError(LayoutError(error))
+            registerLayoutData(.failure(error), forCellReuseIdentifier: identifier)
+        }
+    }
+
+    public func registerLayout(
+        named: String,
+        bundle: Bundle = Bundle.main,
+        relativeTo: String = #file,
+        state: Any = (),
+        constants: [String: Any]...,
+        forCellReuseIdentifier identifier: String
+    ) {
+        do {
+            let layout = try LayoutLoader().loadLayout(
+                named: named,
+                bundle: bundle,
+                relativeTo: relativeTo
+            )
+            registerLayout(
+                layout,
+                state: state,
+                constants: merge(constants),
+                forCellReuseIdentifier: identifier
+            )
+        } catch {
+            registerLayoutData(.failure(error), forCellReuseIdentifier: identifier)
+        }
+    }
+
+    public func dequeueReusableCellNode(withIdentifier identifier: String, for indexPath: IndexPath) -> LayoutNode {
+        do {
+            guard let layoutsData = objc_getAssociatedObject(self, &cellDataKey) as? NSMutableDictionary,
+                let layoutData = layoutsData[identifier] as? LayoutData else {
+                    throw LayoutError.message("No cell layout has been registered for `\(identifier)`")
+            }
+            let cell = dequeueReusableCell(withReuseIdentifier: identifier, for: indexPath)
+            if let node = cell.layoutNode {
+                return node
+            }
+            switch layoutData {
+            case let .success(layout, state, constants):
+                let node = try LayoutNode(
+                    layout: layout,
+                    state: state,
+                    constants: constants
+                )
+                var nodes = objc_getAssociatedObject(self, &nodesKey) as? NSMutableArray
+                if nodes == nil {
+                    nodes = []
+                    objc_setAssociatedObject(self, &nodesKey, nodes, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+                }
+                nodes?.add(node)
+                node.delegate = self
+                assert(node._view == nil)
+                node._view = cell
+                cell.layoutNode = node
+                return node
+            case let .failure(error):
+                throw error
+            }
+        } catch {
+            layoutError(LayoutError(error))
+            return LayoutNode(view: dequeueReusableCell(withReuseIdentifier: placeholderID, for: indexPath))
+        }
+    }
+}
+
+private var layoutNodeKey = 0
+
+private class Box {
+    weak var node: LayoutNode?
+    init(_ node: LayoutNode) {
+        self.node = node
+    }
+}
+
+extension UICollectionViewCell {
+    weak var layoutNode: LayoutNode? {
+        get {
+            return (objc_getAssociatedObject(self, &layoutNodeKey) as? Box)?.node
+        }
+        set {
+            objc_setAssociatedObject(self, &layoutNodeKey, newValue.map(Box.init), .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+        }
+    }
+
+    open override class func create(with node: LayoutNode) throws -> UIView {
+        throw LayoutError.message("UICollectionViewCells must be created by UICollectionView")
+    }
+
+    open override class var expressionTypes: [String: RuntimeType] {
+        var types = super.expressionTypes
+        types["reuseIdentifier"] = RuntimeType(String.self)
+        for (key, type) in UIView.expressionTypes {
+            types["contentView.\(key)"] = type
+            types["backgroundView.\(key)"] = type
+            types["selectedBackgroundView.\(key)"] = type
+        }
+        return types
+    }
+
+    open override func setValue(_ value: Any, forExpression name: String) throws {
+        switch name {
+        case "reuseIdentifier":
+            break // Ignore this, it's only used for template cells
+        default:
+            if name.hasPrefix("backgroundView."), backgroundView == nil {
+                // Add a backgroundView view if required
+                backgroundView = UIView(frame: bounds)
+            }
+            if name.hasPrefix("selectedBackgroundView."), selectedBackgroundView == nil {
+                // Add a selectedBackgroundView view if required
+                selectedBackgroundView = UIView(frame: bounds)
+            }
+            try super.setValue(value, forExpression: name)
+        }
+    }
+
+    open override func didInsertChildNode(_ node: LayoutNode, at index: Int) {
+        if let viewController = self.viewController {
+            for controller in node.viewControllers {
+                viewController.addChildViewController(controller)
+            }
+        }
+        // Insert child views into `contentView` instead of directly
+        contentView.insertSubview(node.view, at: index)
+    }
+
+    open override var intrinsicContentSize: CGSize {
+        guard let layoutNode = layoutNode, layoutNode.children.isEmpty else {
+            return super.intrinsicContentSize
+        }
+        return CGSize(width: UIViewNoIntrinsicMetric, height: 44)
+    }
+
+    open override func sizeThatFits(_ size: CGSize) -> CGSize {
+        if let layoutNode = layoutNode {
+            let height = (try? layoutNode.doubleValue(forSymbol: "height")) ?? 0
+            return CGSize(width: size.width, height: CGFloat(height))
+        }
+        return super.sizeThatFits(size)
+    }
+}

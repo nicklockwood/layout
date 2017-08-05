@@ -2,7 +2,7 @@
 
 import UIKit
 
-private let tableViewStyle = RuntimeType(UITableViewStyle.self, [
+let tableViewStyle = RuntimeType(UITableViewStyle.self, [
     "plain": .plain,
     "grouped": .grouped,
 ])
@@ -15,7 +15,11 @@ extension UITableView {
             style = try styleExpression.evaluate() as! UITableViewStyle
         }
         let view = UITableView(frame: .zero, style: style)
+        // Enable auto-sizing
+        view.estimatedRowHeight = 44
         view.rowHeight = UITableViewAutomaticDimension
+        view.estimatedSectionHeaderHeight = 20
+        view.sectionHeaderHeight = UITableViewAutomaticDimension
         return view
     }
 
@@ -42,7 +46,7 @@ extension UITableView {
     open override func didInsertChildNode(_ node: LayoutNode, at index: Int) {
         let hadView = (node._view != nil)
         switch node.viewClass {
-        case is UITableViewCell.Type:
+        case is UITableViewCell.Type, is UITableViewHeaderFooterView.Type:
             // TODO: it would be better if we never added cell template nodes to
             // the hierarchy, rather than having to remove them afterwards
             node.removeFromParent()
@@ -53,24 +57,16 @@ extension UITableView {
                     for: node
                 )
                 if let reuseIdentifier = try? idExpression.evaluate() as! String {
-                    registerLayout(Layout(node), forCellReuseIdentifier: reuseIdentifier)
+                    if node.viewClass is UITableViewCell.Type {
+                        registerLayout(Layout(node), forReuseIdentifier: reuseIdentifier, key: &cellDataKey)
+                    } else {
+                        registerLayout(Layout(node), forReuseIdentifier: reuseIdentifier, key: &headerDataKey)
+                    }
                 }
+            } else if node.viewClass is UITableViewCell.Type {
+                layoutError(.message("UITableViewCell template missing reuseIdentifier"))
             } else {
-                print("UITableViewCell template missing reuseIdentifier")
-            }
-        case is UITableViewHeaderFooterView.Type:
-            node.removeFromParent()
-            if let expression = node.expressions["reuseIdentifier"] {
-                let idExpression = LayoutExpression(
-                    expression: expression,
-                    type: RuntimeType(String.self),
-                    for: node
-                )
-                if let reuseIdentifier = try? idExpression.evaluate() as! String {
-                    registerLayout(Layout(node), forHeaderFooterViewReuseIdentifier: reuseIdentifier)
-                }
-            } else {
-                print("UITableViewHeaderFooterView template missing reuseIdentifier")
+                layoutError(.message("UITableViewHeaderFooterView template missing reuseIdentifier"))
             }
         default:
             if tableHeaderView == nil {
@@ -99,9 +95,21 @@ extension UITableView {
         // TODO: it would be better to do this in a unit test
         assert(hadView || node._view == nil)
     }
+
+    public func layoutError(_ error: LayoutError) {
+        var responder: UIResponder? = self
+        while responder != nil {
+            if let errorHandler = responder as? LayoutLoading {
+                errorHandler.layoutError(error)
+                break
+            }
+            responder = responder?.next
+        }
+        print("Layout error: \(error)")
+    }
 }
 
-private var rowDataKey = 0
+private var cellDataKey = 0
 private var headerDataKey = 0
 private var nodesKey = 0
 
@@ -122,16 +130,15 @@ extension UITableView: LayoutDelegate {
         return result
     }
 
-    // MARK: UITableViewHeaderFooterView recycling
-
     private func registerLayoutData(
         _ layoutData: LayoutData,
-        forHeaderFooterViewReuseIdentifier identifier: String
+        forReuseIdentifier identifier: String,
+        key: UnsafeRawPointer
     ) {
-        var layoutsData = objc_getAssociatedObject(self, &headerDataKey) as? NSMutableDictionary
+        var layoutsData = objc_getAssociatedObject(self, key) as? NSMutableDictionary
         if layoutsData == nil {
             layoutsData = [:]
-            objc_setAssociatedObject(self, &headerDataKey, layoutsData, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+            objc_setAssociatedObject(self, key, layoutsData, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         }
         layoutsData![identifier] = layoutData
     }
@@ -140,13 +147,17 @@ extension UITableView: LayoutDelegate {
         _ layout: Layout,
         state: Any = (),
         constants: [String: Any]...,
-        forHeaderFooterViewReuseIdentifier identifier: String
+        forReuseIdentifier identifier: String,
+        key: UnsafeRawPointer
     ) {
         registerLayoutData(
             .success(layout, state, merge(constants)),
-            forHeaderFooterViewReuseIdentifier: identifier
+            forReuseIdentifier: identifier,
+            key: key
         )
     }
+
+    // MARK: UITableViewHeaderFooterView recycling
 
     public func registerLayout(
         named: String,
@@ -166,10 +177,12 @@ extension UITableView: LayoutDelegate {
                 layout,
                 state: state,
                 constants: merge(constants),
-                forHeaderFooterViewReuseIdentifier: identifier
+                forReuseIdentifier: identifier,
+                key: &headerDataKey
             )
         } catch {
-            registerLayoutData(.failure(error), forCellReuseIdentifier: identifier)
+            layoutError(LayoutError(error))
+            registerLayoutData(.failure(error), forReuseIdentifier: identifier, key: &headerDataKey)
         }
     }
 
@@ -205,41 +218,12 @@ extension UITableView: LayoutDelegate {
                 throw error
             }
         } catch {
-            var responder: UIResponder? = self
-            while responder != nil {
-                if let errorHandler = responder as? LayoutLoading {
-                    errorHandler.layoutError(LayoutError(error))
-                    return LayoutNode(view: UITableViewCell())
-                }
-                responder = responder?.next
-            }
-            print("Layout error: \(error)")
+            layoutError(LayoutError(error))
             return nil
         }
     }
 
     // MARK: UITableViewCell recycling
-
-    private func registerLayoutData(
-        _ layoutData: LayoutData,
-        forCellReuseIdentifier identifier: String
-    ) {
-        var layoutsData = objc_getAssociatedObject(self, &rowDataKey) as? NSMutableDictionary
-        if layoutsData == nil {
-            layoutsData = [:]
-            objc_setAssociatedObject(self, &rowDataKey, layoutsData, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
-        }
-        layoutsData![identifier] = layoutData
-    }
-
-    fileprivate func registerLayout(
-        _ layout: Layout,
-        state: Any = (),
-        constants: [String: Any]...,
-        forCellReuseIdentifier identifier: String
-    ) {
-        registerLayoutData(.success(layout, state, merge(constants)), forCellReuseIdentifier: identifier)
-    }
 
     public func registerLayout(
         named: String,
@@ -259,10 +243,12 @@ extension UITableView: LayoutDelegate {
                 layout,
                 state: state,
                 constants: merge(constants),
-                forCellReuseIdentifier: identifier
+                forReuseIdentifier: identifier,
+                key: &cellDataKey
             )
         } catch {
-            registerLayoutData(.failure(error), forCellReuseIdentifier: identifier)
+            layoutError(LayoutError(error))
+            registerLayoutData(.failure(error), forReuseIdentifier: identifier, key: &cellDataKey)
         }
     }
 
@@ -273,14 +259,9 @@ extension UITableView: LayoutDelegate {
             }
             return node
         }
-        guard let layoutsData = objc_getAssociatedObject(self, &rowDataKey) as? NSMutableDictionary,
+        guard let layoutsData = objc_getAssociatedObject(self, &cellDataKey) as? NSMutableDictionary,
             let layoutData = layoutsData[identifier] as? LayoutData else {
             return nil
-        }
-        var nodes = objc_getAssociatedObject(self, &nodesKey) as? NSMutableArray
-        if nodes == nil {
-            nodes = []
-            objc_setAssociatedObject(self, &nodesKey, nodes, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         }
         do {
             switch layoutData {
@@ -290,50 +271,33 @@ extension UITableView: LayoutDelegate {
                     state: state,
                     constants: constants
                 )
-                node.delegate = self
+                var nodes = objc_getAssociatedObject(self, &nodesKey) as? NSMutableArray
+                if nodes == nil {
+                    nodes = []
+                    objc_setAssociatedObject(self, &nodesKey, nodes, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+                }
                 nodes?.add(node)
+                node.delegate = self
                 node.view.setValue(identifier, forKey: "reuseIdentifier")
                 return node
             case let .failure(error):
                 throw error
             }
         } catch {
-            var responder: UIResponder? = self
-            while responder != nil {
-                if let errorHandler = responder as? LayoutLoading {
-                    errorHandler.layoutError(LayoutError(error))
-                    return LayoutNode(view: UITableViewCell())
-                }
-                responder = responder?.next
-            }
-            print("Layout error: \(error)")
+            layoutError(LayoutError(error))
             return nil
         }
     }
 
     public func dequeueReusableCellNode(withIdentifier identifier: String, for _: IndexPath) -> LayoutNode {
         guard let node = dequeueReusableCellNode(withIdentifier: identifier) else {
-            let layoutsData = objc_getAssociatedObject(self, &rowDataKey) as? NSMutableDictionary
+            let layoutsData = objc_getAssociatedObject(self, &cellDataKey) as? NSMutableDictionary
             if layoutsData?[identifier] == nil {
-                let error = LayoutError.message("No Table cell layout has been registered for `\(identifier)`")
-                var responder: UIResponder? = self
-                while responder != nil {
-                    if let errorHandler = responder as? LayoutLoading {
-                        errorHandler.layoutError(LayoutError(error))
-                        return LayoutNode(view: UITableViewCell())
-                    }
-                    responder = responder?.next
-                }
-                print("Layout error: \(error)")
+                layoutError(.message("No cell layout has been registered for `\(identifier)`"))
             }
             return LayoutNode(view: UITableViewCell())
         }
         return node
-    }
-
-    @available(*, deprecated, renamed: "dequeueReusableCellNode(withIdentifier:for:)")
-    public func dequeueReusableLayoutNode(withIdentifier identifier: String, for indexPath: IndexPath) -> LayoutNode {
-        return dequeueReusableCellNode(withIdentifier: identifier, for: indexPath)
     }
 }
 
@@ -354,7 +318,7 @@ private class Box {
 }
 
 extension UITableViewHeaderFooterView {
-    public weak var layoutNode: LayoutNode? {
+    weak var layoutNode: LayoutNode? {
         return (objc_getAssociatedObject(self, &layoutNodeKey) as? Box)?.node
     }
 
@@ -430,11 +394,11 @@ extension UITableViewHeaderFooterView {
 }
 
 extension UITableViewCell {
-    public var layoutNode: LayoutNode? {
+    weak var layoutNode: LayoutNode? {
         return (objc_getAssociatedObject(self, &layoutNodeKey) as? Box)?.node
     }
 
-    open override class func create(with node: LayoutNode) throws -> UIView {
+    open override class func create(with node: LayoutNode) throws -> UITableViewCell {
         var style = UITableViewCellStyle.default
         if let expression = node.expressions["style"] {
             let styleExpression = LayoutExpression(expression: expression, type: tableViewCellStyle, for: node)

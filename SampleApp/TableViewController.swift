@@ -3,11 +3,12 @@
 import UIKit
 import Layout
 
-let images = [
+private let images = [
     UIImage(named: "Boxes"),
     UIImage(named: "Pages"),
     UIImage(named: "Text"),
     UIImage(named: "Table"),
+    UIImage(named: "Collection"),
     UIImage(named: "Rocket"),
 ]
 
@@ -15,8 +16,6 @@ class TableViewController: UIViewController, UITableViewDataSource, UITableViewD
 
     @IBOutlet var tableView: UITableView? {
         didSet {
-            tableView?.estimatedRowHeight = 50
-            tableView?.estimatedSectionHeaderHeight = 50
             tableView?.registerLayout(
                 named: "TableCell.xml",
                 forCellReuseIdentifier: "standaloneCell"
@@ -25,7 +24,7 @@ class TableViewController: UIViewController, UITableViewDataSource, UITableViewD
     }
 
     func tableView(_: UITableView, numberOfRowsInSection _: Int) -> Int {
-        return 50
+        return 500
     }
 
     func tableView(_ tableView: UITableView, viewForHeaderInSection _: Int) -> UIView? {

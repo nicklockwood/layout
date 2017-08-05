@@ -30,7 +30,6 @@
                 highlightedImage="{whiteImage}"
                 image="{image}"
                 right="100% - 20"
-                tintColor="#999"
                 top="20"
                 width="auto"
             />

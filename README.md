@@ -29,6 +29,7 @@
     - [Layout-based Components](#layout-based-components)
 	- [Manual Integration](#manual-integration)
     - [Table Views](#table-views)
+    - [Collection Views](#collection-views)
     - [Composition](#composition)
     - [Templates](#templates)
 - [Example Projects](#example-projects)
@@ -836,7 +837,7 @@ You can use a `UITableView` inside a Layout template in much the same way as you
         style="plain"
     />
 
-The tableView's `delegate` and `datasource` will automatically be bound to the file's owner, which is typically either your `LayoutViewController` subclass, or the first nested view controller that conforms to one or both of the `UITableViewDelegate`/`DataSource` protocols. You would define the view controller logic for this table in pretty much the same way as you would if not using Layout:
+The tableView's `delegate` and `dataSource` will automatically be bound to the file's owner, which is typically either your `LayoutViewController` subclass, or the first nested view controller that conforms to one or both of the `UITableViewDelegate`/`DataSource` protocols. If you don't want that behavior, you can explicitly set them (see the [Delegates](#delegates) section above). You would define the view controller logic for this table in pretty much the same way as you would if not using Layout:
 
     class TableViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
     
@@ -862,7 +863,7 @@ The tableView's `delegate` and `datasource` will automatically be bound to the f
         }
     }
 
-Using a Layout-based `UITableViewCell` is also possible, but slightly more involved. There are two ways to define a `UITableViewCell` in XML - either directly inside your table XML, or in a standalone file. A cell template defined inside the table XML might look like this:
+Using a Layout-based `UITableViewCell` is also possible. There are two ways to define a `UITableViewCell` in XML - either directly inside your table XML, or in a standalone file. A cell template defined inside the table XML might look something like this:
 
     <UITableView
         backgroundColor="#fff"
@@ -888,17 +889,6 @@ Using a Layout-based `UITableViewCell` is also possible, but slightly more invol
 Then the logic in your table view controller would be:
 
     class TableViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
-    
-        @IBOutlet var tableView: UITableView? {
-            didSet {
-                
-                // No need to register the cell manually if it's defined as a template,
-                // but don't forget to set the estimated row height if you want
-                // your table cells to dynamically calculate their own height
-                tableView?.estimatedRowHeight = 50
-            }
-        }
-        
         var rowData: [MyModel]
     
         func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -924,22 +914,93 @@ Alternatively, you can define the cell in its own XML file. If you do that, the 
     
         @IBOutlet var tableView: UITableView? {
             didSet {
-            
                 // Use special Layout extension method to register the layout xml file for the cell
                 tableView?.registerLayout(named: "MyCell.xml", forCellReuseIdentifier: "cell")
-                
-                // Don't forget to set the estimated row height if you want
-                // your table cells to dynamically calculate their own height
-                tableView?.estimatedRowHeight = 50
             }
         }
         
         ...
     }
 
-Layout supports dynamic table cell height calculation. To enable this, set a height expression for your cell, and ensure that you set the `estimatedRowHeight` property of the `UITableView`, or implement the `tableView(_: UITableView, estimatedHeightForRowAt:)` delegate method. If your cells all have the same height, it is more efficient to set an explicit `rowHeight` property on the `UITableView` instead.
+Layout supports dynamic table cell height calculation. To enable this, just set a height expression for your cell. If your cells all have the same height, it is more efficient to set an explicit `rowHeight` property on the `UITableView` instead.
 
 The same approach works for `UITableViewHeaderFooterView` layouts, and there are equivalent methods for registering and dequeueing UITableViewHeaderFooterView layout nodes.
+
+
+# Collection Views
+
+Layout supports `UICollectionView` in a similar way to `UITableView`. If you do not specify a custom `UICollectionViewLayout`, Layout assumes that you want to use a `UICollectionViewFlowLayout`, and creates one for you automatically. When using a `UICollectionViewFlowLayout`, you can configure its properties using expressions on the collection view, prefixed with `collectionViewLayout.`:
+
+    <UICollectionView
+        backgroundColor="#fff"
+        collectionViewLayout.itemSize.height="100"
+        collectionViewLayout.itemSize.width="100"
+        collectionViewLayout.minimumInteritemSpacing="10"
+        collectionViewLayout.scrollDirection="horizontal"
+    />
+    
+As with `UITableView` the collection view's `delegate` and `dataSource` will automatically be bound to the file's owner.
+
+Using a Layout-based `UICollectionViewCell`, either directly inside your collection view XML or in a standalone file, also works the same. A cell template defined inside the collection view XML might look something like this:
+
+    <UICollectionView
+        backgroundColor="#fff"
+        collectionViewLayout.itemSize.height="100"
+        collectionViewLayout.itemSize.width="100">
+        
+        <UICollectionViewCell
+            clipsToBounds="true"
+            reuseIdentifier="cell">
+
+            <UIImageView
+                contentMode="scaleAspectFit"
+                height="100%"
+                width="100%"
+                image="{image}"
+                tintColor="#999"
+            />
+        </UICollectionViewCell>
+
+    </UICollectionView>
+    
+Then the logic in your collection view controller would be:
+
+    class CollectionViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource {
+        var itemData: [MyModel]
+    
+        func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+            return itemData.count
+        }
+    
+        func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        
+            // Use special Layout extension method to dequeue the node rather than the view itself
+            let node = collectionView.dequeueReusableCellNode(withIdentifier: "cell", for: indexPath)
+    
+            // Set the node state to update the cell
+            node.state = itemData[indexPath.row]
+            
+            // Cast the node view to a table cell and return it
+            return node.view as! UICollectionViewCell
+        }
+    }
+    
+Alternatively, you can define the cell in its own XML file. If you do that, the dequeueing process is the same, but you will need to register it manually:
+
+    class CollectionViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource {
+        var itemData: [MyModel]
+    
+        @IBOutlet var collectionView: UITableView? {
+            didSet {
+                // Use special Layout extension method to register the layout xml file for the cell
+                tableView?.registerLayout(named: "MyCell.xml", forCellReuseIdentifier: "cell")
+            }
+        }
+        
+        ...
+    }
+    
+Dynamic collection cell size calculation is also supported. To enable this, just set a width and height expression for your cell. If your cells all have the same size, it is more efficient to set an explicit `collectionViewLayout.itemSize` on the `UICollectionView` instead.
 
 
 ## Composition
