@@ -729,7 +729,7 @@ public class LayoutNode: NSObject {
                                 let value = self.value(forVariableOrConstant: symbol) {
                                 return value
                             }
-                            throw SymbolError("Circular reference for symbol `\(symbol)`", for: symbol)
+                            throw SymbolError("Expression `\(symbol)` references a nonexistent symbol of the same name (expressions cannot reference themselves)", for: symbol)
                         }
                         self._evaluating.append(symbol)
                         defer {
@@ -919,7 +919,9 @@ public class LayoutNode: NSObject {
             }
         case "right":
             getter = { [unowned self] in
-                try self.cgFloatValue(forSymbol: "left") + self.cgFloatValue(forSymbol: "width")
+                try SymbolError.wrap({
+                    try self.cgFloatValue(forSymbol: "left") + self.cgFloatValue(forSymbol: "width")
+                }, for: symbol)
             }
         case "top":
             getter = { [unowned self] in
@@ -931,7 +933,9 @@ public class LayoutNode: NSObject {
             }
         case "bottom":
             getter = { [unowned self] in
-                try self.cgFloatValue(forSymbol: "top") + self.cgFloatValue(forSymbol: "height")
+                try SymbolError.wrap({
+                    try self.cgFloatValue(forSymbol: "top") + self.cgFloatValue(forSymbol: "height")
+                }, for: symbol)
             }
         case "topLayoutGuide.length":
             getter = { [unowned self] in

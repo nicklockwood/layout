@@ -17,8 +17,15 @@ internal struct SymbolError: Error, CustomStringConvertible {
 
     init(_ error: Error, for symbol: String) {
         self.symbol = symbol
-        if let error = error as? SymbolError, error.symbol == symbol {
-            self.error = error.error
+        if let error = error as? SymbolError {
+            let description = String(describing: error.error)
+            if symbol == error.symbol || description.contains(symbol) {
+                self.error = error.error
+            } else if description.contains(error.symbol) {
+                 self.error = SymbolError(description, for: error.symbol)
+            } else {
+                self.error = SymbolError("\(description) in symbol `\(error.symbol)`", for: error.symbol)
+            }
         } else {
             self.error = error
         }
