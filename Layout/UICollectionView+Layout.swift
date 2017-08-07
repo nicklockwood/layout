@@ -19,7 +19,11 @@ extension UICollectionView {
             layout = flowLayout
             // Enable auto-sizing
             flowLayout.estimatedItemSize = flowLayout.itemSize
-            flowLayout.itemSize = UICollectionViewFlowLayoutAutomaticSize
+            if #available(iOS 10.0, *) {
+                flowLayout.itemSize = UICollectionViewFlowLayoutAutomaticSize
+            } else {
+                flowLayout.itemSize = CGSize(width: UIViewNoIntrinsicMetric, height: UIViewNoIntrinsicMetric)
+            }
         }
         let view = UICollectionView(frame: .zero, collectionViewLayout: layout)
         view.register(UICollectionViewCell.self, forCellWithReuseIdentifier: placeholderID)
