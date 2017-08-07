@@ -86,9 +86,9 @@ To install Layout using CocoaPods, add the following to your Podfile:
 
 	pod 'Layout', '~> 0.4.7'
 
-To install use Carthage, addd this to your Cartfile:
+To install use Carthage, add this to your Cartfile:
 
-    github "Layout/Layout" ~> 0.4.7
+    github "schibsted/Layout" ~> 0.4.7
     
 
 ## Integration
