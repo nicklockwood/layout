@@ -1,5 +1,12 @@
 # Change Log
 
+## [0.4.7](https://github.schibsted.io/Rocket/layout/releases/tag/0.4.7) (2017-08-07)
+
+- First open source release!
+- Added support for UICollectionView
+- Improved error messaging
+- Fixed a bug where AutoLayout support would not work correctly in some cases
+
 ## [0.4.6](https://github.schibsted.io/Rocket/layout/releases/tag/0.4.6) (2017-08-03)
 
 - Added support for UIStackView

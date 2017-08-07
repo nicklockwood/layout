@@ -1,3 +1,9 @@
+[![Travis](https://img.shields.io/travis/schibsted/layout.svg)](https://travis-ci.org/schibsted/layout)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](https://opensource.org/licenses/MIT)
+[![CocoaPods Compatible](https://img.shields.io/cocoapods/v/Layout.svg)](https://img.shields.io/cocoapods/v/Layout.svg)
+[![Carthage Compatible](https://img.shields.io/badge/Carthage-compatible-4BC51D.svg?style=flat)](https://github.com/Carthage/Carthage)
+[![Platform](https://img.shields.io/cocoapods/p/Layout.svg?style=flat)](http://cocoadocs.org/docsets/Layout)
+
 # Layout
 
 - [Introduction](#introduction)
@@ -44,7 +50,7 @@
 
 ## What?
 
-Layout is a framework for implementing iOS user interfaces using runtime-evaluated expressions for layout and (optionally) XML template files. It is intended as a more-or-less drop-in replacement for Storyboards, but offers a number of advantages.
+Layout is a framework for implementing iOS user interfaces using runtime-evaluated expressions for layout and (optionally) XML template files. It is intended as a more-or-less drop-in replacement for Nibs and Storyboards, but offers a number of advantages (see [below](#why) for details).
 
 The Layout framework is *extremely* beta, so expect rough edges and breaking changes.
 
@@ -63,7 +69,7 @@ Layout also includes a replacement for AutoLayout that aims to be:
 * Simpler to use for basic layouts
 * More intuitive and readable for complex layouts
 * More deterministic and simpler to debug
-* More performant (at least in theory :-)
+* More performant (at least in theory :-))
 
 ## How?
 
@@ -80,19 +86,20 @@ Layout is designed to work with ordinary UIKit components, not to replace or rei
 
 ## Installation
 
-To install Layout using CocoaPods, add the following to the top of your Podfile:
+Layout is provided as a standalone Swift framework that you can use in your app. It has no dependencies, and is not tied to any particular package management solution.
 
-	source 'git@github.schibsted.io:Rocket/cocoapod-specs.git'
-	
-Then, add the following to the list of pod dependencies:
+To install Layout using CocoaPods, add the following to your Podfile:
 
-	pod 'Layout', '~> 0.4.6'
+	pod 'Layout', '~> 0.4.7'
 
-This will include the Layout framework itself, and the open source Expression library, which is the only dependency.
+To install use Carthage, add this to your Cartfile:
+
+    github "schibsted/Layout" ~> 0.4.7
+    
 
 ## Integration
 
-The core API exposed by Layout is the `LayoutNode` class. Create a layout node as follows:
+The primary API exposed by Layout is the `LayoutNode` class. Create a layout node as follows:
 
     let node = LayoutNode(
     	view: UIView(),
@@ -117,9 +124,9 @@ The core API exposed by Layout is the `LayoutNode` class. Create a layout node a
     
 This example code creates a centered `UILabel` inside a `UIView` with a white background that will stretch to fill its superview once mounted.
 
-For simple views, creating the layout in code is a convenient solution that avoids the need for an external file. But the real power of the Layout framework comes from the ability to specify layouts using external XML files, because it allows for [live reloading](#live-reloading) (see below), which can significantly reduce development time.
+For simple views, creating the layout in code is a convenient solution that avoids the need for an external file. But the real power of the Layout framework comes from the ability to specify layouts using external XML files, because it allows for [live reloading](#live-reloading), which can significantly reduce development time.
 
-The equivalent XML markup for the above layout is:
+The equivalent XML markup for the layout above is:
 
 	<UIView
 		width="100%"
@@ -134,7 +141,7 @@ The equivalent XML markup for the above layout is:
 		/>
 	</UIView>
 	
-Any built-in iOS view should work when used as an layout XML element. For custom views, see the [Custom Components](#custom-components) section below.
+Most built-in iOS views should work when used as an layout XML element. For custom views, see the [Custom Components](#custom-components) section below.
 
 To mount a `LayoutNode` inside a view or view controller, subclass `LayoutViewController` and use one of the following three approaches to load your layout:
 
@@ -158,11 +165,12 @@ Use option 1 for layouts generated in code. Use option 2 for XML layout files lo
 
 Option 3 can be used to load a layout from an arbitrary URL, which can be either a local file or remotely-hosted. This is useful if you need to develop directly on a device, because you can host the layout file on your Mac and then connect to it from the device to allow reloading of changes without recompiling the app. It's also potentially useful in production for hosting layouts in some kind of CMS system.
 
-**Note:** The `loadLayout(withContentsOfURL:)` method offers limited control over caching, etc. so if you intend to host your layouts remotely, it may be better to download the XML template to a local cache location first and then load it from there. 
+**Note:** The `loadLayout(withContentsOfURL:)` method offers limited control over caching, etc. so if you intend to host your layouts remotely, it may be better to download the XML template to a local cache location first and then load it from there.
+
 
 ## Live Reloading
 
-The `LayoutViewController` provides a number of helpful features to improve your development productivity, most notably the *Red Box* debugger and the *live reloading* option.
+The `LayoutViewController` provides a number of helpful features to improve your development productivity, most notably the *Red Box* debugger and the *live reloading* feature.
 
 If the Layout framework throws an error during XML parsing, mounting, or updating, the `LayoutViewController` will detect it and display the *Red Box*, which is a full-screen overlay that displays the error message along with a reload button. Pressing reload will reset the layout state and re-load the layout XML file.
 
@@ -170,23 +178,24 @@ When you load an XML layout file in the iOS Simulator, the Layout framework will
 
 This means that you can go ahead and fix the errors in your XML file, then reload it *without* restarting the simulator, or recompiling the app.
 
-You can reload at any time, even if there was no error, by pressing Cmd-R in the simulator (not in Xcode itself). `LayoutViewController` will detect that key combination and reload the XML, provided that it is the current first responder on screen.
+You can reload at any time, even if there was no error, by pressing Cmd-R in the simulator (not in Xcode itself, as that will recompile the app). `LayoutViewController` will detect that key combination and reload the XML, provided that it is the current first responder on screen.
 
 **Note:** This only works for changes you make to the layout XML file itself, not for Swift code changes in your view controller, or other resources such as images.
 
-This live reloading feature, combined with the gracious handling of errors, means that it should be possible to do most of your interface development without needing to recompile the app. This can be a significant productivity boost.
+The live reloading feature, combined with the gracious handling of errors, means that it should be possible to do most of your interface development without needing to recompile the app.
+
 
 ## Constants
 
-Static XML is all very well, but in the real world, app content is dynamic. Strings, images, and even layouts themselves need to change dynamically based on user-generated content, the current locale, etc.
+Static XML is all very well, but most app content is dynamic. Strings, images, and even layouts themselves need to change at runtime based on user-generated content, the current locale, etc.
 
 `LayoutNode` provides two mechanisms for passing dynamic data, which can then be referenced inside your layout expressions: *constants* and *state*.
 
-Constants, as the name implies, are values that remain constant for the lifetime of the `LayoutNode`. These values don't actually need to be constant in `let` vs `var` sense, but changing them means re-creating the `LayoutNode` and its associated view hierachy from scratch. The constants dictionary is passed into the `LayoutNode` initializer, and can be referenced by any expression in that node or any of its children.
+Constants - as the name implies - are values that remain constant for the lifetime of the `LayoutNode`. These values don't need to be constant for the lifetime of the *app*, but changing them means re-creating the `LayoutNode` and its associated view hierachy from scratch. The constants dictionary is passed into the `LayoutNode` initializer, and can be referenced by any expression in that node or any of its children.
 
 A good use for constants would be localized strings, or something like colors or fonts used by the app UI theme. These are things that never (or rarely) change during the lifecycle of the app, so its acceptable that the view hierarchy must be torn down in order to reset them.
 
-Here is how you would pass some constants inside `LayoutViewController`:
+Here is how you would pass some constants to your XML-based layout:
 
 	self.loadLayout(
 	    named: "MyLayout.xml",
@@ -210,9 +219,9 @@ And how you might reference them in the XML:
 
 (You may have noticed that the `title` and `titleFont` constants are surrounded by `{...}` braces, but the `titleColor` constant isn't. This is explained in the [Strings](##strings) and [Fonts](##fonts) subsections below.)
 
-You will probably find that some constants are common to every layout in your application, for example if you have constants representing standard spacing metrics, fonts or colors. It would be annoying to have to repeat these everywhere, but the lack of a convenient way to merge dictionaries in Swift (as of version 3.0) makes it painful to create a static dictionary of common constants as well.
+You will probably find that some constants are common to every layout in your application, for example if you have constants representing standard spacing metrics, fonts or colors. It would be annoying to have to repeat these everywhere, but the lack of a convenient way to merge dictionaries in Swift (as of version 3.0) makes it painful to use a static dictionary of common constants as well.
 
-For this reason, the `constants` argument of `LayoutNode`'s initializer is actually variadic, allowing you to pass multiple dictionaries, which will be merged automatically. This makes it much more pleasant to combine a standard constants dictionary with a handful of custom values:
+For this reason, the `constants` argument of `LayoutNode`'s initializer is actually variadic, allowing you to pass multiple dictionaries, which will be merged automatically. This makes it much more pleasant to combine a global constants dictionary with a handful of custom values:
 
     let extraConstants: [String: Any] = ...
 
@@ -228,7 +237,7 @@ For this reason, the `constants` argument of `LayoutNode`'s initializer is actua
 
 ## State
 
-For more dynamic layouts, you may have properties of the view that need to change frequently (perhaps even during an animation), and recreating the entire view hierarchy to change these is neither convenient nor efficient. For these properties, you can use *state*. State works the same way as constants, except you can update state after the `LayoutNode` has been initialized:
+For more dynamic layouts, you may have properties that need to change frequently (perhaps even during an animation), and recreating the entire view hierarchy to change these is neither convenient nor efficient. For these properties, you can use *state*. State works in much the same way as constants, except you can update state after the `LayoutNode` has been initialized:
 
 	self.loadLayout(
 	    named: "MyLayout.xml",
@@ -244,7 +253,7 @@ For more dynamic layouts, you may have properties of the view that need to chang
 		self.layoutNode.state = ["isSelected": true]
 	}
 	
-Note that you can used both constants and state in the same Layout. If a state variable has the same name as a constant, the state variable takes precedence. As with constants, state values can be passed in at the root node of a hierarchy and accessed by any child node. If children in the hierarchy have their own state properties then these will take priority over values set on their parent(s).
+Note that you can used both constants and state in the same Layout. If a state variable has the same name as a constant, the state variable takes precedence. As with constants, state values can be passed in at the root node of a hierarchy and accessed by any child node. If children in the hierarchy have their own constant or state properties, these will take priority over values set on their parent(s).
 
 Although state can be updated dynamically, all state properties referenced in the layout must have been given a value before the `LayoutNode` is first mounted/updated. It's generally a good idea to set default values for all state variables when you first initialize the node.
 
@@ -299,7 +308,7 @@ There is no need to specify a target - the action will be automatically bound to
         ...
     }
     
-The actions's method name follows the Objective-C selector syntax, so if you wish to pass the button itself as a sender, use a trailing colon in the method name:
+The actions's method name follows the Objective-C selector syntax conventions, so if you wish to pass the button itself as a sender, use a trailing colon in the method name:
 
 	<UIButton touchUpInside="wasPressed:"/>
 	
@@ -309,7 +318,7 @@ Then the corresponding method can be implemented as:
         ...
     }
     
-Action expressions are treated as strings, and like other string expressions they can contain logic. Note however that the logic inside an action is executed when the layout is updated, *not* when the action is invoked. This is useful if you wish to point the action at a different method, depending on some state, e.g.
+Action expressions are treated as strings, and like other string expressions they can contain logic. Note, however, that the logic inside an action is executed when the layout is updated, *not* when the action is invoked. This is useful if you wish to toggle the action between different methods, depending on some state, e.g.
 
     <UIButton touchUpInside="{isSelected ? 'deselect:' : 'select:'}"/>
     
@@ -324,7 +333,7 @@ To create an outlet binding for a layout node, declare a property of the correct
 
     class MyViewController: LayoutViewController {
     
-    	var labelNode: LayoutNode?
+    	var labelNode: LayoutNode? // outlet
     
         public override func viewDidLoad() {
         	super.viewDidLoad()
@@ -366,7 +375,7 @@ Another commonly-used feature in iOS views is the *delegate* pattern. Layout als
 
 When loading a layout XML file, or a programmatically-created `LayoutNode` hierarchy into a `LayoutViewController`, the views will be scanned for delegate properties and these will be automatically bound to the `LayoutViewController` *if* it conforms to the specified protocol.
 
-So for example, if your layout contains a `UIScrollView`, and your view controller conforms to the `UIScrollViewDelegate` protocol, then the view controller will automatically be attached as the delegate for the view controller. It's that simple!
+So for example, if your layout contains a `UIScrollView`, and your view controller conforms to the `UIScrollViewDelegate` protocol, then the view controller will automatically be attached as the delegate for the view controller:
 
 	class MyViewController: LayoutViewController, UITextFieldDelegate {
     
@@ -398,7 +407,7 @@ There are a few caveats to watch out for, however:
 
 * The binding mechanism relies on Objective-C runtime protocol detection, so it won't work for Swift protocols that aren't `@objc`-compliant.
 
-* If you have multiple views in your layout that all use the same delegate protocol, e.g. several `UIScrollView`s or several `UITextField`s then they will *all* be bound to the view controller. If you are only interested in receiving events from some views and not others, you can either add logic inside the delegate method to determine which view is calling it, or explicitly disable the `delegate` properties of those views by setting them to `nil`:
+* If you have multiple views in your layout that all use the same delegate protocol, e.g. several `UIScrollView`s or several `UITextField`s, then they will *all* be bound to the view controller. If you are only interested in receiving events from some views and not others, you can either add logic inside the delegate method to determine which view is calling it, or explicitly disable the `delegate` properties of those views by setting them to `nil`:
 
     <UITextField delegate="nil"/>
     
@@ -471,7 +480,7 @@ Only types that are visible to the Objective-C runtime can be detected automatic
 
 Because it is possible to pass in arbitrary values via constants and state, Layout supports referencing almost any type of value inside an expression, even if there is no way to express it as a literal.
 
-Expressions are strongly-typed, so passing the wrong type of value to a function or operator, or returning the wrong type from an expression will result in an error. Where possible, these type checks are performed when the node is first mounted, so that the error is surfaced immediately.
+Expressions are strongly-typed, so passing the wrong type of value to a function or operator or returning the wrong type from an expression will result in an error. Where possible, these type checks are performed when the node is first mounted, so that the error is surfaced immediately.
 
 The following types of property are given special treatment in order to make it easier to specify them using an expression string:
 
@@ -485,7 +494,7 @@ Because Layout manages the view frame automatically, direct manipulation of the 
 
 These properties are not simple numbers, but structs containing several packed values. So how can you manipulate these with Layout expressions?
 
-Well, firstly, almost any property type can be set using a constant or state variable, even if there is no way to define a literal value in an expression. So for example, the following code will set the `layer.transform` even though Layout has no built-support for manipulating `CATransform3D` matrices:
+Well, firstly, almost any property type can be set using a constant or state variable, even if there is no way to define a literal value for it in an expression. So for example, the following code will set the `layer.transform` even though Layout has no built-support for manipulating `CATransform3D` matrices:
 
 	LayoutNode(
 		named: "MyLayout.xml",
@@ -572,7 +581,8 @@ You can use these literals and functions as part of a more complex expression, f
 	<UIView backgroundColor="rgba(255, 255, 255, 1 - transparency)"/>
 	
 The use of color literals is convenient for development purposes, but you are encouraged to define constants for any commonly uses colors in your app, as these will be easier to refactor later. 
-	
+
+
 ## Images
 
 Static images can be specified by name or via a constant or state variable. As with strings, to avoid the need for nested quotes, image expressions are treated as literal string values, and expressions must be escaped inside `{ ... }` braces:
@@ -582,6 +592,7 @@ Static images can be specified by name or via a constant or state variable. As w
 	<UIImageView image="{imageConstant}"/>
 	
 	<UIImageView image="image_{index}.png"/>
+
 
 ## Fonts
 
@@ -631,9 +642,10 @@ The `<font-size>` can be either a number or a percentage. If you use a percentag
 
     <UILabel font="helvetica body bold 120%"/>
 
-`UIFont` constants or variables can also be used via inline expressions, so, for example, to use a `UIFont` constant called "themeFont", but override its size and weight, you could write:
+`UIFont` constants or variables can also be used via inline expressions. To use a `UIFont` constant called "themeFont", but override its size and weight, you could write:
 
 	<UILabel font="{themeFont} 25 bold"/>
+
 
 ## Attributed Strings
 
@@ -680,6 +692,7 @@ And as with regular text attributes, inline HTML can contain embedded expression
 
 	<UILabel>Hello <b>{name}</b></UILabel>
 
+
 ## Optionals
 
 There is currently very limited support for optionals in expressions. There is no way to specify that an expression's return value is optional, and so returning `nil` from an expression is usually an error. There are a few exceptions to this:
@@ -703,6 +716,7 @@ In this example, if the `col` constant is `nil`, we return a default color of wh
 
 Layout has good support for most built-in UIKit views and view controllers out of the box, but it can also be used with custom UI components that you create yourself. If you follow standard conventions for your view interfaces, then for the most part these should *just work*, however you may need to take some extra steps for full compatibility:
 
+
 ## Namespacing
 
 As you are probably aware, Swift classes are scoped to a particular module. If you have an app called MyApp and it declares a custom `UIView` subclass called `FooView`, then the fully-qualified class name of the view would be `MyApp.FooView`, not just `FooView`, as it would have been in Objective-C.
@@ -715,9 +729,10 @@ Layout deals with the common case for you by inserting the main module's namespa
 	
 In the interests of avoiding boilerplate, you should generally use the latter form. However, if you package custom components into a separate module then you will need to refer to them using their fully-qualified name in your XML.
 
+
 ## Custom Property Types
 
-As mentioned above, Layout uses the Objective-C runtime to automatically detect property names and types for use with expressions. The Objective-C runtime only supports a subset of possible Swift types, and even for Objective-C types, some runtime information is lost. For example, it's impossible to automatically detect the valid set of raw values and case names for enum types.
+As mentioned above, Layout uses the Objective-C runtime to automatically detect property names and types for use with expressions. The Objective-C runtime only supports a subset of possible Swift types, and even for Objective-C types, some runtime information is lost. For example, it's impossible to automatically detect the valid set of raw values and case names for enum types at runtime.
 
 There are also some situations where properties may be exposed in a way that doesn't show up as an Objective-C property at runtime, or the property setter may not be compatible with KVC (Key-Value Coding), resulting in a crash when it is accessed using `setValue(forKey:)`.
 
@@ -774,7 +789,7 @@ To implement this, you can make use of the `LayoutLoading` protocol. `LayoutLoad
 
 Unlike `LayoutViewController`,  `LayoutLoading` provides no Red Box error console or reloading keyboard shortcuts, and because it is a protocol rather than a base class, it can be applied on top of any existing `UIView` or `UIViewController` base class that you require.
 
-The default implementation of `LayoutLoading` will bubble errors up the responder chain to the first view or view controller that handles them. If the `LayoutLoading` view or view controller is placed inside a root `LayoutViewController`, it will therefore gain all the same debugging benefits as using a `LayoutViewController` base class, but with more flexibility.
+The default implementation of `LayoutLoading` will bubble errors up the responder chain to the first view or view controller that handles them. If the `LayoutLoading` view or view controller is placed inside a root `LayoutViewController`, it will therefore gain all the same debugging benefits as using a `LayoutViewController` base class:
 
     class MyView: UIView, LayoutLoading {
         
@@ -818,13 +833,13 @@ If you would prefer not to use either the `LayoutViewController` base class or `
 
 This method of integration does not provide the automatic live reloading feature for local XML files, nor the Red Box debugging interface - both of those are implemented internally by the `LayoutViewController`.
 
-If you are using some fancy archictecture that splits up view controllers into sub-components, you may find that you need to bind a `LayoutNode` to something other than a `UIView` or `UIViewController` subclass. In that case you can use the `bind(to:)` method, which will connect the node's outlets, actions and delegates to the specified owner object, but won't attempt to mount the view or view controllers.
+If you are using some fancy architecture like [Viper[(https://github.com/MindorksOpenSource/iOS-Viper-Architecture) that splits up view controllers into sub-components, you may find that you need to bind a `LayoutNode` to something other than a `UIView` or `UIViewController` subclass. In that case you can use the `bind(to:)` method, which will connect the node's outlets, actions and delegates to the specified owner object, but won't attempt to mount the view or view controllers.
 
 The `mount(in:)`, `bind(to:)` and `update()` methods may each throw an error if there is a problem with your XML markup, or in an expression's syntax or logic.
 
 These errors are not expected to occur in a correctly implemented layout - they typically only happen if you have made a mistake in your code - so for release builds it should be OK to suppress them with `try!` or `try?` (assuming you've tested your app properly before releasing it!).
 
-If you are loading XML templates from a external source, you might prefer to catch and log these errors instead of allowing them to crash or fail silently, as there is a greater likelihood of an error making it into production if templates and native code are updated independently.
+If you are loading XML templates from an external source, you might prefer to catch and log these errors instead of allowing them to crash or fail silently, as there is a greater likelihood of an error making it into production if templates and native code are updated independently.
   
   
 # Table Views
@@ -837,7 +852,9 @@ You can use a `UITableView` inside a Layout template in much the same way as you
         style="plain"
     />
 
-The tableView's `delegate` and `dataSource` will automatically be bound to the file's owner, which is typically either your `LayoutViewController` subclass, or the first nested view controller that conforms to one or both of the `UITableViewDelegate`/`DataSource` protocols. If you don't want that behavior, you can explicitly set them (see the [Delegates](#delegates) section above). You would define the view controller logic for this table in pretty much the same way as you would if not using Layout:
+The tableView's `delegate` and `dataSource` will automatically be bound to the file's owner, which is typically either your `LayoutViewController` subclass, or the first nested view controller that conforms to one or both of the `UITableViewDelegate`/`DataSource` protocols. If you don't want that behavior, you can explicitly set them (see the [Delegates](#delegates) section above).
+
+You would define the view controller logic for a Layout-managed table in pretty much the same way as you would if not using Layout:
 
     class TableViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
     
@@ -922,9 +939,9 @@ Alternatively, you can define the cell in its own XML file. If you do that, the 
         ...
     }
 
-Layout supports dynamic table cell height calculation. To enable this, just set a height expression for your cell. If your cells all have the same height, it is more efficient to set an explicit `rowHeight` property on the `UITableView` instead.
+Layout supports dynamic table cell height calculation. To enable this, just set a height expression for your cell. Dynamic table cell sizing also requires that the table view's `rowHeight` is set to `UITableViewAutomaticDimension` and a nonzero value is provided for `estimatedRowHeight`, but Layout sets these for you automatically. Note that if your cells all have the same height, it is significantly more efficient to set an explicit `rowHeight` property on the `UITableView` instead of setting the height for each cell.
 
-The same approach works for `UITableViewHeaderFooterView` layouts, and there are equivalent methods for registering and dequeueing UITableViewHeaderFooterView layout nodes.
+Layout also supports using XML layouts for `UITableViewHeaderFooterView`, and there are equivalent methods for registering and dequeueing UITableViewHeaderFooterView layout nodes.
 
 
 # Collection Views
@@ -939,9 +956,7 @@ Layout supports `UICollectionView` in a similar way to `UITableView`. If you do 
         collectionViewLayout.scrollDirection="horizontal"
     />
     
-As with `UITableView` the collection view's `delegate` and `dataSource` will automatically be bound to the file's owner.
-
-Using a Layout-based `UICollectionViewCell`, either directly inside your collection view XML or in a standalone file, also works the same. A cell template defined inside the collection view XML might look something like this:
+As with `UITableView` the collection view's `delegate` and `dataSource` will automatically be bound to the file's owner. Using a Layout-based `UICollectionViewCell`, either directly inside your collection view XML or in a standalone file, also works the same. A cell template defined inside the collection view XML might look something like this:
 
     <UICollectionView
         backgroundColor="#fff"
@@ -1002,16 +1017,20 @@ Alternatively, you can define the cell in its own XML file. If you do that, the 
     
 Dynamic collection cell size calculation is also supported. To enable this, just set a width and height expression for your cell. If your cells all have the same size, it is more efficient to set an explicit `collectionViewLayout.itemSize` on the `UICollectionView` instead.
 
+Layout does not currently support using XML to define supplementary `UICollectionReusableView` instances, but this will be added in future.
+
 
 ## Composition
 
 For large or complex layouts, you may wish to split your layout into multiple files. This can be done easily when creating a `LayoutNode` programmatically, by assigning a subtrees of `LayoutNode`s to a temporary variable, but what about layouts defined in XML?
 
-Fortunately, Layout has a nice solution for this. Any layout node in your XML file can contain an `xml` attribute that references an external XML file. This reference can point to a local file, or even a remote URL:
+Fortunately, Layout has a nice solution for this: Any layout node in your XML file can contain an `xml` attribute that references an external XML file. This reference can point to a local file, or even a remote URL:
 
 	<UIView xml="MyView.xml"/>
 	
-The attributes of the original node will be merged with the external node once it has loaded. Any children of the original node will be replaced by the contents of the loaded node, so you can insert a placeholder view to be displayed while the real content is loading:
+The referenced XML is just an ordinary layout file, and can be loaded and used normally, but when loaded using the composition feature it replaces the node that loads it.
+
+The attributes of the original node will be merged with the external node once it has loaded. Loading is performed asynchronously, so the original node will be displayed first and will be updated once the XML has loaded. Any children of the original node will be replaced by the contents of the loaded node, so you can insert a placeholder view to be displayed while the real content is loading:
 
 	<UIView backgroundColor="#fff" xml="MyView.xml">
 		<UILabel text="Loading..."/>
@@ -1022,13 +1041,13 @@ The root node of the referenced XML file must be a subclass of (or the same clas
 	
 ## Templates
 
-Templates are sort of the opposite of composition. When a layout node imports a template, the node's attributes and children are appended to those of the inherited layout. This is useful if you have a bunch of nodes with common attributes or elements:
+Templates are sort of the opposite of composition, and work more like class inheritance in OOP. As with the composition feature, a template is a standalone XML file that you import into your node. But when a layout node imports a template, the node's attributes and children are appended to those of the inherited layout, instead of the template node replacing them. This is useful if you have a bunch of nodes with common attributes or elements:
 
     <UIView template="MyTemplate.xml">
         <UILabel>Some unique content</UILabel>
     </UIView>
     
-The template itself is just an ordinary layout file, and can be loaded and used normally:
+As will composition, the template itself is just an ordinary layout file, and can be loaded and used normally:
 
     <!-- MyTemplate.xml -->
     <UIView backgroundColor="#fff">
@@ -1074,11 +1093,9 @@ The Layout project includes the source code for a command-line app called Layout
 
 ## Installation
 
-To install LayoutTool using CocoaPods, add the following to the top of your Podfile:
+The latest built binary of LayoutTool is included in the project, and you can just drag-and-drop it to install.
 
-	source 'git@github.schibsted.io:Rocket/cocoapod-specs.git'
-	
-Then, add the following to the list of pod dependencies:
+To automatically install LayoutTool into your project using CocoaPods, add the following to your Podfile:
 
 	pod 'Layout/CLI'
 
@@ -1094,7 +1111,7 @@ For more information, use `LayoutTool help`.
 
 To automatically apply `LayoutTool format` to your project every time it is built, you can add a Run Script build phase that applies the tool. Assuming you've installed the LayoutTool CLI using CocoaPods, that script will look something like:
 
-    "${SRCROOT}/Pods/Layout/LayoutTool/LayoutTool" "${SRCROOT}/path/to/your/layout/xml/"
+    "${PODS_ROOT}/Layout/LayoutTool/LayoutTool" "${SRCROOT}/path/to/your/layout/xml/"
 
 The formatting applied by LayoutTool is specifically designed for Layout files. It is better to use LayoutTool for formatting these files rather than a generic XML-formatting tool.
 
@@ -1108,7 +1125,7 @@ To safely determine which files the formatting will be applies to, without overw
 
 LayoutTool provides a function for renaming expression variables or functions inside one or more Layout XML templates. Use it as follows: 
 
-    "${SRCROOT}/Pods/Layout/LayoutTool/LayoutTool" "${SRCROOT}/path/to/your/layout/xml/" oldSymbolName newSymbolName
+    "${PODS_ROOT}/Layout/LayoutTool/LayoutTool" "${SRCROOT}/path/to/your/layout/xml/" oldSymbolName newSymbolName
     
 Only values inside expressions will be affected. XML node names and literal string fragments are ignored.
 

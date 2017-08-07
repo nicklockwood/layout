@@ -1,0 +1,4 @@
+language: objective-c
+osx_image: xcode8.3
+script: xcodebuild test -project Layout.xcodeproj -scheme Layout -destination 'platform=iOS Simulator,name=iPhone 7 Plus,OS=10.3.1'
+

@@ -19,7 +19,7 @@ class LayoutNodeTests: XCTestCase {
         let node = LayoutNode(expressions: ["top": "top"])
         let errors = node.validate()
         XCTAssertEqual(errors.count, 1)
-        XCTAssertTrue(errors.first?.description.contains("Circular reference") == true)
+        XCTAssertTrue(errors.first?.description.contains("reference") == true)
         XCTAssertTrue(errors.first?.description.contains("top") == true)
     }
 
@@ -29,7 +29,7 @@ class LayoutNodeTests: XCTestCase {
         XCTAssertGreaterThanOrEqual(errors.count, 2)
         for error in errors {
             let description = error.description
-            XCTAssertTrue(description.contains("Circular reference"))
+            XCTAssertTrue(description.contains("reference"))
             XCTAssertTrue(description.contains("top") || description.contains("bottom"))
         }
     }
@@ -56,7 +56,7 @@ class LayoutNodeTests: XCTestCase {
         XCTAssertGreaterThanOrEqual(errors.count, 2)
         for error in errors {
             let description = error.description
-            XCTAssertTrue(description.contains("Circular reference"))
+            XCTAssertTrue(description.contains("reference"))
             XCTAssertTrue(description.contains("width") || description.contains("height"))
         }
     }
