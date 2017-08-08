@@ -2,6 +2,7 @@
     <UITableView
         contentInset.bottom="bottomLayoutGuide.length"
         contentInset.top="topLayoutGuide.length"
+        contentInsetAdjustmentBehavior="never"
         contentOffset.y="-topLayoutGuide.length"
         outlet="tableView"
         scrollIndicatorInsets.bottom="bottomLayoutGuide.length"

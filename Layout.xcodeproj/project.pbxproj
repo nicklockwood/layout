@@ -78,6 +78,7 @@
 		011CE6CA1F053D530034771C /* LayoutNodeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 011CE6C01F053D530034771C /* LayoutNodeTests.swift */; };
 		011CE6CB1F053D530034771C /* OptionalExpressionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 011CE6C11F053D530034771C /* OptionalExpressionTests.swift */; };
 		011CE6CC1F053D530034771C /* StateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 011CE6C21F053D530034771C /* StateTests.swift */; };
+		012073261F39EE0000FD092A /* UIScrollView+Layout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 012073251F39EE0000FD092A /* UIScrollView+Layout.swift */; };
 		0136F1BC1F17863C00C44673 /* PerformanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0136F1BB1F17863C00C44673 /* PerformanceTests.swift */; };
 		0136F1BE1F17863C00C44673 /* Layout.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 011CE6991F053ABD0034771C /* Layout.framework */; };
 		014F37481F352B2600F63CCF /* CollectionCell.xml in Resources */ = {isa = PBXBuildFile; fileRef = 014F37471F352B2600F63CCF /* CollectionCell.xml */; };
@@ -225,6 +226,7 @@
 		011CE6C01F053D530034771C /* LayoutNodeTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LayoutNodeTests.swift; sourceTree = "<group>"; };
 		011CE6C11F053D530034771C /* OptionalExpressionTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OptionalExpressionTests.swift; sourceTree = "<group>"; };
 		011CE6C21F053D530034771C /* StateTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StateTests.swift; sourceTree = "<group>"; };
+		012073251F39EE0000FD092A /* UIScrollView+Layout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIScrollView+Layout.swift"; sourceTree = "<group>"; };
 		0136F1B91F17863A00C44673 /* PerformanceTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PerformanceTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		0136F1BB1F17863C00C44673 /* PerformanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerformanceTests.swift; sourceTree = "<group>"; };
 		0136F1BD1F17863C00C44673 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -414,6 +416,7 @@
 				01185CCF1F34E04600D34EA7 /* UICollectionView+Layout.swift */,
 				01185CCD1F334B0B00D34EA7 /* UIStackView+Layout.swift */,
 				0105F7871F0547910067B313 /* UIView+Layout.swift */,
+				012073251F39EE0000FD092A /* UIScrollView+Layout.swift */,
 				0105F7881F0547910067B313 /* UIViewController+Layout.swift */,
 				011CE69B1F053ABD0034771C /* Layout.h */,
 				011CE69C1F053ABD0034771C /* Info.plist */,
@@ -905,6 +908,7 @@
 				0105F78D1F0547910067B313 /* LayoutLoading.swift in Sources */,
 				01E7E0511F1C077900B7F9DB /* LayoutError+LayoutNode.swift in Sources */,
 				01E7E04F1F1C057700B7F9DB /* Layout+XML.swift in Sources */,
+				012073261F39EE0000FD092A /* UIScrollView+Layout.swift in Sources */,
 				01E7E04D1F1C033600B7F9DB /* LayoutNode+Layout.swift in Sources */,
 				0105F7931F0547910067B313 /* UITableView+Layout.swift in Sources */,
 				0105F7911F0547910067B313 /* Optional+Layout.swift in Sources */,
@@ -1070,7 +1074,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				DEVELOPMENT_TEAM = 8VQKF583ED;
 				INFOPLIST_FILE = Sandbox/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 10.3;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.Sandbox;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1084,7 +1088,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				DEVELOPMENT_TEAM = 8VQKF583ED;
 				INFOPLIST_FILE = Sandbox/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 10.3;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.Sandbox;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1099,7 +1103,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				DEVELOPMENT_TEAM = 8VQKF583ED;
 				INFOPLIST_FILE = SampleApp/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 10.3;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.SampleApp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1114,7 +1118,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				DEVELOPMENT_TEAM = 8VQKF583ED;
 				INFOPLIST_FILE = SampleApp/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 10.3;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.SampleApp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1128,7 +1132,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				DEVELOPMENT_TEAM = 8VQKF583ED;
 				INFOPLIST_FILE = UIDesigner/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 10.3;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.UIDesigner;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1143,7 +1147,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				DEVELOPMENT_TEAM = 8VQKF583ED;
 				INFOPLIST_FILE = UIDesigner/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 10.3;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.UIDesigner;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1164,7 +1168,7 @@
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				INFOPLIST_FILE = Layout/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				IPHONEOS_DEPLOYMENT_TARGET = 10.3;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.Layout;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1186,7 +1190,7 @@
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				INFOPLIST_FILE = Layout/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				IPHONEOS_DEPLOYMENT_TARGET = 10.3;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.Layout;
 				PRODUCT_NAME = "$(TARGET_NAME)";

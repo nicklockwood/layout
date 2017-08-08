@@ -1,16 +1,17 @@
 <CollectionViewController>
     <UICollectionView
         backgroundColor="#fff"
+        collectionViewLayout.itemSize.height="collectionViewLayout.itemSize.width"
+        collectionViewLayout.itemSize.width="(100% - (6 * 10)) / 7"
+        collectionViewLayout.minimumInteritemSpacing="10"
+        collectionViewLayout.scrollDirection="vertical"
         contentInset.bottom="bottomLayoutGuide.length"
         contentInset.top="topLayoutGuide.length"
+        contentInsetAdjustmentBehavior="never"
         contentOffset.y="-topLayoutGuide.length"
         outlet="collectionView"
         scrollIndicatorInsets.bottom="bottomLayoutGuide.length"
-        scrollIndicatorInsets.top="topLayoutGuide.length"
-        collectionViewLayout.scrollDirection="vertical"
-        collectionViewLayout.itemSize.width="(100% - (6 * 10)) / 7"
-        collectionViewLayout.itemSize.height="collectionViewLayout.itemSize.width"
-        collectionViewLayout.minimumInteritemSpacing="10">
+        scrollIndicatorInsets.top="topLayoutGuide.length">
 
         <UICollectionViewCell
             clipsToBounds="true"
