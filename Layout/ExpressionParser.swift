@@ -17,7 +17,8 @@ func parseExpression(_ expression: String) throws -> ParsedExpression {
         return parsedExpression
     }
     let parsedExpression: ParsedExpression
-    var characters = expression.trimmingCharacters(in: .whitespacesAndNewlines).unicodeScalars
+    var characters = String.UnicodeScalarView.SubSequence(
+        expression.trimmingCharacters(in: .whitespacesAndNewlines).unicodeScalars)
     switch characters.first ?? " " {
     case "{":
         characters.removeFirst()
@@ -48,7 +49,7 @@ func parseStringExpression(_ expression: String) throws -> [ParsedExpressionPart
     }
     var parts = [ParsedExpressionPart]()
     var string = ""
-    var characters = expression.unicodeScalars
+    var characters = String.UnicodeScalarView.SubSequence(expression.unicodeScalars)
     while let char = characters.first {
         switch char {
         case "{":

@@ -2,7 +2,7 @@
 //  Expression.swift
 //  Expression
 //
-//  Version 0.8.1
+//  Version 0.8.2
 //
 //  Created by Nick Lockwood on 15/09/2016.
 //  Copyright © 2016 Nick Lockwood. All rights reserved.
@@ -340,7 +340,7 @@ public class Expression: CustomStringConvertible {
         // Parse
         var subexpression: Subexpression
         do {
-            var characters = expression.unicodeScalars
+            var characters = String.UnicodeScalarView.SubSequence(expression.unicodeScalars)
             subexpression = try characters.parseSubexpression()
             // Check for trailing junk
             if let junk = characters.scanCharacters({
@@ -369,7 +369,7 @@ public class Expression: CustomStringConvertible {
     /// encounters an unexpected token after the expression, but will simply
     /// return. This is convenient if you wish to parse expressions that are
     /// nested inside another string, e.g. for implementing string interpolation
-    public static func parse(_ input: inout String.UnicodeScalarView) throws -> ParsedExpression {
+    public static func parse(_ input: inout String.UnicodeScalarView.SubSequence) throws -> ParsedExpression {
         let subexpression = try input.parseSubexpression()
         return ParsedExpression(root: subexpression)
     }
@@ -715,7 +715,7 @@ private func isOperator(_ char: UnicodeScalar) -> Bool {
 }
 
 // Expression parsing logic
-private extension String.UnicodeScalarView {
+private extension String.UnicodeScalarView.SubSequence {
 
     mutating func scanCharacters(_ matching: (UnicodeScalar) -> Bool) -> String? {
         var index = endIndex

@@ -474,7 +474,7 @@ struct LayoutExpression {
                 var string = ""
                 func processString() throws {
                     if !string.isEmpty {
-                        var characters = string.unicodeScalars
+                        var characters = String.UnicodeScalarView.SubSequence(string.unicodeScalars)
                         var result = String.UnicodeScalarView()
                         var delimiter: UnicodeScalar?
                         var fontName: String?
