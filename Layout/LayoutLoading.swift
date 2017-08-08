@@ -2,7 +2,7 @@
 
 import UIKit
 
-/// Protocol for views or view conrollers that can load and display a LayoutNode
+/// Protocol for views or view controllers that can load and display a LayoutNode
 public protocol LayoutLoading: class {
     var layoutNode: LayoutNode? { get set }
     func layoutError(_ error: LayoutError)
