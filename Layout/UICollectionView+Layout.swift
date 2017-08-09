@@ -18,7 +18,11 @@ extension UICollectionView {
             let flowLayout = UICollectionViewFlowLayout()
             layout = flowLayout
             // Enable auto-sizing
-            flowLayout.estimatedItemSize = flowLayout.itemSize
+            if node.expressions["collectionViewLayout.itemSize"] ??
+                node.expressions["collectionViewLayout.itemSize.width"] ??
+                node.expressions["collectionViewLayout.itemSize.height"] == nil {
+                flowLayout.estimatedItemSize = flowLayout.itemSize
+            }
             if #available(iOS 10.0, *) {
                 flowLayout.itemSize = UICollectionViewFlowLayoutAutomaticSize
             } else {
