@@ -522,7 +522,7 @@ If a node has no children and no intrinsic size, `auto` is equivalent to `100%`.
 
 Though entirely written in Swift, the Layout library makes heavy use of the Objective-C runtime to automatically generate property bindings for any type of view. The available properties therefore depend on the type of view that is passed into the `LayoutNode` constructor (or the name of the XML node, if you are using XML layouts).
 
-Only types that are visible to the Objective-C runtime can be detected automatically. Fortunately, since UIKit is an Objective-C framework, most view properties work just fine. For ones that don't, it is possible to manually expose these using an extension on the view (this is covered below under Advanced Topics).
+Only types that are visible to the Objective-C runtime can be detected automatically. Fortunately, since UIKit is an Objective-C framework, most view properties work just fine. For ones that don't, it is possible to manually expose these using an extension on the view (this is covered below under [Advanced Topics](#advanced-topics)).
 
 Because it is possible to pass in arbitrary values via constants and state, Layout supports referencing almost any type of value inside an expression, even if there is no way to express it as a literal.
 
