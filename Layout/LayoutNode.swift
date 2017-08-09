@@ -971,7 +971,10 @@ public class LayoutNode: NSObject {
             }
         case "contentInset":
             getter = { [unowned self] in
-                self._view.value(forSymbol: "contentInset") as? UIEdgeInsets ?? .zero
+                // TODO: would prefer not to use try? for this
+                // Context: not all views have a contentInset property, but we'd like to
+                // be able to reference it for any view since it's used by inferContentSize()
+                (try? self._view.value(forSymbol: "contentInset")) as? UIEdgeInsets ?? .zero
             }
         case "contentInset.top":
             getter = { [unowned self] in
@@ -1052,15 +1055,12 @@ public class LayoutNode: NSObject {
                         return value
                     }
                     // Then controller/view symbols
-                    if let value = self.viewController?.value(forSymbol: symbol) ??
-                        self._view.value(forSymbol: symbol) {
-                        return value
+                    if let viewController = self._viewController {
+                        // TODO: find a better way to handle view properties
+                        return try (try? viewController.value(forSymbol: symbol)) ??
+                            self._view.value(forSymbol: symbol)
                     }
-                    if self.viewExpressionTypes[symbol] == nil,
-                        self.viewExpressionTypes[symbol] == nil {
-                        throw SymbolError("Undefined symbol `\(symbol)`", for: symbol)
-                    }
-                    return (nil as Any?) as Any
+                    return try self._view.value(forSymbol: symbol)
                 }
             }
         }

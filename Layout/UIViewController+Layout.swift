@@ -71,8 +71,8 @@ extension UIViewController {
     }
 
     /// Get symbol value
-    @objc open func value(forSymbol name: String) -> Any? {
-        return _value(ofType: type(of: self).cachedExpressionTypes[name], forKeyPath: name)
+    @objc open func value(forSymbol name: String) throws -> Any {
+        return try _value(ofType: type(of: self).cachedExpressionTypes[name], forKeyPath: name) as Any
     }
 
     /// Called immediately after a child node is added

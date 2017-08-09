@@ -392,11 +392,7 @@ extension NSObject {
             }
             throw SymbolError("Unknown property `\(key)` of `\(classForCoder)`", for: key)
         }
-        if value is NSNull { // TODO: better solution for nulls
-            setValue(nil, forKey: key)
-        } else {
-            setValue(value, forKey: key)
-        }
+        setValue(isNil(value) ? nil : value, forKey: key)
     }
 
     // Safe version of setValue(forKeyPath:)
@@ -538,7 +534,7 @@ extension NSObject {
 
     /// Safe version of value(forKey:)
     /// Checks that the property exists, and is gettable, but doesn't validate the type
-    func _value(ofType type: RuntimeType?, forKey key: String) -> Any? {
+    func _value(ofType type: RuntimeType?, forKey key: String) throws -> Any? {
         if let getter = type?.getter {
             return getter(self, key)
         }
@@ -553,7 +549,7 @@ extension NSObject {
             case "y":
                 return point.y
             default:
-                return nil
+                throw SymbolError("Invalid property `\(key)` of CGPoint", for: key)
             }
         case let size as CGSize:
             switch key {
@@ -562,7 +558,7 @@ extension NSObject {
             case "height":
                 return size.height
             default:
-                return nil
+                throw SymbolError("Invalid property `\(key)` of CGSize", for: key)
             }
         case let rect as CGRect:
             switch key {
@@ -591,7 +587,7 @@ extension NSObject {
             case "midY":
                 return rect.midY
             default:
-                return nil
+                throw SymbolError("Invalid property `\(key)` of CGRect", for: key)
             }
         case let insets as UIEdgeInsets:
             switch key {
@@ -604,7 +600,7 @@ extension NSObject {
             case "right":
                 return insets.right
             default:
-                return nil
+                throw SymbolError("Invalid property `\(key)` of UIEdgeInsets", for: key)
             }
         case let offset as UIOffset:
             switch key {
@@ -613,18 +609,18 @@ extension NSObject {
             case "vertical":
                 return offset.vertical
             default:
-                return nil
+                throw SymbolError("Invalid property `\(key)` of UIOffset", for: key)
             }
         default:
-            return nil
+            throw SymbolError("Invalid property `\(key)` of \(classForCoder)", for: key)
         }
     }
 
     /// Safe version of value(forKeyPath:)
     /// Checks that the property exists, and is gettable, but doesn't validate the type
-    func _value(ofType type: RuntimeType?, forKeyPath name: String) -> Any? {
+    func _value(ofType type: RuntimeType?, forKeyPath name: String) throws -> Any? {
         guard let range = name.range(of: ".", options: .backwards) else {
-            return _value(ofType: type, forKey: name)
+            return try _value(ofType: type, forKey: name)
         }
         var value = self as NSObject
         for key in name.substring(to: range.lowerBound).components(separatedBy: ".") {
@@ -647,6 +643,8 @@ extension NSObject {
                 }
             }
         }
-        return value._value(ofType: type, forKey: name.substring(from: range.upperBound))
+        return try SymbolError.wrap({
+            try value._value(ofType: type, forKey: name.substring(from: range.upperBound))
+        }, for: name)
     }
 }

@@ -21,7 +21,7 @@ func unwrap(_ value: Any) throws -> Any {
 // Unwraps a potentially optional value or returns nil
 func optionalValue(of value: Any) -> Any? {
     guard let optional = value as? _Optional else {
-        return value
+        return value is NSNull ? nil : value
     }
     return optional.value
 }
@@ -29,7 +29,7 @@ func optionalValue(of value: Any) -> Any? {
 // Test if a value is nil
 func isNil(_ value: Any) -> Bool {
     guard let optional = value as? _Optional else {
-        return false
+        return value is NSNull
     }
     return optional.isNil
 }

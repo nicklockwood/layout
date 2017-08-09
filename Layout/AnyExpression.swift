@@ -16,11 +16,13 @@ struct AnyExpression: CustomStringConvertible {
     typealias Evaluator = (_ symbol: Symbol, _ args: [Any]) throws -> Any?
     typealias SymbolEvaluator = (_ args: [Any]) throws -> Any
 
-    init(_ expression: String,
-         options: Options = .boolSymbols,
-         constants: [String: Any] = [:],
-         symbols: [Symbol: SymbolEvaluator] = [:],
-         evaluator: Evaluator? = nil) {
+    init(
+        _ expression: String,
+        options: Options = .boolSymbols,
+        constants: [String: Any] = [:],
+        symbols: [Symbol: SymbolEvaluator] = [:],
+        evaluator: Evaluator? = nil
+    ) {
         self.init(
             Expression.parse(expression),
             options: options,
@@ -30,11 +32,13 @@ struct AnyExpression: CustomStringConvertible {
         )
     }
 
-    init(_ expression: ParsedExpression,
-         options: Options = .boolSymbols,
-         constants: [String: Any] = [:],
-         symbols: [Symbol: SymbolEvaluator] = [:],
-         evaluator: Evaluator? = nil) {
+    init(
+        _ expression: ParsedExpression,
+        options: Options = .boolSymbols,
+        constants: [String: Any] = [:],
+        symbols: [Symbol: SymbolEvaluator] = [:],
+        evaluator: Evaluator? = nil
+    ) {
         var values = [Any]()
         func store(_ value: Any) throws -> Double {
             if let value = (value as? NSNumber).map({ Double($0) }) {
@@ -44,17 +48,12 @@ struct AnyExpression: CustomStringConvertible {
                 }
                 return value
             }
-            if let lhs = value as? AnyHashable {
-                if let index = values.index(where: {
-                    if let rhs = $0 as? AnyHashable {
-                        return lhs == rhs
-                    }
-                    return false
-                }) {
+            if isNil(value), let index = values.index(where: { isNil($0) }) {
+                return Double(bitPattern: UInt64(index + 1) | mask)
+            } else if let lhs = value as? AnyHashable {
+                if let index = values.index(where: { $0 as? AnyHashable == lhs }) {
                     return Double(bitPattern: UInt64(index + 1) | mask)
                 }
-            } else if isNil(value), let index = values.index(where: { isNil($0) }) {
-                return Double(bitPattern: UInt64(index + 1) | mask)
             }
             values.append(value)
             return Double(bitPattern: UInt64(values.count) | mask)

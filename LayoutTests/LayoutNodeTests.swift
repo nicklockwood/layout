@@ -61,6 +61,25 @@ class LayoutNodeTests: XCTestCase {
         }
     }
 
+    // MARK: Property errors
+
+    func testNonexistentViewProperty() {
+        let node = LayoutNode(view: UIView(), expressions: ["width": "5 + layer.foobar"])
+        let errors = node.validate()
+        XCTAssertEqual(errors.count, 1)
+        XCTAssertTrue(errors.first?.description.contains("Invalid property") == true)
+        XCTAssertTrue(errors.first?.description.contains("foobar") == true)
+    }
+
+    func testNilViewProperty() {
+        let node = LayoutNode(view: UIView(), expressions: ["width": "layer.contents == nil ? 5 : 10"])
+        let errors = node.validate()
+        XCTAssertEqual(errors.count, 0)
+        try! node.update()
+        XCTAssertNil(node.view.layer.contents)
+        XCTAssertEqual(node.view.frame.width, 5)
+    }
+
     // MARK: State/constant shadowing
 
     func testExpressionShadowsConstant() {
