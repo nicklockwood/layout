@@ -1,10 +1,4 @@
-//
-//  UIScrollView+Layout.swift
-//  Layout
-//
-//  Created by Nick Lockwood on 08/08/2017.
-//  Copyright © 2017 Nick Lockwood. All rights reserved.
-//
+//  Copyright © 2017 Schibsted. All rights reserved.
 
 import Foundation
 
@@ -20,14 +14,14 @@ extension UIScrollView {
     open override class var expressionTypes: [String: RuntimeType] {
         var types = super.expressionTypes
         #if swift(>=3.2)
-        if #available(iOS 11.0, *) {
-            types["contentInsetAdjustmentBehavior"] = RuntimeType(UIScrollViewContentInsetAdjustmentBehavior.self, [
-                "automatic": .automatic,
-                "scrollableAxes": .scrollableAxes,
-                "never": .never,
-                "always": .always,
-            ])
-        }
+            if #available(iOS 11.0, *) {
+                types["contentInsetAdjustmentBehavior"] = RuntimeType(UIScrollViewContentInsetAdjustmentBehavior.self, [
+                    "automatic": .automatic,
+                    "scrollableAxes": .scrollableAxes,
+                    "never": .never,
+                    "always": .always,
+                ])
+            }
         #endif
         if types["contentInsetAdjustmentBehavior"] == nil {
             types["contentInsetAdjustmentBehavior"] = RuntimeType(ContentInsetAdjustmentBehavior.self, [
@@ -94,4 +88,3 @@ extension UIScrollView {
         }
     }
 }
-

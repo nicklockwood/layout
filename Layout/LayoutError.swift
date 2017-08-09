@@ -22,7 +22,7 @@ internal struct SymbolError: Error, CustomStringConvertible {
             if symbol == error.symbol || description.contains(symbol) {
                 self.error = error.error
             } else if description.contains(error.symbol) {
-                 self.error = SymbolError(description, for: error.symbol)
+                self.error = SymbolError(description, for: error.symbol)
             } else {
                 self.error = SymbolError("\(description) in symbol `\(error.symbol)`", for: error.symbol)
             }

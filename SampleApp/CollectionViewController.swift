@@ -23,7 +23,7 @@ class CollectionViewController: UIViewController, UICollectionViewDelegate, UICo
         }
     }
 
-    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+    func collectionView(_: UICollectionView, numberOfItemsInSection _: Int) -> Int {
         return 500
     }
 

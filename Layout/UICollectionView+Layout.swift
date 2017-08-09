@@ -102,7 +102,7 @@ private var cellDataKey = 0
 private var nodesKey = 0
 
 extension UICollectionView: LayoutDelegate {
-    
+
     private enum LayoutData {
         case success(Layout, Any, [String: Any])
         case failure(Error)
@@ -178,7 +178,7 @@ extension UICollectionView: LayoutDelegate {
         do {
             guard let layoutsData = objc_getAssociatedObject(self, &cellDataKey) as? NSMutableDictionary,
                 let layoutData = layoutsData[identifier] as? LayoutData else {
-                    throw LayoutError.message("No cell layout has been registered for `\(identifier)`")
+                throw LayoutError.message("No cell layout has been registered for `\(identifier)`")
             }
             let cell = dequeueReusableCell(withReuseIdentifier: identifier, for: indexPath)
             if let node = cell.layoutNode {
@@ -231,7 +231,7 @@ extension UICollectionViewCell {
         }
     }
 
-    open override class func create(with node: LayoutNode) throws -> UIView {
+    open override class func create(with _: LayoutNode) throws -> UIView {
         throw LayoutError.message("UICollectionViewCells must be created by UICollectionView")
     }
 

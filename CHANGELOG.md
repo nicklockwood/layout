@@ -1,5 +1,11 @@
 # Change Log
 
+## [0.4.8](https://github.schibsted.io/Rocket/layout/releases/tag/0.4.8) (2017-08-09)
+
+- Added support for the `UIScrollView.contentInsetAdjustmentBehavior` property introduced in iOS 11
+- Property accessor now throws an error for non-existent properties instead of returning nil
+- Fixed compiler errors in Xcode 9b5
+
 ## [0.4.7](https://github.schibsted.io/Rocket/layout/releases/tag/0.4.7) (2017-08-07)
 
 - First open source release!
