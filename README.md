@@ -269,7 +269,7 @@ func setSelected() {
 }
 ```
 
-Note that you can used both constants and state in the same Layout. If a state variable has the same name as a constant, the state variable takes precedence. As with constants, state values can be passed in at the root node of a hierarchy and accessed by any child node. If children in the hierarchy have their own constant or state properties, these will take priority over values set on their parent(s).
+Note that you can use both constants and state in the same Layout. If a state variable has the same name as a constant, the state variable takes precedence. As with constants, state values can be passed in at the root node of a hierarchy and accessed by any child node. If children in the hierarchy have their own constant or state properties, these will take priority over values set on their parent(s).
 
 Although state can be updated dynamically, all state properties referenced in the layout must have been given a value before the `LayoutNode` is first mounted/updated. It's generally a good idea to set default values for all state variables when you first initialize the node.
 
