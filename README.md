@@ -777,7 +777,7 @@ Any lowercase tags are interpreted as HTML markup instead of `LayoutNode` instan
 <ol>, <li> // ordered list
 <ul>, <li> // unordered list
 <br/> // linebreak
-<sub // subscript
+<sub> // subscript
 <sup> // superscript
 <center> // centered text
 ```
