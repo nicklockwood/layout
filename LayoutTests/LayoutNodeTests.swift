@@ -71,6 +71,22 @@ class LayoutNodeTests: XCTestCase {
         XCTAssertTrue(errors.first?.description.contains("foobar") == true)
     }
 
+    func testNestedNonexistentViewProperty() {
+        let node = LayoutNode(view: UIView(), expressions: ["width": "5 + layer.foo.bar"])
+        let errors = node.validate()
+        XCTAssertEqual(errors.count, 1)
+        XCTAssertTrue(errors.first?.description.contains("Invalid property") == true)
+        XCTAssertTrue(errors.first?.description.contains("foo.bar") == true)
+    }
+
+    func testNonexistentRectViewProperty() {
+        let node = LayoutNode(view: UIView(), expressions: ["width": "5 + frame.foo.bar"])
+        let errors = node.validate()
+        XCTAssertEqual(errors.count, 1)
+        XCTAssertTrue(errors.first?.description.contains("Invalid property") == true)
+        XCTAssertTrue(errors.first?.description.contains("foo.bar") == true)
+    }
+
     func testNilViewProperty() {
         let node = LayoutNode(view: UIView(), expressions: ["width": "layer.contents == nil ? 5 : 10"])
         let errors = node.validate()

@@ -636,10 +636,10 @@ extension NSObject {
                     case "size":
                         value = rect.size as NSValue
                     default:
-                        return nil
+                        throw SymbolError("Invalid property `\(key)` of CGRect", for: name)
                     }
                 default:
-                    return nil
+                    throw SymbolError("Invalid property `\(key)` of \(classForCoder)", for: name)
                 }
             }
         }
