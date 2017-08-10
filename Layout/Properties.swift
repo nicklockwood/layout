@@ -255,6 +255,10 @@ extension NSObject {
                     allProperties[name] = RuntimeType(CGSize.self)
                     allProperties["\(name).width"] = RuntimeType(CGFloat.self)
                     allProperties["\(name).height"] = RuntimeType(CGFloat.self)
+                } else if objCType.hasPrefix("{CGVector") {
+                    allProperties[name] = RuntimeType(CGVector.self)
+                    allProperties["\(name).dx"] = RuntimeType(CGFloat.self)
+                    allProperties["\(name).dy"] = RuntimeType(CGFloat.self)
                 } else if objCType.hasPrefix("{CGRect") {
                     allProperties[name] = RuntimeType(CGRect.self)
                     allProperties["\(name).x"] = RuntimeType(CGFloat.self)
@@ -267,6 +271,28 @@ extension NSObject {
                     allProperties["\(name).size"] = RuntimeType(CGSize.self)
                     allProperties["\(name).size.width"] = RuntimeType(CGFloat.self)
                     allProperties["\(name).size.height"] = RuntimeType(CGFloat.self)
+                } else if objCType.hasPrefix("{CGAffineTransform") {
+                    allProperties[name] = RuntimeType(CGAffineTransform.self)
+                    allProperties["\(name).rotation"] = RuntimeType(CGFloat.self)
+                    allProperties["\(name).scale"] = RuntimeType(CGFloat.self)
+                    allProperties["\(name).scale.x"] = RuntimeType(CGFloat.self)
+                    allProperties["\(name).scale.y"] = RuntimeType(CGFloat.self)
+                    allProperties["\(name).translation.x"] = RuntimeType(CGFloat.self)
+                    allProperties["\(name).translation.y"] = RuntimeType(CGFloat.self)
+                } else if objCType.hasPrefix("{CATransform3D") {
+                    allProperties[name] = RuntimeType(CATransform3D.self)
+                    allProperties["\(name).m34"] = RuntimeType(CGFloat.self) // Used for perspective
+                    allProperties["\(name).rotation"] = RuntimeType(CGFloat.self)
+                    allProperties["\(name).rotation.x"] = RuntimeType(CGFloat.self)
+                    allProperties["\(name).rotation.y"] = RuntimeType(CGFloat.self)
+                    allProperties["\(name).rotation.z"] = RuntimeType(CGFloat.self)
+                    allProperties["\(name).scale"] = RuntimeType(CGFloat.self)
+                    allProperties["\(name).scale.x"] = RuntimeType(CGFloat.self)
+                    allProperties["\(name).scale.y"] = RuntimeType(CGFloat.self)
+                    allProperties["\(name).scale.z"] = RuntimeType(CGFloat.self)
+                    allProperties["\(name).translation.x"] = RuntimeType(CGFloat.self)
+                    allProperties["\(name).translation.y"] = RuntimeType(CGFloat.self)
+                    allProperties["\(name).translation.z"] = RuntimeType(CGFloat.self)
                 } else if objCType.hasPrefix("{UIEdgeInsets") {
                     allProperties[name] = RuntimeType(UIEdgeInsets.self)
                     allProperties["\(name).top"] = RuntimeType(CGFloat.self)
@@ -450,6 +476,17 @@ extension NSObject {
             default:
                 break
             }
+        case var vector as CGVector where value is NSNumber:
+            switch key {
+            case "dx":
+                vector.dx = CGFloat(value as! NSNumber)
+                newValue = vector as NSValue
+            case "dy":
+                vector.dy = CGFloat(value as! NSNumber)
+                newValue = vector as NSValue
+            default:
+                break
+            }
         case var rect as CGRect:
             if value is NSNumber {
                 switch key {
@@ -490,6 +527,29 @@ extension NSObject {
                     rect.size = value
                     newValue = rect as NSValue
                 }
+            }
+        case is CGAffineTransform where value is NSNumber &&
+            ((prevTarget is UIView && prevKey == "transform") ||
+                (prevTarget is CALayer && prevKey == "affineTransform")):
+            switch key {
+            case "rotation", "scale", "scale.x", "scale.y", "translation.x", "translation.y":
+                prevTarget!.setValue(value, forKeyPath: "layer.transform.\(key)")
+                return
+            default:
+                break
+            }
+        case var transform as CATransform3D where value is NSNumber && prevTarget != nil:
+            switch key {
+            case "rotation", "rotation.x", "rotation.y", "rotation.z",
+                 "scale", "scale.x", "scale.y", "scale.z",
+                 "translation.x", "translation.y", "translation.z":
+                prevTarget!.setValue(value, forKeyPath: "\(prevKey).\(key)")
+                return
+            case "m34": // Used for setting perspective
+                transform.m34 = CGFloat(value as! NSNumber)
+                newValue = transform as NSValue
+            default:
+                break
             }
         case var insets as UIEdgeInsets where value is NSNumber:
             switch key {
@@ -549,7 +609,7 @@ extension NSObject {
             case "y":
                 return point.y
             default:
-                throw SymbolError("Invalid property `\(key)` of CGPoint", for: key)
+                throw SymbolError("Unknown property `\(key)` of CGPoint", for: key)
             }
         case let size as CGSize:
             switch key {
@@ -558,7 +618,16 @@ extension NSObject {
             case "height":
                 return size.height
             default:
-                throw SymbolError("Invalid property `\(key)` of CGSize", for: key)
+                throw SymbolError("Unknown property `\(key)` of CGSize", for: key)
+            }
+        case let vector as CGVector:
+            switch key {
+            case "dx":
+                return vector.dx
+            case "dy":
+                return vector.dy
+            default:
+                throw SymbolError("Unknown property `\(key)` of CGVector", for: key)
             }
         case let rect as CGRect:
             switch key {
@@ -587,7 +656,16 @@ extension NSObject {
             case "midY":
                 return rect.midY
             default:
-                throw SymbolError("Invalid property `\(key)` of CGRect", for: key)
+                throw SymbolError("Unknown property `\(key)` of CGRect", for: key)
+            }
+        case is CGAffineTransform:
+            throw SymbolError("Unknown property `\(key)` of CGAffineTransform", for: key)
+        case let transform as CATransform3D:
+            switch key {
+            case "m34":
+                return transform.m34 // Used for perspective
+            default:
+                throw SymbolError("Unknown property `\(key)` of CATransform3D", for: key)
             }
         case let insets as UIEdgeInsets:
             switch key {
@@ -600,7 +678,7 @@ extension NSObject {
             case "right":
                 return insets.right
             default:
-                throw SymbolError("Invalid property `\(key)` of UIEdgeInsets", for: key)
+                throw SymbolError("Unknown property `\(key)` of UIEdgeInsets", for: key)
             }
         case let offset as UIOffset:
             switch key {
@@ -609,10 +687,10 @@ extension NSObject {
             case "vertical":
                 return offset.vertical
             default:
-                throw SymbolError("Invalid property `\(key)` of UIOffset", for: key)
+                throw SymbolError("Unknown property `\(key)` of UIOffset", for: key)
             }
         default:
-            throw SymbolError("Invalid property `\(key)` of \(classForCoder)", for: key)
+            throw SymbolError("Unknown property `\(key)` of \(classForCoder)", for: key)
         }
     }
 
@@ -622,29 +700,56 @@ extension NSObject {
         guard let range = name.range(of: ".", options: .backwards) else {
             return try _value(ofType: type, forKey: name)
         }
-        var value = self as NSObject
-        for key in name.substring(to: range.lowerBound).components(separatedBy: ".") {
-            if value.responds(to: Selector(key)),
-                let nextValue = value.value(forKey: key) as? NSObject {
-                value = nextValue
-            } else {
-                switch value {
-                case let rect as CGRect:
-                    switch key {
-                    case "origin":
-                        value = rect.origin as NSValue
-                    case "size":
-                        value = rect.size as NSValue
-                    default:
-                        throw SymbolError("Invalid property `\(key)` of CGRect", for: name)
-                    }
-                default:
-                    throw SymbolError("Invalid property `\(key)` of \(classForCoder)", for: name)
+        var prevKey = name
+        var prevTarget: NSObject?
+        var target = self as NSObject
+        var key = name.substring(from: range.upperBound)
+        for subkey in name.substring(to: range.lowerBound).components(separatedBy: ".") {
+            guard target.responds(to: Selector(subkey)) else {
+                if target is NSValue {
+                    key = "\(subkey).\(key)"
+                    break
                 }
+                throw SymbolError("Unknown property `\(subkey)` of `\(type(of: target))`", for: name)
+            }
+            guard let nextTarget = target.value(forKey: subkey) as? NSObject else {
+                return nil
+            }
+            prevKey = subkey
+            prevTarget = target
+            target = nextTarget
+        }
+        if let prevTarget = prevTarget {
+            switch target {
+            case is CGRect:
+                switch key {
+                case "origin.x", "origin.y", "size.width", "size.height":
+                    return prevTarget.value(forKeyPath: "\(prevKey).\(key)")
+                default:
+                    break
+                }
+            case is CGAffineTransform where
+                (prevTarget is UIView && prevKey == "transform") ||
+                    (prevTarget is CALayer && prevKey == "affineTransform"):
+                switch key {
+                case "rotation", "scale", "scale.x", "scale.y", "translation.x", "translation.y":
+                    return prevTarget.value(forKeyPath: "layer.transform.\(key)")
+                default:
+                    break
+                }
+            case is CATransform3D:
+                switch key {
+                case "rotation", "rotation.x", "rotation.y", "rotation.z",
+                    "scale", "scale.x", "scale.y", "scale.z",
+                    "translation", "translation.x", "translation.y", "translation.z":
+                    return prevTarget.value(forKeyPath: "\(prevKey).\(key)")
+                default:
+                    break
+                }
+            default:
+                break
             }
         }
-        return try SymbolError.wrap({
-            try value._value(ofType: type, forKey: name.substring(from: range.upperBound))
-        }, for: name)
+        return try SymbolError.wrap({ try target._value(ofType: type, forKey: key) }, for: name)
     }
 }

@@ -228,6 +228,22 @@ class GeometryExpressionTests: XCTestCase {
         XCTAssertEqual(try node.value(forSymbol: "transform") as? CGAffineTransform, transform)
     }
 
+    func testSetViewTransformRotation() {
+        let node = LayoutNode(
+            expressions: ["transform.rotation": "pi"]
+        )
+        XCTAssertTrue(node.validate().isEmpty)
+        XCTAssertEqual(try node.value(forSymbol: "transform.rotation") as? CGFloat, .pi)
+    }
+
+    func testSetViewTransformTranslation() {
+        let node = LayoutNode(
+            expressions: ["transform.translation.x": "5"]
+        )
+        XCTAssertTrue(node.validate().isEmpty)
+        XCTAssertEqual(try node.value(forSymbol: "transform.translation.x") as? CGFloat, 5)
+    }
+
     // MARK: CATransform3D
 
     func testSetLayerTransform() {
@@ -239,5 +255,21 @@ class GeometryExpressionTests: XCTestCase {
         XCTAssertTrue(node.validate().isEmpty)
         XCTAssertEqual(try node.value(forSymbol: "rotation") as? CATransform3D, transform)
         XCTAssertEqual(try node.value(forSymbol: "layer.transform") as? CATransform3D, transform)
+    }
+
+    func testSetLayerTransformRotation() {
+        let node = LayoutNode(
+            expressions: ["layer.transform.rotation": "pi"]
+        )
+        XCTAssertTrue(node.validate().isEmpty)
+        XCTAssertEqual(try node.value(forSymbol: "layer.transform.rotation") as? CGFloat, .pi)
+    }
+
+    func testSetSublayerTransformRotation() {
+        let node = LayoutNode(
+            expressions: ["layer.sublayerTransform.rotation": "pi"]
+        )
+        XCTAssertTrue(node.validate().isEmpty)
+        XCTAssertEqual(try node.value(forSymbol: "layer.sublayerTransform.rotation") as? CGFloat, .pi)
     }
 }
