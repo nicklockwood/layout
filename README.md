@@ -56,7 +56,7 @@ The Layout framework is *extremely* beta, so expect rough edges and breaking cha
 
 ## Why?
 
-Layout seeks to address a number of issues that make StoryBoards unsuitable for large, collaborative projects, including:
+Layout seeks to address a number of issues that make Storyboards unsuitable for large, collaborative projects, including:
 
 * Proprietary, undocumented format
 * Poor composability and reusability
