@@ -441,7 +441,8 @@ extension NSObject {
                 throw SymbolError("Unknown property `\(subkey)` of `\(type(of: target))`", for: name)
             }
             guard let nextTarget = target.value(forKey: subkey) as? NSObject else {
-                throw SymbolError("Encountered nil value for `\(subkey)` of `\(type(of: target))`", for: name)
+                // We have no way to specify optional assignment, so we'll just fail silently here
+                return
             }
             prevKey = subkey
             prevTarget = target
