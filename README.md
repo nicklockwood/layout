@@ -759,7 +759,7 @@ LayoutNode(
 )
 ```
 
-Using this feature inside an XML attribute would be awkward because the tags would have to be escaped using `&gt` and `&lt;`, so Layout lets you use HTML *inside* a view node, and it will be automatically assigned to the `attributedText` property of the view:
+Using this feature inside an XML attribute would be awkward because the tags would have to be escaped using `&gt;` and `&lt;`, so Layout lets you use HTML *inside* a view node, and it will be automatically assigned to the `attributedText` property of the view:
 
 ```xml
 <UILabel>This is a pretty <b>bold</b> solution</UILabel>
