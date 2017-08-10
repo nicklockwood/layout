@@ -29,7 +29,7 @@ extension UICollectionView {
                 flowLayout.itemSize = CGSize(width: UIViewNoIntrinsicMetric, height: UIViewNoIntrinsicMetric)
             }
         }
-        let view = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        let view = self.init(frame: .zero, collectionViewLayout: layout)
         view.register(UICollectionViewCell.self, forCellWithReuseIdentifier: placeholderID)
         return view
     }
@@ -235,7 +235,7 @@ extension UICollectionViewCell {
         }
     }
 
-    open override class func create(with _: LayoutNode) throws -> UIView {
+    open override class func create(with _: LayoutNode) throws -> UICollectionViewCell {
         throw LayoutError.message("UICollectionViewCells must be created by UICollectionView")
     }
 

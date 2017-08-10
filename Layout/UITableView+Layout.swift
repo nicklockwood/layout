@@ -8,13 +8,13 @@ let tableViewStyle = RuntimeType(UITableViewStyle.self, [
 ])
 
 extension UITableView {
-    open override class func create(with node: LayoutNode) throws -> UIView {
+    open override class func create(with node: LayoutNode) throws -> UITableView {
         var style = UITableViewStyle.plain
         if let expression = node.expressions["style"] {
             let styleExpression = LayoutExpression(expression: expression, type: tableViewStyle, for: node)
             style = try styleExpression.evaluate() as! UITableViewStyle
         }
-        let view = UITableView(frame: .zero, style: style)
+        let view = self.init(frame: .zero, style: style)
         // Enable auto-sizing
         view.estimatedRowHeight = 44
         view.rowHeight = UITableViewAutomaticDimension
@@ -210,6 +210,9 @@ extension UITableView: LayoutDelegate {
                     state: state,
                     constants: constants
                 )
+                if node._view == nil, node.viewClass != UITableViewCell.self, node.expressions["style"] == nil {
+                    throw Expression.Error.message("Setting `style` for UITableViewCell subclasses is not supported")
+                }
                 node.delegate = self
                 nodes?.add(node)
                 node.view.setValue(identifier, forKey: "reuseIdentifier")
@@ -322,20 +325,21 @@ extension UITableViewHeaderFooterView {
         return (objc_getAssociatedObject(self, &layoutNodeKey) as? Box)?.node
     }
 
-    open override class func create(with node: LayoutNode) throws -> UIView {
+    open override class func create(with node: LayoutNode) throws -> UITableViewHeaderFooterView {
         var reuseIdentifier: String?
         if let expression = node.expressions["reuseIdentifier"] {
             let idExpression = LayoutExpression(expression: expression, type: RuntimeType(String.self), for: node)
             reuseIdentifier = try idExpression.evaluate() as? String
         }
-        let cell = UITableViewHeaderFooterView(reuseIdentifier: reuseIdentifier)
+        let view = self.init() // Workaround for `self.init(reuseIdentifier:)` causing build failure
+        view.setValue(reuseIdentifier, forKey: "reuseIdentifier")
         if node.expressions.keys.contains(where: { $0.hasPrefix("backgroundView.") }),
             !node.expressions.keys.contains("backgroundView") {
             // Add a background view if required
-            cell.backgroundView = UIView(frame: cell.bounds)
+            view.backgroundView = UIView(frame: view.bounds)
         }
-        objc_setAssociatedObject(cell, &layoutNodeKey, Box(node), .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
-        return cell
+        objc_setAssociatedObject(view, &layoutNodeKey, Box(node), .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+        return view
     }
 
     open override class var expressionTypes: [String: RuntimeType] {
@@ -409,7 +413,13 @@ extension UITableViewCell {
             let idExpression = LayoutExpression(expression: expression, type: RuntimeType(String.self), for: node)
             reuseIdentifier = try idExpression.evaluate() as? String
         }
-        let cell = UITableViewCell(style: style, reuseIdentifier: reuseIdentifier)
+        let cell: UITableViewCell
+        if self == UITableViewCell.self {
+            cell = UITableViewCell(style: style, reuseIdentifier: reuseIdentifier)
+        } else {
+            cell = self.init() // Workaround for `self.init(style:reuseIdentifier:)` causing build failure
+            cell.setValue(reuseIdentifier, forKey: "reuseIdentifier")
+        }
         if node.expressions.keys.contains(where: { $0.hasPrefix("backgroundView.") }),
             !node.expressions.keys.contains("backgroundView") {
             // Add a backgroundView view if required
