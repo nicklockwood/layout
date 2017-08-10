@@ -1,5 +1,14 @@
 # Change Log
 
+## [0.4.9](https://github.schibsted.io/Rocket/layout/releases/tag/0.4.9) (2017-08-10)
+
+- Fixed assertion failure when repeatedly pressing Cmd-R in the simulator
+- Fixed bug when creating subclasses of `UITableView`, `UITableViewCell`, `UITableViewController` or `UICollectionView`
+- Added support for manipulating `CGAffineTransform` and `CATransform3D` properties using expressions
+- Fixed some cases where `value(forSymbol:)` returned nil instead of throwing an error for invalid properties 
+- Fixed a bug where `UICollectionView.collectionViewLayout.itemSize` was ignored by default
+- Assigning values to properties of a nil object now fails silently instead of throwing an error
+
 ## [0.4.8](https://github.schibsted.io/Rocket/layout/releases/tag/0.4.8) (2017-08-09)
 
 - Added support for the `UIScrollView.contentInsetAdjustmentBehavior` property introduced in iOS 11

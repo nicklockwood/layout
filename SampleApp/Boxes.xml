@@ -13,8 +13,8 @@
             backgroundColor="colors.red"
             height="width"
             left="15"
-            width="isToggled ? (100% - 45) / 2 : (100% - 60) / 3"
             transform.rotation="isToggled ? (pi / 2) : 0"
+            width="isToggled ? (100% - 45) / 2 : (100% - 60) / 3"
         />
         <UIView
             backgroundColor="colors.orange"

@@ -731,7 +731,7 @@ extension NSObject {
                 }
             case is CGAffineTransform where
                 (prevTarget is UIView && prevKey == "transform") ||
-                    (prevTarget is CALayer && prevKey == "affineTransform"):
+                (prevTarget is CALayer && prevKey == "affineTransform"):
                 switch key {
                 case "rotation", "scale", "scale.x", "scale.y", "translation.x", "translation.y":
                     return prevTarget.value(forKeyPath: "layer.transform.\(key)")
@@ -741,8 +741,8 @@ extension NSObject {
             case is CATransform3D:
                 switch key {
                 case "rotation", "rotation.x", "rotation.y", "rotation.z",
-                    "scale", "scale.x", "scale.y", "scale.z",
-                    "translation", "translation.x", "translation.y", "translation.z":
+                     "scale", "scale.x", "scale.y", "scale.z",
+                     "translation", "translation.x", "translation.y", "translation.z":
                     return prevTarget.value(forKeyPath: "\(prevKey).\(key)")
                 default:
                     break

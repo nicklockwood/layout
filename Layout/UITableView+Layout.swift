@@ -210,9 +210,6 @@ extension UITableView: LayoutDelegate {
                     state: state,
                     constants: constants
                 )
-                if node._view == nil, node.viewClass != UITableViewCell.self, node.expressions["style"] == nil {
-                    throw Expression.Error.message("Setting `style` for UITableViewCell subclasses is not supported")
-                }
                 node.delegate = self
                 nodes?.add(node)
                 node.view.setValue(identifier, forKey: "reuseIdentifier")
@@ -274,6 +271,9 @@ extension UITableView: LayoutDelegate {
                     state: state,
                     constants: constants
                 )
+                if node._view == nil, node.viewClass != UITableViewCell.self, node.expressions["style"] != nil {
+                    throw Expression.Error.message("Setting `style` for UITableViewCell subclasses is not supported")
+                }
                 var nodes = objc_getAssociatedObject(self, &nodesKey) as? NSMutableArray
                 if nodes == nil {
                     nodes = []

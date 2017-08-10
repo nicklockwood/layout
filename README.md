@@ -91,13 +91,13 @@ Layout is provided as a standalone Swift framework that you can use in your app.
 To install Layout using CocoaPods, add the following to your Podfile:
 
 ```ruby
-pod 'Layout', '~> 0.4.7'
+pod 'Layout', '~> 0.4.9'
 ```
 
 To install use Carthage, add this to your Cartfile:
 
 ```
-github "schibsted/Layout" ~> 0.4.7
+github "schibsted/Layout" ~> 0.4.9
 ```
 
 ## Integration
@@ -356,7 +356,7 @@ In this case, the button will call either the `select(_:)` or `deselect(_:)` met
 
 ## Outlets
 
-The corresponding feature to actions is *outlets*. When creating views inside a Nib or Storyboard, you typically create references to individual views by using properties in your view controller marked with the `@IBOutlet` attribute, and Layout can utilize the same system to let you reference individual views in your hierarchy from code.
+When creating views inside a Nib or Storyboard, you typically create references to individual views by using properties in your view controller marked with the `@IBOutlet` attribute, and Layout can utilize the same system to let you reference individual views in your hierarchy from code.
 
 To create an outlet binding for a layout node, declare a property of the correct type on your `LayoutViewController`, and then reference it using the `outlet` constructor argument for the `LayoutNode`:
 
@@ -384,9 +384,9 @@ class MyViewController: LayoutViewController {
 
 In this example we've bound the `LayoutNode` containing the `UILabel` to the `labelNode` property. A few things to note:
 
-* There's no need to use the `@IBOutlet` attribute for your outlet property, but you can do so if you feel it makes the purpose clearer. If you do not use `@IBOutlet`, you may need to use `@objc` to ensure the property is visible to Layout at runtime.
-* The type of the outlet property can be either `LayoutNode` or a `UIView` subclass that's compatible with the view managed by the node. The syntax is the same in either case - the type will be checked at runtime, and an error will be thrown if it doesn't match up.
-* In the example above we have used Swift's `#keyPath` syntax to specify the outlet value, for better static validation. This is recommended, but not required.
+* There's no need to use the `@IBOutlet` attribute for your `outlet` property, but you can do so if you feel it makes the purpose clearer. If you do not use `@IBOutlet`, you may need to use `@objc` to ensure the property is visible to Layout at runtime.
+* The type of the `outlet` property can be either `LayoutNode` or a `UIView` subclass that's compatible with the view managed by the node. The syntax is the same in either case - the type will be checked at runtime, and an error will be thrown if it doesn't match up.
+* In the example above we have used Swift's `#keyPath` syntax to specify the `outlet` value, for better static validation. This is recommended, but not required.
 * The `labelNode` outlet in the example has been marked as Optional. It is common to use Implicty Unwrapped Optionals (IUOs) when defining IBOutlets, and that will work with Layout too, but it will result in a hard crash if you make a mistake in your XML and then try to access the outlet. Using regular Optionals means XML errors can be trapped and fixed without restarting the app.
 
 To specify outlet bindings when using XML templates, use the `outlet` attribute:
@@ -404,7 +404,7 @@ In this case we lose the static validation provided by `#keyPath`, but Layout st
 
 ## Delegates
 
-Another commonly-used feature in iOS views is the *delegate* pattern. Layout also supports this, but it does so in an implicit way that may be confusing if you aren't expecting it.
+Another commonly-used feature in iOS is the *delegate* pattern. Layout also supports this, but it does so in an implicit way that may be confusing if you aren't expecting it.
 
 When loading a layout XML file, or a programmatically-created `LayoutNode` hierarchy into a `LayoutViewController`, the views will be scanned for delegate properties and these will be automatically bound to the `LayoutViewController` *if* it conforms to the specified protocol.
 
@@ -540,7 +540,7 @@ Because Layout manages the view frame automatically, direct manipulation of the 
 
 These properties are not simple numbers, but structs containing several packed values. So how can you manipulate these with Layout expressions?
 
-Well, firstly, almost any property type can be set using a constant or state variable, even if there is no way to define a literal value for it in an expression. So for example, the following code will set the `layer.transform` even though Layout has no built-support for manipulating `CATransform3D` matrices:
+Well, firstly, almost any property type can be set using a constant or state variable, even if there is no way to define a literal value for it in an expression. So for example, the following code will set the `layer.transform` even though Layout has no way to specify a literal `CATransform3D` struct in an expression:
 
 ```swift
 LayoutNode(
@@ -559,7 +559,7 @@ LayoutNode(
 <UIView layer.transform="flipped ? flipTransform : identityTransform"/>
 ```
 
-For the more common geometry types, such as `CGPoint`, `CGSize`, `CGRect` and `UIEdgeInsets`, Layout has built-in support for directly referencing the member properties in expressions. To set the top `contentInset` value for a `UIScrollView`, you could use:
+For many geometric struct types, such as `CGPoint`, `CGSize`, `CGRect`, `CGAffineTransform` and `UIEdgeInsets`, Layout has built-in support for directly referencing the member properties in expressions. To set the top `contentInset` value for a `UIScrollView`, you could use:
 
 ```xml
 <UIScrollView contentInset.top="topLayoutGuide.length + 10"/>
@@ -576,6 +576,15 @@ And to explicitly set the `contentSize`, you could use:
 
 (Note that `%` and `auto` are permitted inside `contentSize.width` and `contentSize.height`, just as they are for `width` and `height`.)
 
+Layout also supports virtual keyPath properties for manipulating `CATransform3D` (as documented [here](https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/CoreAnimation_guide/Key-ValueCodingExtensions/Key-ValueCodingExtensions.html)), and makes equivalent properties available for `CGAffineTransform`. That means you can perform operations like rotating or scaling a view directly in your Layout XML without needing to do any matrix math:
+
+```xml
+<UIView transform.rotation="pi / 2"/>
+
+<UIView transform.scale="0.5"/>
+
+<UIView layer.transform.translation.z="500"/>
+```
 
 ## Strings
 
