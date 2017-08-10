@@ -251,7 +251,7 @@ self.loadLayout(
 
 ## State
 
-For more dynamic layouts, you may have properties that need to change frequently (perhaps even during an animation), and recreating the entire view hierarchy to change these is neither convenient nor efficient. For these properties, you can use *state*. State works in much the same way as constants, except you can update state after the `LayoutNode` has been initialized:
+For more dynamic layouts, you may have properties that need to change frequently (perhaps even during an animation), and recreating the entire view hierarchy to change these is neither convenient nor efficient. For these properties, you can use *state*. State works in much the same way as constants, except you can update state after the `LayoutNode` has been initialized:
 
 ```swift
 self.loadLayout(
