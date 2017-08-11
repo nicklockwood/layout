@@ -1049,7 +1049,7 @@ class TableViewController: UIViewController, UITableViewDataSource, UITableViewD
 }
 ```
 
-Alternatively, you can define the cell in its own XML file. If you do that, the dequeueing process is the same, but you will need to register it manually:
+Alternatively, you can define the cell in its own XML file. If you do that, the dequeuing process is the same, but you will need to register it manually:
 
 ```swift
 class TableViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
@@ -1067,7 +1067,7 @@ class TableViewController: UIViewController, UITableViewDataSource, UITableViewD
 
 Layout supports dynamic table cell height calculation. To enable this, just set a height expression for your cell. Dynamic table cell sizing also requires that the table view's `rowHeight` is set to `UITableViewAutomaticDimension` and a nonzero value is provided for `estimatedRowHeight`, but Layout sets these for you automatically. Note that if your cells all have the same height, it is significantly more efficient to set an explicit `rowHeight` property on the `UITableView` instead of setting the height for each cell.
 
-Layout also supports using XML layouts for `UITableViewHeaderFooterView`, and there are equivalent methods for registering and dequeueing `UITableViewHeaderFooterView` layout nodes.
+Layout also supports using XML layouts for `UITableViewHeaderFooterView`, and there are equivalent methods for registering and dequeuing `UITableViewHeaderFooterView` layout nodes.
 
 
 # Collection Views
@@ -1132,7 +1132,7 @@ class CollectionViewController: UIViewController, UICollectionViewDelegate, UICo
 }
 ```
 
-Alternatively, you can define the cell in its own XML file. If you do that, the dequeueing process is the same, but you will need to register it manually:
+Alternatively, you can define the cell in its own XML file. If you do that, the dequeuing process is the same, but you will need to register it manually:
 
 ```swift
 class CollectionViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource {
