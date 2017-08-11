@@ -1156,7 +1156,7 @@ Layout does not currently support using XML to define supplementary `UICollectio
 
 ## Composition
 
-For large or complex layouts, you may wish to split your layout into multiple files. This can be done easily when creating a `LayoutNode` programmatically, by assigning a subtrees of `LayoutNode`s to a temporary variable, but what about layouts defined in XML?
+For large or complex layouts, you may wish to split your layout into multiple files. This can be done easily when creating a `LayoutNode` programmatically, by assigning subtrees of `LayoutNode`s to temporary variables, but what about layouts defined in XML?
 
 Fortunately, Layout has a nice solution for this: Any layout node in your XML file can contain an `xml` attribute that references an external XML file. This reference can point to a local file, or even a remote URL:
 
