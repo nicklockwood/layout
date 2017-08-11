@@ -1205,7 +1205,7 @@ Although you can override the attributes of the root node of an imported templat
 
 # Example Projects
 
-There are several example projects includes with the Expression library:
+There are several example projects includes with the Layout library:
 
 ## SampleApp
 
