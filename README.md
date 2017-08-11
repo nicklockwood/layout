@@ -680,7 +680,7 @@ Static images can be specified by name or via a constant or state variable. As w
 
 ## Fonts
 
-Like strings and images, font properties are treated as a literal string and expressions must be escaped with `{ ... }`. Fonts are a little more complicated however, because the literal value is itself a space-delimited value that can encode several distinct pieces of data.
+Like strings and images, font properties are treated as a literal string and expressions must be escaped with `{ ... }`. Fonts are a little more complicated, however because the literal value is itself a space-delimited value that can encode several distinct pieces of data.
 
 The `UIFont` class encapsulates the font family, size, weight and style, so a font expression can contain any or all of the following space-delimited attributes, in any order:
 
