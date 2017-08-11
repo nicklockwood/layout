@@ -1,5 +1,9 @@
 # Change Log
 
+## [0.4.10](https://github.schibsted.io/Rocket/layout/releases/tag/0.4.10) (2017-08-11)
+
+- Fixed bug that caused file conflicts to be presented as Red Box error overlay instead of the file selection overlay
+
 ## [0.4.9](https://github.schibsted.io/Rocket/layout/releases/tag/0.4.9) (2017-08-10)
 
 - Fixed assertion failure when repeatedly pressing Cmd-R in the simulator

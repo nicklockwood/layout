@@ -91,13 +91,13 @@ Layout is provided as a standalone Swift framework that you can use in your app.
 To install Layout using CocoaPods, add the following to your Podfile:
 
 ```ruby
-pod 'Layout', '~> 0.4.9'
+pod 'Layout', '~> 0.4.10'
 ```
 
 To install use Carthage, add this to your Cartfile:
 
 ```
-github "schibsted/Layout" ~> 0.4.9
+github "schibsted/Layout" ~> 0.4.10
 ```
 
 ## Integration
