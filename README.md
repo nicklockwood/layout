@@ -1138,10 +1138,10 @@ Alternatively, you can define the cell in its own XML file. If you do that, the 
 class CollectionViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource {
     var itemData: [MyModel]
 
-    @IBOutlet var collectionView: UITableView? {
+    @IBOutlet var collectionView: UICollectionView? {
         didSet {
             // Use special Layout extension method to register the layout xml file for the cell
-            tableView?.registerLayout(named: "MyCell.xml", forCellReuseIdentifier: "cell")
+            collectionView?.registerLayout(named: "MyCell.xml", forCellReuseIdentifier: "cell")
         }
     }
 
