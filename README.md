@@ -79,7 +79,7 @@ Unlike UIViews (which use NSCoding for serialization), this hierarchy can be des
 
 View properties are specified using *expressions*, which are simple, pure functions stored as strings and evaluated at runtime. Now, I know what you're thinking - *stringly typed code is horrible!* - but Layout's expressions are strongly-typed, and designed to fail early, with detailed error messages to help you debug.
 
-Layout is designed to work with ordinary UIKit components, not to replace or reinvent them. Layout-based views can be embedded inside Nibs ands Storyboards, and Nib and Storyboard-based views can be embedded inside Layout-based views and view controllers, so there is no need to rewrite your entire app if you want to try using Layout.
+Layout is designed to work with ordinary UIKit components, not to replace or reinvent them. Layout-based views can be embedded inside Nibs and Storyboards, and Nib and Storyboard-based views can be embedded inside Layout-based views and view controllers, so there is no need to rewrite your entire app if you want to try using Layout.
 
 
 # Usage
