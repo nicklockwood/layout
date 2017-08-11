@@ -1166,7 +1166,7 @@ Fortunately, Layout has a nice solution for this: any layout node in your XML fi
 
 The referenced XML is just an ordinary layout file, and can be loaded and used normally, but when loaded using the composition feature it replaces the node that loads it.
 
-The attributes of the original node will be merged with the external node once it has loaded. Loading is performed asynchronously, so the original node will be displayed first and will be updated once the XML has loaded. Any children of the original node will be replaced by the contents of the loaded node, so you can insert a placeholder view to be displayed while the real content is loading:
+The attributes of the original node will be merged with the external node once it has loaded. Loading is performed asynchronously, so the original node will be displayed first and will be updated once the XML for the external node has loaded. Any children of the original node will be replaced by the contents of the loaded node, so you can insert a placeholder view to be displayed while the real content is loading:
 
 ```xml
 <UIView backgroundColor="#fff" xml="MyView.xml">
