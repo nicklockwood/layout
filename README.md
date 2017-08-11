@@ -1279,7 +1279,7 @@ LayoutTool provides a function for renaming expression variables or functions in
 
 Only values inside expressions will be affected. XML node names and literal string fragments are ignored.
 
-**Note:** that performing a rename also applies standard formatting to the file. There is currently no way to disable this.
+**Note:** performing a rename also applies standard formatting to the file. There is currently no way to disable this.
 
 
 # FAQ
