@@ -202,7 +202,7 @@ Static XML is all very well, but most app content is dynamic. Strings, images, a
 
 Constants - as the name implies - are values that remain constant for the lifetime of the `LayoutNode`. These values don't need to be constant for the lifetime of the *app*, but changing them means re-creating the `LayoutNode` and its associated view hierarchy from scratch. The constants dictionary is passed into the `LayoutNode` initializer, and can be referenced by any expression in that node or any of its children.
 
-A good use for constants would be localized strings, or something like colors or fonts used by the app UI theme. These are things that never (or rarely) change during the lifecycle of the app, so its acceptable that the view hierarchy must be torn down in order to reset them.
+A good use for constants would be localized strings, or something like colors or fonts used by the app UI theme. These are things that never (or rarely) change during the lifecycle of the app, so it's acceptable that the view hierarchy must be torn down in order to reset them.
 
 Here is how you would pass some constants to your XML-based layout:
 
