@@ -1247,7 +1247,7 @@ This will install the LayoutTool binary inside the `Pods/Layout/LayoutTool` dire
 
 ## Formatting
 
-The main function provided by LayoutTool is automatic formatting of Layout XML files. The `LayoutTool format` command will find any Layout XML files at the specfied path(s) and apply standard formatting. You can use the tool as follows:
+The main function provided by LayoutTool is automatic formatting of Layout XML files. The `LayoutTool format` command will find any Layout XML files at the specified path(s) and apply standard formatting. You can use the tool as follows:
 
 ```
 > LayoutTool format /path/to/xml/file(s) [/another/path]
