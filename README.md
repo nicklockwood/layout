@@ -1187,7 +1187,7 @@ Templates are sort of the opposite of composition, and work more like class inhe
 </UIView>
 ```
 
-As will composition, the template itself is just an ordinary layout file, and can be loaded and used normally:
+As with composition, the template itself is just an ordinary layout file, and can be loaded and used normally:
 
 ```xml
 <!-- MyTemplate.xml -->
