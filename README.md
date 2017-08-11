@@ -148,7 +148,7 @@ The equivalent XML markup for the layout above is:
 </UIView>
 ```
 
-Most built-in iOS views should work when used as an layout XML element. For custom views, see the [Custom Components](#custom-components) section below.
+Most built-in iOS views should work when used as a layout XML element. For custom views, see the [Custom Components](#custom-components) section below.
 
 To mount a `LayoutNode` inside a view or view controller, subclass `LayoutViewController` and use one of the following three approaches to load your layout:
 
