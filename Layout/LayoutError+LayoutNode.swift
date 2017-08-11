@@ -12,37 +12,24 @@ extension LayoutError {
     }
 
     init(_ error: Error, for viewOrControllerClass: AnyClass) {
-        switch error {
-        case let LayoutError.generic(error, cls) where cls === viewOrControllerClass:
-            self = .generic(error, cls)
-        default:
-            self = .generic(error, viewOrControllerClass)
-        }
-    }
-
-    init(_ error: Error, for node: LayoutNode? = nil) {
         if let error = error as? LayoutError, case .multipleMatches = error {
             // Should never be wrapped or it's hard to treat as special case
             self = error
             return
         }
-        guard let node = node else {
-            switch error {
-            case let LayoutError.generic(error, viewClass):
-                self = .generic(error, viewClass)
-            default:
-                self = .generic(error, nil)
-            }
+        if case let LayoutError.generic(error, cls) = error, cls === viewOrControllerClass {
+            self = .generic(error, cls)
             return
         }
-        self = LayoutError(error, for: node._class)
+        self = .generic(error, viewOrControllerClass)
     }
 
-    init?(_ error: Error?) {
-        guard let error = error else {
-            return nil
+    init(_ error: Error, for node: LayoutNode?) {
+        if let node = node {
+            self.init(error, for: node._class)
+        } else {
+            self.init(error)
         }
-        self.init(error)
     }
 
     static func wrap<T>(_ closure: () throws -> T, for node: LayoutNode) throws -> T {

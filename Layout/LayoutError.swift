@@ -7,14 +7,6 @@ internal struct SymbolError: Error, CustomStringConvertible {
     let symbol: String
     let error: Error
 
-    public var description: String {
-        var description = String(describing: error)
-        if !description.contains(symbol) {
-            description = "\(description) in expression `\(symbol)`"
-        }
-        return description
-    }
-
     init(_ error: Error, for symbol: String) {
         self.symbol = symbol
         if let error = error as? SymbolError {
@@ -36,6 +28,14 @@ internal struct SymbolError: Error, CustomStringConvertible {
         self.init(Expression.Error.message(message), for: symbol)
     }
 
+    public var description: String {
+        var description = String(describing: error)
+        if !description.contains(symbol) {
+            description = "\(description) in expression `\(symbol)`"
+        }
+        return description
+    }
+
     /// Associates error thrown by the wrapped closure with the given symbol
     static func wrap<T>(_ closure: () throws -> T, for symbol: String) throws -> T {
         do {
@@ -53,7 +53,19 @@ public enum LayoutError: Error, Hashable, CustomStringConvertible {
     case multipleMatches([URL], for: String)
 
     public init(_ error: Error) {
-        self = .generic(error, nil)
+        switch error {
+        case let error as LayoutError:
+            self = error
+        default:
+            self = .generic(error, nil)
+        }
+    }
+
+    public init?(_ error: Error?) {
+        guard let error = error else {
+            return nil
+        }
+        self.init(error)
     }
 
     public var description: String {
