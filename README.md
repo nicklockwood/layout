@@ -42,7 +42,7 @@
     - [SampleApp](#sampleapp)
     - [UIDesigner](#uidesigner)
 - [LayoutTool](#layouttool)
-    - [Installation](#installation)
+    - [Installation](#installation-1)
     - [Formatting](#formatting)
 - [FAQ](#faq)
 
