@@ -68,6 +68,7 @@ public class LayoutNode: NSObject {
             _delegate = newValue
         }
     }
+
     private func delegate(for selector: Selector) -> LayoutDelegate? {
         var delegate = self.delegate
         var responder = delegate as? UIResponder

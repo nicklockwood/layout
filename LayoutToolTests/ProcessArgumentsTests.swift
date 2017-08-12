@@ -12,5 +12,4 @@ class ProcessArgumentsTests: XCTestCase {
         XCTAssertEqual(processArguments(["LayoutTool"]), .error)
         XCTAssertEqual(processArguments(["LayoutTool", "format"]), .error)
     }
-    
 }

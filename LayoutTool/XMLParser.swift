@@ -4,7 +4,7 @@ import Foundation
 
 enum XMLNode: Equatable {
     case node(
-        elementName: String,
+        name: String,
         attributes: [String: String],
         children: [XMLNode]
     )
@@ -12,10 +12,10 @@ enum XMLNode: Equatable {
     case comment(String)
 
     var isHTML: Bool {
-        guard case let .node(elementName, _, _) = self else {
+        guard case let .node(name, _, _) = self else {
             return false
         }
-        return isHTMLElement(elementName)
+        return isHTMLElement(name)
     }
 
     var isEmpty: Bool {
@@ -57,9 +57,9 @@ enum XMLNode: Equatable {
 
     fileprivate mutating func append(_ node: XMLNode) {
         switch self {
-        case let .node(elementName, attributes, children):
+        case let .node(name, attributes, children):
             self = .node(
-                elementName: elementName,
+                name: name,
                 attributes: attributes,
                 children: children + [node]
             )
@@ -81,50 +81,41 @@ enum XMLNode: Equatable {
     }
 }
 
-private func isHTMLElement(_ elementName: String) -> Bool {
-    return elementName.lowercased() == elementName
-}
-
-private func textIsEmpty(_ text: String) -> Bool {
-    return text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-}
-
-private extension String {
-    func ltrim() -> String {
-        var chars = unicodeScalars
-        while let char = chars.first, NSCharacterSet.whitespacesAndNewlines.contains(char) {
-            chars.removeFirst()
+extension Collection where Iterator.Element == XMLNode {
+    var isLayout: Bool {
+        for node in self {
+            if node.isLayout {
+                return true
+            }
         }
-        return String(chars)
+        return false
     }
 
-    func rtrim() -> String {
-        var chars = unicodeScalars
-        while let char = chars.last, NSCharacterSet.whitespacesAndNewlines.contains(char) {
-            chars.removeLast()
-        }
-        return String(chars)
+    var isHTML: Bool {
+        return contains(where: { $0.isHTML })
     }
 }
 
-class LayoutParser: NSObject, XMLParserDelegate {
+class XMLParser: NSObject, XMLParserDelegate {
     private var root: [XMLNode] = []
     private var stack: [XMLNode] = []
     private var top: XMLNode?
     private var error: FormatError?
     private var text = ""
 
-    func parse(_ parser: XMLParser) throws -> [XMLNode] {
-        defer {
-            root = []
-            top = nil
-        }
-        parser.delegate = self
-        parser.parse()
-        if let error = error {
+    static func parse(data: Data) throws -> [XMLNode] {
+        let parser = XMLParser()
+        let foundationParser = Foundation.XMLParser(data: data)
+        foundationParser.delegate = parser
+        foundationParser.parse()
+        if let error = parser.error {
             throw error
         }
-        return root
+        return parser.root
+    }
+
+    private override init() {
+        super.init()
     }
 
     private func appendNode(_ node: XMLNode) {
@@ -148,7 +139,7 @@ class LayoutParser: NSObject, XMLParserDelegate {
 
     // MARK: XMLParserDelegate methods
 
-    func parser(_: XMLParser, didStartElement elementName: String, namespaceURI _: String?, qualifiedName _: String?, attributes: [String: String] = [:]) {
+    func parser(_: Foundation.XMLParser, didStartElement elementName: String, namespaceURI _: String?, qualifiedName _: String?, attributes: [String: String] = [:]) {
         if textIsEmpty(text), top?.isEmpty == true {
             text = ""
         } else if !isHTMLElement(elementName) {
@@ -157,14 +148,14 @@ class LayoutParser: NSObject, XMLParserDelegate {
         appendText()
         top.map { stack.append($0) }
         let node = XMLNode.node(
-            elementName: elementName,
+            name: elementName,
             attributes: attributes,
             children: []
         )
         top = node
     }
 
-    func parser(_: XMLParser, didEndElement elementName: String, namespaceURI _: String?, qualifiedName _: String?) {
+    func parser(_: Foundation.XMLParser, didEndElement elementName: String, namespaceURI _: String?, qualifiedName _: String?) {
         if textIsEmpty(text), top?.isEmpty == true {
             text = ""
         } else if !isHTMLElement(elementName) {
@@ -176,32 +167,55 @@ class LayoutParser: NSObject, XMLParserDelegate {
         appendNode(node)
     }
 
-    func parser(_: XMLParser, foundCharacters string: String) {
+    func parser(_: Foundation.XMLParser, foundCharacters string: String) {
         text += string
     }
 
-    func parser(_: XMLParser, foundComment comment: String) {
+    func parser(_: Foundation.XMLParser, foundComment comment: String) {
         appendText()
         appendNode(.comment(comment))
     }
 
-    func parser(_: XMLParser, parseErrorOccurred parseError: Error) {
+    func parser(_: Foundation.XMLParser, parseErrorOccurred parseError: Error) {
         guard error == nil else {
             // Don't overwrite existing error
             return
         }
         let nsError = parseError as NSError
-        guard let line = nsError.userInfo["NSXMLParserErrorLineNumber"],
-            let column = nsError.userInfo["NSXMLParserErrorColumn"] else {
-            error = .parsing("XML validation error: " +
-                "\(nsError.localizedDescription.trimmingCharacters(in: .whitespacesAndNewlines))")
+        guard let line = nsError.userInfo["NSXMLParserErrorLineNumber"] else {
+            error = .parsing("\(nsError.localizedDescription.trimmingCharacters(in: .whitespacesAndNewlines))")
             return
         }
         guard let message = nsError.userInfo["NSXMLParserErrorMessage"] else {
-            error = .parsing("XML validation error at \(line):\(column)")
+            error = .parsing("Malformed XML at line \(line)")
             return
         }
-        error = .parsing("XML validation error: " +
-            "\("\(message)".trimmingCharacters(in: .whitespacesAndNewlines)) at \(line):\(column)")
+        error = .parsing("\("\(message)".trimmingCharacters(in: .whitespacesAndNewlines)) at line \(line)")
+    }
+}
+
+private func isHTMLElement(_ name: String) -> Bool {
+    return name.lowercased() == name
+}
+
+private func textIsEmpty(_ text: String) -> Bool {
+    return text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+}
+
+private extension String {
+    func ltrim() -> String {
+        var chars = unicodeScalars
+        while let char = chars.first, NSCharacterSet.whitespacesAndNewlines.contains(char) {
+            chars.removeFirst()
+        }
+        return String(chars)
+    }
+
+    func rtrim() -> String {
+        var chars = unicodeScalars
+        while let char = chars.last, NSCharacterSet.whitespacesAndNewlines.contains(char) {
+            chars.removeLast()
+        }
+        return String(chars)
     }
 }

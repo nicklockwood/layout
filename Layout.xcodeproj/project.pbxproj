@@ -23,10 +23,8 @@
 		0105F7951F0547910067B313 /* UIViewController+Layout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0105F7881F0547910067B313 /* UIViewController+Layout.swift */; };
 		0105F79D1F055C260067B313 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0105F79C1F055C260067B313 /* main.swift */; };
 		0105F7A21F055F9D0067B313 /* Common.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0105F7A11F055F9D0067B313 /* Common.swift */; };
-		0105F7A41F0563CF0067B313 /* Parser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0105F7A31F0563CF0067B313 /* Parser.swift */; };
 		0105F7AC1F059A820067B313 /* FormatTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0105F7AB1F059A820067B313 /* FormatTests.swift */; };
 		0105F7B11F059CCC0067B313 /* Common.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0105F7A11F055F9D0067B313 /* Common.swift */; };
-		0105F7B21F059CCC0067B313 /* Parser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0105F7A31F0563CF0067B313 /* Parser.swift */; };
 		0105F7B81F0AA7D70067B313 /* Formatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0105F7B61F0AA7D70067B313 /* Formatter.swift */; };
 		0105F7B91F0AA7E70067B313 /* Formatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0105F7B61F0AA7D70067B313 /* Formatter.swift */; };
 		01181E041F0E1FE80011C4DE /* ExpressionParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01181E031F0E1FE80011C4DE /* ExpressionParser.swift */; };
@@ -91,6 +89,7 @@
 		0176B8F91F0D153700431A11 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 0176B8F81F0D153700431A11 /* Localizable.strings */; };
 		018879ED1F2B456A00A64B6B /* PageTemplate.xml in Resources */ = {isa = PBXBuildFile; fileRef = 018879EC1F2B456A00A64B6B /* PageTemplate.xml */; };
 		018879EF1F2B675000A64B6B /* LabelTemplate.xml in Resources */ = {isa = PBXBuildFile; fileRef = 018879EE1F2B675000A64B6B /* LabelTemplate.xml */; };
+		018D4FB01F3FB5490035D2E6 /* XMLParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 018D4FAF1F3FB5490035D2E6 /* XMLParser.swift */; };
 		01E7E0491F1A96F600B7F9DB /* Layout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01E7E0481F1A96F600B7F9DB /* Layout.swift */; };
 		01E7E04B1F1BFD9100B7F9DB /* Example.xml in Resources */ = {isa = PBXBuildFile; fileRef = 01E7E04A1F1BFD9100B7F9DB /* Example.xml */; };
 		01E7E04D1F1C033600B7F9DB /* LayoutNode+Layout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01E7E04C1F1C033600B7F9DB /* LayoutNode+Layout.swift */; };
@@ -172,7 +171,6 @@
 		0105F79A1F055C250067B313 /* LayoutTool */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = LayoutTool; sourceTree = BUILT_PRODUCTS_DIR; };
 		0105F79C1F055C260067B313 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		0105F7A11F055F9D0067B313 /* Common.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Common.swift; sourceTree = "<group>"; };
-		0105F7A31F0563CF0067B313 /* Parser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Parser.swift; sourceTree = "<group>"; };
 		0105F7A91F059A820067B313 /* LayoutToolTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LayoutToolTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		0105F7AB1F059A820067B313 /* FormatTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormatTests.swift; sourceTree = "<group>"; };
 		0105F7AD1F059A820067B313 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -241,6 +239,7 @@
 		0176B8F81F0D153700431A11 /* Localizable.strings */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; path = Localizable.strings; sourceTree = "<group>"; };
 		018879EC1F2B456A00A64B6B /* PageTemplate.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = PageTemplate.xml; sourceTree = "<group>"; };
 		018879EE1F2B675000A64B6B /* LabelTemplate.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = LabelTemplate.xml; sourceTree = "<group>"; };
+		018D4FAF1F3FB5490035D2E6 /* XMLParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = XMLParser.swift; sourceTree = "<group>"; };
 		01DA95861EABFF5F00868113 /* Expression.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Expression.framework; path = "../../../Library/Developer/Xcode/DerivedData/Layout-cidlxdzqvadfbngzwtfaldjrmjir/Build/Products/Debug-iphonesimulator/Expression.framework"; sourceTree = "<group>"; };
 		01E7E0481F1A96F600B7F9DB /* Layout.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Layout.swift; sourceTree = "<group>"; };
 		01E7E04A1F1BFD9100B7F9DB /* Example.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = Example.xml; sourceTree = "<group>"; };
@@ -326,7 +325,7 @@
 				0105F7A11F055F9D0067B313 /* Common.swift */,
 				0105F7B61F0AA7D70067B313 /* Formatter.swift */,
 				017539811F28B623005B7516 /* Renamer.swift */,
-				0105F7A31F0563CF0067B313 /* Parser.swift */,
+				018D4FAF1F3FB5490035D2E6 /* XMLParser.swift */,
 			);
 			path = LayoutTool;
 			sourceTree = "<group>";
@@ -846,9 +845,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				018D4FB01F3FB5490035D2E6 /* XMLParser.swift in Sources */,
 				017539821F28B623005B7516 /* Renamer.swift in Sources */,
 				01181E051F0EA7F90011C4DE /* ExpressionParser.swift in Sources */,
-				0105F7A41F0563CF0067B313 /* Parser.swift in Sources */,
 				0105F79D1F055C260067B313 /* main.swift in Sources */,
 				0105F7B81F0AA7D70067B313 /* Formatter.swift in Sources */,
 				0105F7A21F055F9D0067B313 /* Common.swift in Sources */,
@@ -864,7 +863,6 @@
 				3583485A1F3F1EB000CFB6BB /* ProcessArgumentsTests.swift in Sources */,
 				017539841F28D055005B7516 /* RenameTests.swift in Sources */,
 				017539851F28DAC5005B7516 /* Renamer.swift in Sources */,
-				0105F7B21F059CCC0067B313 /* Parser.swift in Sources */,
 				0105F7AC1F059A820067B313 /* FormatTests.swift in Sources */,
 				3583485B1F3F217200CFB6BB /* main.swift in Sources */,
 				0105F7B91F0AA7E70067B313 /* Formatter.swift in Sources */,

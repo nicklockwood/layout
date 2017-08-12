@@ -46,13 +46,15 @@ func printHelp() {
 
 enum ExitResult: Int32 {
     case success = 0
-    case error = 1
+    case failure = 1
 }
 
 func processArguments(_ args: [String]) -> ExitResult {
+    var errors = [FormatError]()
     guard args.count > 1 else {
-        print("LayoutTool expects at least one argument".inRed, to: &stderr)
-        return .error
+        print("error: missing command argument", to: &stderr)
+        print("LayoutTool requires a command argument".inRed, to: &stderr)
+        return .failure
     }
     switch args[1] {
     case "help":
@@ -62,51 +64,42 @@ func processArguments(_ args: [String]) -> ExitResult {
     case "format":
         let paths = Array(args.dropFirst(2))
         if paths.isEmpty {
-            print("format command expects one or more file paths as input".inRed, to: &stderr)
-            return .error
+            errors.append(.options("format command expects one or more file paths as input"))
+            break
         }
-        let errors = format(paths)
-        for error in errors {
-            print("\(error)".inRed, to: &stderr)
-        }
-        if !errors.isEmpty {
-            return .error
-        }
+        errors += format(paths)
     case "list":
         let paths = Array(args.dropFirst(2))
         if paths.isEmpty {
-            print("list command expects one or more file paths to search".inRed, to: &stderr)
-            return .error
+            errors.append(.options("list command expects one or more file paths to search"))
+            break
         }
-        let errors = list(paths)
-        for error in errors {
-            print("\(error)".inRed, to: &stderr)
-        }
-        if !errors.isEmpty {
-            return .error
-        }
+        errors += list(paths)
     case "rename":
         var paths = Array(args.dropFirst(2))
         guard let new = paths.popLast(), let old = paths.popLast(), !new.contains("/"), !old.contains("/") else {
-            print("rename command expects a symbol name and a replacement".inRed, to: &stderr)
-            return .error
+            errors.append(.options("rename command expects a symbol name and a replacement"))
+            break
         }
         if paths.isEmpty {
-            print("rename command expects one or more file paths to search".inRed, to: &stderr)
-            return .error
+            errors.append(.options("rename command expects one or more file paths to search"))
+            break
         }
-        let errors = rename(old, to: new, in: paths)
-        for error in errors {
-            print("\(error)".inRed, to: &stderr)
-        }
-        if !errors.isEmpty {
-            return .error
-        }
+        errors += rename(old, to: new, in: paths)
     case let arg:
-        print("`\(arg)` is not a valid command".inRed, to: &stderr)
-        return .error
+        print("error: unknown command `\(arg)`", to: &stderr)
+        print("LayoutTool \(arg) is not a valid command".inRed, to: &stderr)
+        return .failure
     }
-    return .success
+    for error in errors {
+        print("error: \(error)", to: &stderr)
+    }
+    if errors.isEmpty {
+        return .success
+    } else {
+        print("LayoutTool \(args[1]) failed".inRed, to: &stderr)
+        return .failure
+    }
 }
 
 // Pass in arguments and exit

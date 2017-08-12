@@ -686,7 +686,6 @@ private func op(_ lhs: String, takesPrecedenceOver rhs: String) -> Bool {
     return p1 > p2
 }
 
-
 private func isOperator(_ char: UnicodeScalar) -> Bool {
     // Strangely, this is faster than switching on value
     if "/=­-+!*%<>&|^~?:".unicodeScalars.contains(char) {

@@ -8,13 +8,23 @@ enum FormatError: Error, CustomStringConvertible {
     case writing(String)
     case parsing(String)
     case options(String)
+    case generic(String)
+
+    public init(_ error: Error) {
+        if let error = error as? FormatError {
+            self = error
+        } else {
+            self = .generic((error as NSError).localizedDescription)
+        }
+    }
 
     public var description: String {
         switch self {
         case let .reading(string),
              let .writing(string),
              let .parsing(string),
-             let .options(string):
+             let .options(string),
+             let .generic(string):
             return string
         }
     }
@@ -147,29 +157,32 @@ func expandPath(_ path: String) -> URL {
     return URL(fileURLWithPath: path, relativeTo: directoryURL)
 }
 
-func list(_ files: [String]) -> [Error] {
+func list(_ files: [String]) -> [FormatError] {
     var errors = [Error]()
     for path in files {
         let url = expandPath(path)
         errors += enumerateFiles(withInputURL: url, concurrent: false) { inputURL, _ in
+            let path = inputURL.path.substring(from: url.path.endIndex)
             do {
                 let data = try Data(contentsOf: inputURL)
-                if isLayout(data) {
+                let xml = try XMLParser.parse(data: data)
+                if xml.isLayout {
                     return { _ in
-                        var path = inputURL.path
-                        if path.hasPrefix(url.path) {
-                            path = path.substring(from: url.path.endIndex)
-                        }
                         print("\(path)")
                     }
                 }
-                return { _ in }
+                return {}
             } catch {
                 return {
-                    throw error
+                    switch error {
+                    case let FormatError.parsing(string):
+                        throw FormatError.parsing("\(string) in \(path)")
+                    default:
+                        throw error
+                    }
                 }
             }
         }
     }
-    return errors
+    return errors.map(FormatError.init)
 }

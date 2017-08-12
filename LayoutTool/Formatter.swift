@@ -2,48 +2,40 @@
 
 import Foundation
 
-func isLayout(_ xml: String) -> Bool {
-    return xml.data(using: .utf8, allowLossyConversion: true).flatMap(isLayout) ?? false
-}
-
-func isLayout(_ xmlData: Data) -> Bool {
-    let parser = LayoutParser()
-    guard let xml = try? parser.parse(XMLParser(data: xmlData)) else {
-        return false
-    }
-    return xml.isLayout
-}
-
-func format(_ files: [String]) -> [Error] {
+func format(_ files: [String]) -> [FormatError] {
     var errors = [Error]()
     for path in files {
         let url = expandPath(path)
         errors += enumerateFiles(withInputURL: url, concurrent: false) { inputURL, outputURL in
             do {
                 let data = try Data(contentsOf: inputURL)
-                let parser = LayoutParser()
-                let xml = try parser.parse(XMLParser(data: data))
+                let xml = try XMLParser.parse(data: data)
                 if xml.isLayout {
                     let output = try format(xml)
                     try output.write(to: outputURL, atomically: true, encoding: .utf8)
                 }
-                return { _ in }
+                return {}
             } catch {
                 return {
-                    throw error
+                    switch error {
+                    case let FormatError.parsing(string):
+                        let path = inputURL.path.substring(from: url.path.endIndex)
+                        throw FormatError.parsing("\(string) in \(path)")
+                    default:
+                        throw error
+                    }
                 }
             }
         }
     }
-    return errors
+    return errors.map(FormatError.init)
 }
 
 func format(_ xml: String) throws -> String {
     guard let data = xml.data(using: .utf8, allowLossyConversion: true) else {
         throw FormatError.parsing("Invalid xml string")
     }
-    let parser = LayoutParser()
-    let xml = try parser.parse(XMLParser(data: data))
+    let xml = try XMLParser.parse(data: data)
     return try format(xml)
 }
 
@@ -52,19 +44,6 @@ func format(_ xml: [XMLNode]) throws -> String {
 }
 
 extension Collection where Iterator.Element == XMLNode {
-    var isLayout: Bool {
-        for node in self {
-            if node.isLayout {
-                return true
-            }
-        }
-        return false
-    }
-
-    var isHTML: Bool {
-        return contains(where: { $0.isHTML })
-    }
-
     func toString(withIndent indent: String, indentFirstLine: Bool = true) -> String {
         var output = ""
         var previous: XMLNode?
@@ -110,8 +89,8 @@ private let attributeWrap = 2
 extension XMLNode {
     var isLayout: Bool {
         switch self {
-        case let .node(elementName, attributes, children):
-            guard let firstChar = elementName.characters.first.map({ String($0) }),
+        case let .node(name, attributes, children):
+            guard let firstChar = name.characters.first.map({ String($0) }),
                 firstChar.uppercased() == firstChar else {
                 return false
             }
@@ -157,9 +136,9 @@ extension XMLNode {
 
     func toString(withIndent indent: String, indentFirstLine: Bool = true) -> String {
         switch self {
-        case let .node(elementName, attributes, children):
+        case let .node(name, attributes, children):
             var xml = indentFirstLine ? indent : ""
-            xml += "<\(elementName)"
+            xml += "<\(name)"
             let attributes = attributes.sorted(by: { a, b in
                 a.key < b.key // sort alphabetically
             })
@@ -176,10 +155,10 @@ extension XMLNode {
                 if attributes.count >= attributeWrap {
                     xml += "\n\(indent)"
                 }
-                if !isHTML || elementName == "br" {
+                if !isHTML || name == "br" {
                     xml += "/>"
                 } else {
-                    xml += "></\(elementName)>"
+                    xml += "></\(name)>"
                 }
             } else if children.count == 1, children[0].isComment || children[0].isText {
                 xml += ">"
@@ -192,7 +171,7 @@ extension XMLNode {
                     }
                     xml += body
                 }
-                xml += "</\(elementName)>"
+                xml += "</\(name)>"
             } else {
                 xml += ">\n"
                 if attributes.count >= attributeWrap ||
@@ -200,7 +179,7 @@ extension XMLNode {
                     xml += "\n"
                 }
                 let body = children.toString(withIndent: indent + "    ")
-                xml += "\(body)\(indent)</\(elementName)>"
+                xml += "\(body)\(indent)</\(name)>"
             }
             return xml
         case let .text(text):

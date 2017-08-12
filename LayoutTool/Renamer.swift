@@ -2,36 +2,32 @@
 
 import Foundation
 
-func rename(_ old: String, to new: String, in files: [String]) -> [Error] {
+func rename(_ old: String, to new: String, in files: [String]) -> [FormatError] {
     var errors = [Error]()
     for path in files {
         let url = expandPath(path)
-        errors += enumerateFiles(withInputURL: url, concurrent: false) { inputURL, outputURL in
+        errors += enumerateFiles(withInputURL: url) { inputURL, outputURL in
             do {
                 let data = try Data(contentsOf: inputURL)
-                let parser = LayoutParser()
-                let xml = try parser.parse(XMLParser(data: data))
+                let xml = try XMLParser.parse(data: data)
                 if xml.isLayout {
                     let output = try format(rename(old, to: new, in: xml))
                     try output.write(to: outputURL, atomically: true, encoding: .utf8)
                 }
-                return { _ in }
+                return {}
             } catch {
-                return {
-                    throw error
-                }
+                return { throw error }
             }
         }
     }
-    return errors
+    return errors.map(FormatError.init)
 }
 
 func rename(_ old: String, to new: String, in xml: String) throws -> String {
     guard let data = xml.data(using: .utf8, allowLossyConversion: true) else {
         throw FormatError.parsing("Invalid xml string")
     }
-    let parser = LayoutParser()
-    let xml = try parser.parse(XMLParser(data: data))
+    let xml = try XMLParser.parse(data: data)
     return try format(rename(old, to: new, in: xml))
 }
 
@@ -96,7 +92,7 @@ func rename(_ old: String, to new: String, in xml: [XMLNode]) -> [XMLNode] {
                 }
             }
             return .node(
-                elementName: elementName,
+                name: elementName,
                 attributes: attributes,
                 children: rename(old, to: new, in: children)
             )
