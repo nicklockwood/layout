@@ -1258,7 +1258,7 @@ For more information, use `LayoutTool help`.
 To automatically apply `LayoutTool format` to your project every time it is built, you can add a Run Script build phase that applies the tool. Assuming you've installed the LayoutTool CLI using CocoaPods, that script will look something like:
 
 ```bash
-"${PODS_ROOT}/Layout/LayoutTool/LayoutTool" "${SRCROOT}/path/to/your/layout/xml/"
+"${PODS_ROOT}/Layout/LayoutTool/LayoutTool" format "${SRCROOT}/path/to/your/layout/xml/"
 ```
 
 The formatting applied by LayoutTool is specifically designed for Layout files. It is better to use LayoutTool for formatting these files rather than a generic XML-formatting tool.
@@ -1274,7 +1274,7 @@ To safely determine which files the formatting will be applied to, without overw
 LayoutTool provides a function for renaming expression variables or functions inside one or more Layout XML templates. Use it as follows:
 
 ```bash
-"${PODS_ROOT}/Layout/LayoutTool/LayoutTool" "${SRCROOT}/path/to/your/layout/xml/" oldSymbolName newSymbolName
+"${PODS_ROOT}/Layout/LayoutTool/LayoutTool" rename "${SRCROOT}/path/to/your/layout/xml/" oldSymbolName newSymbolName
 ```
 
 Only values inside expressions will be affected. XML node names and literal string fragments are ignored.
