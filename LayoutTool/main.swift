@@ -44,10 +44,15 @@ func printHelp() {
     print("")
 }
 
-func processArguments(_ args: [String]) {
+enum ExitResult: Int32 {
+    case success = 0
+    case error = 1
+}
+
+func processArguments(_ args: [String]) -> ExitResult {
     guard args.count > 1 else {
         print("LayoutTool expects at least one argument".inRed, to: &stderr)
-        return
+        return .error
     }
     switch args[1] {
     case "help":
@@ -58,38 +63,52 @@ func processArguments(_ args: [String]) {
         let paths = Array(args.dropFirst(2))
         if paths.isEmpty {
             print("format command expects one or more file paths as input".inRed, to: &stderr)
-            return
+            return .error
         }
-        for error in format(paths) {
+        let errors = format(paths)
+        for error in errors {
             print("\(error)".inRed, to: &stderr)
+        }
+        if !errors.isEmpty {
+            return .error
         }
     case "list":
         let paths = Array(args.dropFirst(2))
         if paths.isEmpty {
             print("list command expects one or more file paths to search".inRed, to: &stderr)
-            return
+            return .error
         }
-        for error in list(paths) {
+        let errors = list(paths)
+        for error in errors {
             print("\(error)".inRed, to: &stderr)
+        }
+        if !errors.isEmpty {
+            return .error
         }
     case "rename":
         var paths = Array(args.dropFirst(2))
         guard let new = paths.popLast(), let old = paths.popLast(), !new.contains("/"), !old.contains("/") else {
             print("rename command expects a symbol name and a replacement".inRed, to: &stderr)
-            return
+            return .error
         }
         if paths.isEmpty {
             print("rename command expects one or more file paths to search".inRed, to: &stderr)
-            return
+            return .error
         }
-        for error in rename(old, to: new, in: paths) {
+        let errors = rename(old, to: new, in: paths)
+        for error in errors {
             print("\(error)".inRed, to: &stderr)
+        }
+        if !errors.isEmpty {
+            return .error
         }
     case let arg:
         print("`\(arg)` is not a valid command".inRed, to: &stderr)
-        return
+        return .error
     }
+    return .success
 }
 
-// Pass in arguments
-processArguments(CommandLine.arguments)
+// Pass in arguments and exit
+let result = processArguments(CommandLine.arguments)
+exit(result.rawValue)
