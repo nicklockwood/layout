@@ -3,7 +3,7 @@
 import UIKit
 
 /// Optional delegate protocol to be implemented by a LayoutNode's owner
-@objc public protocol LayoutDelegate: class {
+@objc public protocol LayoutDelegate {
 
     /// Notify that an error occured in the node tree
     @objc optional func layoutNode(_ layoutNode: LayoutNode, didDetectError error: Error)
@@ -68,11 +68,23 @@ public class LayoutNode: NSObject {
             _delegate = newValue
         }
     }
+    private func delegate(for selector: Selector) -> LayoutDelegate? {
+        var delegate = self.delegate
+        var responder = delegate as? UIResponder
+        while delegate != nil || responder != nil {
+            if (delegate as AnyObject).responds(to: selector) {
+                return delegate
+            }
+            responder = responder?.next
+            delegate = responder as? LayoutDelegate
+        }
+        return parent?.delegate(for: selector)
+    }
 
-    // Get the view class without side-effects of accessing view
+    /// Get the view class without side-effects of accessing view
     var viewClass: UIView.Type { return _class as? UIView.Type ?? UIView.self }
 
-    // Get the view controller class without side-effects of accessing view
+    /// Get the view controller class without side-effects of accessing view
     var viewControllerClass: UIViewController.Type? { return _class as? UIViewController.Type }
 
     // For internal use
@@ -315,18 +327,11 @@ public class LayoutNode: NSObject {
             }
             return
         }
-        var delegate = self.delegate
-        var responder = delegate as? UIResponder
-        while delegate != nil || responder != nil {
-            if let errorFn = delegate?.layoutNode(_:didDetectError:) {
-                if error.isTransient {
-                    _unhandledError = nil
-                }
-                errorFn(self, error)
-                return
+        if let delegate = self.delegate(for: #selector(LayoutDelegate.layoutNode(_:didDetectError:))) {
+            if error.isTransient {
+                _unhandledError = nil
             }
-            responder = responder?.next
-            delegate = responder as? LayoutDelegate
+            delegate.layoutNode?(self, didDetectError: error)
         }
     }
 
@@ -770,16 +775,8 @@ public class LayoutNode: NSObject {
     // MARK: symbols
 
     private func localizedString(forKey key: String) -> String? {
-        var delegate = self.delegate
-        var responder = delegate as? UIResponder
-        while delegate != nil || responder != nil {
-            if let string = delegate?.layoutNode?(self, localizedStringForKey: key) {
-                return string
-            }
-            responder = responder?.next
-            delegate = responder as? LayoutDelegate
-        }
-        return nil
+        let delegate = self.delegate(for: #selector(LayoutDelegate.layoutNode(_:localizedStringForKey:)))
+        return delegate?.layoutNode?(self, localizedStringForKey: key)
     }
 
     private func value(forKeyPath keyPath: String, in dictionary: [String: Any]) -> Any? {
