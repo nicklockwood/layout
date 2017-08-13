@@ -87,27 +87,6 @@ extension Collection where Iterator.Element == XMLNode {
 private let attributeWrap = 2
 
 extension XMLNode {
-    var isLayout: Bool {
-        switch self {
-        case let .node(name, attributes, children):
-            guard let firstChar = name.characters.first.map({ String($0) }),
-                firstChar.uppercased() == firstChar else {
-                return false
-            }
-            for key in attributes.keys {
-                if ["top", "left", "bottom", "right", "width", "height", "backgroundColor"].contains(key) {
-                    return true
-                }
-                if key.hasPrefix("layer.") {
-                    return true
-                }
-            }
-            return children.isLayout
-        default:
-            return false
-        }
-    }
-
     private func formatAttribute(key: String, value: String) -> String {
         var description = value
         switch key {

@@ -14,20 +14,15 @@ class XMLTests: XCTestCase {
         }
     }
 
-    func testViewInsideHTMLInsideView() {
-        let input = "<UIView><p><UIView/></p></UIView>"
-        do {
-            let layout = try Layout(xmlData: input.data(using: .utf8)!)
-            let layoutNode = try LayoutNode(layout: layout)
-            XCTAssertThrowsError(try layoutNode.update()) { error in
-                guard let layoutError = error as? LayoutError else {
-                    XCTFail("\(error)")
-                    return
-                }
-                XCTAssertTrue("\(layoutError)".contains("Unknown expression name `text`"))
+    func testViewInsideHTMLInsideLabel() {
+        let input = "<UILabel><p><UIView/></p></UILabel>"
+        XCTAssertThrowsError(try Layout(xmlData: input.data(using: .utf8)!)) { error in
+            guard let layoutError = error as? LayoutError else {
+                XCTFail("\(error)")
+                return
             }
-        } catch {
-            XCTFail("\(error)")
+            XCTAssertTrue("\(layoutError)".contains("Unsupported HTML"))
+            XCTAssertTrue("\(layoutError)".contains("UIView"))
         }
     }
 

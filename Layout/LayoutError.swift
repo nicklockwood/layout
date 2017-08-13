@@ -68,6 +68,10 @@ public enum LayoutError: Error, Hashable, CustomStringConvertible {
         self.init(error)
     }
 
+    public init(_ message: String) {
+        self = .message(message)
+    }
+
     public var description: String {
         switch self {
         case let .message(message):
@@ -104,5 +108,14 @@ public enum LayoutError: Error, Hashable, CustomStringConvertible {
 
     public static func ==(lhs: LayoutError, rhs: LayoutError) -> Bool {
         return lhs.description == rhs.description
+    }
+
+    /// Converts error thrown by the wrapped closure to a LayoutError
+    static func wrap<T>(_ closure: () throws -> T) throws -> T {
+        do {
+            return try closure()
+        } catch {
+            throw self.init(error)
+        }
     }
 }

@@ -9,7 +9,7 @@ class ProcessArgumentsTests: XCTestCase {
     }
 
     func testReturnsErrorCodeWhenErrorsOccur() {
-        XCTAssertEqual(processArguments(["LayoutTool"]), .error)
-        XCTAssertEqual(processArguments(["LayoutTool", "format"]), .error)
+        XCTAssertEqual(processArguments(["LayoutTool"]), .failure)
+        XCTAssertEqual(processArguments(["LayoutTool", "format"]), .failure)
     }
 }

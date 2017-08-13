@@ -8,12 +8,14 @@ class FormatTests: XCTestCase {
 
     func testValidLayout() {
         let input = "<Foo left=\"5\"/>"
-        XCTAssertTrue(isLayout(input))
+        let xml = try! XMLParser.parse(data: input.data(using: .utf8)!)
+        XCTAssertTrue(xml.isLayout)
     }
 
     func testInvalidLayout() {
         let input = "<html><p> Hello </p></html>"
-        XCTAssertFalse(isLayout(input))
+        let xml = try! XMLParser.parse(data: input.data(using: .utf8)!)
+        XCTAssertFalse(xml.isLayout)
     }
 
     // MARK: Attributes
