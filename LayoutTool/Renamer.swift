@@ -33,6 +33,8 @@ func rename(_ old: String, to new: String, in xml: String) throws -> String {
 
 private let stringExpressions: Set<String> = [
     "id", "udid", "uuid", "guid",
+    "title", "text", "label", "name", "identifier",
+    "key", "font", "image", "icon", "path", "url",
     "touchDown",
     "touchDownRepeat",
     "touchDragInside",
@@ -63,20 +65,21 @@ func rename(_ old: String, to new: String, in xml: [XMLNode]) -> [XMLNode] {
                 return $0
             }
             return .text(rename(old, to: new, in: parts) ?? text)
-        case .node(let elementName, var attributes, let children):
+        case .node(var name, var attributes, let children):
             for (key, value) in attributes {
                 var isString = false
                 if value.contains("{") && value.contains("}") {
-                    isString = true // may not actually be a string, but we can parse it as one
+                    isString = true // May not actually be a string, but we can parse it as one
                 } else if stringExpressions.contains(key) {
                     isString = true
                 } else {
-                    let lowercaseKey = key.lowercased()
                     for suffix in [
-                        "title", "text", "label", "name", "identifier",
-                        "key", "font", "image", "icon",
+                        "ID", "Id", "Url", "URL", "Path",
+                        "Title", "Text", "String", "Label",
+                        "Name", "Identifier", "Key",
+                        "Font", "Image", "Icon",
                     ] {
-                        if lowercaseKey.hasSuffix(suffix) {
+                        if key.hasSuffix(suffix) {
                             isString = true
                             break
                         }
@@ -91,8 +94,12 @@ func rename(_ old: String, to new: String, in xml: [XMLNode]) -> [XMLNode] {
                     attributes[key] = result
                 }
             }
+            if name == old, name.lowercased() != name {
+                // Only rename non-HTML elements
+                name = new
+            }
             return .node(
-                name: elementName,
+                name: name,
                 attributes: attributes,
                 children: rename(old, to: new, in: children)
             )

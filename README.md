@@ -1271,13 +1271,13 @@ To safely determine which files the formatting will be applied to, without overw
 
 ## Renaming
 
-LayoutTool provides a function for renaming expression variables or functions inside one or more Layout XML templates. Use it as follows:
+LayoutTool provides a function for renaming classes or expression variables inside one or more Layout XML templates. Use it as follows:
 
 ```bash
-"${PODS_ROOT}/Layout/LayoutTool/LayoutTool" rename "${SRCROOT}/path/to/your/layout/xml/" oldSymbolName newSymbolName
+"${PODS_ROOT}/Layout/LayoutTool/LayoutTool" rename "${SRCROOT}/path/to/your/layout/xml/" oldName newName
 ```
 
-Only values inside expressions will be affected. XML node names and literal string fragments are ignored.
+Only class names and values inside expressions will be affected. HTML elements and literal string fragments are ignored.
 
 **Note:** performing a rename also applies standard formatting to the file. There is currently no way to disable this.
 

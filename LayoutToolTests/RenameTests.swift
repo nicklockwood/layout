@@ -31,4 +31,18 @@ class RenameTests: XCTestCase {
         let output = try! rename("foo", to: "bar", in: input)
         XCTAssertEqual(output, expected)
     }
+
+    func testRenameClass() {
+        let input = "<Foo bar=\"bar\"/>"
+        let expected = "<Bar bar=\"bar\"/>\n"
+        let output = try! rename("Foo", to: "Bar", in: input)
+        XCTAssertEqual(output, expected)
+    }
+
+    func testNoRenameHTML() {
+        let input = "<UILabel align=\"center\">\n    <center>foo</center>\n</UILabel>\n"
+        let expected = "<UILabel align=\"centered\">\n    <center>foo</center>\n</UILabel>\n"
+        let output = try! rename("center", to: "centered", in: input)
+        XCTAssertEqual(output, expected)
+    }
 }
