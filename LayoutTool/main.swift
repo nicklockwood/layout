@@ -37,10 +37,10 @@ func printHelp() {
     print(" - formats all xml files found at the specified path(s)")
     print("")
     print("list <files>")
-    print(" - lists all xml files found at the specified path(s)")
+    print(" - lists all Layout xml files found at the specified path(s)")
     print("")
     print("rename <files> <old> <new>")
-    print(" - renames all occurrences of symbol <old> to <new> in <files>")
+    print(" - renames all classes or symbols named <old> to <new> in <files>")
     print("")
 }
 
@@ -78,7 +78,7 @@ func processArguments(_ args: [String]) -> ExitResult {
     case "rename":
         var paths = Array(args.dropFirst(2))
         guard let new = paths.popLast(), let old = paths.popLast(), !new.contains("/"), !old.contains("/") else {
-            errors.append(.options("rename command expects a symbol name and a replacement"))
+            errors.append(.options("rename command expects a name and replacement"))
             break
         }
         if paths.isEmpty {

@@ -31,10 +31,11 @@ extension Layout {
             switch node {
             case .node:
                 if isHTML || !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || node.isHTML {
-                    text += try LayoutError.wrap {
-                        try node.toHTML()
+                    if !isHTML {
+                        text = text.xmlEncoded()
+                        isHTML = true
                     }
-                    isHTML = true
+                    text += try node.toHTML()
                 } else {
                     text = ""
                     try children.append(Layout(xmlNode: node))
@@ -70,5 +71,41 @@ extension Layout {
             templatePath: templatePath,
             relativePath: relativeTo
         )
+    }
+}
+
+private let supportedHTMLTags: Set<String> = [
+    "b", "i", "u", "strong", "em", "strike",
+    "h1", "h2", "h3", "h4", "h5", "h6",
+    "p", "br", "sub", "sup", "center",
+    "ul", "ol", "li",
+]
+
+private extension XMLNode {
+    func toHTML() throws -> String {
+        var text = ""
+        switch self {
+        case let .node(name, attributes, children):
+            guard attributes.isEmpty else {
+                throw LayoutError("Unsupported attribute `\(attributes.keys.first!)` for element <\(name)>.")
+            }
+            guard supportedHTMLTags.contains(name) else {
+                throw LayoutError("Unsupported HTML element <\(name)>.")
+            }
+            guard name != "br" else {
+                text += "<br/>"
+                break
+            }
+            text += "<\(name)>"
+            for node in children {
+                text += try node.toHTML()
+            }
+            return text + "</\(name)>"
+        case let .text(string):
+            text += string.xmlEncoded()
+        case .comment:
+            break // Ignore
+        }
+        return text
     }
 }

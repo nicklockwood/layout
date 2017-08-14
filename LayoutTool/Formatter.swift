@@ -183,24 +183,3 @@ extension XMLNode {
         }
     }
 }
-
-extension String {
-    func xmlEncoded(forAttribute: Bool) -> String {
-        var output = ""
-        for char in unicodeScalars {
-            switch char {
-            case "&":
-                output.append("&amp;")
-            case "<":
-                output.append("&lt;")
-            case ">":
-                output.append("&gt;")
-            case "\"" where forAttribute:
-                output.append("&quot;")
-            default:
-                output.append(String(char))
-            }
-        }
-        return output
-    }
-}

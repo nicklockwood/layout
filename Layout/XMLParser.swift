@@ -39,34 +39,6 @@ enum XMLNode: Equatable {
         return isHTMLElement(name)
     }
 
-    func toHTML() throws -> String {
-        var text = ""
-        switch self {
-        case let .node(name, attributes, children):
-            guard name != "br" else {
-                text += "<br/>"
-                break
-            }
-            guard isHTMLElement(name), htmlTags.contains(name) else {
-                throw XMLParser.Error("Unsupported HTML element <\(name)>.")
-            }
-            text += "<\(name)"
-            for (key, value) in attributes {
-                text += " \"\(key)\"=\"\(value)\""
-            }
-            text += ">"
-            for node in children {
-                text += try node.toHTML()
-            }
-            return "\(text)</\(name)>"
-        case let .text(string):
-            text += string // TODO: encode
-        case .comment:
-            break // Ignore
-        }
-        return text
-    }
-
     public var isEmpty: Bool {
         switch self {
         case let .node(_, _, children):
@@ -272,13 +244,6 @@ class XMLParser: NSObject, XMLParserDelegate {
     }
 }
 
-private let htmlTags: Set<String> = [
-    "b", "i", "u", "strong", "em", "strike",
-    "h1", "h2", "h3", "h4", "h5", "h6",
-    "p", "br", "sub", "sup", "center",
-    "ul", "ol", "li",
-]
-
 private func isHTMLElement(_ name: String) -> Bool {
     return name.lowercased() == name
 }
@@ -287,12 +252,31 @@ private func textIsEmpty(_ text: String) -> Bool {
     return text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
 }
 
-private extension String {
+extension String {
     func rtrim() -> String {
         var chars = unicodeScalars
         while let char = chars.last, NSCharacterSet.whitespacesAndNewlines.contains(char) {
             chars.removeLast()
         }
         return String(chars)
+    }
+
+    func xmlEncoded(forAttribute: Bool = false) -> String {
+        var output = ""
+        for char in unicodeScalars {
+            switch char {
+            case "&":
+                output.append("&amp;")
+            case "<":
+                output.append("&lt;")
+            case "\"" where forAttribute:
+                output.append("&quot;")
+            case _ where char.value > 127:
+                output.append(String(format:"&#x%2X;", char.value))
+            default:
+                output.append(String(char))
+            }
+        }
+        return output
     }
 }

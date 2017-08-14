@@ -33,4 +33,38 @@ class XMLTests: XCTestCase {
             XCTAssert("\(error)".contains("bold"))
         }
     }
+
+    // MARK: Encoding
+
+    func testEncodeXMLEntities() {
+        let input = "if 2 > 3 && 1 < 4"
+        let expected = "if 2 > 3 &amp;&amp; 1 &lt; 4"
+        XCTAssertEqual(input.xmlEncoded(), expected)
+    }
+
+    // MARK: HTML
+
+    func testNoEncodeHTMLEntitiesInText() {
+        let text = "2 legs are < 4 legs"
+        let input = "<UILabel>\(text.xmlEncoded())</UILabel>"
+        let xmlData = input.data(using: .utf8)!
+        let layout = try! Layout(xmlData: xmlData)
+        XCTAssertEqual(layout.expressions["text"], text)
+    }
+
+    func testEncodeHTMLEntitiesInHTML() {
+        let html = "2 legs are &lt; 4 legs<br/>"
+        let input = "<UILabel>\(html)</UILabel>"
+        let xmlData = input.data(using: .utf8)!
+        let layout = try! Layout(xmlData: xmlData)
+        XCTAssertEqual(layout.expressions["attributedText"], html)
+    }
+
+    func testEncodeHTMLEntitiesInHTML2() {
+        let html = "<p>2 legs are &lt; 4 legs</p>"
+        let input = "<UILabel>\(html)</UILabel>"
+        let xmlData = input.data(using: .utf8)!
+        let layout = try! Layout(xmlData: xmlData)
+        XCTAssertEqual(layout.expressions["attributedText"], html)
+    }
 }
