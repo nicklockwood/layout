@@ -18,6 +18,16 @@ class FormatTests: XCTestCase {
         XCTAssertFalse(xml.isLayout)
     }
 
+    func testMalformedXML() {
+        let input = "<Foo>\n    <Bar/>\n</Baz>\n"
+        XCTAssertThrowsError(try format(input)) { error in
+            let description = "\(error)"
+            XCTAssert(description.contains("Foo"))
+            XCTAssert(description.contains("Baz"))
+            XCTAssert(description.contains("line 3"))
+        }
+    }
+
     // MARK: Attributes
 
     func testNoAttributes() {

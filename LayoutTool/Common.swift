@@ -11,9 +11,12 @@ enum FormatError: Error, CustomStringConvertible {
     case generic(String)
 
     public init(_ error: Error) {
-        if let error = error as? FormatError {
+        switch error {
+        case let error as FormatError:
             self = error
-        } else {
+        case let error as XMLParser.Error:
+            self = .parsing(error.description)
+        default:
             self = .generic((error as NSError).localizedDescription)
         }
     }
@@ -157,30 +160,35 @@ func expandPath(_ path: String) -> URL {
     return URL(fileURLWithPath: path, relativeTo: directoryURL)
 }
 
+func parseLayoutXML(_ fileURL: URL) throws -> [XMLNode]? {
+    do {
+        let data = try Data(contentsOf: fileURL)
+        let xml = try XMLParser.parse(data: data)
+        return xml.isLayout ? xml : nil
+    } catch {
+        switch error {
+        case let error as XMLParser.Error:
+            throw FormatError.parsing("\(error.description) in \(fileURL.path)")
+        default:
+            throw error
+        }
+    }
+}
+
 func list(_ files: [String]) -> [FormatError] {
     var errors = [Error]()
     for path in files {
         let url = expandPath(path)
         errors += enumerateFiles(withInputURL: url, concurrent: false) { inputURL, _ in
-            let path = inputURL.path.substring(from: url.path.endIndex)
             do {
-                let data = try Data(contentsOf: inputURL)
-                let xml = try XMLParser.parse(data: data)
-                if xml.isLayout {
-                    return { _ in
-                        print("\(path)")
-                    }
+                guard try parseLayoutXML(inputURL) != nil else {
+                    return {}
                 }
-                return {}
-            } catch {
                 return {
-                    switch error {
-                    case let FormatError.parsing(string):
-                        throw FormatError.parsing("\(string) in \(path)")
-                    default:
-                        throw error
-                    }
+                    print(inputURL.path.substring(from: url.path.endIndex))
                 }
+            } catch {
+                return { throw error }
             }
         }
     }

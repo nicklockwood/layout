@@ -8,23 +8,13 @@ func format(_ files: [String]) -> [FormatError] {
         let url = expandPath(path)
         errors += enumerateFiles(withInputURL: url, concurrent: false) { inputURL, outputURL in
             do {
-                let data = try Data(contentsOf: inputURL)
-                let xml = try XMLParser.parse(data: data)
-                if xml.isLayout {
-                    let output = try format(xml)
+                if let xml = try parseLayoutXML(inputURL) {
+                    let output = format(xml)
                     try output.write(to: outputURL, atomically: true, encoding: .utf8)
                 }
                 return {}
             } catch {
-                return {
-                    switch error {
-                    case let FormatError.parsing(string):
-                        let path = inputURL.path.substring(from: url.path.endIndex)
-                        throw FormatError.parsing("\(string) in \(path)")
-                    default:
-                        throw error
-                    }
-                }
+                return { throw error }
             }
         }
     }
@@ -36,10 +26,10 @@ func format(_ xml: String) throws -> String {
         throw FormatError.parsing("Invalid xml string")
     }
     let xml = try XMLParser.parse(data: data)
-    return try format(xml)
+    return format(xml)
 }
 
-func format(_ xml: [XMLNode]) throws -> String {
+func format(_ xml: [XMLNode]) -> String {
     return xml.toString(withIndent: "")
 }
 
