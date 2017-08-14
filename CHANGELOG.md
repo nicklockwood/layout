@@ -1,5 +1,13 @@
 # Change Log
 
+## [0.4.11](https://github.schibsted.io/Rocket/layout/releases/tag/0.4.11) (2017-08-14)
+
+- Non-ascii characters such as emoji are now encoded and displayed correctly when using inline HTML
+- LayoutTool rename command can now rename view or controller classes, as well as expression symbols
+- Improved LayoutTool error reporting - error messages now include the file in which the error ocurred
+- LayoutTool errors are now displayed in Xcode when running LayoutTool as a build phase script
+- LayoutTool errors will now fail the build when running LayoutTool as a build phase script
+
 ## [0.4.10](https://github.schibsted.io/Rocket/layout/releases/tag/0.4.10) (2017-08-11)
 
 - Fixed bug that caused file conflicts to be presented as Red Box error overlay instead of the file selection overlay
