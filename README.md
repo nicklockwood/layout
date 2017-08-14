@@ -91,13 +91,13 @@ Layout is provided as a standalone Swift framework that you can use in your app.
 To install Layout using CocoaPods, add the following to your Podfile:
 
 ```ruby
-pod 'Layout', '~> 0.4.10'
+pod 'Layout', '~> 0.4.12'
 ```
 
 To install use Carthage, add this to your Cartfile:
 
 ```
-github "schibsted/Layout" ~> 0.4.10
+github "schibsted/Layout" ~> 0.4.12
 ```
 
 ## Integration
@@ -1169,7 +1169,7 @@ Dynamic collection cell size calculation is also supported. To enable this, just
 
 Layout does not currently support using XML to define supplementary `UICollectionReusableView` instances, but this will be added in future.
 
-As with `UITableViewController`, Layout supports the use of `UICollectionViewController`, with the same caveats.
+Layout supports the use of `UICollectionViewController`, with the same caveats as for `UITableViewController`.
 
 
 ## Composition

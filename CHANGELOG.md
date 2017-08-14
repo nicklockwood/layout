@@ -1,6 +1,11 @@
 # Change Log
 
-## [0.4.11](https://github.schibsted.io/Rocket/layout/releases/tag/0.4.11) (2017-08-14)
+## [0.4.12](https://github.com/schibsted/layout/releases/tag/0.4.12) (2017-08-14)
+
+- Fixed scroll performance when using a UIScrollView as the root node in a Layout hierarchy
+- Added support for UITableViewController and UICollectionViewController
+
+## [0.4.11](https://github.com/schibsted/layout/releases/tag/0.4.11) (2017-08-14)
 
 - Non-ascii characters such as emoji are now encoded and displayed correctly when using inline HTML
 - LayoutTool rename command can now rename view or controller classes, as well as expression symbols
@@ -8,11 +13,11 @@
 - LayoutTool errors are now displayed in Xcode when running LayoutTool as a build phase script
 - LayoutTool errors will now fail the build when running LayoutTool as a build phase script
 
-## [0.4.10](https://github.schibsted.io/Rocket/layout/releases/tag/0.4.10) (2017-08-11)
+## [0.4.10](https://github.com/schibsted/layout/releases/tag/0.4.10) (2017-08-11)
 
 - Fixed bug that caused file conflicts to be presented as Red Box error overlay instead of the file selection overlay
 
-## [0.4.9](https://github.schibsted.io/Rocket/layout/releases/tag/0.4.9) (2017-08-10)
+## [0.4.9](https://github.com/schibsted/layout/releases/tag/0.4.9) (2017-08-10)
 
 - Fixed assertion failure when repeatedly pressing Cmd-R in the simulator
 - Fixed bug when creating subclasses of `UITableView`, `UITableViewCell`, `UITableViewController` or `UICollectionView`
@@ -21,20 +26,20 @@
 - Fixed a bug where `UICollectionView.collectionViewLayout.itemSize` was ignored by default
 - Assigning values to properties of a nil object now fails silently instead of throwing an error
 
-## [0.4.8](https://github.schibsted.io/Rocket/layout/releases/tag/0.4.8) (2017-08-09)
+## [0.4.8](https://github.com/schibsted/layout/releases/tag/0.4.8) (2017-08-09)
 
 - Added support for the `UIScrollView.contentInsetAdjustmentBehavior` property introduced in iOS 11
 - Property accessor now throws an error for non-existent properties instead of returning nil
 - Fixed compiler errors in Xcode 9b5
 
-## [0.4.7](https://github.schibsted.io/Rocket/layout/releases/tag/0.4.7) (2017-08-07)
+## [0.4.7](https://github.com/schibsted/layout/releases/tag/0.4.7) (2017-08-07)
 
 - First open source release!
 - Added support for UICollectionView
 - Improved error messaging
 - Fixed a bug where AutoLayout support would not work correctly in some cases
 
-## [0.4.6](https://github.schibsted.io/Rocket/layout/releases/tag/0.4.6) (2017-08-03)
+## [0.4.6](https://github.com/schibsted/layout/releases/tag/0.4.6) (2017-08-03)
 
 - Added support for UIStackView
 - Empty XML files no longer crash Layout
@@ -48,7 +53,7 @@
 - Fixed an intermittent crash due to reloading in the middle of expression evaluation
 - Added Sandbox example app
 
-## [0.4.5](https://github.schibsted.io/Rocket/layout/releases/tag/0.4.5) (2017-07-28)
+## [0.4.5](https://github.com/schibsted/layout/releases/tag/0.4.5) (2017-07-28)
 
 - Added basic templating functionality for inheriting common layout attributes and elements
 - Nested xml file references now permit the root node of the referenced file to be a subclass
@@ -60,13 +65,13 @@
 - Fixed crash in XML parser when handling a malformed layout structure
 - Fixed crash in UIDesigner example
 
-## [0.4.4](https://github.schibsted.io/Rocket/layout/releases/tag/0.4.4) (2017-07-25)
+## [0.4.4](https://github.com/schibsted/layout/releases/tag/0.4.4) (2017-07-25)
 
 - Selected source paths are now persisted between application launches
 - Made the `LayoutNode.bind(to:)` and `LayoutNode.unbind()` methods public
 - More helpful errors for empty expressions
 
-## [0.4.3](https://github.schibsted.io/Rocket/layout/releases/tag/0.4.3) (2017-07-20)
+## [0.4.3](https://github.com/schibsted/layout/releases/tag/0.4.3) (2017-07-20)
 
 - Added support for `UITableViewHeaderFooterView` layouts for table footers and headers
 - You can now define `UITableViewCell` and `UITableViewHeaderFooterView` templates inside the XML for a table
@@ -80,19 +85,19 @@
 - Further improvements to auto-sizing behavior
 - Fixed bug where Red Box scrollView delegate could get bound to a custom controller
 
-## [0.4.2](https://github.schibsted.io/Rocket/layout/releases/tag/0.4.2) (2017-07-17)
+## [0.4.2](https://github.com/schibsted/layout/releases/tag/0.4.2) (2017-07-17)
 
 - Improved auto-sizing behavior for views using both `intrinsicContentSize` and AutoLayout constraints
 - XML Layouts are now cached in memory after first load, removing the overhead of repeated parsing
 - Added performance tests for XML loading, and switched performance tests to release mode
 
-## [0.4.1](https://github.schibsted.io/Rocket/layout/releases/tag/0.4.1) (2017-07-15)
+## [0.4.1](https://github.com/schibsted/layout/releases/tag/0.4.1) (2017-07-15)
 
 - Added support for dynamic text resizing based on user font size settings
 - Improved font expression parsing. Now handles font names containing spaces, even without quotes
 - Fixed an occasional glitch where auto-sized table cells would all be positioned at the top of the table
 
-## [0.4.0](https://github.schibsted.io/Rocket/layout/releases/tag/0.4.0) (2017-07-12)
+## [0.4.0](https://github.com/schibsted/layout/releases/tag/0.4.0) (2017-07-12)
 
 - Breaking change: `UIScrollView.contentInset` is now taken into account when using `auto` in width/height
 - Using `auto` sizing on nodes whose children depend on parent size no longer creates circular reference errors
@@ -104,7 +109,7 @@
 - Added caching for computed properties, which improves update performance
 - Fixed live reloading of strings
 
-## [0.3.6](https://github.schibsted.io/Rocket/layout/releases/tag/0.3.6) (2017-07-10)
+## [0.3.6](https://github.com/schibsted/layout/releases/tag/0.3.6) (2017-07-10)
 
 - Conflict resolution now ignores xml or strings files inside build directory
 - Made conflict resolution urls more readable by removing common path prefixes
@@ -113,7 +118,7 @@
 - LayoutTool now formats expressions as well as general XML structure
 - Internalized the Expression library dependency, to simplify integration with LayoutTool
 
-## [0.3.5](https://github.schibsted.io/Rocket/layout/releases/tag/0.3.5) (2017-07-05)
+## [0.3.5](https://github.com/schibsted/layout/releases/tag/0.3.5) (2017-07-05)
 
 - Added conflict resolution for when multiple strings or XML layout files have the same name
 - UIControl event bindings are now more reliable, and added error detection for misspellings
@@ -121,14 +126,14 @@
 - Added LayoutTool project and tests
 - Restructured project and removed Northstar example
 
-## [0.3.4](https://github.schibsted.io/Rocket/layout/releases/tag/0.3.4) (2017-06-29)
+## [0.3.4](https://github.com/schibsted/layout/releases/tag/0.3.4) (2017-06-29)
 
 - Added support for dynamic table cell height based on AutoLayout
 - Improved AutoLayout integration and fixed a potential crash
 - Improved performance by avoiding double-evaluation of frame properties on each layout
 - Fixed a bug where a circular reference could cause a crash in some cases instead of showing a red box
 
-## [0.3.3](https://github.schibsted.io/Rocket/layout/releases/tag/0.3.3) (2017-06-27)
+## [0.3.3](https://github.com/schibsted/layout/releases/tag/0.3.3) (2017-06-27)
 
 - Added `LayoutLoading` protocol, for loading arbitrary views or view controllers from XML
 - LayoutVC errors are no longer passed up to parent, which fixes a bug with reloading after an error
@@ -139,12 +144,12 @@
 - Added custom initializer support for views/controllers that require extra arguments
 - Added support for `layoutMargins` in expressions
 
-## [0.3.2](https://github.schibsted.io/Rocket/layout/releases/tag/0.3.2) (2017-06-20)
+## [0.3.2](https://github.com/schibsted/layout/releases/tag/0.3.2) (2017-06-20)
 
 - Reloading a nested LayoutViewController now reloads just the current controller, not the parent
 - Fixed potential AutoLayout crash
 
-## [0.3.1](https://github.schibsted.io/Rocket/layout/releases/tag/0.3.1) (2017-06-13)
+## [0.3.1](https://github.com/schibsted/layout/releases/tag/0.3.1) (2017-06-13)
 
 - You can now reference nested state or constants dictionary keys using keypaths in expressions
 - Fixed a major performance regression introduced in 0.2.1, which made the UIDesigner unusable
@@ -153,7 +158,7 @@
 - Improved null-coalescing operator error messaging
 - Improved AnyExpression implementation to eliminate arbitrary limits on numeric values
 
-## [0.3.0](https://github.schibsted.io/Rocket/layout/releases/tag/0.3.0) (2017-06-09)
+## [0.3.0](https://github.com/schibsted/layout/releases/tag/0.3.0) (2017-06-09)
 
 - Implicitly unwrapping a nil value inside a string expression will now throw instead of printing "nil"
 - String and image expressions can now safely return nil values, all other expression types will throw
@@ -162,36 +167,36 @@
 - All properties now use AnyExpression internally, meaning they can reference arbitrary types 
 - Braces are now permitted around any expression type, making the rules less confusing to remember
 
-## [0.2.6](https://github.schibsted.io/Rocket/layout/releases/tag/0.2.6) (2017-06-08)
+## [0.2.6](https://github.com/schibsted/layout/releases/tag/0.2.6) (2017-06-08)
 
 - Fixed bug where custom enums would be misidentified as the wrong type
 - Fixed bug with events being swallowed inside nested view controllers of LayoutViewController
 
-## [0.2.5](https://github.schibsted.io/Rocket/layout/releases/tag/0.2.5) (2017-06-07)
+## [0.2.5](https://github.com/schibsted/layout/releases/tag/0.2.5) (2017-06-07)
 
 - Fixed bug with locating xml layout files inside a framework bundle
 - Fixed Cmd-R shortcut inside LayoutViewController when presented modally
 
-## [0.2.4](https://github.schibsted.io/Rocket/layout/releases/tag/0.2.4) (2017-06-06)
+## [0.2.4](https://github.com/schibsted/layout/releases/tag/0.2.4) (2017-06-06)
 
 - Added support for directly using localized strings from XML, and live loading of edited strings
 - Added support for missing UIScrollView enum properties
 - Added convenient solution for merging constants dictionaries
 - Further optimized startup and update performance  
 
-## [0.2.3](https://github.schibsted.io/Rocket/layout/releases/tag/0.2.3) (2017-05-29)
+## [0.2.3](https://github.com/schibsted/layout/releases/tag/0.2.3) (2017-05-29)
 
 - Fixed bug where inherited state incorrectly shadowed local constants
 - Expressions that mix math functions with non-numeric types now work as expected
 - Improved expression parsing and evaluation performance
 
-## [0.2.2](https://github.schibsted.io/Rocket/layout/releases/tag/0.2.2) (2017-05-19)
+## [0.2.2](https://github.com/schibsted/layout/releases/tag/0.2.2) (2017-05-19)
 
 - Fixed a critical bug where Bool properties were not working on 32-bit devices
 - Improved performance by not recalculating property types in setters
 - Added missing UIButton state setters
 
-## [0.2.1](https://github.schibsted.io/Rocket/layout/releases/tag/0.2.1) (2017-05-19)
+## [0.2.1](https://github.com/schibsted/layout/releases/tag/0.2.1) (2017-05-19)
 
 - Setting state to the same value no longer triggers an update
 - Added support for common Core Graphics geometry types such as `CGPoint`/`CGSize`
@@ -201,19 +206,19 @@
 - Improved handling of Optionals and nil values in constants and state variables
 - Fixed some bugs where constants or state variable names shadowed view properties
 
-## [0.2.0](https://github.schibsted.io/Rocket/layout/releases/tag/0.2.0) (2017-05-18)
+## [0.2.0](https://github.com/schibsted/layout/releases/tag/0.2.0) (2017-05-18)
 
 - Improved support for enums - it's no longer necessary to explicitly work with raw values (breaking change)
 - Shadowing of inherited constants and state now works in a more intuitive way
 - Cyclical references in expressions now correctly throw an error instead of crashing
 - You can now use font names containing spaces in font expressions by wrapping them in single or double quotes
 
-## [0.1.1](https://github.schibsted.io/Rocket/layout/releases/tag/0.1.1) (2017-05-16)
+## [0.1.1](https://github.com/schibsted/layout/releases/tag/0.1.1) (2017-05-16)
 
 - Added support for single- or double-quoted string literals inside expressions
 - Fixed reloading of nested xml file references so it correctly finds the source file
 - Improved `auto` sizing logic to better handle `intrinsicContentSize` values
 
-## [0.1.0](https://github.schibsted.io/Rocket/layout/releases/tag/0.1.0) (2017-05-15)
+## [0.1.0](https://github.com/schibsted/layout/releases/tag/0.1.0) (2017-05-15)
 
 - First release
