@@ -141,14 +141,3 @@ extension UINavigationController {
         }
     }
 }
-
-extension UITableViewController {
-    open override class func create(with node: LayoutNode) throws -> UITableViewController {
-        var style = UITableViewStyle.plain
-        if let expression = node.expressions["style"] {
-            let styleExpression = LayoutExpression(expression: expression, type: tableViewStyle, for: node)
-            style = try styleExpression.evaluate() as! UITableViewStyle
-        }
-        return self.init(style: style)
-    }
-}

@@ -4,6 +4,11 @@ import UIKit
 
 private let placeholderID = NSUUID().uuidString
 
+private let collectionViewScrollDirection = RuntimeType(UICollectionViewScrollDirection.self, [
+    "horizontal": .horizontal,
+    "vertical": .vertical,
+])
+
 extension UICollectionView {
     open override class func create(with node: LayoutNode) throws -> UICollectionView {
         let layout: UICollectionViewLayout
@@ -15,23 +20,26 @@ extension UICollectionView {
             )
             layout = try layoutExpression.evaluate() as! UICollectionViewLayout
         } else {
-            let flowLayout = UICollectionViewFlowLayout()
-            layout = flowLayout
-            // Enable auto-sizing
-            if node.expressions["collectionViewLayout.itemSize"] ??
-                node.expressions["collectionViewLayout.itemSize.width"] ??
-                node.expressions["collectionViewLayout.itemSize.height"] == nil {
-                flowLayout.estimatedItemSize = flowLayout.itemSize
-            }
-            if #available(iOS 10.0, *) {
-                flowLayout.itemSize = UICollectionViewFlowLayoutAutomaticSize
-            } else {
-                flowLayout.itemSize = CGSize(width: UIViewNoIntrinsicMetric, height: UIViewNoIntrinsicMetric)
-            }
+            layout = defaultLayout(for: node)
         }
-        let view = self.init(frame: .zero, collectionViewLayout: layout)
-        view.register(UICollectionViewCell.self, forCellWithReuseIdentifier: placeholderID)
-        return view
+        let collectionView = self.init(frame: .zero, collectionViewLayout: layout)
+        collectionView.register(UICollectionViewCell.self, forCellWithReuseIdentifier: placeholderID)
+        return collectionView
+    }
+
+    fileprivate static func defaultLayout(for node: LayoutNode) -> UICollectionViewFlowLayout {
+        let flowLayout = UICollectionViewFlowLayout()
+        if node.expressions["collectionViewLayout.itemSize"] ??
+            node.expressions["collectionViewLayout.itemSize.width"] ??
+            node.expressions["collectionViewLayout.itemSize.height"] == nil {
+            flowLayout.estimatedItemSize = flowLayout.itemSize
+        }
+        if #available(iOS 10.0, *) {
+            flowLayout.itemSize = UICollectionViewFlowLayoutAutomaticSize
+        } else {
+            flowLayout.itemSize = CGSize(width: UIViewNoIntrinsicMetric, height: UIViewNoIntrinsicMetric)
+        }
+        return flowLayout
     }
 
     open override class var expressionTypes: [String: RuntimeType] {
@@ -39,10 +47,7 @@ extension UICollectionView {
         for (key, type) in UICollectionViewFlowLayout.allPropertyTypes() {
             types["collectionViewLayout.\(key)"] = type
         }
-        types["collectionViewLayout.scrollDirection"] = RuntimeType(UICollectionViewScrollDirection.self, [
-            "horizontal": .horizontal,
-            "vertical": .vertical,
-        ])
+        types["collectionViewLayout.scrollDirection"] = collectionViewScrollDirection
         return types
     }
 
@@ -101,6 +106,72 @@ extension UICollectionView {
         print("Layout error: \(error)")
     }
 }
+
+extension UICollectionViewController {
+    open override class func create(with node: LayoutNode) throws -> UICollectionViewController {
+        let layout: UICollectionViewLayout
+        if let expression = node.expressions["collectionViewLayout"] {
+            let layoutExpression = LayoutExpression(
+                expression: expression,
+                type: RuntimeType(UICollectionViewLayout.self),
+                for: node
+            )
+            layout = try layoutExpression.evaluate() as! UICollectionViewLayout
+        } else {
+            layout = UICollectionView.defaultLayout(for: node)
+        }
+        let viewController = self.init(collectionViewLayout: layout)
+        if !node.children.contains(where: { $0.viewClass is UICollectionView.Type }) {
+            viewController.collectionView?.register(UICollectionViewCell.self, forCellWithReuseIdentifier: placeholderID)
+        } else if node.expressions.keys.contains(where: { $0.hasPrefix("collectionView.") }) {
+            // TODO: figure out how to propagate this config to the view once it has been created
+        }
+        return viewController
+    }
+
+    open override class var expressionTypes: [String: RuntimeType] {
+        var types = super.expressionTypes
+        for (key, type) in UICollectionViewFlowLayout.allPropertyTypes() {
+            types["collectionViewLayout.\(key)"] = type
+        }
+        types["collectionViewLayout.scrollDirection"] = collectionViewScrollDirection
+        for (key, type) in UICollectionView.cachedExpressionTypes {
+            types["collectionView.\(key)"] = type
+        }
+        return types
+    }
+
+    open override func setValue(_ value: Any, forExpression name: String) throws {
+        switch name {
+        case _ where name.hasPrefix("collectionView."):
+            try collectionView?.setValue(value, forExpression: name.substring(from: "collectionView.".endIndex))
+        default:
+            try super.setValue(value, forExpression: name)
+        }
+    }
+
+    open override func didInsertChildNode(_ node: LayoutNode, at index: Int) {
+        // TODO: what if more than one collectionView is added?
+        if node.viewClass is UICollectionView.Type {
+            let wasLoaded = (viewIfLoaded != nil)
+            collectionView = node.view as? UICollectionView
+            if wasLoaded {
+                viewDidLoad()
+            }
+            return
+        }
+        collectionView?.didInsertChildNode(node, at: index)
+    }
+
+    open override func willRemoveChildNode(_ node: LayoutNode, at index: Int) {
+        if node.viewClass is UICollectionView.Type {
+            collectionView = nil
+            return
+        }
+        collectionView?.willRemoveChildNode(node, at: index)
+    }
+}
+
 
 private var cellDataKey = 0
 private var nodesKey = 0

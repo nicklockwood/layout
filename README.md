@@ -1069,6 +1069,22 @@ Layout supports dynamic table cell height calculation. To enable this, just set 
 
 Layout also supports using XML layouts for `UITableViewHeaderFooterView`, and there are equivalent methods for registering and dequeuing `UITableViewHeaderFooterView` layout nodes.
 
+If you prefer you can create a `<UITableViewController/>` in your XML instead of subclassing `UIViewController` and implementing the table data source and delegate. Note that if you do this, there is no need to explcitly create the `UITableView` yourself, as the `UITableViewController` already includes one. To configure the table, you can set properties of the table view directly on the controller using a `tableView.` prefix, e.g.
+
+```xml
+<UITableViewController
+    backgroundColor="#fff"
+    tableView.separatorStyle="none"
+    tableView.contentInset.top="20"
+    style="plain">
+
+    <UITableViewCell
+        reuseIdentifier="cell"
+        textLabel.text="{title}"
+    />
+</UITableViewController>
+```
+
 
 # Collection Views
 
@@ -1152,6 +1168,8 @@ class CollectionViewController: UIViewController, UICollectionViewDelegate, UICo
 Dynamic collection cell size calculation is also supported. To enable this, just set a width and height expression for your cell. If your cells all have the same size, it is more efficient to set an explicit `collectionViewLayout.itemSize` on the `UICollectionView` instead.
 
 Layout does not currently support using XML to define supplementary `UICollectionReusableView` instances, but this will be added in future.
+
+As with `UITableViewController`, Layout supports the use of `UICollectionViewController`, with the same caveats.
 
 
 ## Composition

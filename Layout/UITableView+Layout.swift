@@ -2,7 +2,7 @@
 
 import UIKit
 
-let tableViewStyle = RuntimeType(UITableViewStyle.self, [
+private let tableViewStyle = RuntimeType(UITableViewStyle.self, [
     "plain": .plain,
     "grouped": .grouped,
 ])
@@ -14,13 +14,16 @@ extension UITableView {
             let styleExpression = LayoutExpression(expression: expression, type: tableViewStyle, for: node)
             style = try styleExpression.evaluate() as! UITableViewStyle
         }
-        let view = self.init(frame: .zero, style: style)
-        // Enable auto-sizing
-        view.estimatedRowHeight = 44
-        view.rowHeight = UITableViewAutomaticDimension
-        view.estimatedSectionHeaderHeight = 20
-        view.sectionHeaderHeight = UITableViewAutomaticDimension
-        return view
+        let tableView = self.init(frame: .zero, style: style)
+        tableView.enableAutoSizing()
+        return tableView
+    }
+
+    fileprivate func enableAutoSizing() {
+        estimatedRowHeight = 44
+        rowHeight = UITableViewAutomaticDimension
+        estimatedSectionHeaderHeight = 20
+        sectionHeaderHeight = UITableViewAutomaticDimension
     }
 
     open override class var expressionTypes: [String: RuntimeType] {
@@ -106,6 +109,64 @@ extension UITableView {
             responder = responder?.next
         }
         print("Layout error: \(error)")
+    }
+}
+
+extension UITableViewController {
+    open override class func create(with node: LayoutNode) throws -> UITableViewController {
+        var style = UITableViewStyle.plain
+        if let expression = node.expressions["style"] ?? node.expressions["tableView.style"] {
+            let styleExpression = LayoutExpression(expression: expression, type: tableViewStyle, for: node)
+            style = try styleExpression.evaluate() as! UITableViewStyle
+        }
+        let viewController = self.init(style: style)
+        if !node.children.contains(where: { $0.viewClass is UITableView.Type }) {
+            viewController.tableView.enableAutoSizing()
+        } else if node.expressions.keys.contains(where: { $0.hasPrefix("tableView.") }) {
+            // TODO: figure out how to propagate this config to the view once it has been created
+        }
+        return viewController
+    }
+
+    open override class var expressionTypes: [String: RuntimeType] {
+        var types = super.expressionTypes
+        types["style"] = tableViewStyle
+        for (key, type) in UITableView.cachedExpressionTypes {
+            types["tableView.\(key)"] = type
+        }
+        return types
+    }
+
+    open override func setValue(_ value: Any, forExpression name: String) throws {
+        switch name {
+        case "style":
+            break // Ignore this - we set it during creation
+        case _ where name.hasPrefix("tableView."):
+            try tableView.setValue(value, forExpression: name.substring(from: "tableView.".endIndex))
+        default:
+            try super.setValue(value, forExpression: name)
+        }
+    }
+
+    open override func didInsertChildNode(_ node: LayoutNode, at index: Int) {
+        // TODO: what if more than one tableView is added?
+        if node.viewClass is UITableView.Type {
+            let wasLoaded = (viewIfLoaded != nil)
+            tableView = node.view as? UITableView
+            if wasLoaded {
+                viewDidLoad()
+            }
+            return
+        }
+        tableView.didInsertChildNode(node, at: index)
+    }
+
+    open override func willRemoveChildNode(_ node: LayoutNode, at index: Int) {
+        if node.viewClass is UITableView.Type {
+            tableView = nil
+            return
+        }
+        tableView.willRemoveChildNode(node, at: index)
     }
 }
 
