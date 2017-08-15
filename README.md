@@ -38,6 +38,7 @@
     - [Collection Views](#collection-views)
     - [Composition](#composition)
     - [Templates](#templates)
+    - [Parameters](#parameters)
 - [Example Projects](#example-projects)
     - [SampleApp](#sampleapp)
     - [UIDesigner](#uidesigner)
@@ -1216,9 +1217,49 @@ As with composition, the template itself is just an ordinary layout file, and ca
 </UIView>
 ```
 
-Unlike with composition, the children of both nodes are concatenated rather than one set being replaced. Also, the imported template's root node class must be either the same class or a *superclass* of the importing node (unlike with composition, where it must be the same class or a subclass).
+Unlike composition, when using a template, the children of both nodes are concatenated rather than one set being replaced. Also, the imported template's root node class must be either the same class or a *superclass* of the importing node (unlike with composition, where it must be the same class or a subclass).
 
 Although you can override the attributes of the root node of an imported template, there is currently no way to override or parameterize the children, apart from by using state variables or constants in the normal fashion.
+
+
+## Parameters
+
+When using templates, you can configure the root node of the template by setting expressions on the importing node, but this offers rather limited control over customization. Ideally, you want to be able to configure properties of nodes inside the template, and that's where *parameters* come in.
+
+You define parameters by adding `<param/>` nodes inside an ordinary Layout node:
+
+```xml
+<!-- MyTemplate.xml -->
+<UIView>
+    <param name="text" type="String"/>
+    <param name="image" type="UIImage"/>
+
+    <UIImageView image="{image}"/>
+    <UILabel text="{text}/>
+</UIView>
+```
+
+Each `<param/>` node has a `name` and `type` attribute. The parameter defines a symbol that can be referenced by any expression defined on the containing node or any of its children.
+
+Parameters can be set using expressions on the importing node:
+
+```xml
+<UIView
+    template="MyTemplate.xml"
+    text="Lorem ipsum sit dolor "
+    image="Rocket.png"
+/>
+```
+
+You can set default values for parameters by defining a matching expression on the containing node. It will be overridden if the same expression is defined on the importing node:
+
+```xml
+<!-- MyTemplate.xml -->
+<UIView text="Default text">
+    <param name="text" type="String"/>
+    ...
+</UIView>
+```
 
 
 # Example Projects

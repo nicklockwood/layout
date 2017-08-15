@@ -32,8 +32,15 @@ enum XMLNode {
         }
     }
 
+    public var isParam: Bool {
+        guard case .node("param", _, _) = self else {
+            return false
+        }
+        return true
+    }
+
     public var isHTML: Bool {
-        guard case let .node(name, _, _) = self else {
+        guard case let .node(name, _, _) = self, !isParam else {
             return false
         }
         return name.lowercased() == name

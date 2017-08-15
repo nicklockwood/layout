@@ -50,10 +50,15 @@ private extension Layout {
         for (key, value) in layout.expressions {
             expressions[key] = value
         }
+        var parameters = self.parameters
+        for (key, value) in layout.parameters {
+            parameters[key] = value
+        }
         return Layout(
             className: layout.className,
             outlet: layout.outlet ?? outlet,
             expressions: expressions,
+            parameters: parameters,
             children: children + layout.children,
             xmlPath: layout.xmlPath,
             templatePath: templatePath,

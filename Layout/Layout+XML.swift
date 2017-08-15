@@ -21,16 +21,44 @@ extension Layout {
     }
 
     private init(xmlNode: XMLNode, relativeTo: String? = #file) throws {
-        guard case .node(let name, var attributes, let childNodes) = xmlNode else {
+        guard case .node(let className, var attributes, let childNodes) = xmlNode else {
             preconditionFailure()
         }
         var text = ""
         var isHTML = false
         var children = [Layout]()
+        var parameters = [String: RuntimeType]()
         for node in childNodes {
             switch node {
-            case .node:
-                if isHTML {
+            case let .node(_, attributes, childNodes):
+                if node.isParam {
+                    guard childNodes.isEmpty else {
+                        throw LayoutError("<param> node should not contain children", for: NSClassFromString(className))
+                    }
+                    var name = ""
+                    var type: RuntimeType?
+                    for (key, value) in attributes {
+                        switch key {
+                        case "name":
+                            name = value
+                        case "type":
+                            guard let runtimeType = RuntimeType(value) else {
+                                throw LayoutError("Unknown or unsupported type `\(value)` in <param>. Try using `Any` instead",
+                                    for: NSClassFromString(name))
+                            }
+                            type = runtimeType
+                        default:
+                            throw LayoutError("Unexpected attribute `\(key)` in <param>", for: NSClassFromString(className))
+                        }
+                    }
+                    guard !name.isEmpty else {
+                        throw LayoutError("<param> name is a required attribute", for: NSClassFromString(className))
+                    }
+                    guard type != nil else {
+                        throw LayoutError("<param> type is a required attribute", for: NSClassFromString(className))
+                    }
+                    parameters[name] = type
+                } else if isHTML {
                     text += try node.toHTML()
                 } else if node.isHTML {
                     text = try text.xmlEncoded() + node.toHTML()
@@ -62,9 +90,10 @@ extension Layout {
         }
 
         self.init(
-            className: name,
+            className: className,
             outlet: outlet,
             expressions: attributes,
+            parameters: parameters,
             children: children,
             xmlPath: xmlPath,
             templatePath: templatePath,

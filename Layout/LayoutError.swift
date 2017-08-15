@@ -52,15 +52,6 @@ public enum LayoutError: Error, Hashable, CustomStringConvertible {
     case generic(Error, AnyClass?)
     case multipleMatches([URL], for: String)
 
-    public init(_ error: Error) {
-        switch error {
-        case let error as LayoutError:
-            self = error
-        default:
-            self = .generic(error, nil)
-        }
-    }
-
     public init?(_ error: Error?) {
         guard let error = error else {
             return nil
@@ -68,8 +59,26 @@ public enum LayoutError: Error, Hashable, CustomStringConvertible {
         self.init(error)
     }
 
-    public init(_ message: String) {
-        self = .message(message)
+    public init(_ message: String, for viewOrControllerClass: AnyClass? = nil) {
+        if viewOrControllerClass != nil {
+            self = .generic(LayoutError.message(message), viewOrControllerClass)
+        } else {
+            self = .message(message)
+        }
+    }
+
+    public init(_ error: Error, for viewOrControllerClass: AnyClass? = nil) {
+        switch error {
+        case LayoutError.multipleMatches:
+            // Should never be wrapped or it's hard to treat as special case
+            self = error as! LayoutError
+        case let LayoutError.generic(_, cls) where cls === viewOrControllerClass:
+            self = error as! LayoutError
+        case let error as LayoutError where viewOrControllerClass == nil:
+            self = error
+        default:
+            self = .generic(error, viewOrControllerClass)
+        }
     }
 
     public var description: String {

@@ -11,37 +11,25 @@
         <!-- Page 1 -->
         <UIView
             backgroundColor="#f33"
-            template="PageTemplate.xml">
-
-            <UILabel
-                template="LabelTemplate.xml"
-                text="Page 1"
-            />
-        </UIView>
+            template="PageTemplate.xml"
+            text="Page 1"
+        />
 
         <!-- Page 2 -->
         <UIView
             backgroundColor="#3a3"
             left="previous.right + 40"
-            template="PageTemplate.xml">
-
-            <UILabel
-                template="LabelTemplate.xml"
-                text="Page 2"
-            />
-        </UIView>
+            template="PageTemplate.xml"
+            text="Page 2"
+        />
 
         <!-- Page 3 -->
         <UIView
             backgroundColor="#09f"
             left="previous.right + 40"
-            template="PageTemplate.xml">
-
-            <UILabel
-                template="LabelTemplate.xml"
-                text="Page 3"
-            />
-        </UIView>
+            template="PageTemplate.xml"
+            text="Page 3"
+        />
     </UIScrollView>
     <UIPageControl
         bottom="100% - bottomLayoutGuide.length - 40"

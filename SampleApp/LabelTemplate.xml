@@ -1,8 +1,0 @@
-<UILabel
-    font="30 bold"
-    height="100%"
-    text="Page n"
-    textAlignment="center"
-    textColor="#fff"
-    width="100%"
-/>
