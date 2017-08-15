@@ -39,7 +39,7 @@ extension Collection where Iterator.Element == XMLNode {
         var previous: XMLNode?
         var indentNextLine = indentFirstLine
         for node in self {
-            if node == .text("\n"), previous?.isHTML != true {
+            if node.isLinebreak, previous?.isHTML != true {
                 continue
             }
             if !output.hasSuffix("\n") {
@@ -55,7 +55,7 @@ extension Collection where Iterator.Element == XMLNode {
             }
             switch node {
             case .comment:
-                if let previous = previous, !previous.isComment, previous != .text("\n") {
+                if let previous = previous, !previous.isComment, !previous.isLinebreak {
                     output += "\n"
                     indentNextLine = true
                 }
@@ -144,7 +144,7 @@ extension XMLNode {
             } else {
                 xml += ">\n"
                 if attributes.count >= attributeWrap ||
-                    children.first(where: { $0 != .text("\n") })?.isComment == true {
+                    children.first(where: { !$0.isLinebreak })?.isComment == true {
                     xml += "\n"
                 }
                 let body = children.toString(withIndent: indent + "    ")

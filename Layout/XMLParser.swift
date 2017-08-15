@@ -2,7 +2,7 @@
 
 import Foundation
 
-enum XMLNode: Equatable {
+enum XMLNode {
     case node(
         name: String,
         attributes: [String: String],
@@ -36,7 +36,7 @@ enum XMLNode: Equatable {
         guard case let .node(name, _, _) = self else {
             return false
         }
-        return isHTMLElement(name)
+        return name.lowercased() == name
     }
 
     public var isEmpty: Bool {
@@ -57,6 +57,13 @@ enum XMLNode: Equatable {
 
     public var isText: Bool {
         guard case .text = self else {
+            return false
+        }
+        return true
+    }
+
+    public var isLinebreak: Bool {
+        guard case .text("\n") = self else {
             return false
         }
         return true
@@ -86,18 +93,6 @@ enum XMLNode: Equatable {
             )
         default:
             preconditionFailure()
-        }
-    }
-
-    public static func ==(lhs: XMLNode, rhs: XMLNode) -> Bool {
-        switch (lhs, rhs) {
-        case let (.text(lhs), .text(rhs)):
-            return lhs == rhs
-        case let (.comment(lhs), .comment(rhs)):
-            return lhs == rhs
-        default:
-            // TODO: something less lazy
-            return "\(lhs)" == "\(rhs)"
         }
     }
 }
@@ -184,12 +179,11 @@ class XMLParser: NSObject, XMLParserDelegate {
     }
 
     private func appendText() {
-        text = text
-            .replacingOccurrences(of: "\\t", with: " ", options: .regularExpression)
-            .replacingOccurrences(of: " +", with: " ", options: .regularExpression)
-            .replacingOccurrences(of: " ?\\n+ ?", with: "\n", options: .regularExpression)
         if !text.isEmpty {
-            appendNode(.text(text))
+            appendNode(.text(text
+                .replacingOccurrences(of: "[\\t ]+", with: " ", options: .regularExpression)
+                .replacingOccurrences(of: " ?\\n+ ?", with: "\n", options: .regularExpression)
+            ))
             text = ""
         }
     }
@@ -197,26 +191,30 @@ class XMLParser: NSObject, XMLParserDelegate {
     // MARK: XMLParserDelegate methods
 
     func parser(_: Foundation.XMLParser, didStartElement elementName: String, namespaceURI _: String?, qualifiedName _: String?, attributes: [String: String] = [:]) {
-        if textIsEmpty(text), top?.isEmpty == true {
-            text = ""
-        } else if !isHTMLElement(elementName) {
-            text = text.rtrim()
-        }
-        appendText()
-        top.map { stack.append($0) }
         let node = XMLNode.node(
             name: elementName,
             attributes: attributes,
             children: []
         )
+        if top != nil {
+            if !node.isHTML {
+                text = text.trimmingCharacters(in: .whitespacesAndNewlines)
+            } else if !top!.isHTML {
+                text = text.ltrim()
+            }
+            appendText()
+            stack.append(top!)
+        }
         top = node
     }
 
     func parser(_: Foundation.XMLParser, didEndElement elementName: String, namespaceURI _: String?, qualifiedName _: String?) {
-        if textIsEmpty(text), top?.isEmpty == true {
-            text = ""
-        } else if !isHTMLElement(elementName) {
-            text = text.rtrim()
+        if !top!.isHTML {
+            if top!.children.isEmpty {
+                text = text.trimmingCharacters(in: .whitespacesAndNewlines)
+            } else {
+                text = text.rtrim()
+            }
         }
         appendText()
         let node = top!
@@ -244,23 +242,7 @@ class XMLParser: NSObject, XMLParserDelegate {
     }
 }
 
-private func isHTMLElement(_ name: String) -> Bool {
-    return name.lowercased() == name
-}
-
-private func textIsEmpty(_ text: String) -> Bool {
-    return text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-}
-
 extension String {
-    func rtrim() -> String {
-        var chars = unicodeScalars
-        while let char = chars.last, NSCharacterSet.whitespacesAndNewlines.contains(char) {
-            chars.removeLast()
-        }
-        return String(chars)
-    }
-
     func xmlEncoded(forAttribute: Bool = false) -> String {
         var output = ""
         for char in unicodeScalars {
@@ -278,5 +260,23 @@ extension String {
             }
         }
         return output
+    }
+}
+
+private extension String {
+    func ltrim() -> String {
+        var chars = unicodeScalars
+        while let char = chars.first, NSCharacterSet.whitespacesAndNewlines.contains(char) {
+            chars.removeFirst()
+        }
+        return String(chars)
+    }
+
+    func rtrim() -> String {
+        var chars = unicodeScalars
+        while let char = chars.last, NSCharacterSet.whitespacesAndNewlines.contains(char) {
+            chars.removeLast()
+        }
+        return String(chars)
     }
 }

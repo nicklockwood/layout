@@ -30,20 +30,19 @@ extension Layout {
         for node in childNodes {
             switch node {
             case .node:
-                if isHTML || !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || node.isHTML {
-                    if !isHTML {
-                        text = text.xmlEncoded()
-                        isHTML = true
-                    }
+                if isHTML {
                     text += try node.toHTML()
+                } else if node.isHTML {
+                    text = try text.xmlEncoded() + node.toHTML()
+                    isHTML = true
                 } else {
                     text = ""
                     try children.append(Layout(xmlNode: node))
                 }
             case let .text(string):
-                text += string
+                text += isHTML ? string.xmlEncoded() : string
             case .comment:
-                break // Ignore
+                preconditionFailure()
             }
         }
 

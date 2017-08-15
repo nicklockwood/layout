@@ -70,7 +70,7 @@ class PerformanceTests: XCTestCase {
         }
     }
 
-    // MARK: XML load and parsing
+    // MARK: XML loading and parsing
 
     func testParseXML() {
         let xmlURL = Bundle(for: type(of: self)).url(forResource: "Example", withExtension: "xml")!
