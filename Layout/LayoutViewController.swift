@@ -6,7 +6,7 @@ open class LayoutViewController: UIViewController, LayoutLoading {
 
     open var layoutNode: LayoutNode? {
         didSet {
-            if layoutNode?.viewController == self {
+            if layoutNode?._viewController == self {
                 // TODO: should this use case be allowed at all?
                 return
             }

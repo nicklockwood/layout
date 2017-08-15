@@ -503,7 +503,7 @@ public class LayoutNode: NSObject {
     // Experimental - used for nested XML reference loading
     internal func update(with layout: Layout) throws {
         let newClass: AnyClass = try layout.getClass()
-        let oldClass: AnyClass = viewController?.classForCoder ?? viewClass
+        let oldClass: AnyClass = _class
         guard newClass.isSubclass(of: oldClass) else {
             throw LayoutError("Cannot replace \(oldClass) with \(newClass)", for: self)
         }
@@ -778,9 +778,14 @@ public class LayoutNode: NSObject {
 
     // MARK: symbols
 
-    private func localizedString(forKey key: String) -> String? {
-        let delegate = self.delegate(for: #selector(LayoutDelegate.layoutNode(_:localizedStringForKey:)))
-        return delegate?.layoutNode?(self, localizedStringForKey: key)
+    private func localizedString(forKey key: String) throws -> String {
+        guard let delegate = self.delegate(for: #selector(LayoutDelegate.layoutNode(_:localizedStringForKey:))) else {
+            throw SymbolError("No `layoutNode(_:localizedStringForKey:)` implementation found. Unable to look up localized string", for: key)
+        }
+        guard let string = delegate.layoutNode?(self, localizedStringForKey: key) else {
+            throw SymbolError("Missing localized string", for: key)
+        }
+        return string
     }
 
     private func value(forKeyPath keyPath: String, in dictionary: [String: Any]) -> Any? {
@@ -808,7 +813,7 @@ public class LayoutNode: NSObject {
         }
         if name.hasPrefix("strings.") {
             let key = name.substring(from: "strings.".endIndex)
-            return localizedString(forKey: key)
+            return attempt({ try localizedString(forKey: key) })
         }
         return nil
     }
@@ -818,10 +823,6 @@ public class LayoutNode: NSObject {
             value(forKeyPath: name, in: constants) ??
             parent?.value(forVariableOrConstant: name) {
             return value
-        }
-        if name.hasPrefix("strings.") {
-            let key = name.substring(from: "strings.".endIndex)
-            return localizedString(forKey: key)
         }
         return nil
     }
@@ -1048,6 +1049,10 @@ public class LayoutNode: NSObject {
             case "next":
                 getter = { [unowned self] in
                     try self.next?.value(forSymbol: tail) as Any
+                }
+            case "strings":
+                getter = { [unowned self] in
+                    try self.value(forVariableOrConstant: symbol) ?? self.localizedString(forKey: tail)
                 }
             default:
                 getter = { [unowned self] in
@@ -1422,10 +1427,11 @@ public class LayoutNode: NSObject {
     /// Binds the node to the specified owner but doesn't attach the view or view controller(s)
     /// Note: thrown error is always a LayoutError
     public func bind(to owner: NSObject) throws {
-        guard _owner == nil || _owner == owner || _owner == viewController else {
+        guard _owner == nil || _owner == owner || _owner == _viewController else {
             throw LayoutError("Cannot re-bind an already bound node.", for: self)
         }
-        if let viewController = viewController, owner != viewController {
+        _delegate = owner as? LayoutDelegate
+        if viewControllerClass != nil, owner != _viewController, let viewController = viewController {
             do {
                 try bind(to: viewController)
                 return
@@ -1433,12 +1439,13 @@ public class LayoutNode: NSObject {
                 unbind()
             }
         }
+        _delegate = nil
+        _owner = owner
         if _setupComplete {
             cleanUp()
         } else {
             try completeSetup()
         }
-        _owner = owner
         if let outlet = outlet {
             guard let type = Swift.type(of: owner).allPropertyTypes()[outlet] else {
                 throw LayoutError("`\(Swift.type(of: owner))` does not have an outlet named `\(outlet)`", for: self)
