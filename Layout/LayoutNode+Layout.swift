@@ -24,6 +24,7 @@ extension LayoutNode {
                 try LayoutNode(layout: $0)
             }
         )
+        _parameters = layout.parameters
         guard let xmlPath = layout.xmlPath else {
             return
         }
@@ -58,6 +59,7 @@ extension Layout {
             className: "\(node._class)",
             outlet: node.outlet,
             expressions: node._originalExpressions,
+            parameters: node._parameters,
             children: node.children.map(Layout.init(_:)),
             xmlPath: nil, // TODO: what if the layout is currently loading this? Race condition!
             templatePath: nil,

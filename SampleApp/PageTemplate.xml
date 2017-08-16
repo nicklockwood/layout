@@ -2,5 +2,16 @@
     height="parent.contentSize.height - 20"
     layer.cornerRadius="10"
     left="20"
-    width="100% - 40"
-/>
+    width="100% - 40">
+
+    <param name="text" type="String"/>
+
+    <UILabel
+        font="30 bold"
+        height="100%"
+        text="{text}"
+        textAlignment="center"
+        textColor="#fff"
+        width="100%"
+    />
+</UIView>

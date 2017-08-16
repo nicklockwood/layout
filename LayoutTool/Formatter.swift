@@ -38,22 +38,38 @@ extension Collection where Iterator.Element == XMLNode {
         var output = ""
         var previous: XMLNode?
         var indentNextLine = indentFirstLine
-        for node in self {
+        var params = [XMLNode]()
+        var nodes = Array(self)
+        for (index, node) in nodes.enumerated().reversed() {
+            if node.isParam {
+                var i = index
+                while i > 0, nodes[i - 1].isComment {
+                    i -= 1
+                }
+                params = nodes[i ... index] + params
+                nodes[i ... index] = []
+            }
+        }
+        for node in params + nodes {
             if node.isLinebreak, previous?.isHTML != true {
                 continue
             }
-            if !output.hasSuffix("\n") {
-                if (node.isText && previous?.isHTML == true) ||
-                    (node.isHTML && previous?.isText == true) {
-                    // Do nothing
-                } else if previous != nil {
+            if let previous = previous {
+                if previous.isParam, !node.isParam, !node.isComment {
+                    if !node.isHTML {
+                        output += "\n"
+                    }
                     output += "\n"
-                    indentNextLine = true
+                } else if !(node.isText && previous.isHTML), !(node.isHTML && previous.isText) {
+                    output += "\n"
                 }
-            } else {
+            }
+            if output.hasSuffix("\n") {
                 indentNextLine = true
             }
             switch node {
+            case .text("\n"):
+                continue
             case .comment:
                 if let previous = previous, !previous.isComment, !previous.isLinebreak {
                     output += "\n"
@@ -111,7 +127,7 @@ extension XMLNode {
             let attributes = attributes.sorted(by: { a, b in
                 a.key < b.key // sort alphabetically
             })
-            if attributes.count < attributeWrap || isHTML {
+            if attributes.count < attributeWrap || isHTML || isParam {
                 for (key, value) in attributes {
                     xml += " \(formatAttribute(key: key, value: value))"
                 }
@@ -120,7 +136,9 @@ extension XMLNode {
                     xml += "\n\(indent)    \(formatAttribute(key: key, value: value))"
                 }
             }
-            if isEmpty {
+            if isParam {
+                xml += "/>"
+            } else if isEmpty {
                 if attributes.count >= attributeWrap {
                     xml += "\n\(indent)"
                 }

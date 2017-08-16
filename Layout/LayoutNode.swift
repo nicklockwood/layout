@@ -93,6 +93,7 @@ public class LayoutNode: NSObject {
     @objc var _view: UIView!
     private(set) var _viewController: UIViewController?
     private(set) var _originalExpressions: [String: String]
+    var _parameters: [String: RuntimeType]
 
     private var _setupComplete = false
     private func completeSetup() throws {
@@ -185,6 +186,7 @@ public class LayoutNode: NSObject {
         self.expressions = expressions
         self.children = children
 
+        _parameters = [:]
         _originalExpressions = expressions
 
         super.init()
@@ -685,6 +687,8 @@ public class LayoutNode: NSObject {
                 } else if let viewType = viewExpressionTypes[symbol] {
                     isViewExpression = true
                     type = viewType
+                } else if let parameterType = _parameters[symbol] {
+                    type = parameterType
                 } else {
                     throw SymbolError("Unknown expression name `\(symbol)`", for: symbol)
                 }
@@ -735,7 +739,7 @@ public class LayoutNode: NSObject {
                             // If an expression directly references itself it may be shadowing
                             // a constant or variable, so check for that first before throwing
                             if self._evaluating.last == symbol,
-                                let value = self.value(forVariableOrConstant: symbol) {
+                                let value = try self.value(forVariableOrConstant: symbol) {
                                 return value
                             }
                             throw SymbolError("Expression `\(symbol)` references a nonexistent symbol of the same name (expressions cannot reference themselves)", for: symbol)
@@ -788,6 +792,17 @@ public class LayoutNode: NSObject {
         return string
     }
 
+    // Note: thrown error is always a SymbolError
+    private func value(forParameter name: String) throws -> Any? {
+        guard _parameters[name] != nil else {
+            return nil
+        }
+        guard let getter = _getters[name] else {
+            throw SymbolError("Missing value for parameter `\(name)`", for: name)
+        }
+        return try getter()
+    }
+
     private func value(forKeyPath keyPath: String, in dictionary: [String: Any]) -> Any? {
         if let value = dictionary[keyPath] {
             return value
@@ -818,8 +833,9 @@ public class LayoutNode: NSObject {
         return nil
     }
 
-    private func value(forVariableOrConstant name: String) -> Any? {
-        if let value = value(forKeyPath: name, in: _variables) ??
+    private func value(forVariableOrConstant name: String) throws -> Any? {
+        if let value = try value(forParameter: name) ??
+            value(forKeyPath: name, in: _variables) ??
             value(forKeyPath: name, in: constants) ??
             parent?.value(forVariableOrConstant: name) {
             return value
@@ -1057,7 +1073,7 @@ public class LayoutNode: NSObject {
             default:
                 getter = { [unowned self] in
                     // Try local variables/constants first, then
-                    if let value = self.value(forVariableOrConstant: symbol) {
+                    if let value = try self.value(forVariableOrConstant: symbol) {
                         return value
                     }
                     // Then controller/view symbols
