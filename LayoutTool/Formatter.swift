@@ -9,10 +9,12 @@ func format(_ files: [String]) -> [FormatError] {
         errors += enumerateFiles(withInputURL: url, concurrent: false) { inputURL, outputURL in
             do {
                 if let xml = try parseLayoutXML(inputURL) {
-                    let output = format(xml)
+                    let output = try format(xml)
                     try output.write(to: outputURL, atomically: true, encoding: .utf8)
                 }
                 return {}
+            } catch let FormatError.parsing(error) {
+                return { throw FormatError.parsing("\(error) in \(inputURL.path)") }
             } catch {
                 return { throw error }
             }
@@ -25,16 +27,16 @@ func format(_ xml: String) throws -> String {
     guard let data = xml.data(using: .utf8, allowLossyConversion: true) else {
         throw FormatError.parsing("Invalid xml string")
     }
-    let xml = try XMLParser.parse(data: data)
-    return format(xml)
+    let xml = try FormatError.wrap { try XMLParser.parse(data: data) }
+    return try format(xml)
 }
 
-func format(_ xml: [XMLNode]) -> String {
-    return xml.toString(withIndent: "")
+func format(_ xml: [XMLNode]) throws -> String {
+    return try xml.toString(withIndent: "")
 }
 
 extension Collection where Iterator.Element == XMLNode {
-    func toString(withIndent indent: String, indentFirstLine: Bool = true) -> String {
+    func toString(withIndent indent: String, indentFirstLine: Bool = true) throws -> String {
         var output = ""
         var previous: XMLNode?
         var indentNextLine = indentFirstLine
@@ -77,7 +79,7 @@ extension Collection where Iterator.Element == XMLNode {
                 }
                 fallthrough
             default:
-                output += node.toString(withIndent: indent, indentFirstLine: indentNextLine)
+                output += try node.toString(withIndent: indent, indentFirstLine: indentNextLine)
             }
             previous = node
             indentNextLine = false
@@ -93,82 +95,90 @@ extension Collection where Iterator.Element == XMLNode {
 private let attributeWrap = 2
 
 extension XMLNode {
-    private func formatAttribute(key: String, value: String) -> String {
-        var description = value
-        switch key {
-        case "top", "left", "bottom", "right", "width", "height", "color",
-             _ where key.hasSuffix("Color"):
-            if let expression = try? parseExpression(value) {
+    private func formatAttribute(key: String, value: String) throws -> String {
+        do {
+            var description = value
+            switch key {
+            case "top", "left", "bottom", "right", "width", "height", "color",
+                 _ where key.hasSuffix("Color"):
+                let expression = try parseExpression(value)
+                try validateLayoutExpression(expression)
                 description = expression.description
-            }
-        default:
-            // We have to treat everying else as a string expression, because if we attempt
-            // to format text outside of {...} as an expression, it will get messed up
-            if let parts = try? parseStringExpression(value) {
+            default:
+                // We have to treat everying else as a string expression, because if we attempt
+                // to format text outside of {...} as an expression, it will get messed up
+                let parts = try parseStringExpression(value)
                 description = ""
                 for part in parts {
                     switch part {
                     case let .string(string):
                         description += string
                     case let .expression(expression):
+                        try validateLayoutExpression(expression)
                         description += "{\(expression)}"
                     }
                 }
             }
+            return "\(key)=\"\(description.xmlEncoded(forAttribute: true))\""
+        } catch {
+            throw FormatError.parsing("\(error) in \(key) attribute")
         }
-        return "\(key)=\"\(description.xmlEncoded(forAttribute: true))\""
     }
 
-    func toString(withIndent indent: String, indentFirstLine: Bool = true) -> String {
+    func toString(withIndent indent: String, indentFirstLine: Bool = true) throws -> String {
         switch self {
         case let .node(name, attributes, children):
-            var xml = indentFirstLine ? indent : ""
-            xml += "<\(name)"
-            let attributes = attributes.sorted(by: { a, b in
-                a.key < b.key // sort alphabetically
-            })
-            if attributes.count < attributeWrap || isHTML || isParam {
-                for (key, value) in attributes {
-                    xml += " \(formatAttribute(key: key, value: value))"
-                }
-            } else {
-                for (key, value) in attributes {
-                    xml += "\n\(indent)    \(formatAttribute(key: key, value: value))"
-                }
-            }
-            if isParam {
-                xml += "/>"
-            } else if isEmpty {
-                if attributes.count >= attributeWrap {
-                    xml += "\n\(indent)"
-                }
-                if !isHTML || name == "br" {
-                    xml += "/>"
-                } else {
-                    xml += "></\(name)>"
-                }
-            } else if children.count == 1, children[0].isComment || children[0].isText {
-                xml += ">"
-                if attributes.count >= attributeWrap {
-                    xml += "\n\(children[0].toString(withIndent: indent + "    "))\n\(indent)"
-                } else {
-                    var body = children[0].toString(withIndent: indent, indentFirstLine: false)
-                    if !isHTML {
-                        body = body.trimmingCharacters(in: .whitespacesAndNewlines)
+            do {
+                var xml = indentFirstLine ? indent : ""
+                xml += "<\(name)"
+                let attributes = attributes.sorted(by: { a, b in
+                    a.key < b.key // sort alphabetically
+                })
+                if attributes.count < attributeWrap || isHTML || isParam {
+                    for (key, value) in attributes {
+                        xml += try " \(formatAttribute(key: key, value: value))"
                     }
-                    xml += body
+                } else {
+                    for (key, value) in attributes {
+                        xml += try "\n\(indent)    \(formatAttribute(key: key, value: value))"
+                    }
                 }
-                xml += "</\(name)>"
-            } else {
-                xml += ">\n"
-                if attributes.count >= attributeWrap ||
-                    children.first(where: { !$0.isLinebreak })?.isComment == true {
-                    xml += "\n"
+                if isParam {
+                    xml += "/>"
+                } else if isEmpty {
+                    if attributes.count >= attributeWrap {
+                        xml += "\n\(indent)"
+                    }
+                    if !isHTML || name == "br" {
+                        xml += "/>"
+                    } else {
+                        xml += "></\(name)>"
+                    }
+                } else if children.count == 1, children[0].isComment || children[0].isText {
+                    xml += ">"
+                    if attributes.count >= attributeWrap {
+                        xml += try "\n\(children[0].toString(withIndent: indent + "    "))\n\(indent)"
+                    } else {
+                        var body = try children[0].toString(withIndent: indent, indentFirstLine: false)
+                        if !isHTML {
+                            body = body.trimmingCharacters(in: .whitespacesAndNewlines)
+                        }
+                        xml += body
+                    }
+                    xml += "</\(name)>"
+                } else {
+                    xml += ">\n"
+                    if attributes.count >= attributeWrap ||
+                        children.first(where: { !$0.isLinebreak })?.isComment == true {
+                        xml += "\n"
+                    }
+                    let body = try children.toString(withIndent: indent + "    ")
+                    xml += "\(body)\(indent)</\(name)>"
                 }
-                let body = children.toString(withIndent: indent + "    ")
-                xml += "\(body)\(indent)</\(name)>"
+                return xml
+            } catch {
+                throw FormatError.parsing("\(error) in <\(name)>")
             }
-            return xml
         case let .text(text):
             if text == "\n" {
                 return text

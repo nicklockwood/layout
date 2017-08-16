@@ -2,7 +2,7 @@
 //  Expression.swift
 //  Expression
 //
-//  Version 0.8.2
+//  Version 0.8.3
 //
 //  Created by Nick Lockwood on 15/09/2016.
 //  Copyright © 2016 Nick Lockwood. All rights reserved.
@@ -81,15 +81,15 @@ public class Expression: CustomStringConvertible {
         public var description: String {
             switch self {
             case let .variable(name):
-                return "variable `\(name)`"
+                return "variable \(name)"
             case let .infix(name):
-                return "infix operator `\(name)`"
+                return "infix operator \(name)"
             case let .prefix(name):
-                return "prefix operator `\(name)`"
+                return "prefix operator \(name)"
             case let .postfix(name):
-                return "postfix operator `\(name)`"
+                return "postfix operator \(name)"
             case let .function(name, _):
-                return "function `\(name)()`"
+                return "function \(name)()"
             }
         }
 
@@ -398,7 +398,7 @@ public class Expression: CustomStringConvertible {
     }
 
     // Stand math symbols
-    private static let mathSymbols: [Symbol: Symbol.Evaluator] = {
+    public static let mathSymbols: [Symbol: Symbol.Evaluator] = {
         var symbols: [Symbol: ([Double]) -> Double] = [:]
 
         // constants
@@ -443,7 +443,7 @@ public class Expression: CustomStringConvertible {
     }()
 
     // Stand boolean symbols
-    private static let boolSymbols: [Symbol: Symbol.Evaluator] = {
+    public static let boolSymbols: [Symbol: Symbol.Evaluator] = {
         var symbols: [Symbol: ([Double]) -> Double] = [:]
 
         // boolean constants
@@ -1140,6 +1140,14 @@ private extension String.UnicodeScalarView.SubSequence {
         if scopes.count > 0 {
             throw Expression.Error.missingDelimiter(")")
         }
-        return stack[0]
+        let result = stack[0]
+        switch result {
+        case let .prefix(symbol), let .postfix(symbol), let .infix(symbol):
+            throw Expression.Error.unexpectedToken(symbol)
+        case let .error(error, _):
+            throw error
+        case .literal, .operand:
+            return result
+        }
     }
 }

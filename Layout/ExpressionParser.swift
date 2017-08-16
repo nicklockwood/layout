@@ -27,8 +27,6 @@ func parseExpression(_ expression: String) throws -> ParsedExpression {
             throw Expression.Error.message("Missing `}`")
         }
         characters.removeFirst()
-    case "}":
-        throw Expression.Error.message("Unexpected `}`")
     default:
         parsedExpression = try Expression.parse(&characters)
     }
@@ -77,4 +75,31 @@ func parseStringExpression(_ expression: String) throws -> [ParsedExpressionPart
         _stringExpressionCache[expression] = parts
     }
     return parts
+}
+
+// Check that the expression symbols are valid (or at least plausible)
+func validateLayoutExpression(_ parsedExpression: ParsedExpression) throws {
+    let keys = Set(Expression.mathSymbols.keys).union(Expression.boolSymbols.keys).union([
+        .postfix("%"),
+        .function("rgb", arity: 3),
+        .function("rgba", arity: 4),
+    ])
+    for symbol in parsedExpression.symbols {
+        switch symbol {
+        case .variable:
+            break
+        case .prefix, .infix, .postfix:
+            guard keys.contains(symbol) else {
+                throw Expression.Error.undefinedSymbol(symbol)
+            }
+        case let .function(called, arity):
+            guard keys.contains(symbol) else {
+                for case let .function(name, requiredArity) in keys
+                    where name == called && arity != requiredArity {
+                        throw Expression.Error.arityMismatch(.function(called, arity: requiredArity))
+                }
+                throw Expression.Error.undefinedSymbol(symbol)
+            }
+        }
+    }
 }

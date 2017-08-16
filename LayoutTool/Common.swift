@@ -16,6 +16,8 @@ enum FormatError: Error, CustomStringConvertible {
             self = error
         case let error as XMLParser.Error:
             self = .parsing(error.description)
+        case let error as CustomStringConvertible:
+            self = .generic(error.description)
         default:
             self = .generic((error as NSError).localizedDescription)
         }
@@ -29,6 +31,15 @@ enum FormatError: Error, CustomStringConvertible {
              let .options(string),
              let .generic(string):
             return string
+        }
+    }
+
+    /// Converts error thrown by the wrapped closure to a LayoutError
+    public static func wrap<T>(_ closure: () throws -> T) throws -> T {
+        do {
+            return try closure()
+        } catch {
+            throw self.init(error)
         }
     }
 }
@@ -167,10 +178,10 @@ func parseLayoutXML(_ fileURL: URL) throws -> [XMLNode]? {
         return xml.isLayout ? xml : nil
     } catch {
         switch error {
-        case let error as XMLParser.Error:
-            throw FormatError.parsing("\(error.description) in \(fileURL.path)")
+        case is XMLParser.Error:
+            throw FormatError.parsing("\(error) in \(fileURL.path)")
         default:
-            throw error
+            throw FormatError.reading((error as NSError).localizedDescription)
         }
     }
 }

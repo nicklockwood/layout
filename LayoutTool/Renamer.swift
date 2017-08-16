@@ -9,7 +9,7 @@ func rename(_ old: String, to new: String, in files: [String]) -> [FormatError] 
         errors += enumerateFiles(withInputURL: url) { inputURL, outputURL in
             do {
                 if let xml = try parseLayoutXML(inputURL) {
-                    let output = format(rename(old, to: new, in: xml))
+                    let output = try format(rename(old, to: new, in: xml))
                     try output.write(to: outputURL, atomically: true, encoding: .utf8)
                 }
                 return {}
@@ -26,7 +26,7 @@ func rename(_ old: String, to new: String, in xml: String) throws -> String {
         throw FormatError.parsing("Invalid xml string")
     }
     let xml = try XMLParser.parse(data: data)
-    return format(rename(old, to: new, in: xml))
+    return try format(rename(old, to: new, in: xml))
 }
 
 private let stringExpressions: Set<String> = [

@@ -28,6 +28,58 @@ class FormatTests: XCTestCase {
         }
     }
 
+    // MARK: Validation
+
+    func testMissingClosingChevron() {
+        let input = "<Foo left=\"5\"></Foo"
+        XCTAssertThrowsError(try format(input)) { error in
+            guard case let FormatError.parsing(message) = error else {
+                XCTFail()
+                return
+            }
+            XCTAssert(message.contains("line 1"))
+            XCTAssert(message.contains(">"))
+        }
+    }
+
+    func testMissingClosingQuote() {
+        let input = "<Foo left=\"5/>"
+        XCTAssertThrowsError(try format(input)) { error in
+            guard case let FormatError.parsing(message) = error else {
+                XCTFail()
+                return
+            }
+            XCTAssert(message.contains("line 1"))
+            XCTAssert(message.contains("'"))
+        }
+    }
+
+    func testMalformedExpression() {
+        let input = "<Foo left=\"+\"/>"
+        XCTAssertThrowsError(try format(input)) { error in
+            guard case let FormatError.parsing(message) = error else {
+                XCTFail()
+                return
+            }
+            XCTAssert(message.contains("+"))
+            XCTAssert(message.contains("left"))
+            XCTAssert(message.contains("Foo"))
+        }
+    }
+
+    func testMalformedExpression2() {
+        let input = "<Foo left=\"foo bar\"/>"
+        XCTAssertThrowsError(try format(input)) { error in
+            guard case let FormatError.parsing(message) = error else {
+                XCTFail()
+                return
+            }
+            XCTAssert(message.contains("bar"))
+            XCTAssert(message.contains("left"))
+            XCTAssert(message.contains("Foo"))
+        }
+    }
+
     // MARK: Attributes
 
     func testNoAttributes() {
