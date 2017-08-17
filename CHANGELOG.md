@@ -1,5 +1,17 @@
 # Change Log
 
+## [0.4.13](https://github.com/schibsted/layout/releases/tag/0.4.13) (2017-08-17)
+
+- Added support for custom parameters for XML templates
+- Fixed a bug where UITableView section headers were displayed as gray bar when not specified
+- UIControl actions and outlets now work correctly inside UITableView and UICollectionView cells
+- Fixed bug that prevented views from other modules from being used inside UITableViewCell templates
+- Improved error messaging, particularly for view properties that unavailable in Layout
+- LayoutTool format now performs additional validation of expressions
+- Fixed XML parsing performance regression
+- Fixed bug where LayoutTool errors were returning a generic message instead of the actual error
+- Improved source file lookup performance by ignoring hidden directories (such as .git)
+
 ## [0.4.12](https://github.com/schibsted/layout/releases/tag/0.4.12) (2017-08-14)
 
 - Fixed scroll performance when using a UIScrollView as the root node in a Layout hierarchy

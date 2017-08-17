@@ -96,7 +96,7 @@ func validateLayoutExpression(_ parsedExpression: ParsedExpression) throws {
             guard keys.contains(symbol) else {
                 for case let .function(name, requiredArity) in keys
                     where name == called && arity != requiredArity {
-                        throw Expression.Error.arityMismatch(.function(called, arity: requiredArity))
+                    throw Expression.Error.arityMismatch(.function(called, arity: requiredArity))
                 }
                 throw Expression.Error.undefinedSymbol(symbol)
             }

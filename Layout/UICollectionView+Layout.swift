@@ -172,7 +172,6 @@ extension UICollectionViewController {
     }
 }
 
-
 private var cellDataKey = 0
 private var nodesKey = 0
 

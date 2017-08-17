@@ -44,7 +44,7 @@ extension Layout {
                         case "type":
                             guard let runtimeType = RuntimeType(value) else {
                                 throw LayoutError("Unknown or unsupported type \(value) in <param>. Try using Any instead",
-                                    for: NSClassFromString(name))
+                                                  for: NSClassFromString(name))
                             }
                             type = runtimeType
                         default:
