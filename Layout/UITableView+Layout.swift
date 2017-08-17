@@ -22,8 +22,10 @@ extension UITableView {
     fileprivate func enableAutoSizing() {
         estimatedRowHeight = 44
         rowHeight = UITableViewAutomaticDimension
-        estimatedSectionHeaderHeight = 20
+        estimatedSectionHeaderHeight = 0
         sectionHeaderHeight = UITableViewAutomaticDimension
+        estimatedSectionFooterHeight = 0
+        sectionFooterHeight = UITableViewAutomaticDimension
     }
 
     open override class var expressionTypes: [String: RuntimeType] {

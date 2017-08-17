@@ -1,20 +1,36 @@
 <TableViewController backgroundColor="#fff">
     <UITableView
+        backgroundColor="tintColor"
         contentInset.bottom="bottomLayoutGuide.length"
         contentInset.top="topLayoutGuide.length"
         contentInsetAdjustmentBehavior="never"
         contentOffset.y="-topLayoutGuide.length"
+        estimatedSectionHeaderHeight="20"
         outlet="tableView"
         scrollIndicatorInsets.bottom="bottomLayoutGuide.length"
         scrollIndicatorInsets.top="topLayoutGuide.length"
         style="plain">
 
+        <!-- Table header -->
+        <UIView height="auto + 10">
+            <UILabel
+                text="~ A custom table header view ~"
+                textAlignment="center"
+                textColor="#fff"
+                top="10"
+                width="100%"
+            />
+        </UIView>
+
+        <!-- Section header template -->
         <UITableViewHeaderFooterView
             backgroundView.backgroundColor="rgba(255, 255, 255, 0.75)"
             height="auto + 10"
             reuseIdentifier="templateHeader"
-            textLabel.text="This header is defined as a template in Table.xml"
+            textLabel.text="Section header defined as a template in Table.xml"
         />
+
+        <!-- Table cell template -->
         <UITableViewCell
             detailTextLabel.highlightedTextColor="#fff7"
             detailTextLabel.text="This cell is defined as a template in Table.xml"

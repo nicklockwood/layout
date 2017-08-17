@@ -1068,7 +1068,22 @@ class TableViewController: UIViewController, UITableViewDataSource, UITableViewD
 
 Layout supports dynamic table cell height calculation. To enable this, just set a height expression for your cell. Dynamic table cell sizing also requires that the table view's `rowHeight` is set to `UITableViewAutomaticDimension` and a nonzero value is provided for `estimatedRowHeight`, but Layout sets these for you automatically. Note that if your cells all have the same height, it is significantly more efficient to set an explicit `rowHeight` property on the `UITableView` instead of setting the height for each cell.
 
-Layout also supports using XML layouts for `UITableViewHeaderFooterView`, and there are equivalent methods for registering and dequeuing `UITableViewHeaderFooterView` layout nodes.
+Layout also supports using XML layouts for `UITableViewHeaderFooterView`, and there are equivalent methods for registering and dequeuing `UITableViewHeaderFooterView` layout nodes. **Note:** to use a custom section header or footer you will need to set the         `estimatedSectionHeaderHeight` or `estimatedSectionFooterHeight` to a nonzero value in your XML:
+
+```xml
+<UITableView estimatedSectionHeaderHeight="20">
+
+    <UITableViewHeaderFooterView
+        backgroundView.backgroundColor="#fff"
+        height="auto + 10"
+        reuseIdentifier="templateHeader"
+        textLabel.text="Section Header"
+    />
+    
+    ...
+
+</UITableView>
+```
 
 If you prefer you can create a `<UITableViewController/>` in your XML instead of subclassing `UIViewController` and implementing the table data source and delegate. Note that if you do this, there is no need to explcitly create the `UITableView` yourself, as the `UITableViewController` already includes one. To configure the table, you can set properties of the table view directly on the controller using a `tableView.` prefix, e.g.
 
