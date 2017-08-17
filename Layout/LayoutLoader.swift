@@ -383,7 +383,7 @@ class LayoutLoader {
         if !url.pathExtension.isEmpty {
             url = url.deletingLastPathComponent()
         }
-        if url.lastPathComponent.isEmpty {
+        if ["..", "/", ""].contains(url.lastPathComponent) {
             return nil
         }
         guard let files = try? FileManager.default.contentsOfDirectory(atPath: url.path) else {
@@ -393,9 +393,6 @@ class LayoutLoader {
         for file in files {
             let pathExtension = URL(fileURLWithPath: file).pathExtension
             if pathExtension == "xcodeproj" || pathExtension == "xcworkspace" {
-                if let url = findProjectDirectory(at: parent.path) {
-                    return url
-                }
                 _projectDirectory = url
                 return url
             }
@@ -415,7 +412,10 @@ class LayoutLoader {
             parts.removeFirst()
         }
         var results = [URL]()
-        for file in files where !file.hasSuffix(".build") && !file.hasSuffix(".app") {
+        for file in files where
+            file != "build" && !file.hasPrefix(".") && ![
+                ".build", ".app", ".framework", ".xcodeproj", ".xcassets"
+            ].contains(where: { file.hasSuffix($0) }) {
             let directory = directory.appendingPathComponent(file)
             if file == parts[0] {
                 if parts.count == 1 {
