@@ -56,7 +56,7 @@ extension Layout {
     // TODO: this isn't a loss-free conversion - find a better approach
     init(_ node: LayoutNode) {
         self.init(
-            className: "\(node._class)",
+            className: NSStringFromClass(node._class),
             outlet: node.outlet,
             expressions: node._originalExpressions,
             parameters: node._parameters,
