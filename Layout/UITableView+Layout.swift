@@ -271,9 +271,10 @@ extension UITableView: LayoutDelegate {
                     state: state,
                     constants: constants
                 )
-                node.delegate = self
                 nodes?.add(node)
-                node.view.setValue(identifier, forKey: "reuseIdentifier")
+                node.delegate = self
+                try node.bind(to: node.view) // TODO: find a better solution for binding
+                node._view.setValue(identifier, forKey: "reuseIdentifier")
                 return node
             case let .failure(error):
                 throw error
@@ -342,7 +343,8 @@ extension UITableView: LayoutDelegate {
                 }
                 nodes?.add(node)
                 node.delegate = self
-                node.view.setValue(identifier, forKey: "reuseIdentifier")
+                try node.bind(to: node.view) // TODO: find a better solution for binding
+                node._view.setValue(identifier, forKey: "reuseIdentifier")
                 return node
             case let .failure(error):
                 throw error

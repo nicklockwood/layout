@@ -275,6 +275,7 @@ extension UICollectionView: LayoutDelegate {
                 node.delegate = self
                 assert(node._view == nil)
                 node._view = cell
+                try node.bind(to: cell) // TODO: find a better solution for binding
                 cell.layoutNode = node
                 return node
             case let .failure(error):
