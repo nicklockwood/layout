@@ -177,7 +177,7 @@ public class LayoutNode: NSObject {
         children: [LayoutNode] = []
     ) throws {
         guard `class` is UIView.Type || `class` is UIViewController.Type else {
-            throw LayoutError.message("`\(`class`)` is not a subclass of UIView or UIViewController")
+            throw LayoutError.message("\(`class`) is not a subclass of UIView or UIViewController")
         }
         _class = `class`
         self.outlet = outlet
@@ -272,7 +272,7 @@ public class LayoutNode: NSObject {
         }
         for name in expressions.keys {
             guard let getter = _getters[name] else {
-                errors.insert(LayoutError(SymbolError("Unknown expression name `\(name)`", for: name), for: self))
+                errors.insert(LayoutError(SymbolError("Unknown property \(name)", for: name), for: self))
                 continue
             }
             do {
@@ -295,13 +295,13 @@ public class LayoutNode: NSObject {
         if !(expressions["bottom"] ?? "").isEmpty,
             !value(forSymbol: "height", dependsOn: "bottom"),
             !value(forSymbol: "top", dependsOn: "bottom") {
-            errors.insert(LayoutError(SymbolError("Expression for `bottom` is redundant",
+            errors.insert(LayoutError(SymbolError("Expression for bottom is redundant",
                                                   for: "bottom"), for: self))
         }
         if !(expressions["right"] ?? "").isEmpty,
             !value(forSymbol: "width", dependsOn: "right"),
             !value(forSymbol: "left", dependsOn: "right") {
-            errors.insert(LayoutError(SymbolError("Expression for `right` is redundant",
+            errors.insert(LayoutError(SymbolError("Expression for right is redundant",
                                                   for: "right"), for: self))
         }
         return errors
@@ -690,7 +690,13 @@ public class LayoutNode: NSObject {
                 } else if let parameterType = _parameters[symbol] {
                     type = parameterType
                 } else {
-                    throw SymbolError("Unknown expression name `\(symbol)`", for: symbol)
+                    throw SymbolError("Unknown expression \(symbol)", for: symbol)
+                }
+                switch type.availability {
+                case .available:
+                    break
+                case let .unavailable(reason):
+                    throw SymbolError("\(_class).\(symbol) is not available in Layout\(reason.map { ". \($0)" } ?? "")", for: symbol)
                 }
                 if case let .any(kind) = type.type, kind is CGFloat.Type {
                     // Allow use of % in any vertical/horizontal property expression
@@ -742,15 +748,12 @@ public class LayoutNode: NSObject {
                                 let value = try self.value(forVariableOrConstant: symbol) {
                                 return value
                             }
-                            throw SymbolError("Expression `\(symbol)` references a nonexistent symbol of the same name (expressions cannot reference themselves)", for: symbol)
+                            throw SymbolError("Expression for \(symbol) references a nonexistent symbol of the same name (expressions cannot reference themselves)", for: symbol)
                         }
                         self._evaluating.append(symbol)
                         defer {
-                            if self._evaluating.last == symbol {
-                                self._evaluating.removeLast()
-                            } else {
-                                assertionFailure("symbol: `\(symbol)`, evaluating; `\(self._evaluating)`")
-                            }
+                            assert(self._evaluating.last == symbol)
+                            self._evaluating.removeLast()
                         }
                         let value = try SymbolError.wrap(evaluate, for: symbol)
                         cachedValue = value
@@ -784,7 +787,7 @@ public class LayoutNode: NSObject {
 
     private func localizedString(forKey key: String) throws -> String {
         guard let delegate = self.delegate(for: #selector(LayoutDelegate.layoutNode(_:localizedStringForKey:))) else {
-            throw SymbolError("No `layoutNode(_:localizedStringForKey:)` implementation found. Unable to look up localized string", for: key)
+            throw SymbolError("No layoutNode(_:localizedStringForKey:) implementation found. Unable to look up localized string", for: key)
         }
         guard let string = delegate.layoutNode?(self, localizedStringForKey: key) else {
             throw SymbolError("Missing localized string", for: key)
@@ -798,7 +801,7 @@ public class LayoutNode: NSObject {
             return nil
         }
         guard let getter = _getters[name] else {
-            throw SymbolError("Missing value for parameter `\(name)`", for: name)
+            throw SymbolError("Missing value for parameter \(name)", for: name)
         }
         return try getter()
     }
@@ -1038,7 +1041,7 @@ public class LayoutNode: NSObject {
                         }
                     default:
                         getter = {
-                            throw SymbolError("Undefined symbol `\(tail)`", for: symbol)
+                            throw SymbolError("Undefined symbol \(tail)", for: symbol)
                         }
                     }
                 }
@@ -1383,7 +1386,7 @@ public class LayoutNode: NSObject {
     /// Note: thrown error is always a LayoutError
     public func mount(in viewController: UIViewController) throws {
         guard parent == nil else {
-            throw LayoutError.message("The `mount()` method should only be used on a root node.")
+            throw LayoutError.message("The mount() method should only be used on a root node.")
         }
         try bind(to: viewController)
         for controller in viewControllers {
@@ -1402,7 +1405,7 @@ public class LayoutNode: NSObject {
     /// Note: thrown error is always a LayoutError
     @nonobjc public func mount(in view: UIView) throws {
         guard parent == nil else {
-            throw LayoutError.message("The `mount()` method should only be used on a root node.")
+            throw LayoutError.message("The mount() method should only be used on a root node.")
         }
         do {
             try bind(to: view)
@@ -1494,7 +1497,7 @@ public class LayoutNode: NSObject {
                 }
             }
             if !didMatch {
-                throw LayoutError("outlet `\(outlet)` of `\(owner.classForCoder)` is not a \(expectedType)", for: self)
+                throw LayoutError("outlet \(outlet) of \(owner.classForCoder) is not a \(expectedType)", for: self)
             }
         }
         if let type = viewExpressionTypes["delegate"], expressions["delegate"] == nil, type.matches(owner) {

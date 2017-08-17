@@ -333,7 +333,7 @@ extension UITableView: LayoutDelegate {
                     constants: constants
                 )
                 if node._view == nil, node.viewClass != UITableViewCell.self, node.expressions["style"] != nil {
-                    throw Expression.Error.message("Setting `style` for UITableViewCell subclasses is not supported")
+                    throw Expression.Error.message("Setting style for UITableViewCell subclasses is not supported")
                 }
                 var nodes = objc_getAssociatedObject(self, &nodesKey) as? NSMutableArray
                 if nodes == nil {
@@ -357,7 +357,7 @@ extension UITableView: LayoutDelegate {
         guard let node = dequeueReusableCellNode(withIdentifier: identifier) else {
             let layoutsData = objc_getAssociatedObject(self, &cellDataKey) as? NSMutableDictionary
             if layoutsData?[identifier] == nil {
-                layoutError(.message("No cell layout has been registered for `\(identifier)`"))
+                layoutError(.message("No cell layout has been registered for \(identifier)"))
             }
             return LayoutNode(view: UITableViewCell())
         }
@@ -423,7 +423,7 @@ extension UITableViewHeaderFooterView {
         case "reuseIdentifier":
             break // Ignore this - we set it during creation
         case "backgroundColor":
-            throw LayoutError.message("Setting `backgroundColor` on UITableViewHeaderFooterView is not supported. Use `contentView.backgroundColor` instead.")
+            throw LayoutError.message("Setting backgroundColor on UITableViewHeaderFooterView is not supported. Use contentView.backgroundColor instead.")
         default:
             try super.setValue(value, forExpression: name)
         }

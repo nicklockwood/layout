@@ -253,7 +253,7 @@ extension UICollectionView: LayoutDelegate {
         do {
             guard let layoutsData = objc_getAssociatedObject(self, &cellDataKey) as? NSMutableDictionary,
                 let layoutData = layoutsData[identifier] as? LayoutData else {
-                throw LayoutError.message("No cell layout has been registered for `\(identifier)`")
+                throw LayoutError.message("No cell layout has been registered for \(identifier)")
             }
             let cell = dequeueReusableCell(withReuseIdentifier: identifier, for: indexPath)
             if let node = cell.layoutNode {

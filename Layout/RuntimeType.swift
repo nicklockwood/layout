@@ -11,12 +11,26 @@ public class RuntimeType: NSObject {
         case `enum`(Any.Type, [String: Any])
     }
 
+    public enum Availability {
+        case available
+        case unavailable(reason: String?)
+    }
+
     public typealias Getter = (_ target: AnyObject, _ key: String) -> Any?
     public typealias Setter = (_ target: AnyObject, _ key: String, _ value: Any) throws -> Void
 
     public let type: Kind
+    public private(set) var availability = Availability.available
     public private(set) var getter: Getter?
     public private(set) var setter: Setter?
+
+    func setUnavailable(_ reason: String? = nil) {
+        availability = .unavailable(reason: reason)
+    }
+
+    @nonobjc private init(_ type: Kind) {
+        self.type = type
+    }
 
     @nonobjc public init(_ type: Any.Type) {
         switch "\(type)" {

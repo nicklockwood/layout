@@ -346,7 +346,7 @@ func wasPressed(_ button: UIButton) {
 }
 ```
 
-Action expressions are treated as strings, and like other string expressions they can contain logic. Note, however, that the logic inside an action is executed when the layout is updated, *not* when the action is invoked. This is useful if you wish to toggle the action between different methods, depending on some state, e.g.
+Action expressions are treated as strings, and like other string expressions they can contain logic to produce a different value depending on the layout constants or state. This is useful if you wish to toggle the action between different methods, e.g.
 
 ```xml
 <UIButton touchUpInside="{isSelected ? 'deselect:' : 'select:'}"/>

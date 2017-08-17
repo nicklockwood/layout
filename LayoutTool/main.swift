@@ -87,7 +87,7 @@ func processArguments(_ args: [String]) -> ExitResult {
         }
         errors += rename(old, to: new, in: paths)
     case let arg:
-        print("error: unknown command `\(arg)`", to: &stderr)
+        print("error: unknown command \(arg)", to: &stderr)
         print("LayoutTool \(arg) is not a valid command".inRed, to: &stderr)
         return .failure
     }

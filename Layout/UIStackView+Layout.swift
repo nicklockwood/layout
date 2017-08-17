@@ -45,7 +45,7 @@ extension UIStackView {
             "layer.shadowPathIsBounds",
             "layer.shadowRadius",
         ] {
-            types.removeValue(forKey: name)
+            types[name]?.setUnavailable()
         }
         return types
     }

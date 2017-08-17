@@ -18,7 +18,7 @@ struct Layout {
         let classPrefix = Bundle.main.object(forInfoDictionaryKey: "CFBundleName") ?? ""
         guard let anyClass = NSClassFromString(className) ??
             NSClassFromString("\(classPrefix).\(className)") else {
-            throw LayoutError.message("Unknown class `\(className)`")
+            throw LayoutError.message("Unknown class \(className)")
         }
         return anyClass
     }

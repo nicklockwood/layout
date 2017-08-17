@@ -12,7 +12,7 @@ extension LayoutNode {
         constants: [String: Any] = [:]
     ) throws {
         if let path = layout.templatePath {
-            throw LayoutError("Cannot initialize `\(layout.className)` node until content for `\(path)` has been loaded.")
+            throw LayoutError("Cannot initialize \(layout.className) node until content for \(path) has been loaded.")
         }
         try self.init(
             class: layout.getClass(),

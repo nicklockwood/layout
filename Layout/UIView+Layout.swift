@@ -50,20 +50,24 @@ extension UIView {
             "center",
             "frame",
             "frameOrigin",
-            "layer.anchorPoint",
             "layer.bounds",
             "layer.frame",
             "layer.position",
-            "layer.sublayers",
             "origin",
             "position",
             "size",
         ] {
-            types.removeValue(forKey: name)
+            types[name]?.setUnavailable("Use top/left/width/height expressions instead")
             let name = "\(name)."
             for key in types.keys where key.hasPrefix(name) {
-                types.removeValue(forKey: key)
+                types[key]!.setUnavailable("Use top/left/width/height expressions instead")
             }
+        }
+        for name in [
+            "layer.anchorPoint",
+            "layer.sublayers",
+        ] {
+            types[name]?.setUnavailable()
         }
         return types
     }
@@ -191,7 +195,7 @@ extension UIControl {
                 // Already bound
             } else {
                 if !target.responds(to: action) {
-                    throw LayoutError.message("`\(target.classForCoder ?? type(of: target))` does not respond to `\(action)`")
+                    throw LayoutError.message("\(target.classForCoder ?? type(of: target)) does not respond to \(action)")
                 }
                 addTarget(target, action: action, for: event)
             }

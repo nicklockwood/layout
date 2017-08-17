@@ -21,7 +21,7 @@ public extension LayoutLoading {
         let name = named ?? "\(type(of: self))".components(separatedBy: ".").last!
         guard let xmlURL = bundle.url(forResource: name, withExtension: nil) ??
             bundle.url(forResource: name, withExtension: "xml") else {
-            layoutError(.message("No layout XML file found for `\(name)`"))
+            layoutError(.message("No layout XML file found for \(name)"))
             return
         }
         loadLayout(

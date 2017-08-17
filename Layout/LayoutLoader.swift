@@ -39,7 +39,7 @@ private extension Layout {
     /// Will fail if the layout class is not a subclass of this one
     func merged(with layout: Layout) throws -> Layout {
         if let path = xmlPath {
-            throw LayoutError("Cannot extend `\(className)` template until content for `\(path)` has been loaded.")
+            throw LayoutError("Cannot extend \(className) template until content for \(path) has been loaded.")
         }
         let newClass: AnyClass = try layout.getClass()
         let oldClass: AnyClass = try getClass()
@@ -200,7 +200,7 @@ class LayoutLoader {
         assert(Thread.isMainThread)
         guard let xmlURL = bundle.url(forResource: named, withExtension: nil) ??
             bundle.url(forResource: named, withExtension: "xml") else {
-            throw LayoutError.message("No layout XML file found for `\(named)`")
+            throw LayoutError.message("No layout XML file found for \(named)")
         }
         var _layout: Layout?
         var _error: Error?
@@ -215,7 +215,7 @@ class LayoutLoader {
             throw error
         }
         guard let layout = _layout else {
-            throw LayoutError("Unable to synchronously load layout `\(named)`. It may depend on a remote template. Try  `loadLayout(withContentsOfURL:)` instead.")
+            throw LayoutError("Unable to synchronously load \(named). It may depend on a remote template. Try using loadLayout(withContentsOfURL:) instead")
         }
         return layout
     }

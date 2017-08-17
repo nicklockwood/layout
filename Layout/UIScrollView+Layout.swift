@@ -65,7 +65,7 @@ extension UIScrollView {
             case .always:
                 key = "always"
             }
-            throw SymbolError("Setting `contentInsetAdjustmentBehavior` to `\(key)` is not supported on iOS versions prior to 11. Set it to `never` for consistent behavior across iOS versions,", for: name)
+            throw SymbolError("Setting contentInsetAdjustmentBehavior to \(key) is not supported on iOS versions prior to 11. Set it to never for consistent behavior across iOS versions,", for: name)
         default:
             try super.setValue(value, forExpression: name)
         }

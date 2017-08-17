@@ -43,12 +43,12 @@ extension Layout {
                             name = value
                         case "type":
                             guard let runtimeType = RuntimeType(value) else {
-                                throw LayoutError("Unknown or unsupported type `\(value)` in <param>. Try using `Any` instead",
+                                throw LayoutError("Unknown or unsupported type \(value) in <param>. Try using Any instead",
                                     for: NSClassFromString(name))
                             }
                             type = runtimeType
                         default:
-                            throw LayoutError("Unexpected attribute `\(key)` in <param>", for: NSClassFromString(className))
+                            throw LayoutError("Unexpected attribute \(key) in <param>", for: NSClassFromString(className))
                         }
                     }
                     guard !name.isEmpty else {
@@ -115,7 +115,7 @@ private extension XMLNode {
         switch self {
         case let .node(name, attributes, children):
             guard attributes.isEmpty else {
-                throw LayoutError("Unsupported attribute `\(attributes.keys.first!)` for element <\(name)>.")
+                throw LayoutError("Unsupported attribute \(attributes.keys.first!) for element <\(name)>.")
             }
             guard supportedHTMLTags.contains(name) else {
                 throw LayoutError("Unsupported HTML element <\(name)>.")

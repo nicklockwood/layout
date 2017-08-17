@@ -219,7 +219,7 @@ struct LayoutExpression {
                 }
                 guard let value = type.cast(anyValue) else {
                     let value = try unwrap(anyValue)
-                    throw Expression.Error.message("`\(type(of: value))` is not compatible with expected type `\(type)`")
+                    throw Expression.Error.message("\(type(of: value)) is not compatible with expected type \(type)")
                 }
                 return value
             },
@@ -614,14 +614,14 @@ struct LayoutExpression {
                         let identifier = parts.first!
                         string = parts.last!
                         guard let _bundle = Bundle(identifier: identifier) else {
-                            throw Expression.Error.message("Could not locate bundle with identifier `\(identifier)`")
+                            throw Expression.Error.message("Could not locate bundle with identifier \(identifier)")
                         }
                         bundle = _bundle
                     }
                     if let image = UIImage(named: parts.last!, in: bundle, compatibleWith: nil) {
                         return image
                     }
-                    throw Expression.Error.message("Invalid image name `\(string)`")
+                    throw Expression.Error.message("Invalid image name \(string)")
                 }
             },
             symbols: expression.symbols

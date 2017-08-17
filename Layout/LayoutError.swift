@@ -16,7 +16,7 @@ internal struct SymbolError: Error, CustomStringConvertible {
             } else if description.contains(error.symbol) {
                 self.error = SymbolError(description, for: error.symbol)
             } else {
-                self.error = SymbolError("\(description) in symbol `\(error.symbol)`", for: error.symbol)
+                self.error = SymbolError("\(description) for \(error.symbol)", for: error.symbol)
             }
         } else {
             self.error = error
@@ -31,7 +31,7 @@ internal struct SymbolError: Error, CustomStringConvertible {
     public var description: String {
         var description = String(describing: error)
         if !description.contains(symbol) {
-            description = "\(description) in expression `\(symbol)`"
+            description = "\(description) in \(symbol) expression"
         }
         return description
     }
