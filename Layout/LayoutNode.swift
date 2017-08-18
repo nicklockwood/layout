@@ -326,7 +326,7 @@ public class LayoutNode: NSObject {
         }
     }
 
-    private func attempt<T>(_ closure: () throws -> T) -> T? {
+    func attempt<T>(_ closure: () throws -> T) -> T? {
         do {
             return try closure()
         } catch {
@@ -580,7 +580,8 @@ public class LayoutNode: NSObject {
         if expressions["width"] == nil {
             if expressions["left"] != nil, expressions["right"] != nil {
                 expressions["width"] = "right - left"
-            } else if _usesAutoLayout || _view.intrinsicContentSize.width != UIViewNoIntrinsicMetric {
+            } else if !(_view is UIScrollView),
+                _usesAutoLayout || _view.intrinsicContentSize.width != UIViewNoIntrinsicMetric {
                 expressions["width"] = "auto"
             } else if parent != nil {
                 expressions["width"] = "100%"
@@ -598,7 +599,8 @@ public class LayoutNode: NSObject {
                 expressions["height"] = "auto" // TODO: remove special case
             } else if expressions["top"] != nil, expressions["bottom"] != nil {
                 expressions["height"] = "bottom - top"
-            } else if _usesAutoLayout || _view.intrinsicContentSize.height != UIViewNoIntrinsicMetric {
+            }  else if !(_view is UIScrollView),
+                _usesAutoLayout || _view.intrinsicContentSize.height != UIViewNoIntrinsicMetric {
                 expressions["height"] = "auto"
             } else if parent != nil {
                 expressions["height"] = "100%"
@@ -658,12 +660,8 @@ public class LayoutNode: NSObject {
                 expression = LayoutExpression(yExpression: string, for: self)
             case "width":
                 expression = LayoutExpression(widthExpression: string, for: self)
-            case "contentSize.width":
-                expression = LayoutExpression(contentWidthExpression: string, for: self)
             case "height":
                 expression = LayoutExpression(heightExpression: string, for: self)
-            case "contentSize.height":
-                expression = LayoutExpression(contentHeightExpression: string, for: self)
             default:
                 let type: RuntimeType
                 if let viewControllerType = viewControllerExpressionTypes[symbol] {
@@ -684,14 +682,21 @@ public class LayoutNode: NSObject {
                     throw SymbolError("\(_class).\(symbol) is not available in Layout\(reason.map { ". \($0)" } ?? "")", for: symbol)
                 }
                 if case let .any(kind) = type.type, kind is CGFloat.Type {
-                    // Allow use of % in any vertical/horizontal property expression
-                    let parts = symbol.components(separatedBy: ".")
-                    if ["left", "right", "x", "width"].contains(parts.last!) {
-                        expression = LayoutExpression(xExpression: string, for: self)
-                    } else if ["top", "bottom", "y", "height"].contains(parts.last!) {
-                        expression = LayoutExpression(yExpression: string, for: self)
-                    } else {
-                        expression = LayoutExpression(expression: string, type: type, for: self)
+                    switch symbol {
+                    case "contentSize.width":
+                        expression = LayoutExpression(contentWidthExpression: string, for: self)
+                    case "contentSize.height":
+                        expression = LayoutExpression(contentHeightExpression: string, for: self)
+                    default:
+                        // Allow use of % in any vertical/horizontal property expression
+                        let parts = symbol.components(separatedBy: ".")
+                        if ["left", "right", "x", "width"].contains(parts.last!) {
+                            expression = LayoutExpression(xExpression: string, for: self)
+                        } else if ["top", "bottom", "y", "height"].contains(parts.last!) {
+                            expression = LayoutExpression(yExpression: string, for: self)
+                        } else {
+                            expression = LayoutExpression(expression: string, type: type, for: self)
+                        }
                     }
                 } else {
                     expression = LayoutExpression(expression: string, type: type, for: self)
@@ -1086,7 +1091,7 @@ public class LayoutNode: NSObject {
     private func updateExpressionValues() throws {
         for (name, expression) in _viewControllerExpressions {
             let value = try expression.evaluate()
-            try viewController?.setValue(value, forExpression: name)
+            try _viewController!.setValue(value, forExpression: name)
         }
         for (name, expression) in _viewExpressions {
             let value = try expression.evaluate()
@@ -1159,7 +1164,7 @@ public class LayoutNode: NSObject {
             return try value(forSymbol: "contentSize") as? CGSize ?? .zero
         }
         // TODO: remove special case
-        if _class is UIStackView.Type {
+        if _view is UIStackView {
             return _view.systemLayoutSizeFitting(CGSize(
                 width: try cgFloatValue(forSymbol: "width"),
                 height: .greatestFiniteMagnitude
@@ -1226,6 +1231,10 @@ public class LayoutNode: NSObject {
 
     private func inferSize() throws -> CGSize {
         let intrinsicSize = _view.intrinsicContentSize
+        // TODO: remove special case
+        if _view is UICollectionView {
+            return intrinsicSize
+        }
         // Try AutoLayout
         if _usesAutoLayout {
             let transform = _view.layer.transform

@@ -50,6 +50,13 @@ extension UITableView {
             "singleLine": .singleLine,
             "singleLineEtched": .singleLineEtched,
         ])
+        for name in [
+            "contentSize",
+            "contentSize.height",
+            "contentSize.width",
+        ] {
+            types[name]?.setUnavailable()
+        }
         return types
     }
 
@@ -105,14 +112,34 @@ extension UITableView {
     open override func willRemoveChildNode(_ node: LayoutNode, at index: Int) {
         let hadView = (node._view != nil)
         super.willRemoveChildNode(node, at: index)
-        if node._view == tableHeaderView {
-            tableHeaderView = nil
-        } else if node._view == tableFooterView {
-            tableFooterView = nil
-        }
+        guard let view = node._view else { return }
         // Check we didn't accidentally instantiate the view
         // TODO: it would be better to do this in a unit test
-        assert(hadView || node._view == nil)
+        assert(hadView)
+        if view == tableHeaderView {
+            tableHeaderView = nil
+        } else if view == tableFooterView {
+            tableFooterView = nil
+        }
+    }
+
+    open override var intrinsicContentSize: CGSize {
+        return CGSize(
+            width: contentSize.width + contentInset.left + contentInset.right,
+            height: contentSize.height + contentInset.top + contentInset.bottom
+        )
+    }
+
+    open override var contentSize: CGSize {
+        didSet {
+            if oldValue != contentSize, let layoutNode = layoutNode {
+                let contentOffset = self.contentOffset.y
+                try? layoutNode.update()
+                if contentOffset >= 0 {
+                    self.contentOffset.y = contentOffset
+                }
+            }
+        }
     }
 }
 

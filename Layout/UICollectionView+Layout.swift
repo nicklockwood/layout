@@ -62,6 +62,13 @@ extension UICollectionView {
             types["collectionViewLayout.\(key)"] = type
         }
         types["collectionViewLayout.scrollDirection"] = collectionViewScrollDirection
+        for name in [
+            "contentSize",
+            "contentSize.height",
+            "contentSize.width",
+        ] {
+            types[name]?.setUnavailable()
+        }
         return types
     }
 
@@ -106,6 +113,23 @@ extension UICollectionView {
         // Check we didn't accidentally instantiate the view
         // TODO: it would be better to do this in a unit test
         assert(hadView || node._view == nil)
+    }
+
+    open override var intrinsicContentSize: CGSize {
+        return CGSize(
+            width: contentSize.width + contentInset.left + contentInset.right,
+            height: contentSize.height + contentInset.top + contentInset.bottom
+        )
+    }
+
+    open override var contentSize: CGSize {
+        didSet {
+            if oldValue != contentSize, let layoutNode = layoutNode {
+                let contentOffset = self.contentOffset
+                try? layoutNode.update()
+                self.contentOffset = contentOffset
+            }
+        }
     }
 }
 
