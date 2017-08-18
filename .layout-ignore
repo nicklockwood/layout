@@ -1,0 +1,7 @@
+# Files or directories ignored by Layout
+
+Layout
+LayoutTests
+LayoutTool
+LayoutToolTests
+UIDesigner

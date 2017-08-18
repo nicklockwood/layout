@@ -1,8 +1,9 @@
 [![Travis](https://img.shields.io/travis/schibsted/layout.svg)](https://travis-ci.org/schibsted/layout)
+[![Platform](https://img.shields.io/cocoapods/p/Layout.svg?style=flat)](http://cocoadocs.org/docsets/Layout)
+[![Swift](https://img.shields.io/badge/swift-3.1-orange.svg?style=flat)](https://developer.apple.com/swift)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](https://opensource.org/licenses/MIT)
 [![CocoaPods Compatible](https://img.shields.io/cocoapods/v/Layout.svg)](https://img.shields.io/cocoapods/v/Layout.svg)
 [![Carthage Compatible](https://img.shields.io/badge/Carthage-compatible-4BC51D.svg?style=flat)](https://github.com/Carthage/Carthage)
-[![Platform](https://img.shields.io/cocoapods/p/Layout.svg?style=flat)](http://cocoadocs.org/docsets/Layout)
 
 # Layout
 
@@ -39,6 +40,7 @@
     - [Composition](#composition)
     - [Templates](#templates)
     - [Parameters](#parameters)
+    - [Ignore File](#ignore-file)
 - [Example Projects](#example-projects)
     - [SampleApp](#sampleapp)
     - [UIDesigner](#uidesigner)
@@ -177,7 +179,7 @@ Use option 1 for layouts generated in code. Use option 2 for XML layout files lo
 
 Option 3 can be used to load a layout from an arbitrary URL, which can be either a local file or remotely-hosted. This is useful if you need to develop directly on a device, because you can host the layout file on your Mac and then connect to it from the device to allow reloading of changes without recompiling the app. It's also potentially useful in production for hosting layouts in some kind of CMS system.
 
-**Note:** The `loadLayout(withContentsOfURL:)` method offers limited control over caching, etc. so if you intend to host your layouts remotely, it may be better to download the XML template to a local cache location first and then load it from there.
+**Note:** The `loadLayout(withContentsOfURL:)` method offers limited control over caching, etc. so if you intend to host your layout files remotely, it may be better to download the XML to a local cache location first and then load it from there.
 
 
 ## Live Reloading
@@ -186,13 +188,15 @@ The `LayoutViewController` provides a number of helpful features to improve your
 
 If the Layout framework throws an error during XML parsing, mounting, or updating, the `LayoutViewController` will detect it and display the *Red Box*, which is a full-screen overlay that displays the error message along with a reload button. Pressing reload will reset the layout state and re-load the layout XML file.
 
-When you load an XML layout file in the iOS Simulator, the Layout framework will attempt to find the original source XML file for the layout and load that instead of the static version bundled into the compiled app (if multiple source files match the bundled file name, you will be asked to choose which one to load).
+When you load an XML layout file in the iOS Simulator, the Layout framework will attempt to find the original source XML file for the layout and load that instead of the static version bundled into the compiled app.
 
 This means that you can go ahead and fix the errors in your XML file, then reload it *without* restarting the simulator, or recompiling the app.
 
+**Note:** If multiple source files match the bundled file name, you will be asked to choose which one to load. See the [Ignore File](#ignore-file) section below if you need to exclude certain files from the search process.
+
 You can reload at any time, even if there was no error, by pressing Cmd-R in the simulator (not in Xcode itself, as that will recompile the app). `LayoutViewController` will detect that key combination and reload the XML, provided that it is the current first responder on screen.
 
-**Note:** This only works for changes you make to the layout XML file itself, not for Swift code changes in your view controller, or other resources such as images.
+**Note:** This only works for changes you make to your layout XML files, or in your `Localizable.strings` file, not for Swift code changes in your view controller, or other resources such as images.
 
 The live reloading feature, combined with the gracious handling of errors, means that it should be possible to do most of your interface development without needing to recompile the app.
 
@@ -1279,6 +1283,36 @@ You can set default values for parameters by defining a matching expression on t
 ```
 
 
+## Ignore File
+
+Every time you load a layout XML file when running in the iOS Simulator, Layout scans your project directory to locate the file. This is usually pretty fast, but if your project has a lot of subfolders then it can take a noticeable time to locate an XML file the first time.
+
+To speed up this scan, you can add a `.layout-ignore` file to your project directory that tells Layout to ignore certain subdirectories. The format of the `.layout-ignore` file is a simple list of file paths (one per line) that should be ignored. You can use `#` to denote a comment, e.g. for grouping purposes:
+
+```
+# Ignore these
+Tests
+Pods
+```
+
+File paths are relative to the folder in which the `.layout-ignore` file is placed. Wildcards like `*` are not supported, and the use of relative paths like `../` is not recommended.
+
+Searching begins from the directory containing your `.xcodeproj`, but you can place the `.layout-ignore` file in any subdirectory of your project, and you can include multiple ignore files in different directories.
+
+Layout already ignores invisible files/folders, along with the following directories, so there is no need to include these:
+
+```
+build
+*.build
+*.app
+*.framework
+*.xcodeproj
+*.xcassets
+```
+
+The paths listed in `.layout-ignore` will also be ignored by [LayoutTool](#layouttool).
+
+
 # Example Projects
 
 There are several example projects included with the Layout library:
@@ -1360,6 +1394,18 @@ Only class names and values inside expressions will be affected. HTML elements a
 
 # FAQ
 
+*Q. How is this different from frameworks like [React Native](https://facebook.github.io/react-native/)?
+
+> React Native is a complete x-platform replacement for native iOS and Android development, whereas Layout is a way to build ordinary iOS UIKit apps more easily.
+
+*Q. How is this different from frameworks like [Render](https://github.com/alexdrone/Render)?
+
+> The programming model is very similar, but Layout's runtime expressions mean that you can do a larger proportion of your UI development without needing to restart the Simulator.
+
+*Q. Do I really have to write my layouts in XML?*
+
+> You can create `LayoutNode`s manually in code, but XML is the recommended approach for now. I'm exploring other options, such as alternative formats and GUI tools.
+
 *Q. Why isn't Cmd-R reloading my XML file in the simulator?*
 
 > Make sure that the `Hardware > Keyboard > Connect Hardware Keyboard` option is enabled in the simulator.
@@ -1376,6 +1422,6 @@ Only class names and values inside expressions will be affected. HTML elements a
 
 > No. See the [Manual Integration](#manual-integration) section above.
 
-*Q. Do I really have to write my layouts in XML?*
+*Q. When I launched my app, Layout asked me to select a source file and I chose the wrong one, now my app crashes on launch. What do I do?
 
-> You can create `LayoutNode`s manually in code, but XML is the recommended approach for now. I'm exploring other options, such as alternative formats and GUI tools.
+> If the app is red-boxing but still runs, you can reset it with Cmd-Alt-R. If it's actually crashing, the best option is to delete the app from the Simulator, then re-install.

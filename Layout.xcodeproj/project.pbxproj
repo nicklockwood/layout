@@ -27,6 +27,7 @@
 		0105F7B11F059CCC0067B313 /* Common.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0105F7A11F055F9D0067B313 /* Common.swift */; };
 		0105F7B81F0AA7D70067B313 /* Formatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0105F7B61F0AA7D70067B313 /* Formatter.swift */; };
 		0105F7B91F0AA7E70067B313 /* Formatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0105F7B61F0AA7D70067B313 /* Formatter.swift */; };
+		01146B121F4700AD008A9B24 /* Files.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01146B111F4700AD008A9B24 /* Files.swift */; };
 		01181E041F0E1FE80011C4DE /* ExpressionParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01181E031F0E1FE80011C4DE /* ExpressionParser.swift */; };
 		01181E051F0EA7F90011C4DE /* ExpressionParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01181E031F0E1FE80011C4DE /* ExpressionParser.swift */; };
 		01181E071F0EA8070011C4DE /* ExpressionParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01181E031F0E1FE80011C4DE /* ExpressionParser.swift */; };
@@ -85,6 +86,8 @@
 		014F37481F352B2600F63CCF /* CollectionCell.xml in Resources */ = {isa = PBXBuildFile; fileRef = 014F37471F352B2600F63CCF /* CollectionCell.xml */; };
 		014F374A1F35A23000F63CCF /* Collection.xml in Resources */ = {isa = PBXBuildFile; fileRef = 014F37491F35A23000F63CCF /* Collection.xml */; };
 		015498871F4352620030A6A2 /* RuntimeType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 015498861F4352620030A6A2 /* RuntimeType.swift */; };
+		0164F9231F470A4400AFCDCA /* Files.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01146B111F4700AD008A9B24 /* Files.swift */; };
+		0164F9241F470A4500AFCDCA /* Files.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01146B111F4700AD008A9B24 /* Files.swift */; };
 		017539821F28B623005B7516 /* Renamer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 017539811F28B623005B7516 /* Renamer.swift */; };
 		017539841F28D055005B7516 /* RenameTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 017539831F28D055005B7516 /* RenameTests.swift */; };
 		017539851F28DAC5005B7516 /* Renamer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 017539811F28B623005B7516 /* Renamer.swift */; };
@@ -177,6 +180,7 @@
 		0105F7AB1F059A820067B313 /* FormatTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormatTests.swift; sourceTree = "<group>"; };
 		0105F7AD1F059A820067B313 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		0105F7B61F0AA7D70067B313 /* Formatter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Formatter.swift; sourceTree = "<group>"; };
+		01146B111F4700AD008A9B24 /* Files.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Files.swift; sourceTree = "<group>"; };
 		01181E031F0E1FE80011C4DE /* ExpressionParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExpressionParser.swift; sourceTree = "<group>"; };
 		01181E081F0F7E430011C4DE /* Expression.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Expression.swift; sourceTree = "<group>"; };
 		01185CB11F3207FB00D34EA7 /* Sandbox.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Sandbox.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -423,6 +427,7 @@
 				0105F7871F0547910067B313 /* UIView+Layout.swift */,
 				012073251F39EE0000FD092A /* UIScrollView+Layout.swift */,
 				0105F7881F0547910067B313 /* UIViewController+Layout.swift */,
+				01146B111F4700AD008A9B24 /* Files.swift */,
 				011CE69B1F053ABD0034771C /* Layout.h */,
 				011CE69C1F053ABD0034771C /* Info.plist */,
 			);
@@ -847,6 +852,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				011EC5931F40A2EA00BFA229 /* XMLParser.swift in Sources */,
+				0164F9231F470A4400AFCDCA /* Files.swift in Sources */,
 				017539821F28B623005B7516 /* Renamer.swift in Sources */,
 				01181E051F0EA7F90011C4DE /* ExpressionParser.swift in Sources */,
 				0105F79D1F055C260067B313 /* main.swift in Sources */,
@@ -861,6 +867,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				01181E071F0EA8070011C4DE /* ExpressionParser.swift in Sources */,
+				0164F9241F470A4500AFCDCA /* Files.swift in Sources */,
 				3583485A1F3F1EB000CFB6BB /* ProcessArgumentsTests.swift in Sources */,
 				017539841F28D055005B7516 /* RenameTests.swift in Sources */,
 				017539851F28DAC5005B7516 /* Renamer.swift in Sources */,
@@ -933,6 +940,7 @@
 				0105F78B1F0547910067B313 /* LayoutExpression.swift in Sources */,
 				0105F7921F0547910067B313 /* Properties.swift in Sources */,
 				01181E041F0E1FE80011C4DE /* ExpressionParser.swift in Sources */,
+				01146B121F4700AD008A9B24 /* Files.swift in Sources */,
 				0105F78E1F0547910067B313 /* LayoutNode.swift in Sources */,
 				01181E091F0F7E430011C4DE /* Expression.swift in Sources */,
 			);

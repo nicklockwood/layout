@@ -103,6 +103,7 @@ func enumerateFiles(withInputURL inputURL: URL,
     let queue = concurrent ? DispatchQueue.global(qos: .userInitiated) : completionQueue
 
     func enumerate(inputURL: URL,
+                   excluding excludedURLs: [URL],
                    outputURL: URL?,
                    options: FileOptions,
                    block: @escaping (URL, URL) throws -> () throws -> Void) {
@@ -125,6 +126,15 @@ func enumerateFiles(withInputURL inputURL: URL,
                 }
             }
         } else if resourceValues.isDirectory == true {
+            var excludedURLs = excludedURLs
+            let ignoreFile = inputURL.appendingPathComponent(layoutIgnoreFile)
+            if manager.fileExists(atPath: ignoreFile.path) {
+                do {
+                    excludedURLs += try parseIgnoreFile(ignoreFile)
+                } catch {
+                    onComplete { throw error }
+                }
+            }
             guard let files = try? manager.contentsOfDirectory(
                 at: inputURL, includingPropertiesForKeys: keys, options: .skipsHiddenFiles) else {
                 onComplete { throw FormatError.reading("failed to read contents of directory at \(inputURL.path)") }
@@ -135,13 +145,21 @@ func enumerateFiles(withInputURL inputURL: URL,
                     let outputURL = outputURL.map {
                         URL(fileURLWithPath: $0.path + url.path.substring(from: inputURL.path.characters.endIndex))
                     }
-                    enumerate(inputURL: url, outputURL: outputURL, options: options, block: block)
+                    enumerate(inputURL: url,
+                              excluding: excludedURLs,
+                              outputURL: outputURL,
+                              options: options,
+                              block: block)
                 }
             }
         } else if options.followSymlinks &&
             (resourceValues.isSymbolicLink == true || resourceValues.isAliasFile == true) {
             let resolvedURL = inputURL.resolvingSymlinksInPath()
-            enumerate(inputURL: resolvedURL, outputURL: outputURL, options: options, block: block)
+            enumerate(inputURL: resolvedURL,
+                      excluding: excludedURLs,
+                      outputURL: outputURL,
+                      options: options,
+                      block: block)
         }
     }
 
@@ -150,7 +168,11 @@ func enumerateFiles(withInputURL inputURL: URL,
             onComplete { throw FormatError.options("file not found at \(inputURL.path)") }
             return
         }
-        enumerate(inputURL: inputURL, outputURL: outputURL, options: options, block: block)
+        enumerate(inputURL: inputURL,
+                  excluding: excludedURLs,
+                  outputURL: outputURL,
+                  options: options,
+                  block: block)
     }
     group.wait()
 
@@ -180,6 +202,8 @@ func parseLayoutXML(_ fileURL: URL) throws -> [XMLNode]? {
         switch error {
         case is XMLParser.Error:
             throw FormatError.parsing("\(error) in \(fileURL.path)")
+        case is FileError:
+            throw FormatError.parsing("\(error)")
         default:
             throw FormatError.reading((error as NSError).localizedDescription)
         }

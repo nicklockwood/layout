@@ -400,12 +400,23 @@ class LayoutLoader {
         return findProjectDirectory(at: parent.path)
     }
 
-    private func findSourceURL(forRelativePath path: String, in directory: URL, usingCache: Bool = true) throws -> URL? {
+    private func findSourceURL(
+        forRelativePath path: String,
+        in directory: URL,
+        ignoring: [URL] = [],
+        usingCache: Bool = true
+    ) throws -> URL? {
         if let filePath = sourcePaths[path], FileManager.default.fileExists(atPath: filePath) {
             return URL(fileURLWithPath: filePath)
         }
         guard let files = try? FileManager.default.contentsOfDirectory(atPath: directory.path) else {
             return nil
+        }
+        var ignoring = ignoring
+        if files.contains(layoutIgnoreFile) {
+            ignoring += try LayoutError.wrap {
+                try parseIgnoreFile(directory.appendingPathComponent(layoutIgnoreFile))
+            }
         }
         var parts = URL(fileURLWithPath: path).pathComponents
         if parts[0] == "/" {
@@ -417,6 +428,9 @@ class LayoutLoader {
                 ".build", ".app", ".framework", ".xcodeproj", ".xcassets"
             ].contains(where: { file.hasSuffix($0) }) {
             let directory = directory.appendingPathComponent(file)
+            if ignoring.contains(directory) {
+                continue
+            }
             if file == parts[0] {
                 if parts.count == 1 {
                     results.append(directory) // Not actually a directory
