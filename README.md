@@ -51,9 +51,10 @@
 
 ## What?
 
-Layout is a framework for implementing iOS user interfaces using runtime-evaluated expressions for layout and (optionally) XML template files. It is intended as a more-or-less drop-in replacement for Nibs and Storyboards, but offers a number of advantages (see [below](#why) for details).
+Layout is a framework for implementing iOS user interfaces using runtime-evaluated expressions for layout and (optionally) XML template files. It is intended as a more-or-less drop-in replacement for Nibs and Storyboards, but offers a number of advantages.
 
-The Layout framework is *extremely* beta, so expect rough edges and breaking changes.
+To find out more about why we built Layout, and the problems it addresses, check out [this article](http://bytes.schibsted.com/layout-declarative-ui-framework-ios/).
+
 
 ## Why?
 
@@ -71,6 +72,7 @@ Layout also includes a replacement for AutoLayout that aims to be:
 * More intuitive and readable for complex layouts
 * More deterministic and simpler to debug
 * More performant (at least in theory :-))
+
 
 ## How?
 
