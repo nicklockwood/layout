@@ -1445,7 +1445,10 @@ public class LayoutNode: NSObject {
         guard _owner == nil || _owner == owner || _owner == _viewController else {
             throw LayoutError("Cannot re-bind an already bound node.", for: self)
         }
-        _delegate = owner as? LayoutDelegate
+        let oldDelegate = _delegate
+        if oldDelegate == nil {
+            _delegate = owner as? LayoutDelegate
+        }
         if viewControllerClass != nil, owner != _viewController, let viewController = viewController {
             do {
                 try bind(to: viewController)
@@ -1454,7 +1457,7 @@ public class LayoutNode: NSObject {
                 unbind()
             }
         }
-        _delegate = nil
+        _delegate = oldDelegate
         _owner = owner
         if _setupComplete {
             cleanUp()
