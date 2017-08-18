@@ -1,4 +1,4 @@
-<UITabBarController backgroundColor="#fff">
+<UITabBarController backgroundColor="white">
 
     <!-- Boxes -->
     <UIViewController

@@ -1,12 +1,12 @@
 <UITableViewCell
-    detailTextLabel.highlightedTextColor="#fff"
+    detailTextLabel.highlightedTextColor="white"
     detailTextLabel.text="This cell is defined in TableCell.xml"
     detailTextLabel.textColor="#aaa"
     height="auto + 20"
     reuseIdentifier="standaloneCell"
     selectedBackgroundView.backgroundColor="#aaa"
     style="subtitle"
-    textLabel.highlightedTextColor="#fff"
+    textLabel.highlightedTextColor="white"
     textLabel.text="Title #{row}">
 
     <UIImageView

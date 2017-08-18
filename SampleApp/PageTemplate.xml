@@ -11,7 +11,7 @@
         height="100%"
         text="{text}"
         textAlignment="center"
-        textColor="#fff"
+        textColor="white"
         width="100%"
     />
 </UIView>

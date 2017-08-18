@@ -179,7 +179,7 @@ struct LayoutExpression {
                     last == first, first == "`" {
                     key = String(chars.dropFirst().dropLast())
                 }
-                if let value = lookup(key) ?? node.value(forConstant: key) {
+                if let value = node.value(forConstant: key) ?? lookup(key) {
                     constants[name] = value
                 } else {
                     symbols[symbol] = { [unowned node] _ in
@@ -280,6 +280,13 @@ struct LayoutExpression {
                         let blue = CGFloat((rgba & 0x0000_FF00) >> 8) / 255
                         let alpha = CGFloat((rgba & 0x0000_00FF) >> 0) / 255
                         return UIColor(red: red, green: green, blue: blue, alpha: alpha)
+                    }
+                } else if UIColor.responds(to: Selector(string)) {
+                    return UIColor.value(forKey: string)
+                } else {
+                    let key = string + "Color"
+                    if UIColor.responds(to: Selector(key)) {
+                        return UIColor.value(forKey: key)
                     }
                 }
                 return nil

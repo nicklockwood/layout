@@ -16,7 +16,8 @@ public extension LayoutLoading {
         bundle: Bundle = Bundle.main,
         relativeTo: String = #file,
         state: Any = (),
-        constants: [String: Any]...) {
+        constants: [String: Any]...
+    ) {
         assert(Thread.isMainThread)
         let name = named ?? "\(type(of: self))".components(separatedBy: ".").last!
         guard let xmlURL = bundle.url(forResource: name, withExtension: nil) ??
@@ -39,7 +40,8 @@ public extension LayoutLoading {
         relativeTo: String? = #file,
         state: Any = (),
         constants: [String: Any]...,
-        completion: ((LayoutError?) -> Void)? = nil) {
+        completion: ((LayoutError?) -> Void)? = nil
+    ) {
         loader.loadLayoutNode(
             withContentsOfURL: xmlURL,
             relativeTo: relativeTo,

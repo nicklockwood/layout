@@ -271,12 +271,8 @@ public class LayoutNode: NSObject {
             errors.insert(LayoutError(error, for: self))
         }
         for name in expressions.keys {
-            guard let getter = _getters[name] else {
-                errors.insert(LayoutError(SymbolError("Unknown property \(name)", for: name), for: self))
-                continue
-            }
             do {
-                _ = try getter()
+                _ = try _getters[name]?()
             } catch {
                 errors.insert(LayoutError(error, for: self))
             }
@@ -690,7 +686,7 @@ public class LayoutNode: NSObject {
                 } else if let parameterType = _parameters[symbol] {
                     type = parameterType
                 } else {
-                    throw SymbolError("Unknown expression \(symbol)", for: symbol)
+                    throw SymbolError("Unknown property \(symbol)", for: symbol)
                 }
                 switch type.availability {
                 case .available:

@@ -1,5 +1,5 @@
 <UIScrollView
-    backgroundColor="#fff"
+    backgroundColor="white"
     contentInset.top=
         "topLayoutGuide.length + 20"
     contentSize.height="auto + 20"
@@ -30,7 +30,7 @@
                 left="10"
                 numberOfLines="0"
                 right="100% - 10"
-                textColor="#fff"
+                textColor="white"
                 top="10">
 
                 This is the <b>Layout Sandbox</b>
@@ -51,7 +51,7 @@
                 left="10"
                 numberOfLines="0"
                 right="100% - 10"
-                textColor="#fff"
+                textColor="white"
                 top="10">
 
                 Hit the edit button in the <b>top
@@ -70,7 +70,7 @@
                 left="10"
                 numberOfLines="0"
                 right="100% - 10"
-                textColor="#fff"
+                textColor="white"
                 top="10">
 
                 You can put <i>any</i> kind of

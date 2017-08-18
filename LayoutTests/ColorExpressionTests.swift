@@ -3,11 +3,15 @@
 import XCTest
 @testable import Layout
 
+extension UIColor {
+    static var testColor = UIColor.brown
+}
+
 class ColorExpressionTests: XCTestCase {
 
     func testRed() {
         let node = LayoutNode()
-        let expression = LayoutExpression(colorExpression: "#f00", for: node)
+        let expression = LayoutExpression(colorExpression: "red", for: node)
         let expected = UIColor(red: 1, green: 0, blue: 0, alpha: 1)
         XCTAssertEqual(try expression.evaluate() as? UIColor, expected)
     }
@@ -21,9 +25,21 @@ class ColorExpressionTests: XCTestCase {
 
     func testRedOrBlue2() {
         let node = LayoutNode(state: ["foo": true])
-        let expression = LayoutExpression(colorExpression: "foo ? #f00 : #00f", for: node)
+        let expression = LayoutExpression(colorExpression: "foo ? red : blue", for: node)
         let expected = UIColor(red: 1, green: 0, blue: 0, alpha: 1)
         XCTAssertEqual(try expression.evaluate() as? UIColor, expected)
+    }
+
+    func testCustomStaticColor() {
+        let node = LayoutNode()
+        let expression = LayoutExpression(colorExpression: "test", for: node)
+        XCTAssertEqual(try expression.evaluate() as? UIColor, .testColor)
+    }
+
+    func testCustomStaticColor2() {
+        let node = LayoutNode()
+        let expression = LayoutExpression(colorExpression: "testColor", for: node)
+        XCTAssertEqual(try expression.evaluate() as? UIColor, .testColor)
     }
 
     func testNilColor() {
@@ -42,13 +58,13 @@ class ColorExpressionTests: XCTestCase {
     }
 
     func testSetBackgroundColor() {
-        let node = LayoutNode(expressions: ["backgroundColor": "#f00"])
+        let node = LayoutNode(expressions: ["backgroundColor": "red"])
         let expected = UIColor(red: 1, green: 0, blue: 0, alpha: 1)
         XCTAssertEqual(node.view.backgroundColor, expected)
     }
 
     func testSetLayerBackgroundColor() {
-        let node = LayoutNode(expressions: ["layer.backgroundColor": "#f00"])
+        let node = LayoutNode(expressions: ["layer.backgroundColor": "red"])
         let expected = UIColor(red: 1, green: 0, blue: 0, alpha: 1).cgColor
         XCTAssertEqual(node.view.layer.backgroundColor, expected)
     }

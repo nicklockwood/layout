@@ -1,4 +1,4 @@
-<TableViewController backgroundColor="#fff">
+<TableViewController backgroundColor="white">
     <UITableView
         backgroundColor="tintColor"
         contentInset.bottom="bottomLayoutGuide.length"
@@ -16,7 +16,7 @@
             <UILabel
                 text="~ A custom table header view ~"
                 textAlignment="center"
-                textColor="#fff"
+                textColor="white"
                 top="10"
                 width="100%"
             />
@@ -39,7 +39,7 @@
             reuseIdentifier="templateCell"
             selectedBackgroundView.backgroundColor="tintColor"
             style="subtitle"
-            textLabel.highlightedTextColor="#fff"
+            textLabel.highlightedTextColor="white"
             textLabel.text="Title #{row}">
 
             <UIImageView

@@ -118,7 +118,7 @@ open class LayoutViewController: UIViewController, LayoutLoading {
                         "width": "min(auto, 100% - 40)",
                         "left": "(100% - width) / 2",
                         "text": "{error}. Please select the correct one.\n\nYour selection will be remembered for subsequent launches. Reset it with ⌥⌘R.",
-                        "textColor": "#fff",
+                        "textColor": "white",
                         "numberOfLines": "0",
                     ]
                 ),
@@ -154,7 +154,7 @@ open class LayoutViewController: UIViewController, LayoutLoading {
                         "width": "min(auto, 100% - 40)",
                         "left": "(100% - width) / 2",
                         "text": "{error}",
-                        "textColor": "#fff",
+                        "textColor": "white",
                         "numberOfLines": "0",
                     ]
                 ),

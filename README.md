@@ -214,7 +214,7 @@ A good use for constants would be localized strings, or something like colors or
 Here is how you would pass some constants to your XML-based layout:
 
 ```swift
-self.loadLayout(
+loadLayout(
     named: "MyLayout.xml",
     constants: [
         "title": NSLocalizedString("homescreen.title", message: ""),
@@ -246,7 +246,7 @@ For this reason, the `constants` argument of `LayoutNode`'s initializer is actua
 ```swift
 let extraConstants: [String: Any] = ...
 
-self.loadLayout(
+loadLayout(
     named: "MyLayout.xml",
     constants: globalConstants, extraConstants, [
         "title": NSLocalizedString("homescreen.title", message: ""),
@@ -261,7 +261,7 @@ self.loadLayout(
 For more dynamic layouts, you may have properties that need to change frequently (perhaps even during an animation), and recreating the entire view hierarchy to change these is neither convenient nor efficient. For these properties, you can use *state*. State works in much the same way as constants, except you can update state after the `LayoutNode` has been initialized:
 
 ```swift
-self.loadLayout(
+loadLayout(
     named: "MyLayout.xml",
     state: [
         "isSelected": false,
@@ -291,7 +291,7 @@ struct LayoutState {
     let isSelected: Bool
 }
 
-self.loadLayout(
+loadLayout(
     named: "MyLayout.xml",
     state: LayoutState(isSelected: false),
     constants: [
@@ -307,7 +307,7 @@ func setSelected() {
 When using a state dictionary, you do not have to pass every single property each time you set the state. If you are only updating one property, it is fine to pass a dictionary with only that key/value pair. (This is not the case if you are using a struct, but don't worry - this is only a convenience feature, and makes no difference to performance.):
 
 ```swift
-self.loadLayout(
+loadLayout(
   named: "MyLayout.xml",
   state: [
     "value1": 5,
@@ -550,7 +550,7 @@ These properties are not simple numbers, but structs containing several packed v
 Well, firstly, almost any property type can be set using a constant or state variable, even if there is no way to define a literal value for it in an expression. So for example, the following code will set the `layer.transform` even though Layout has no way to specify a literal `CATransform3D` struct in an expression:
 
 ```swift
-LayoutNode(
+loadLayout(
     named: "MyLayout.xml",
     state: [
         "flipped": true
@@ -655,6 +655,15 @@ Colors can be specified using CSS-style rgb(a) hex literals. These can be 3, 4, 
 #ff00007f // 50% transparent red
 ```
 
+All built-in static UIColor constants are supported as well:
+
+```
+white
+red
+darkGray
+etc.
+```
+
 You can also use CSS-style `rgb()` and `rgba()` functions. For consistency with CSS conventions, the red, green and blue values are specified in the range 0-255, and alpha in the range 0-1:
 
 ```
@@ -671,6 +680,35 @@ You can use these literals and functions as part of a more complex expression, f
 ```
 
 The use of color literals is convenient for development purposes, but you are encouraged to define constants for any commonly uses colors in your app, as these will be easier to refactor later.
+
+To supply custom named color constants, you can pass colors in the constants dictionary when loading a layout:
+
+```swift
+loadLayout(
+    named: "MyLayout.xml",
+    constants: [
+        "headerColor": UIColor(0.6, 0.5, 0.5, 1),
+    ]
+)
+```
+
+Color constants are available to use in any expression (although they probably aren't much use outside of a color expression).
+
+You can also define a custom colors using extension on `UIColor`, and Layout will detect it automatically:
+
+```swift
+extension UIColor {
+    static var headerColor =  UIColor(0.6, 0.5, 0.5, 1)
+}
+```
+
+Colors defined in this way can be referenced by name from inside any color expression, either with or without the `Color` suffix, but are not available inside other expression types:
+
+```xml
+<UIView backgroundColor="headerColor"/>
+
+<UIView backgroundColor="header"/>
+```
 
 
 ## Images

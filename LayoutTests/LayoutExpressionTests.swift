@@ -222,8 +222,8 @@ class LayoutExpressionTests: XCTestCase {
 
     func testOptionalBracesInColorExpression() {
         let node = LayoutNode()
-        let expression = LayoutExpression(colorExpression: "{#fff}", for: node)
-        XCTAssertEqual(try expression.evaluate() as? UIColor, UIColor(red: 1, green: 1, blue: 1, alpha: 1))
+        let expression = LayoutExpression(colorExpression: "{white}", for: node)
+        XCTAssertEqual(try expression.evaluate() as? UIColor, .white)
     }
 
     func testOptionalMultipleExpressionBodiesDisallowedInNumberExpression() {
