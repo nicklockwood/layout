@@ -242,7 +242,7 @@ open class LayoutViewController: UIViewController, LayoutLoading {
 
 extension LayoutViewController: LayoutDelegate {
 
-    open func layoutNode(_: LayoutNode, didDetectError error: Error) {
+    func layoutNode(_: LayoutNode, didDetectError error: Error) {
         guard let error = error as? LayoutError else {
             assertionFailure()
             return
@@ -251,7 +251,7 @@ extension LayoutViewController: LayoutDelegate {
         layoutError(error)
     }
 
-    open func layoutNode(_: LayoutNode, localizedStringForKey key: String) -> String? {
+    func layoutNode(_: LayoutNode, localizedStringForKey key: String) -> String? {
         do {
             return try loader.loadLocalizedStrings()[key]
         } catch {

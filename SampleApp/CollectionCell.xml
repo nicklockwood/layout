@@ -3,7 +3,7 @@
         contentMode="scaleAspectFit"
         height="100%"
         image="{image}"
-        tintColor="#999"
+        tintColor="colors.red"
         width="100%"
     />
 </UICollectionViewCell>

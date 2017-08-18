@@ -13,7 +13,7 @@ class ExamplesViewController: LayoutViewController, UITabBarControllerDelegate {
         loadLayout(
             named: "Examples.xml",
             constants: [
-                // Used in boxes example
+                // Used in boxes, table and collection examples
                 "colors": [
                     "red": UIColor(hexString: "#f66"),
                     "orange": UIColor(hexString: "#fa7"),

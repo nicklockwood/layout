@@ -9,7 +9,20 @@ private let collectionViewScrollDirection = RuntimeType(UICollectionViewScrollDi
     "vertical": .vertical,
 ])
 
+private var layoutNodeKey = 0
+
+private class Box {
+    weak var node: LayoutNode?
+    init(_ node: LayoutNode) {
+        self.node = node
+    }
+}
+
 extension UICollectionView {
+    fileprivate weak var layoutNode: LayoutNode? {
+        return (objc_getAssociatedObject(self, &layoutNodeKey) as? Box)?.node
+    }
+
     open override class func create(with node: LayoutNode) throws -> UICollectionView {
         let layout: UICollectionViewLayout
         if let expression = node.expressions["collectionViewLayout"] {
@@ -24,6 +37,7 @@ extension UICollectionView {
         }
         let collectionView = self.init(frame: .zero, collectionViewLayout: layout)
         collectionView.register(UICollectionViewCell.self, forCellWithReuseIdentifier: placeholderID)
+        objc_setAssociatedObject(collectionView, &layoutNodeKey, Box(node), .OBJC_ASSOCIATION_RETAIN)
         return collectionView
     }
 
@@ -93,7 +107,9 @@ extension UICollectionView {
         // TODO: it would be better to do this in a unit test
         assert(hadView || node._view == nil)
     }
+}
 
+extension UICollectionView: LayoutDelegate {
     public func layoutError(_ error: LayoutError) {
         var responder: UIResponder? = self
         while responder != nil {
@@ -104,6 +120,14 @@ extension UICollectionView {
             responder = responder?.next
         }
         print("Layout error: \(error)")
+    }
+
+    func value(forVariableOrConstant name: String) -> Any? {
+        guard let layoutNode = layoutNode,
+            let value = try? layoutNode.value(forVariableOrConstant: name) else {
+                return nil
+        }
+        return value
     }
 }
 
@@ -126,6 +150,7 @@ extension UICollectionViewController {
         } else if node.expressions.keys.contains(where: { $0.hasPrefix("collectionView.") }) {
             // TODO: figure out how to propagate this config to the view once it has been created
         }
+        objc_setAssociatedObject(viewController.collectionView, &layoutNodeKey, Box(node), .OBJC_ASSOCIATION_RETAIN)
         return viewController
     }
 
@@ -175,21 +200,11 @@ extension UICollectionViewController {
 private var cellDataKey = 0
 private var nodesKey = 0
 
-extension UICollectionView: LayoutDelegate {
+extension UICollectionView {
 
     private enum LayoutData {
         case success(Layout, Any, [String: Any])
         case failure(Error)
-    }
-
-    private func merge(_ dictionaries: [[String: Any]]) -> [String: Any] {
-        var result = [String: Any]()
-        for dict in dictionaries {
-            for (key, value) in dict {
-                result[key] = value
-            }
-        }
-        return result
     }
 
     private func registerLayoutData(
@@ -287,17 +302,8 @@ extension UICollectionView: LayoutDelegate {
     }
 }
 
-private var layoutNodeKey = 0
-
-private class Box {
-    weak var node: LayoutNode?
-    init(_ node: LayoutNode) {
-        self.node = node
-    }
-}
-
 extension UICollectionViewCell {
-    weak var layoutNode: LayoutNode? {
+    fileprivate weak var layoutNode: LayoutNode? {
         get {
             return (objc_getAssociatedObject(self, &layoutNodeKey) as? Box)?.node
         }

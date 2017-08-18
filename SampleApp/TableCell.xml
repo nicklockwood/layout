@@ -4,7 +4,7 @@
     detailTextLabel.textColor="#aaa"
     height="auto + 20"
     reuseIdentifier="standaloneCell"
-    selectedBackgroundView.backgroundColor="#aaa"
+    selectedBackgroundView.backgroundColor="colors.red"
     style="subtitle"
     textLabel.highlightedTextColor="white"
     textLabel.text="Title #{row}">
@@ -14,7 +14,7 @@
         highlightedImage="{whiteImage}"
         image="{image}"
         right="100% - 20"
-        tintColor="#999"
+        tintColor="colors.red"
         top="20"
         width="auto"
     />

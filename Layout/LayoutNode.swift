@@ -2,17 +2,6 @@
 
 import UIKit
 
-/// Optional delegate protocol to be implemented by a LayoutNode's owner
-@objc public protocol LayoutDelegate {
-
-    /// Notify that an error occured in the node tree
-    @objc optional func layoutNode(_ layoutNode: LayoutNode, didDetectError error: Error)
-
-    /// Fetch a localized string constant for a given key.
-    /// These strings are assumed to be constant for the duration of the layout tree's lifecycle
-    @objc optional func layoutNode(_ layoutNode: LayoutNode, localizedStringForKey key: String) -> String?
-}
-
 /// LayoutNode represents a single node of a layout tree
 /// The LayoutNode retains its view/view controller, so any references
 /// from the view back to the node should be weak
@@ -829,17 +818,21 @@ public class LayoutNode: NSObject {
             let key = name.substring(from: "strings.".endIndex)
             return attempt({ try localizedString(forKey: key) })
         }
+        // TODO: should we check the delegate as well?
         return nil
     }
 
-    private func value(forVariableOrConstant name: String) throws -> Any? {
+    func value(forVariableOrConstant name: String) throws -> Any? {
         if let value = try value(forParameter: name) ??
             value(forKeyPath: name, in: _variables) ??
             value(forKeyPath: name, in: constants) ??
             parent?.value(forVariableOrConstant: name) {
             return value
         }
-        return nil
+        guard let delegate = _delegate else {
+            return nil
+        }
+        return delegate.value?(forVariableOrConstant: name)
     }
 
     public lazy var viewExpressionTypes: [String: RuntimeType] = {
@@ -1536,14 +1529,4 @@ public class LayoutNode: NSObject {
         }
         try LayoutError.wrap({ try control.bindActions(for: owner) }, for: self)
     }
-}
-
-private func merge(_ dictionaries: [[String: Any]]) -> [String: Any] {
-    var result = [String: Any]()
-    for dict in dictionaries {
-        for (key, value) in dict {
-            result[key] = value
-        }
-    }
-    return result
 }

@@ -9,7 +9,7 @@ extension LayoutNode {
         layout: Layout,
         outlet: String? = nil,
         state: Any = (),
-        constants: [String: Any] = [:]
+        constants: [String: Any]...
     ) throws {
         if let path = layout.templatePath {
             throw LayoutError("Cannot initialize \(layout.className) node until content for \(path) has been loaded.")
@@ -18,7 +18,7 @@ extension LayoutNode {
             class: layout.getClass(),
             outlet: outlet ?? layout.outlet,
             state: state,
-            constants: constants,
+            constants: merge(constants),
             expressions: layout.expressions,
             children: layout.children.map {
                 try LayoutNode(layout: $0)

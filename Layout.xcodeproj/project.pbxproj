@@ -88,6 +88,7 @@
 		015498871F4352620030A6A2 /* RuntimeType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 015498861F4352620030A6A2 /* RuntimeType.swift */; };
 		0164F9231F470A4400AFCDCA /* Files.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01146B111F4700AD008A9B24 /* Files.swift */; };
 		0164F9241F470A4500AFCDCA /* Files.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01146B111F4700AD008A9B24 /* Files.swift */; };
+		0164F9261F474B5E00AFCDCA /* Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0164F9251F474B5E00AFCDCA /* Utilities.swift */; };
 		017539821F28B623005B7516 /* Renamer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 017539811F28B623005B7516 /* Renamer.swift */; };
 		017539841F28D055005B7516 /* RenameTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 017539831F28D055005B7516 /* RenameTests.swift */; };
 		017539851F28DAC5005B7516 /* Renamer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 017539811F28B623005B7516 /* Renamer.swift */; };
@@ -95,6 +96,7 @@
 		017539891F2A2F2F005B7516 /* XMLTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 017539881F2A2F2F005B7516 /* XMLTests.swift */; };
 		0176B8F91F0D153700431A11 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 0176B8F81F0D153700431A11 /* Localizable.strings */; };
 		018879ED1F2B456A00A64B6B /* PageTemplate.xml in Resources */ = {isa = PBXBuildFile; fileRef = 018879EC1F2B456A00A64B6B /* PageTemplate.xml */; };
+		01CB3DFA1F47559500343286 /* LayoutDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01CB3DF91F47559500343286 /* LayoutDelegate.swift */; };
 		01E7E0491F1A96F600B7F9DB /* Layout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01E7E0481F1A96F600B7F9DB /* Layout.swift */; };
 		01E7E04B1F1BFD9100B7F9DB /* Example.xml in Resources */ = {isa = PBXBuildFile; fileRef = 01E7E04A1F1BFD9100B7F9DB /* Example.xml */; };
 		01E7E04D1F1C033600B7F9DB /* LayoutNode+Layout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01E7E04C1F1C033600B7F9DB /* LayoutNode+Layout.swift */; };
@@ -240,12 +242,14 @@
 		014F37471F352B2600F63CCF /* CollectionCell.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = CollectionCell.xml; sourceTree = "<group>"; };
 		014F37491F35A23000F63CCF /* Collection.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = Collection.xml; sourceTree = "<group>"; };
 		015498861F4352620030A6A2 /* RuntimeType.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RuntimeType.swift; sourceTree = "<group>"; };
+		0164F9251F474B5E00AFCDCA /* Utilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utilities.swift; sourceTree = "<group>"; };
 		017539811F28B623005B7516 /* Renamer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Renamer.swift; sourceTree = "<group>"; };
 		017539831F28D055005B7516 /* RenameTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RenameTests.swift; sourceTree = "<group>"; };
 		017539861F290085005B7516 /* SelectorExpressionTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SelectorExpressionTests.swift; sourceTree = "<group>"; };
 		017539881F2A2F2F005B7516 /* XMLTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = XMLTests.swift; sourceTree = "<group>"; };
 		0176B8F81F0D153700431A11 /* Localizable.strings */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; path = Localizable.strings; sourceTree = "<group>"; };
 		018879EC1F2B456A00A64B6B /* PageTemplate.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = PageTemplate.xml; sourceTree = "<group>"; };
+		01CB3DF91F47559500343286 /* LayoutDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayoutDelegate.swift; sourceTree = "<group>"; };
 		01DA95861EABFF5F00868113 /* Expression.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Expression.framework; path = "../../../Library/Developer/Xcode/DerivedData/Layout-cidlxdzqvadfbngzwtfaldjrmjir/Build/Products/Debug-iphonesimulator/Expression.framework"; sourceTree = "<group>"; };
 		01E7E0481F1A96F600B7F9DB /* Layout.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Layout.swift; sourceTree = "<group>"; };
 		01E7E04A1F1BFD9100B7F9DB /* Example.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = Example.xml; sourceTree = "<group>"; };
@@ -415,6 +419,7 @@
 				0105F77F1F0547910067B313 /* LayoutLoader.swift */,
 				0105F7801F0547910067B313 /* LayoutLoading.swift */,
 				0105F7811F0547910067B313 /* LayoutNode.swift */,
+				01CB3DF91F47559500343286 /* LayoutDelegate.swift */,
 				01E7E04C1F1C033600B7F9DB /* LayoutNode+Layout.swift */,
 				0105F7821F0547910067B313 /* LayoutNode+XML.swift */,
 				0105F7831F0547910067B313 /* LayoutViewController.swift */,
@@ -427,6 +432,7 @@
 				0105F7871F0547910067B313 /* UIView+Layout.swift */,
 				012073251F39EE0000FD092A /* UIScrollView+Layout.swift */,
 				0105F7881F0547910067B313 /* UIViewController+Layout.swift */,
+				0164F9251F474B5E00AFCDCA /* Utilities.swift */,
 				01146B111F4700AD008A9B24 /* Files.swift */,
 				011CE69B1F053ABD0034771C /* Layout.h */,
 				011CE69C1F053ABD0034771C /* Info.plist */,
@@ -673,7 +679,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 0830;
-				LastUpgradeCheck = 0830;
+				LastUpgradeCheck = 0900;
 				ORGANIZATIONNAME = "Nick Lockwood";
 				TargetAttributes = {
 					0105F7991F055C250067B313 = {
@@ -922,7 +928,9 @@
 				01E7E0511F1C077900B7F9DB /* LayoutError+LayoutNode.swift in Sources */,
 				01E7E04F1F1C057700B7F9DB /* Layout+XML.swift in Sources */,
 				012073261F39EE0000FD092A /* UIScrollView+Layout.swift in Sources */,
+				0164F9261F474B5E00AFCDCA /* Utilities.swift in Sources */,
 				01E7E04D1F1C033600B7F9DB /* LayoutNode+Layout.swift in Sources */,
+				01CB3DFA1F47559500343286 /* LayoutDelegate.swift in Sources */,
 				0105F7931F0547910067B313 /* UITableView+Layout.swift in Sources */,
 				011EC5921F40A2E200BFA229 /* XMLParser.swift in Sources */,
 				0105F7911F0547910067B313 /* Optional+Layout.swift in Sources */,
@@ -1282,7 +1290,9 @@
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
@@ -1290,7 +1300,11 @@
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
@@ -1336,7 +1350,9 @@
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
@@ -1344,7 +1360,11 @@
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;

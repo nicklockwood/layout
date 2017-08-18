@@ -140,13 +140,3 @@ public extension LayoutLoading where Self: UIViewController {
 
 private var layoutNodeKey = 1
 private var loaderKey = 1
-
-private func merge(_ dictionaries: [[String: Any]]) -> [String: Any] {
-    var result = [String: Any]()
-    for dict in dictionaries {
-        for (key, value) in dict {
-            result[key] = value
-        }
-    }
-    return result
-}

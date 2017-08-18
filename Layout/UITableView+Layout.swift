@@ -7,7 +7,20 @@ private let tableViewStyle = RuntimeType(UITableViewStyle.self, [
     "grouped": .grouped,
 ])
 
+private var layoutNodeKey = 0
+
+private class Box {
+    weak var node: LayoutNode?
+    init(_ node: LayoutNode) {
+        self.node = node
+    }
+}
+
 extension UITableView {
+    fileprivate weak var layoutNode: LayoutNode? {
+        return (objc_getAssociatedObject(self, &layoutNodeKey) as? Box)?.node
+    }
+
     open override class func create(with node: LayoutNode) throws -> UITableView {
         var style = UITableViewStyle.plain
         if let expression = node.expressions["style"] {
@@ -16,6 +29,7 @@ extension UITableView {
         }
         let tableView = self.init(frame: .zero, style: style)
         tableView.enableAutoSizing()
+        objc_setAssociatedObject(tableView, &layoutNodeKey, Box(node), .OBJC_ASSOCIATION_RETAIN)
         return tableView
     }
 
@@ -100,18 +114,6 @@ extension UITableView {
         // TODO: it would be better to do this in a unit test
         assert(hadView || node._view == nil)
     }
-
-    public func layoutError(_ error: LayoutError) {
-        var responder: UIResponder? = self
-        while responder != nil {
-            if let errorHandler = responder as? LayoutLoading {
-                errorHandler.layoutError(error)
-                break
-            }
-            responder = responder?.next
-        }
-        print("Layout error: \(error)")
-    }
 }
 
 extension UITableViewController {
@@ -127,6 +129,7 @@ extension UITableViewController {
         } else if node.expressions.keys.contains(where: { $0.hasPrefix("tableView.") }) {
             // TODO: figure out how to propagate this config to the view once it has been created
         }
+        objc_setAssociatedObject(viewController.tableView, &layoutNodeKey, Box(node), .OBJC_ASSOCIATION_RETAIN)
         return viewController
     }
 
@@ -172,25 +175,36 @@ extension UITableViewController {
     }
 }
 
+extension UITableView: LayoutDelegate {
+    func layoutError(_ error: LayoutError) {
+        var responder: UIResponder? = self
+        while responder != nil {
+            if let errorHandler = responder as? LayoutLoading {
+                errorHandler.layoutError(error)
+                break
+            }
+            responder = responder?.next
+        }
+        print("Layout error: \(error)")
+    }
+
+    func value(forVariableOrConstant name: String) -> Any? {
+        guard let layoutNode = layoutNode,
+            let value = try? layoutNode.value(forVariableOrConstant: name) else {
+                return nil
+        }
+        return value
+    }
+}
+
 private var cellDataKey = 0
 private var headerDataKey = 0
 private var nodesKey = 0
 
-extension UITableView: LayoutDelegate {
-
+extension UITableView {
     private enum LayoutData {
         case success(Layout, Any, [String: Any])
         case failure(Error)
-    }
-
-    private func merge(_ dictionaries: [[String: Any]]) -> [String: Any] {
-        var result = [String: Any]()
-        for dict in dictionaries {
-            for (key, value) in dict {
-                result[key] = value
-            }
-        }
-        return result
     }
 
     private func registerLayoutData(
@@ -376,15 +390,6 @@ private let tableViewCellStyle = RuntimeType(UITableViewCellStyle.self, [
     "subtitle": .subtitle,
 ])
 
-private var layoutNodeKey = 0
-
-private class Box {
-    weak var node: LayoutNode?
-    init(_ node: LayoutNode) {
-        self.node = node
-    }
-}
-
 extension UITableViewHeaderFooterView {
     weak var layoutNode: LayoutNode? {
         return (objc_getAssociatedObject(self, &layoutNodeKey) as? Box)?.node
@@ -463,7 +468,7 @@ extension UITableViewHeaderFooterView {
 }
 
 extension UITableViewCell {
-    weak var layoutNode: LayoutNode? {
+    fileprivate weak var layoutNode: LayoutNode? {
         return (objc_getAssociatedObject(self, &layoutNodeKey) as? Box)?.node
     }
 
