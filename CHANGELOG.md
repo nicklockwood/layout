@@ -1,11 +1,19 @@
 # Change Log
 
+## [0.4.14](https://github.com/schibsted/layout/releases/tag/0.4.14) (2017-08-19)
+
+- Cells can now access constants and state defined in their containing `UITableView` or `UICollectionView`
+- `UITableView` and `UICollectionView` now support `auto` correctly inside width and height expressions
+- Fixed a bug where errors in `UITableView` and `UICollectionView` cells were not reported
+- Named color constants defined as static properties of `UIColor` can now be used in color expressions
+- Added `.layout-ignore` file feature for excluding directories from XML-file search
+
 ## [0.4.13](https://github.com/schibsted/layout/releases/tag/0.4.13) (2017-08-17)
 
 - Added support for custom parameters for XML templates
-- Fixed a bug where UITableView section headers were displayed as gray bar when not specified
-- UIControl actions and outlets now work correctly inside UITableView and UICollectionView cells
-- Fixed bug that prevented views from other modules from being used inside UITableViewCell templates
+- Fixed a bug where `UITableView` section headers were displayed as gray bar when not specified
+- `UIControl` actions and outlets now work correctly inside `UITableView` and `UICollectionView` cells
+- Fixed bug that prevented views from other modules from being used inside `UITableViewCell` templates
 - Improved error messaging, particularly for view properties that unavailable in Layout
 - LayoutTool format now performs additional validation of expressions
 - Fixed XML parsing performance regression

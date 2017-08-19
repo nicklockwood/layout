@@ -1440,9 +1440,21 @@ Only class names and values inside expressions will be affected. HTML elements a
 
 > The programming model is very similar, but Layout's runtime expressions mean that you can do a larger proportion of your UI development without needing to restart the Simulator.
 
+*Q. Why does Layout use XML instead of a more modern format like JSON?*
+
+> XML is better to suited to representing document-like structures such as view hierarchies. JSON does not distinguish between node types, attributes and children in its syntax, which leads to a lot of extra verbosity when representing hierarchical structures, as each node must include keys for "type" and "children", or equivalent. JSON also doesn't support comments, which are useful in complex layouts. While XML isn't perfect, it has the fewest tradeoffs of all the formats that iOS has built-in support for.
+
 *Q. Do I really have to write my layouts in XML?*
 
-> You can create `LayoutNode`s manually in code, but XML is the recommended approach for now. I'm exploring other options, such as alternative formats and GUI tools.
+> You can create `LayoutNode`s manually in code, but XML is the recommended approach for now since it makes it possible to use the live reloading feature. I'm exploring other options, such as alternative formats and GUI tools.
+
+*Q. Is Layout App Store-safe? Has it been used in production?*
+
+> Yes, we have submitted apps using Layout to the App Store, and they have been approved without issue.
+
+*Q. Does Layout support macOS/AppKit?*
+
+> Not currently, but this would make sense in future given the shared language and similar frameworks.
 
 *Q. Why isn't Cmd-R reloading my XML file in the simulator?*
 
