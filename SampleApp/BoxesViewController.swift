@@ -7,13 +7,13 @@ class BoxesViewController: UIViewController {
 
     var toggled = false {
         didSet {
-            layoutNode?.state = ["isToggled": toggled]
+            layoutNode?.setState(["isToggled": toggled])
         }
     }
 
     var layoutNode: LayoutNode? {
         didSet {
-            layoutNode?.state = ["isToggled": toggled]
+            layoutNode?.setState(["isToggled": toggled])
         }
     }
 

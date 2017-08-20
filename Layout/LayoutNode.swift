@@ -169,8 +169,8 @@ public class LayoutNode: NSObject {
             throw LayoutError.message("\(`class`) is not a subclass of UIView or UIViewController")
         }
         _class = `class`
+        _state = try! unwrap(state)
         self.outlet = outlet
-        self.state = try! unwrap(state)
         self.constants = merge(constants)
         self.expressions = expressions
         self.children = children
@@ -351,42 +351,49 @@ public class LayoutNode: NSObject {
         return false // Can't compare equality
     }
 
+    private var _state: Any
+
     /// Update the node state and re-evaluate any expressions that are affected
     /// There is no need to call `update()` after setting the state as it is done automatically
-    public var state: Any {
-        didSet {
-            var equal = true
-            if let newState = state as? [String: Any], var oldState = oldValue as? [String: Any] {
-                for (key, value) in newState {
-                    guard let oldValue = oldState[key] else {
-                        preconditionFailure("Cannot add new keys to state after initialization")
-                    }
-                    equal = equal && areEqual(oldValue, value)
-                    oldState[key] = value
+    public func setState(_ newState: Any) {
+        var equal = true
+        if let newState = newState as? [String: Any], var oldState = _state as? [String: Any] {
+            for (key, value) in newState {
+                guard let oldValue = oldState[key] else {
+                    preconditionFailure("Cannot add new keys to state after initialization")
                 }
-                state = oldState
-            } else {
-                state = try! unwrap(state)
-                let oldType = type(of: oldValue)
-                assert(oldType == Void.self || oldType == type(of: state), "Cannot change type of state after initialization")
-                equal = areEqual(oldValue, state)
+                equal = equal && areEqual(oldValue, value)
+                oldState[key] = value
             }
-            if !equal, updateVariables() {
-                // TODO: work out which expressions are actually affected
-                attempt(update)
-            }
+            _state = oldState
+        } else {
+            let oldState = _state
+            _state = try! unwrap(newState)
+            let oldType = type(of: oldState)
+            assert(oldType == Void.self || oldType == type(of: _state), "Cannot change type of state after initialization")
+            equal = areEqual(oldState, _state)
         }
+        if !equal, updateVariables() {
+            // TODO: work out which expressions are actually affected
+            attempt(update)
+        }
+    }
+
+    @available(*, deprecated, message: "Use setState() instead")
+    @nonobjc public var state: Any {
+        set { setState(newValue) }
+        get { return _state }
     }
 
     private var _variables = [String: Any]()
     private func updateVariables() -> Bool {
-        if let members = state as? [String: Any] {
+        if let members = _state as? [String: Any] {
             _variables = members
             return true
         }
         // TODO: what about nested objects?
         var equal = true
-        let mirror = Mirror(reflecting: state)
+        let mirror = Mirror(reflecting: _state)
         for (name, value) in mirror.children {
             if let name = name, (equal && areEqual(_variables[name] as Any, value)) == false {
                 _variables[name] = value
