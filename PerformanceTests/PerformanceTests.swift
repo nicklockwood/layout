@@ -66,7 +66,7 @@ class PerformanceTests: XCTestCase {
         measure {
             view.frame.size.width += 1
             view.frame.size.height -= 1
-            try! rootNode.update()
+            rootNode.update()
         }
     }
 

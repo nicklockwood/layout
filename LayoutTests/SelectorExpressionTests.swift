@@ -25,7 +25,7 @@ class SelectorExpressionTests: XCTestCase {
 
     func testSetCustomSelector() {
         let node = LayoutNode(view: TestView(), expressions: ["action": "foo:"])
-        XCTAssertNoThrow(try node.update())
+        node.update()
         XCTAssertNotNil(node.view.action)
     }
 }

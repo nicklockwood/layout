@@ -44,11 +44,7 @@ open class LayoutViewController: UIViewController, LayoutLoading {
             if self.view.bounds != view.bounds {
                 view.frame = self.view.bounds
             } else {
-                do {
-                    try layoutNode?.update()
-                } catch {
-                    layoutError(LayoutError(error, for: layoutNode))
-                }
+                layoutNode?.update()
             }
         }
     }
