@@ -317,7 +317,7 @@ extension UITableView {
                 nodes?.add(node)
                 node.delegate = self
                 try node.bind(to: node.view) // TODO: find a better solution for binding
-                node._view.setValue(identifier, forKey: "reuseIdentifier")
+                node._view?.setValue(identifier, forKey: "reuseIdentifier")
                 return node
             case let .failure(error):
                 throw error
@@ -387,7 +387,7 @@ extension UITableView {
                 nodes?.add(node)
                 node.delegate = self
                 try node.bind(to: node.view) // TODO: find a better solution for binding
-                node._view.setValue(identifier, forKey: "reuseIdentifier")
+                node._view?.setValue(identifier, forKey: "reuseIdentifier")
                 return node
             case let .failure(error):
                 throw error
