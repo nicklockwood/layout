@@ -33,6 +33,14 @@ class LayoutExpressionTests: XCTestCase {
         XCTAssertThrowsError(try parseExpression("{4 + 5} foo"))
     }
 
+    func testParseExpressionWithBracesWithLeadingWhitespace() {
+        XCTAssertNoThrow(try parseExpression("{ 4 + 5}"))
+    }
+
+    func testParseExpressionWithLeadingWhitespace() {
+        XCTAssertNoThrow(try parseExpression(" 4 + 5"))
+    }
+
     func testParseEmptyExpression() {
         XCTAssertThrowsError(try parseExpression(""))
     }

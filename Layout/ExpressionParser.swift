@@ -22,13 +22,16 @@ func parseExpression(_ expression: String) throws -> ParsedExpression {
     switch characters.first ?? " " {
     case "{":
         characters.removeFirst()
-        parsedExpression = try Expression.parse(&characters)
+        parsedExpression = Expression.parse(&characters, upTo: "}")
         if characters.first != "}" {
             throw Expression.Error.message("Missing `}`")
         }
         characters.removeFirst()
     default:
-        parsedExpression = try Expression.parse(&characters)
+        parsedExpression = Expression.parse(&characters)
+    }
+    if let error = parsedExpression.error {
+        throw error
     }
     if !characters.isEmpty {
         throw Expression.Error.message("Unexpected token `\(String(characters))`")
@@ -56,7 +59,11 @@ func parseStringExpression(_ expression: String) throws -> [ParsedExpressionPart
                 parts.append(.string(string))
                 string = ""
             }
-            parts.append(.expression(try Expression.parse(&characters)))
+            let parsedExpression = Expression.parse(&characters, upTo: "}")
+            if let error = parsedExpression.error {
+                throw error
+            }
+            parts.append(.expression(parsedExpression))
             if characters.first != "}" {
                 fallthrough
             }
