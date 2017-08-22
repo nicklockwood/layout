@@ -121,7 +121,7 @@ class LayoutNodeTests: XCTestCase {
         let node = LayoutNode(view: UIView(), expressions: ["width": "layer.contents == nil ? 5 : 10"])
         let errors = node.validate()
         XCTAssertEqual(errors.count, 0)
-        try! node.update()
+        node.update()
         XCTAssertNil(node.view.layer.contents)
         XCTAssertEqual(node.view.frame.width, 5)
     }

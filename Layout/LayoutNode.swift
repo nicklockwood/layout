@@ -144,7 +144,7 @@ public class LayoutNode: NSObject {
         if let change = change, let old = change[.oldKey] as? CGRect, old.size == _view.bounds.size {
             return
         }
-        attempt(update)
+        update()
     }
 
     @objc private func contentSizeChanged() {
@@ -152,7 +152,7 @@ public class LayoutNode: NSObject {
             return
         }
         cleanUp()
-        attempt(update)
+        update()
     }
 
     // Create the node using a UIView or UIViewController subclass
@@ -293,7 +293,7 @@ public class LayoutNode: NSObject {
     }
 
     private var _unhandledError: LayoutError?
-    private func throwUnhandledError() throws {
+    func throwUnhandledError() throws {
         try _unhandledError.map {
             if $0.isTransient {
                 _unhandledError = nil
@@ -573,7 +573,7 @@ public class LayoutNode: NSObject {
             addChild(try LayoutNode(layout: child))
         }
         if _setupComplete, _view.window != nil || _owner != nil {
-            try update()
+            update()
         }
     }
 
@@ -1396,9 +1396,11 @@ public class LayoutNode: NSObject {
 
     /// Re-evaluates all expressions for the node and its children
     /// Note: thrown error is always a LayoutError
-    public func update() throws {
-        try updateValues(animated: false)
-        try updateFrame()
+    public func update() {
+        attempt {
+            try updateValues(animated: false)
+            try updateFrame()
+        }
     }
 
     // MARK: binding
@@ -1416,9 +1418,8 @@ public class LayoutNode: NSObject {
         viewController.view.addSubview(view)
         if _view.frame != viewController.view.bounds {
             _view.frame = viewController.view.bounds
-            try throwUnhandledError()
         } else {
-            try update()
+            update()
         }
     }
 
@@ -1444,7 +1445,7 @@ public class LayoutNode: NSObject {
             }
         }
         view.addSubview(_view)
-        try update()
+        update()
     }
 
     /// Unmounts and unbinds the node from its owner
