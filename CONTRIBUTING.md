@@ -40,9 +40,9 @@ Any new Swift files that you add should include the standard Schibsted copyright
 //  Copyright © 2017 Schibsted. All rights reserved.
 ```
 
-By contributing code to Layout, you are implicitly agreeing to licence it under the terms described in the LICENCE.md file. Please do not submit code that you did not write or are not authorized to redistribute.
+By contributing code to Layout, you are implicitly agreeing to licence it under the terms described in the LICENSE.md file. Please do not submit code that you did not write or are not authorized to redistribute.
 
-Inclusion of 3rd party frameworks is **not** permitted, regardless of the license. Small sections of code copied from somewhere else *may* be acceptable, provided that the terms of the original license are compatible with Layout's LICENCE.md, and that you include a comment linking back to the source.
+Inclusion of 3rd party frameworks is **not** permitted, regardless of the license. Small sections of code copied from somewhere else *may* be acceptable, provided that the terms of the original license are compatible with Layout's LICENSE.md, and that you include a comment linking back to the source.
 
 ## Style Guide
 

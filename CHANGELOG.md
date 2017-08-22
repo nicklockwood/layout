@@ -1,5 +1,10 @@
 # Change Log
 
+## [0.4.15](https://github.com/schibsted/layout/releases/tag/0.4.15) (2017-08-22)
+
+- Reverted a change to constant evaluation order in 0.4.14 that caused a regression in one of our projects
+- Added CONTRIBUTING.md
+
 ## [0.4.14](https://github.com/schibsted/layout/releases/tag/0.4.14) (2017-08-19)
 
 - Cells can now access constants and state defined in their containing `UITableView` or `UICollectionView`
