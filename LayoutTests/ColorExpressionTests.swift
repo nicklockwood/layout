@@ -4,7 +4,7 @@ import XCTest
 @testable import Layout
 
 extension UIColor {
-    static var testColor = UIColor.brown
+    static var testColor: UIColor { return UIColor.brown }
 }
 
 class ColorExpressionTests: XCTestCase {
@@ -51,10 +51,12 @@ class ColorExpressionTests: XCTestCase {
         }
     }
 
-    func testRGBColorWithIntConstant() {
+    func testRGBColorWithClashingConstant() {
         let node = LayoutNode(constants: ["red": 255])
         let expression = LayoutExpression(colorExpression: "rgb(red,0,0)", for: node)
-        XCTAssertEqual(try expression.evaluate() as? UIColor, .red)
+        XCTAssertThrowsError(try expression.evaluate()) { error in
+            XCTAssert("\(error)".lowercased().contains("type"))
+        }
     }
 
     func testSetBackgroundColor() {

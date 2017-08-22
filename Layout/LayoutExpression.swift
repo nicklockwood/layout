@@ -179,7 +179,7 @@ struct LayoutExpression {
                     last == first, first == "`" {
                     key = String(chars.dropFirst().dropLast())
                 }
-                if let value = node.value(forConstant: key) ?? lookup(key) {
+                if let value = lookup(key) ?? node.value(forConstant: key) {
                     constants[name] = value
                 } else {
                     symbols[symbol] = { [unowned node] _ in

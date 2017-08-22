@@ -698,7 +698,7 @@ You can also define a custom colors using extension on `UIColor`, and Layout wil
 
 ```swift
 extension UIColor {
-    static var headerColor =  UIColor(0.6, 0.5, 0.5, 1)
+    static var headerColor: UIColor { return UIColor(0.6, 0.5, 0.5, 1) }
 }
 ```
 
