@@ -272,7 +272,7 @@ loadLayout(
 )
 
 func setSelected() {
-    self.layoutNode.state = ["isSelected": true]
+    self.layoutNode?.setState(["isSelected": true])
 }
 ```
 
@@ -280,7 +280,7 @@ Note that you can use both constants and state in the same Layout. If a state va
 
 Although state can be updated dynamically, all state properties referenced in the layout must have been given a value before the `LayoutNode` is first mounted/updated. It's generally a good idea to set default values for all state variables when you first initialize the node.
 
-Setting the `state` property of a `LayoutNode` after it has been created will trigger an update. The update causes all expressions in that node and its children to be re-evaluated. In future it may be possible to detect if parent nodes are indirectly affected by the state changes of their children and update them too, but currently that is not implemented.
+Calling `setState()` on a `LayoutNode` after it has been created will trigger an update. The update causes all expressions in that node and its children to be re-evaluated. In future it may be possible to detect if parent nodes are indirectly affected by the state changes of their children and update them too, but currently that is not implemented.
 
 In the example above, we've used a dictionary to store the state values, but `LayoutNode` supports the use of arbitrary objects for state. A really good idea for layouts with complex state requirements is to use a `struct` to store the state. When you set the state using a `struct` or `class`, Layout uses Swift's introspection features to compare changes and determine if an update is necessary.
 
@@ -300,7 +300,7 @@ loadLayout(
 )
 
 func setSelected() {
-    self.layoutNode.state = LayoutState(isSelected: false)
+    self.layoutNode?.setState(LayoutState(isSelected: false))
 }
 ```
 
@@ -316,7 +316,7 @@ loadLayout(
 )
 
 func setSelected() {
-    self.layoutNode.state = ["value1": 10] // value2 retains its previous value
+    self.layoutNode?.setState(["value1": 10]) // value2 retains its previous value
 }
 ```
 
@@ -1086,7 +1086,7 @@ class TableViewController: UIViewController, UITableViewDataSource, UITableViewD
         let node = tableView.dequeueReusableCellNode(withIdentifier: "cell", for: indexPath)
 
         // Set the node state to update the cell
-        node.state = rowData[indexPath.row]
+        node.setState(rowData[indexPath.row])
 
         // Cast the node view to a table cell and return it
         return node.view as! UITableViewCell
@@ -1200,7 +1200,7 @@ class CollectionViewController: UIViewController, UICollectionViewDelegate, UICo
         let node = collectionView.dequeueReusableCellNode(withIdentifier: "cell", for: indexPath)
 
         // Set the node state to update the cell
-        node.state = itemData[indexPath.row]
+        node.setState(itemData[indexPath.row])
 
         // Cast the node view to a table cell and return it
         return node.view as! UICollectionViewCell
