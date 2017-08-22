@@ -126,7 +126,7 @@ extension UICollectionView {
         didSet {
             if oldValue != contentSize, let layoutNode = layoutNode {
                 let contentOffset = self.contentOffset
-                try? layoutNode.update()
+                layoutNode.update()
                 self.contentOffset = contentOffset
             }
         }

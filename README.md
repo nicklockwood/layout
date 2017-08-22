@@ -1008,23 +1008,23 @@ If you would prefer not to use either the `LayoutViewController` base class or `
 
 ```swift
 class MyViewController: UIViewController {
-    var layoutNode: LayoutNode!
+    var layoutNode: LayoutNode?
 
     public override func viewDidLoad() {
         super.viewDidLoad()
 
         // Create a layout node from and XML file or data object
-        self.layoutNode = LayoutNode.with(xmlData: ...)
+        self.layoutNode = try? LayoutNode.with(xmlData: ...)
 
         // Mount it
-        try! self.layoutNode.mount(in: self)
+        try? self.layoutNode?.mount(in: self)
     }
 
     public override func viewWillLayoutSubviews() {
         super.viewWillLayoutSubviews()
 
         // Ensure layout is resized after screen rotation, etc
-        try! self.layoutNode.update()
+        self.layoutNode?.update()
     }
 }
 ```
@@ -1032,7 +1032,7 @@ This method of integration does not provide the automatic live reloading feature
 
 If you are using some fancy architecture like [Viper](https://github.com/MindorksOpenSource/iOS-Viper-Architecture) that splits up view controllers into sub-components, you may find that you need to bind a `LayoutNode` to something other than a `UIView` or `UIViewController` subclass. In that case you can use the `bind(to:)` method, which will connect the node's outlets, actions and delegates to the specified owner object, but won't attempt to mount the view or view controllers.
 
-The `mount(in:)`, `bind(to:)` and `update()` methods may each throw an error if there is a problem with your XML markup, or in an expression's syntax or logic.
+The `mount(in:)` and `bind(to:)` methods may each throw an error if there is a problem with your XML markup, or in an expression's syntax or symbols.
 
 These errors are not expected to occur in a correctly implemented layout - they typically only happen if you have made a mistake in your code - so for release builds it should be OK to suppress them with `try!` or `try?` (assuming you've tested your app properly before releasing it!).
 

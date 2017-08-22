@@ -269,7 +269,8 @@ class LayoutExpressionTests: XCTestCase {
             constants: ["foo": "Not a color"],
             expressions: ["backgroundColor": "{foo}"]
         )
-        XCTAssertThrowsError(try node.update()) { error in
+        node.update()
+        XCTAssertThrowsError(try node.throwUnhandledError()) { error in
             XCTAssertTrue("\(error)".contains("String"))
             XCTAssertTrue("\(error)".contains("UIColor"))
             XCTAssertTrue("\(error)".contains("backgroundColor"))

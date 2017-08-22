@@ -134,7 +134,7 @@ extension UITableView {
         didSet {
             if oldValue != contentSize, let layoutNode = layoutNode {
                 let contentOffset = self.contentOffset.y
-                try? layoutNode.update()
+                layoutNode.update()
                 if contentOffset >= 0 {
                     self.contentOffset.y = contentOffset
                 }

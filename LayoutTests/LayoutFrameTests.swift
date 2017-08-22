@@ -172,7 +172,7 @@ class LayoutFrameTests: XCTestCase {
                 ),
             ]
         )
-        XCTAssertNoThrow(try node.update())
+        node.update()
         XCTAssertEqual(node.frame.size, CGSize(width: 150, height: 50))
         XCTAssertEqual(node.children[0].frame.size, CGSize(width: 75, height: 20))
     }
@@ -199,7 +199,7 @@ class LayoutFrameTests: XCTestCase {
                 ),
             ]
         )
-        XCTAssertNoThrow(try node.update())
+        node.update()
         XCTAssertEqual(node.frame.size, CGSize(width: 150, height: 50))
         XCTAssertEqual(node.children[0].frame.size, CGSize(width: 150, height: 20))
     }
