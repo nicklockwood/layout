@@ -442,12 +442,6 @@ public class LayoutNode: NSObject {
         }
     }
 
-    @available(*, deprecated, message: "Use setState() instead")
-    @nonobjc public var state: Any {
-        set { setState(newValue) }
-        get { return _state }
-    }
-
     private var _variables = [String: Any]()
     private func updateVariables() -> Bool {
         if let members = _state as? [String: Any] {
