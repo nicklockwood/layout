@@ -61,6 +61,36 @@ class LayoutNodeTests: XCTestCase {
         }
     }
 
+    // Animated setter
+
+    func testSetSwitchStateAnimated() {
+        let view = UISwitch()
+        let node = LayoutNode(view: view, state: ["onState": false], expressions: ["isOn": "onState"])
+        XCTAssertFalse(view.isOn)
+        node.setState(["onState": true], animated: true)
+        XCTAssertTrue(view.isOn)
+    }
+
+    func testScrollViewZoomScaleAnimated() {
+        let view = UIScrollView()
+        let node = LayoutNode(view: view, state: ["zoom": 1], expressions: [
+            "zoomScale": "zoom",
+        ])
+        node.setState(["zoom": 2], animated: true)
+    }
+
+    func testScrollViewContentOffsetAnimated() {
+        let view = UIScrollView()
+        let node = LayoutNode(view: view, state: ["offset": CGPoint.zero], expressions: [
+            "contentOffset": "offset",
+            "contentSize.height": "100",
+        ])
+        let expected = CGPoint(x: 0, y: 15)
+        XCTAssertEqual(view.contentOffset, .zero)
+        node.setState(["offset": expected], animated: true)
+        XCTAssertEqual(view.contentOffset, expected)
+    }
+
     // MARK: Property errors
 
     func testNonexistentViewProperty() {

@@ -166,23 +166,79 @@ extension NSObject {
         return allProperties
     }
 
-    // Safe version of setValue(forKeyPath:)
+    // Safe version of `setValue(forKeyPath:)`
     // Checks that the property exists, and is settable, but doesn't validate the type
     func _setValue(_ value: Any, ofType type: RuntimeType?, forKey key: String) throws {
+        _ = try _setValue(value, ofType: type, forKey: key, animated: false)
+    }
+
+    // Animated version of `_setValue(_:ofType:forKey:)`
+    func _setValue(_ value: Any, ofType type: RuntimeType?, forKey key: String, animated: Bool) throws -> Bool {
         if let setter = type?.setter {
             try setter(self, key, value)
-            return
+            return true
         }
-        let chars = key.characters
-        if key.hasPrefix("is") {
-            let chars = chars.dropFirst(2)
-            let setter = "set\(String(chars)):"
-            if responds(to: Selector(setter)) {
-                setValue(value, forKey: "\(String(chars.first!).lowercased())\(String(chars.dropFirst()))")
-                return
+        var key = key
+        var setter: String
+        do {
+            let chars = key.characters
+            if key.hasPrefix("is") {
+                let chars = chars.dropFirst(2)
+                setter = "set\(String(chars)):"
+                if responds(to: Selector(setter)) {
+                    key = "\(String(chars.first!).lowercased())\( String(chars.dropFirst()))"
+                } else {
+                    setter = "setIs\(String(chars)):"
+                }
+            } else {
+                setter = "set\(String(chars.first!).uppercased())\( String(chars.dropFirst())):"
             }
         }
-        let setter = "set\(String(chars.first!).uppercased())\(String(chars.dropFirst())):"
+        if animated, let type = type {
+            let selector = Selector("\(setter)animated:")
+            guard responds(to: selector) else {
+                return false
+            }
+            switch type.type {
+            case let .any(type):
+                switch type {
+                case is Double.Type:
+                    let fn = unsafeBitCast(
+                        class_getMethodImplementation(type(of: self), selector),
+                        to: (@convention(c) (AnyObject?, Selector, Double, ObjCBool) -> Void).self
+                    )
+                    fn(self, selector, Double(value as! NSNumber), true)
+                    return true
+                case is Float.Type:
+                    let fn = unsafeBitCast(
+                        class_getMethodImplementation(type(of: self), selector),
+                        to: (@convention(c) (AnyObject?, Selector, Float, ObjCBool) -> Void).self
+                    )
+                    fn(self, selector, Float(value as! NSNumber), true)
+                    return true
+                case is Bool.Type:
+                    let fn = unsafeBitCast(
+                        class_getMethodImplementation(type(of: self), selector),
+                        to: (@convention(c) (AnyObject?, Selector, ObjCBool, ObjCBool) -> Void).self
+                    )
+                    fn(self, selector, ObjCBool(Bool(value as! NSNumber)), true)
+                    return true
+                case is CGPoint.Type:
+                    let fn = unsafeBitCast(
+                        class_getMethodImplementation(type(of: self), selector),
+                        to: (@convention(c) (AnyObject?, Selector, CGPoint, ObjCBool) -> Void).self
+                    )
+                    fn(self, selector, value as! CGPoint, true)
+                    return true
+                default:
+                    break
+                }
+            default:
+                break
+            }
+            print("No animated setter implementation for \(selector)")
+            return false
+        }
         guard responds(to: Selector(setter)) else {
             if self is NSValue {
                 throw SymbolError("Cannot set property \(key) of immutable \(type(of: self))", for: key)
@@ -190,6 +246,7 @@ extension NSObject {
             throw SymbolError("Unknown property \(key) of \(classForCoder)", for: key)
         }
         setValue(isNil(value) ? nil : value, forKey: key)
+        return true
     }
 
     // Safe version of setValue(forKeyPath:)
