@@ -14,7 +14,7 @@ class StateTests: XCTestCase {
         let node = LayoutNode(state: ["foo": 5, "bar": "baz"])
         XCTAssertEqual(try node.value(forSymbol: "foo") as? Int, 5)
         XCTAssertEqual(try node.value(forSymbol: "bar") as? String, "baz")
-        node.state = ["foo": 10]
+        node.setState(["foo": 10])
         XCTAssertEqual(try node.value(forSymbol: "foo") as? Int, 10)
         XCTAssertEqual(try node.value(forSymbol: "bar") as? String, "baz")
     }
@@ -31,7 +31,7 @@ class StateTests: XCTestCase {
         XCTAssertEqual(try node.value(forSymbol: "foo") as? Int, 5)
         XCTAssertEqual(try node.value(forSymbol: "bar") as? String, "baz")
         state.foo = 10
-        node.state = state
+        node.setState(state)
         XCTAssertEqual(try node.value(forSymbol: "foo") as? Int, 10)
         XCTAssertEqual(try node.value(forSymbol: "bar") as? String, "baz")
     }
@@ -49,7 +49,7 @@ class StateTests: XCTestCase {
         XCTAssertEqual(try node.value(forSymbol: "foo") as? Int, 5)
         XCTAssertEqual(try node.value(forSymbol: "bar") as? String, "baz")
         state?.foo = 10
-        node.state = state! // Force unwrap
+        node.setState(state!) // Force unwrap
         XCTAssertEqual(try node.value(forSymbol: "foo") as? Int, 10)
     }
 
@@ -85,10 +85,10 @@ class StateTests: XCTestCase {
         try! node.mount(in: vc)
         XCTAssertTrue(vc.updated)
         vc.updated = false
-        node.state = ["foo": 6, "bar": "baz"] // Changed
+        node.setState(["foo": 6, "bar": "baz"]) // Changed
         XCTAssertTrue(vc.updated)
         vc.updated = false
-        node.state = ["foo": 6, "bar": "baz"] // Not changed
+        node.setState(["foo": 6, "bar": "baz"]) // Not changed
         XCTAssertFalse(vc.updated)
     }
 
@@ -100,10 +100,10 @@ class StateTests: XCTestCase {
         XCTAssertTrue(vc.updated)
         vc.updated = false
         state.foo = 6
-        node.state = state // Changed
+        node.setState(state) // Changed
         XCTAssertTrue(vc.updated)
         vc.updated = false
-        node.state = state // Not changed
+        node.setState(state) // Not changed
         XCTAssertFalse(vc.updated)
     }
 }

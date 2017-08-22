@@ -37,11 +37,11 @@ class TableViewController: UIViewController, UITableViewDataSource, UITableViewD
         let node = tableView.dequeueReusableCellNode(withIdentifier: identifier, for: indexPath)
         let image = images[indexPath.row % images.count]!
 
-        node.state = [
+        node.setState([
             "row": indexPath.row,
             "image": image,
             "whiteImage": image.withRenderingMode(.alwaysOriginal),
-        ]
+        ])
 
         return node.view as! UITableViewCell
     }
