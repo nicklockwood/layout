@@ -91,6 +91,14 @@ extension UIView {
         try _setValue(value, ofType: type(of: self).cachedExpressionTypes[name], forKeyPath: name)
     }
 
+    // Set expression value with animation (if applicable)
+    @objc open func setAnimatedValue(_ value: Any, forExpression name: String) throws {
+        let type = type(of: self).cachedExpressionTypes[name]
+        if try !_setValue(value, ofType: type, forKey: name, animated: true) {
+            try setValue(value, forExpression: name)
+        }
+    }
+
     /// Get symbol value
     @objc open func value(forSymbol name: String) throws -> Any {
         return try _value(ofType: type(of: self).cachedExpressionTypes[name], forKeyPath: name) as Any

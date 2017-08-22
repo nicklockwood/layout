@@ -355,7 +355,7 @@ public class LayoutNode: NSObject {
 
     /// Update the node state and re-evaluate any expressions that are affected
     /// There is no need to call `update()` after setting the state as it is done automatically
-    public func setState(_ newState: Any) {
+    public func setState(_ newState: Any, animated: Bool = false) {
         var equal = true
         if let newState = newState as? [String: Any], var oldState = _state as? [String: Any] {
             for (key, value) in newState {
@@ -375,7 +375,7 @@ public class LayoutNode: NSObject {
         }
         if !equal, updateVariables() {
             // TODO: work out which expressions are actually affected
-            attempt(update)
+            update(animated: animated)
         }
     }
 
@@ -1095,14 +1095,18 @@ public class LayoutNode: NSObject {
     }
 
     // Note: thrown error is always a SymbolError
-    private func updateExpressionValues() throws {
+    private func updateExpressionValues(animated: Bool) throws {
         for (name, expression) in _viewControllerExpressions {
             let value = try expression.evaluate()
             try _viewController!.setValue(value, forExpression: name)
         }
         for (name, expression) in _viewExpressions {
             let value = try expression.evaluate()
-            try _view.setValue(value, forExpression: name)
+            if animated {
+                try _view.setAnimatedValue(value, forExpression: name)
+            } else {
+                try _view.setValue(value, forExpression: name)
+            }
         }
         try bindActions()
     }
@@ -1341,15 +1345,19 @@ public class LayoutNode: NSObject {
     private var _suppressUpdates = false
 
     // Note: thrown error is always a LayoutError
-    private func updateValues() throws {
+    private func updateValues(animated: Bool) throws {
         guard _suppressUpdates == false else { return }
         defer { _suppressUpdates = false }
         _suppressUpdates = true
         try LayoutError.wrap(setUpExpressions, for: self)
         clearCachedValues()
-        try LayoutError.wrap(updateExpressionValues, for: self)
+        try LayoutError.wrap({
+            try updateExpressionValues(animated: animated)
+        }, for: self)
         for child in children {
-            try LayoutError.wrap(child.updateValues, for: self)
+            try LayoutError.wrap({
+                try child.updateValues(animated: animated)
+            }, for: self)
         }
     }
 
@@ -1379,9 +1387,17 @@ public class LayoutNode: NSObject {
     }
 
     /// Re-evaluates all expressions for the node and its children
+    private func update(animated: Bool) {
+        attempt {
+            try updateValues(animated: animated)
+            try updateFrame()
+        }
+    }
+
+    /// Re-evaluates all expressions for the node and its children
     /// Note: thrown error is always a LayoutError
     public func update() throws {
-        try updateValues()
+        try updateValues(animated: false)
         try updateFrame()
     }
 

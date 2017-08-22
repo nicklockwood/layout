@@ -20,6 +20,7 @@
     - [Actions](#actions)
     - [Outlets](#outlets)
     - [Delegates](#delegates)
+    - [Animation](#animation)
 - [Expressions](#expressions)
     - [Layout Properties](#layout-properties)
     - [Geometry](#geometry)
@@ -475,6 +476,40 @@ self.layoutNode = LayoutNode(
 ```
 
 Note that there is currently no safe way to explicitly bind a delegate to the layoutNode's owner class. Attempting to pass `self` as a constant or state variable will result in a retain cycle (which is why owner-binding is handled implicitly instead of explicitly).
+
+## Animation
+
+UIKit has great support for animation, and naturally you'll want to include animations in your Layout-based interfaces, so how do you implement animation in Layout?
+
+There are three basic types of animation in iOS:
+
+1. Block-based animations, using `UIView.animate()`. Normally you would use this in UIKit by setting view properties and/or AutoLayout constraints inside an animation block. In Layout you should call `setState()` inside an animation block to implicitly animate any changes resulting from the state change:
+
+```swift
+UIView.animate(withDuration: 0.4) {
+    self.layoutNode?.setState([...])
+}
+```
+
+2. Animated setters. Some properties of UIViews have an animated setter variant that automatically applies an animation when called. For example, calling `UISwitch.setOn(_:animated:)` will animate the state of the switch, whereas settign the `on` property will update it immediately. Layout does not expose the `setOn(_:animated:)` method in XML, however if you have an expression for `<UISwitch isOn="onState"/>` then you can cause it to be updated with an animation by calling `setState(animated:)`:
+
+```swift
+self.layoutNode?.setState(["onState": true], animated: true)
+```
+
+Using the `animated` argument of `setState()` will implictly call the animated variant of the setter for any property that is affected by the update.
+
+3. User-driven animation. Sometimes you have an animation effect that is controlled by the user dragging or scrolling. For example, you might have a parallax effect when scrolling causes other views to move in various directions or speeds. To implement this kind of animation in Layout, simply call `setState()` inside the scroll or gesture handler, passing any parameters needed for the expressions that position the animated views. You can either implement the animation logic in Swift and pass the results as a state, or compute the animation state using expressions in your Layout XML - whichever works best for your use-case, e.g.
+
+```xml
+<UIView alpha="max(0, min(1, (position - 50) / 100))"/>
+```
+
+```swift
+func scrollViewDidScroll(_ scrollView: UIScrollView) {
+    self.layoutNode?.setState(["position": scrollView.contentOffset.y])
+}
+```
 
 
 # Expressions
