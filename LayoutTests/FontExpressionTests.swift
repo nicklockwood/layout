@@ -9,7 +9,7 @@ class FontExpressionTests: XCTestCase {
         let node = LayoutNode()
         let expression = LayoutExpression(fontExpression: "bold", for: node)
         let expected = UIFont.boldSystemFont(ofSize: LayoutExpression.defaultFontSize)
-        XCTAssertEqual(try expression.evaluate() as? UIFont, expected)
+        XCTAssertEqual(try expression?.evaluate() as? UIFont, expected)
     }
 
     func testBoldItalic() {
@@ -18,7 +18,7 @@ class FontExpressionTests: XCTestCase {
         let descriptor = UIFont.systemFont(ofSize: 17).fontDescriptor
         let traits = descriptor.symbolicTraits.union([.traitBold, .traitItalic])
         let expected = UIFont(descriptor: descriptor.withSymbolicTraits(traits)!, size: LayoutExpression.defaultFontSize)
-        XCTAssertEqual(try expression.evaluate() as? UIFont, expected)
+        XCTAssertEqual(try expression?.evaluate() as? UIFont, expected)
     }
 
     func testFontName() {
@@ -26,7 +26,7 @@ class FontExpressionTests: XCTestCase {
         let name = "helvetica"
         let expression = LayoutExpression(fontExpression: name, for: node)
         let expected = UIFont(name: name, size: LayoutExpression.defaultFontSize)
-        XCTAssertEqual(try expression.evaluate() as? UIFont, expected)
+        XCTAssertEqual(try expression?.evaluate() as? UIFont, expected)
     }
 
     func testEscapedFontNameWithSpaces() {
@@ -34,7 +34,7 @@ class FontExpressionTests: XCTestCase {
         let name = "helvetica neue"
         let expression = LayoutExpression(fontExpression: "'\(name)'", for: node)
         let expected = UIFont(name: name, size: LayoutExpression.defaultFontSize)
-        XCTAssertEqual(try expression.evaluate() as? UIFont, expected)
+        XCTAssertEqual(try expression?.evaluate() as? UIFont, expected)
     }
 
     func testBoldEscapedFontNameWithSpaces() {
@@ -44,7 +44,7 @@ class FontExpressionTests: XCTestCase {
         let descriptor = UIFont(name: name, size: LayoutExpression.defaultFontSize)!.fontDescriptor
         let traits = descriptor.symbolicTraits.union([.traitBold])
         let expected = UIFont(descriptor: descriptor.withSymbolicTraits(traits)!, size: LayoutExpression.defaultFontSize)
-        XCTAssertEqual(try expression.evaluate() as? UIFont, expected)
+        XCTAssertEqual(try expression?.evaluate() as? UIFont, expected)
     }
 
     func testBoldUnescapedFontNameWithSpaces() {
@@ -54,7 +54,7 @@ class FontExpressionTests: XCTestCase {
         let descriptor = UIFont(name: name, size: LayoutExpression.defaultFontSize)!.fontDescriptor
         let traits = descriptor.symbolicTraits.union([.traitBold])
         let expected = UIFont(descriptor: descriptor.withSymbolicTraits(traits)!, size: LayoutExpression.defaultFontSize)
-        XCTAssertEqual(try expression.evaluate() as? UIFont, expected)
+        XCTAssertEqual(try expression?.evaluate() as? UIFont, expected)
     }
 
     func testExplicitFontWithBoldAttributes() {
@@ -64,14 +64,14 @@ class FontExpressionTests: XCTestCase {
         let descriptor = font.fontDescriptor
         let traits = descriptor.symbolicTraits.union([.traitBold])
         let expected = UIFont(descriptor: descriptor.withSymbolicTraits(traits)!, size: font.pointSize)
-        XCTAssertEqual(try expression.evaluate() as? UIFont, expected)
+        XCTAssertEqual(try expression?.evaluate() as? UIFont, expected)
     }
 
     func testNilFont() {
         let font: UIFont? = nil
         let node = LayoutNode(constants: ["font": font as Any])
         let expression = LayoutExpression(fontExpression: "{font} bold", for: node)
-        XCTAssertThrowsError(try expression.evaluate()) { error in
+        XCTAssertThrowsError(try expression?.evaluate()) { error in
             XCTAssert("\(error)".contains("nil"))
         }
     }
@@ -80,7 +80,7 @@ class FontExpressionTests: XCTestCase {
         let node = LayoutNode()
         let expression = LayoutExpression(fontExpression: "caption1", for: node)
         let expected = UIFont.preferredFont(forTextStyle: .caption1)
-        XCTAssertEqual(try expression.evaluate() as? UIFont, expected)
+        XCTAssertEqual(try expression?.evaluate() as? UIFont, expected)
     }
 
     func testCustomFontTextStyle() {
@@ -89,27 +89,27 @@ class FontExpressionTests: XCTestCase {
         let expression = LayoutExpression(fontExpression: "\(name) title1", for: node)
         let expectedSize = UIFont.preferredFont(forTextStyle: .title1).pointSize
         let expected = UIFont(name: name, size: expectedSize)
-        XCTAssertEqual(try expression.evaluate() as? UIFont, expected)
+        XCTAssertEqual(try expression?.evaluate() as? UIFont, expected)
     }
 
     func testFontSize() {
         let node = LayoutNode()
         let expression = LayoutExpression(fontExpression: "19", for: node)
         let expected = UIFont.systemFont(ofSize: 19)
-        XCTAssertEqual(try expression.evaluate() as? UIFont, expected)
+        XCTAssertEqual(try expression?.evaluate() as? UIFont, expected)
     }
 
     func testRelativeFontSize() {
         let node = LayoutNode()
         let expression = LayoutExpression(fontExpression: "150%", for: node)
         let expected = UIFont.systemFont(ofSize: LayoutExpression.defaultFontSize * 1.5)
-        XCTAssertEqual(try expression.evaluate() as? UIFont, expected)
+        XCTAssertEqual(try expression?.evaluate() as? UIFont, expected)
     }
 
     func testFontTextStyleWithRelativeSize() {
         let node = LayoutNode()
         let expression = LayoutExpression(fontExpression: "body 150%", for: node)
         let expectedSize = UIFont.preferredFont(forTextStyle: .body).pointSize * 1.5
-        XCTAssertEqual((try expression.evaluate() as? UIFont)?.pointSize, expectedSize)
+        XCTAssertEqual((try expression?.evaluate() as? UIFont)?.pointSize, expectedSize)
     }
 }

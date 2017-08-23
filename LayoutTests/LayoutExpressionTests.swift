@@ -42,11 +42,11 @@ class LayoutExpressionTests: XCTestCase {
     }
 
     func testParseEmptyExpression() {
-        XCTAssertThrowsError(try parseExpression(""))
+        XCTAssertNoThrow(try parseExpression(""))
     }
 
     func testParseExpressionWithEmptyBraces() {
-        XCTAssertThrowsError(try parseExpression("{}"))
+        XCTAssertNoThrow(try parseExpression("{}"))
     }
 
     func testParseExpressionOpeningBrace() {
@@ -163,7 +163,7 @@ class LayoutExpressionTests: XCTestCase {
     }
 
     func testParseStringExpressionWithEmptyBraces() {
-        XCTAssertThrowsError(try parseStringExpression("{}"))
+        XCTAssertNoThrow(try parseStringExpression("{}"))
     }
 
     func testParseStringExpressionOpeningBrace() {
@@ -267,19 +267,19 @@ class LayoutExpressionTests: XCTestCase {
     func testOptionalBracesInNumberExpression() {
         let node = LayoutNode()
         let expression = LayoutExpression(doubleExpression: "{4 + 5}", for: node)
-        XCTAssertEqual(try expression.evaluate() as? Double, 9)
+        XCTAssertEqual(try expression?.evaluate() as? Double, 9)
     }
 
     func testOptionalBracesInColorExpression() {
         let node = LayoutNode()
         let expression = LayoutExpression(colorExpression: "{white}", for: node)
-        XCTAssertEqual(try expression.evaluate() as? UIColor, .white)
+        XCTAssertEqual(try expression?.evaluate() as? UIColor, .white)
     }
 
     func testOptionalMultipleExpressionBodiesDisallowedInNumberExpression() {
         let node = LayoutNode()
         let expression = LayoutExpression(doubleExpression: "{5}{6}", for: node)
-        XCTAssertThrowsError(try expression.evaluate())
+        XCTAssertThrowsError(try expression?.evaluate())
     }
 
     func testSetLayerContentsWithCGImageConstant() {

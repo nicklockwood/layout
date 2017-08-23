@@ -40,7 +40,7 @@ struct LayoutExpression {
         }
     }
 
-    init(doubleExpression: String, for node: LayoutNode) {
+    init?(doubleExpression: String, for node: LayoutNode) {
         self.init(
             anyExpression: doubleExpression,
             type: RuntimeType(Double.self),
@@ -48,7 +48,7 @@ struct LayoutExpression {
         )
     }
 
-    init(boolExpression: String, for node: LayoutNode) {
+    init?(boolExpression: String, for node: LayoutNode) {
         self.init(
             anyExpression: boolExpression,
             type: RuntimeType(Bool.self),
@@ -56,93 +56,103 @@ struct LayoutExpression {
         )
     }
 
-    private init(percentageExpression: String,
-                 for prop: String, in node: LayoutNode,
-                 symbols: [Expression.Symbol: Expression.Symbol.Evaluator] = [:]) {
+    private init?(percentageExpression: String,
+                  for prop: String, in node: LayoutNode,
+                  symbols: [Expression.Symbol: Expression.Symbol.Evaluator] = [:]) {
 
         let prop = "parent.\(prop)"
         var symbols = symbols
         symbols[.postfix("%")] = { [unowned node] args in
             try node.doubleValue(forSymbol: prop) / 100 * args[0]
         }
-        let expression = LayoutExpression(
+        guard let expression = LayoutExpression(
             anyExpression: percentageExpression,
             type: RuntimeType(CGFloat.self),
             numericSymbols: symbols,
             for: node
-        )
+        ) else {
+            return nil
+        }
         self.init(
             evaluate: expression.evaluate,
             symbols: Set(expression.symbols.map { $0 == "%" ? prop : $0 })
         )
     }
 
-    init(xExpression: String, for node: LayoutNode) {
+    init?(xExpression: String, for node: LayoutNode) {
         self.init(percentageExpression: xExpression, for: "width", in: node)
     }
 
-    init(yExpression: String, for node: LayoutNode) {
+    init?(yExpression: String, for node: LayoutNode) {
         self.init(percentageExpression: yExpression, for: "height", in: node)
     }
 
-    private init(sizeExpression: String, for prop: String, in node: LayoutNode) {
+    private init?(sizeExpression: String, for prop: String, in node: LayoutNode) {
         let sizeProp = "inferredSize.\(prop)"
-        let expression = LayoutExpression(
+        guard let expression = LayoutExpression(
             percentageExpression: sizeExpression,
             for: prop, in: node,
             symbols: [.variable("auto"): { [unowned node] _ in
                 try node.doubleValue(forSymbol: sizeProp)
             }]
-        )
+        ) else {
+            return nil
+        }
         self.init(
             evaluate: expression.evaluate,
             symbols: Set(expression.symbols.map { $0 == "auto" ? sizeProp : $0 })
         )
     }
 
-    init(widthExpression: String, for node: LayoutNode) {
+    init?(widthExpression: String, for node: LayoutNode) {
         self.init(sizeExpression: widthExpression, for: "width", in: node)
     }
 
-    init(heightExpression: String, for node: LayoutNode) {
+    init?(heightExpression: String, for node: LayoutNode) {
         self.init(sizeExpression: heightExpression, for: "height", in: node)
     }
 
-    private init(contentSizeExpression: String, for prop: String, in node: LayoutNode) {
+    private init?(contentSizeExpression: String, for prop: String, in node: LayoutNode) {
         let sizeProp = "inferredContentSize.\(prop)"
-        let expression = LayoutExpression(
+        guard let expression = LayoutExpression(
             percentageExpression: contentSizeExpression,
             for: prop, in: node,
             symbols: [.variable("auto"): { [unowned node] _ in
                 try node.doubleValue(forSymbol: sizeProp)
             }]
-        )
+        ) else {
+            return nil
+        }
         self.init(
             evaluate: expression.evaluate,
             symbols: Set(expression.symbols.map { $0 == "auto" ? sizeProp : $0 })
         )
     }
 
-    init(contentWidthExpression: String, for node: LayoutNode) {
+    init?(contentWidthExpression: String, for node: LayoutNode) {
         self.init(contentSizeExpression: contentWidthExpression, for: "width", in: node)
     }
 
-    init(contentHeightExpression: String, for node: LayoutNode) {
+    init?(contentHeightExpression: String, for node: LayoutNode) {
         self.init(contentSizeExpression: contentHeightExpression, for: "height", in: node)
     }
 
     // symbols are assumed to be pure - i.e. they will always return the same value
     // numericSymbols are assumed to be impure - i.e. they won't always return the same value
-    private init(anyExpression: String,
-                 type: RuntimeType,
-                 nullable: Bool = false,
-                 symbols: [AnyExpression.Symbol: AnyExpression.SymbolEvaluator] = [:],
-                 numericSymbols: [AnyExpression.Symbol: Expression.Symbol.Evaluator] = [:],
-                 lookup: @escaping (String) -> Any? = { _ in nil },
-                 for node: LayoutNode) {
+    private init?(anyExpression: String,
+                  type: RuntimeType,
+                  nullable: Bool = false,
+                  symbols: [AnyExpression.Symbol: AnyExpression.SymbolEvaluator] = [:],
+                  numericSymbols: [AnyExpression.Symbol: Expression.Symbol.Evaluator] = [:],
+                  lookup: @escaping (String) -> Any? = { _ in nil },
+                  for node: LayoutNode) {
         do {
+            let parsedExpression = try parseExpression(anyExpression).expression
+            if parsedExpression.error == .unexpectedToken("") {
+                return nil
+            }
             self.init(
-                anyExpression: try parseExpression(anyExpression).expression,
+                anyExpression: parsedExpression,
                 type: type,
                 nullable: nullable,
                 symbols: symbols,
@@ -160,14 +170,17 @@ struct LayoutExpression {
 
     // symbols are assumed to be pure - i.e. they will always return the same value
     // numericSymbols are assumed to be impure - i.e. they won't always return the same value
-    private init(anyExpression parsedExpression: ParsedExpression,
-                 type: RuntimeType,
-                 nullable: Bool,
-                 symbols: [AnyExpression.Symbol: AnyExpression.SymbolEvaluator] = [:],
-                 numericSymbols: [AnyExpression.Symbol: Expression.Symbol.Evaluator] = [:],
-                 lookup: @escaping (String) -> Any? = { _ in nil },
-                 for node: LayoutNode) {
+    private init?(anyExpression parsedExpression: ParsedExpression,
+                  type: RuntimeType,
+                  nullable: Bool,
+                  symbols: [AnyExpression.Symbol: AnyExpression.SymbolEvaluator] = [:],
+                  numericSymbols: [AnyExpression.Symbol: Expression.Symbol.Evaluator] = [:],
+                  lookup: @escaping (String) -> Any? = { _ in nil },
+                  for node: LayoutNode) {
 
+        if parsedExpression.error == .unexpectedToken("") {
+            return nil
+        }
         var constants = [String: Any]()
         var symbols = symbols
         for symbol in parsedExpression.symbols where symbols[symbol] == nil &&
@@ -234,7 +247,7 @@ struct LayoutExpression {
         )
     }
 
-    private init(colorExpression: String, type: RuntimeType, for node: LayoutNode) {
+    private init?(colorExpression: String, type: RuntimeType, for node: LayoutNode) {
         self.init(
             anyExpression: colorExpression,
             type: type,
@@ -295,15 +308,15 @@ struct LayoutExpression {
         )
     }
 
-    init(colorExpression: String, for node: LayoutNode) {
+    init?(colorExpression: String, for node: LayoutNode) {
         self.init(colorExpression: colorExpression, type: RuntimeType(UIColor.self), for: node)
     }
 
-    init(cgColorExpression: String, for node: LayoutNode) {
+    init?(cgColorExpression: String, for node: LayoutNode) {
         self.init(colorExpression: cgColorExpression, type: RuntimeType(CGColor.self), for: node)
     }
 
-    private init(interpolatedStringExpression expression: String, for node: LayoutNode) {
+    private init?(interpolatedStringExpression expression: String, for node: LayoutNode) {
         enum ExpressionPart {
             case string(String)
             case expression(() throws -> Any)
@@ -311,20 +324,25 @@ struct LayoutExpression {
 
         do {
             var symbols = Set<String>()
-            let parts: [ExpressionPart] = try parseStringExpression(expression).map { part in
+            let parts: [ExpressionPart] = try parseStringExpression(expression).flatMap { part in
                 switch part {
                 case let .expression(parsedExpression):
-                    let expression = LayoutExpression(
+                    guard let expression = LayoutExpression(
                         anyExpression: parsedExpression.expression,
                         type: RuntimeType(Any.self),
                         nullable: true,
                         for: node
-                    )
+                    ) else {
+                        return nil
+                    }
                     symbols.formUnion(expression.symbols)
                     return .expression(expression.evaluate)
                 case let .string(string):
                     return .string(string)
                 }
+            }
+            if parts.isEmpty {
+                return nil
             }
             self.init(
                 evaluate: {
@@ -347,8 +365,10 @@ struct LayoutExpression {
         }
     }
 
-    init(stringExpression: String, for node: LayoutNode) {
-        let expression = LayoutExpression(interpolatedStringExpression: stringExpression, for: node)
+    init?(stringExpression: String, for node: LayoutNode) {
+        guard let expression = LayoutExpression(interpolatedStringExpression: stringExpression, for: node) else {
+            return nil
+        }
         self.init(
             evaluate: {
                 let parts = try expression.evaluate() as! [Any]
@@ -361,8 +381,10 @@ struct LayoutExpression {
         )
     }
 
-    init(attributedStringExpression: String, for node: LayoutNode) {
-        let expression = LayoutExpression(interpolatedStringExpression: attributedStringExpression, for: node)
+    init?(attributedStringExpression: String, for node: LayoutNode) {
+        guard let expression = LayoutExpression(interpolatedStringExpression: attributedStringExpression, for: node) else {
+            return nil
+        }
         self.init(
             evaluate: {
                 var substrings = [NSAttributedString]()
@@ -426,9 +448,10 @@ struct LayoutExpression {
         "caption2": .caption2,
     ]
 
-    init(fontExpression: String, for node: LayoutNode) {
-        let expression = LayoutExpression(interpolatedStringExpression: fontExpression, for: node)
-
+    init?(fontExpression: String, for node: LayoutNode) {
+        guard let expression = LayoutExpression(interpolatedStringExpression: fontExpression, for: node) else {
+            return nil
+        }
         struct RelativeFontSize {
             let factor: CGFloat
         }
@@ -585,8 +608,10 @@ struct LayoutExpression {
         )
     }
 
-    init(imageExpression: String, for node: LayoutNode) {
-        let expression = LayoutExpression(interpolatedStringExpression: imageExpression, for: node)
+    init?(imageExpression: String, for node: LayoutNode) {
+        guard let expression = LayoutExpression(interpolatedStringExpression: imageExpression, for: node) else {
+            return nil
+        }
         self.init(
             evaluate: {
                 let parts = try expression.evaluate() as! [Any]
@@ -635,15 +660,17 @@ struct LayoutExpression {
         )
     }
 
-    init(cgImageExpression: String, for node: LayoutNode) {
-        let expression = LayoutExpression(imageExpression: cgImageExpression, for: node)
+    init?(cgImageExpression: String, for node: LayoutNode) {
+        guard let expression = LayoutExpression(imageExpression: cgImageExpression, for: node) else {
+            return nil
+        }
         self.init(
             evaluate: { (try expression.evaluate() as! UIImage).cgImage as Any },
             symbols: expression.symbols
         )
     }
 
-    init(enumExpression: String, type: RuntimeType, for node: LayoutNode) {
+    init?(enumExpression: String, type: RuntimeType, for node: LayoutNode) {
         guard case let .enum(_, values) = type.type else { preconditionFailure() }
         self.init(
             anyExpression: enumExpression,
@@ -654,15 +681,17 @@ struct LayoutExpression {
         )
     }
 
-    init(selectorExpression: String, for node: LayoutNode) {
-        let expression = LayoutExpression(stringExpression: selectorExpression, for: node)
+    init?(selectorExpression: String, for node: LayoutNode) {
+        guard let expression = LayoutExpression(stringExpression: selectorExpression, for: node) else {
+            return nil
+        }
         self.init(
             evaluate: { Selector(try expression.evaluate() as! String) },
             symbols: expression.symbols
         )
     }
 
-    init(expression: String, type: RuntimeType, for node: LayoutNode) {
+    init?(expression: String, type: RuntimeType, for node: LayoutNode) {
         switch type.type {
         case let .any(subtype):
             switch subtype {
@@ -680,14 +709,18 @@ struct LayoutExpression {
             case is UIFont.Type:
                 self.init(fontExpression: expression, for: node)
             default:
-                let expression = LayoutExpression(anyExpression: expression, type: type, for: node)
+                guard let expression = LayoutExpression(anyExpression: expression, type: type, for: node) else {
+                    return nil
+                }
                 self.init(
                     evaluate: { try unwrap(expression.evaluate()) }, // Handle nil
                     symbols: expression.symbols
                 )
             }
         case .struct:
-            let expression = LayoutExpression(anyExpression: expression, type: type, for: node)
+            guard let expression = LayoutExpression(anyExpression: expression, type: type, for: node) else {
+                return nil
+            }
             self.init(
                 evaluate: { try unwrap(expression.evaluate()) }, // Handle nil
                 symbols: expression.symbols
