@@ -122,7 +122,7 @@ private func rename(_ old: String, to new: String, in parts: [ParsedExpressionPa
     return changed ? parts.joined() : nil
 }
 
-private func rename(_ old: String, to new: String, in expression: ParsedExpression) -> String? {
+private func rename(_ old: String, to new: String, in expression: ParsedLayoutExpression) -> String? {
     guard expression.symbols.contains(.variable(old)) else {
         return nil
     }

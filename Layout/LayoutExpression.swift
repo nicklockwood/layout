@@ -142,7 +142,7 @@ struct LayoutExpression {
                  for node: LayoutNode) {
         do {
             self.init(
-                anyExpression: try parseExpression(anyExpression),
+                anyExpression: try parseExpression(anyExpression).expression,
                 type: type,
                 nullable: nullable,
                 symbols: symbols,
@@ -315,7 +315,7 @@ struct LayoutExpression {
                 switch part {
                 case let .expression(parsedExpression):
                     let expression = LayoutExpression(
-                        anyExpression: parsedExpression,
+                        anyExpression: parsedExpression.expression,
                         type: RuntimeType(Any.self),
                         nullable: true,
                         for: node

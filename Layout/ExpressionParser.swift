@@ -2,33 +2,56 @@
 
 import Foundation
 
+struct ParsedLayoutExpression: CustomStringConvertible {
+    var expression: ParsedExpression
+    var comment: String?
+
+    init(_ expression: ParsedExpression, comment: String?) {
+        self.expression = expression
+        self.comment = comment
+    }
+
+    var description: String {
+        guard let comment = comment else {
+            return expression.description
+        }
+        return "\(expression) // \(comment)"
+    }
+
+    var symbols: Set<Expression.Symbol> { return expression.symbols }
+    var error: Expression.Error? { return expression.error }
+}
+
 enum ParsedExpressionPart {
     case string(String)
-    case expression(ParsedExpression)
+    case expression(ParsedLayoutExpression)
 }
 
 // Prevent cache from distorting performance test results
 private let runningInUnitTest = (NSClassFromString("XCTestCase") != nil)
 
 // NOTE: it is not safe to access this concurrently from multiple threads due to cache
-private var _expressionCache = [String: ParsedExpression]()
-func parseExpression(_ expression: String) throws -> ParsedExpression {
+private var _expressionCache = [String: ParsedLayoutExpression]()
+func parseExpression(_ expression: String) throws -> ParsedLayoutExpression {
     if let parsedExpression = _expressionCache[expression] {
         return parsedExpression
     }
     let parsedExpression: ParsedExpression
+    var comment: String?
     var characters = String.UnicodeScalarView.SubSequence(
         expression.trimmingCharacters(in: .whitespacesAndNewlines).unicodeScalars)
     switch characters.first ?? " " {
     case "{":
         characters.removeFirst()
-        parsedExpression = Expression.parse(&characters, upTo: "}")
+        parsedExpression = Expression.parse(&characters, upTo: "}", "//")
+        comment = characters.readComment(upTo: "}")
         if characters.first != "}" {
             throw Expression.Error.message("Missing `}`")
         }
         characters.removeFirst()
     default:
-        parsedExpression = Expression.parse(&characters)
+        parsedExpression = Expression.parse(&characters, upTo: "//")
+        comment = characters.readComment(upTo: nil)
     }
     if let error = parsedExpression.error {
         throw error
@@ -36,10 +59,11 @@ func parseExpression(_ expression: String) throws -> ParsedExpression {
     if !characters.isEmpty {
         throw Expression.Error.message("Unexpected token `\(String(characters))`")
     }
+    let parsedLayoutExpression = ParsedLayoutExpression(parsedExpression, comment: comment)
     if !runningInUnitTest {
-        _expressionCache[expression] = parsedExpression
+        _expressionCache[expression] = parsedLayoutExpression
     }
-    return parsedExpression
+    return parsedLayoutExpression
 }
 
 // NOTE: it is not safe to access this concurrently from multiple threads due to cache
@@ -59,11 +83,12 @@ func parseStringExpression(_ expression: String) throws -> [ParsedExpressionPart
                 parts.append(.string(string))
                 string = ""
             }
-            let parsedExpression = Expression.parse(&characters, upTo: "}")
+            let parsedExpression = Expression.parse(&characters, upTo: "}", "//")
             if let error = parsedExpression.error {
                 throw error
             }
-            parts.append(.expression(parsedExpression))
+            let comment = characters.readComment(upTo: "}")
+            parts.append(.expression(ParsedLayoutExpression(parsedExpression, comment: comment)))
             if characters.first != "}" {
                 fallthrough
             }
@@ -85,7 +110,7 @@ func parseStringExpression(_ expression: String) throws -> [ParsedExpressionPart
 }
 
 // Check that the expression symbols are valid (or at least plausible)
-func validateLayoutExpression(_ parsedExpression: ParsedExpression) throws {
+func validateLayoutExpression(_ parsedExpression: ParsedLayoutExpression) throws {
     let keys = Set(Expression.mathSymbols.keys).union(Expression.boolSymbols.keys).union([
         .postfix("%"),
         .function("rgb", arity: 3),
@@ -108,5 +133,26 @@ func validateLayoutExpression(_ parsedExpression: ParsedExpression) throws {
                 throw Expression.Error.undefinedSymbol(symbol)
             }
         }
+    }
+}
+
+private extension String.UnicodeScalarView.SubSequence {
+    mutating func readComment(upTo delimiter: UnicodeScalar?) -> String? {
+        var comment: String?
+        if count >= 2, first == "/", self[index(after: startIndex)] == "/" {
+            removeFirst(2)
+            guard let delimiter = delimiter else {
+                comment = String(self).trimmingCharacters(in: .whitespacesAndNewlines)
+                removeAll()
+                return comment
+            }
+            var output = String.UnicodeScalarView()
+            while let char = first, char != delimiter {
+                removeFirst()
+                output.append(char)
+            }
+            comment = String(output).trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        return comment
     }
 }
