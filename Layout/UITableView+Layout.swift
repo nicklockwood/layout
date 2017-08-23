@@ -317,7 +317,6 @@ extension UITableView {
                 nodes?.add(node)
                 node.delegate = self
                 try node.bind(to: node.view) // TODO: find a better solution for binding
-                node._view?.setValue(identifier, forKey: "reuseIdentifier")
                 return node
             case let .failure(error):
                 throw error
@@ -376,9 +375,6 @@ extension UITableView {
                     state: state,
                     constants: constants
                 )
-                if node._view == nil, node.viewClass != UITableViewCell.self, node.expressions["style"] != nil {
-                    throw Expression.Error.message("Setting style for UITableViewCell subclasses is not supported")
-                }
                 var nodes = objc_getAssociatedObject(self, &nodesKey) as? NSMutableArray
                 if nodes == nil {
                     nodes = []
@@ -387,7 +383,6 @@ extension UITableView {
                 nodes?.add(node)
                 node.delegate = self
                 try node.bind(to: node.view) // TODO: find a better solution for binding
-                node._view?.setValue(identifier, forKey: "reuseIdentifier")
                 return node
             case let .failure(error):
                 throw error
@@ -428,8 +423,7 @@ extension UITableViewHeaderFooterView {
             let idExpression = LayoutExpression(expression: expression, type: RuntimeType(String.self), for: node)
             reuseIdentifier = try idExpression.evaluate() as? String
         }
-        let view = self.init() // Workaround for `self.init(reuseIdentifier:)` causing build failure
-        view.setValue(reuseIdentifier, forKey: "reuseIdentifier")
+        let view = self.init(reuseIdentifier: reuseIdentifier)
         if node.expressions.keys.contains(where: { $0.hasPrefix("backgroundView.") }),
             !node.expressions.keys.contains("backgroundView") {
             // Add a background view if required
@@ -510,13 +504,7 @@ extension UITableViewCell {
             let idExpression = LayoutExpression(expression: expression, type: RuntimeType(String.self), for: node)
             reuseIdentifier = try idExpression.evaluate() as? String
         }
-        let cell: UITableViewCell
-        if self == UITableViewCell.self {
-            cell = UITableViewCell(style: style, reuseIdentifier: reuseIdentifier)
-        } else {
-            cell = self.init() // Workaround for `self.init(style:reuseIdentifier:)` causing build failure
-            cell.setValue(reuseIdentifier, forKey: "reuseIdentifier")
-        }
+        let cell = self.init(style: style, reuseIdentifier: reuseIdentifier)
         if node.expressions.keys.contains(where: { $0.hasPrefix("backgroundView.") }),
             !node.expressions.keys.contains("backgroundView") {
             // Add a backgroundView view if required
