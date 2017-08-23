@@ -12,8 +12,12 @@ struct ParsedLayoutExpression: CustomStringConvertible {
     }
 
     var description: String {
+        let description = expression.description.trimmingCharacters(in: .whitespacesAndNewlines)
         guard let comment = comment else {
-            return expression.description
+            return description
+        }
+        if description.isEmpty {
+            return "// \(comment)"
         }
         return "\(expression) // \(comment)"
     }
@@ -53,7 +57,7 @@ func parseExpression(_ expression: String) throws -> ParsedLayoutExpression {
         parsedExpression = Expression.parse(&characters, upTo: "//")
         comment = characters.readComment(upTo: nil)
     }
-    if let error = parsedExpression.error {
+    if let error = parsedExpression.error, error != .unexpectedToken("") {
         throw error
     }
     if !characters.isEmpty {
@@ -84,7 +88,7 @@ func parseStringExpression(_ expression: String) throws -> [ParsedExpressionPart
                 string = ""
             }
             let parsedExpression = Expression.parse(&characters, upTo: "}", "//")
-            if let error = parsedExpression.error {
+            if let error = parsedExpression.error, error != .unexpectedToken("") {
                 throw error
             }
             let comment = characters.readComment(upTo: "}")
@@ -111,6 +115,9 @@ func parseStringExpression(_ expression: String) throws -> [ParsedExpressionPart
 
 // Check that the expression symbols are valid (or at least plausible)
 func validateLayoutExpression(_ parsedExpression: ParsedLayoutExpression) throws {
+    if let error = parsedExpression.error, error != .unexpectedToken("") {
+        throw error
+    }
     let keys = Set(Expression.mathSymbols.keys).union(Expression.boolSymbols.keys).union([
         .postfix("%"),
         .function("rgb", arity: 3),

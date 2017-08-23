@@ -42,11 +42,11 @@ class LayoutExpressionTests: XCTestCase {
     }
 
     func testParseEmptyExpression() {
-        XCTAssertThrowsError(try parseExpression(""))
+        XCTAssertNoThrow(try parseExpression(""))
     }
 
     func testParseExpressionWithEmptyBraces() {
-        XCTAssertThrowsError(try parseExpression("{}"))
+        XCTAssertNoThrow(try parseExpression("{}"))
     }
 
     func testParseExpressionOpeningBrace() {
@@ -163,7 +163,7 @@ class LayoutExpressionTests: XCTestCase {
     }
 
     func testParseStringExpressionWithEmptyBraces() {
-        XCTAssertThrowsError(try parseStringExpression("{}"))
+        XCTAssertNoThrow(try parseStringExpression("{}"))
     }
 
     func testParseStringExpressionOpeningBrace() {

@@ -23,8 +23,8 @@ extension UITableView {
 
     open override class func create(with node: LayoutNode) throws -> UITableView {
         var style = UITableViewStyle.plain
-        if let expression = node.expressions["style"] {
-            let styleExpression = LayoutExpression(expression: expression, type: tableViewStyle, for: node)
+        if let expression = node.expressions["style"],
+            let styleExpression = LayoutExpression(expression: expression, type: tableViewStyle, for: node) {
             style = try styleExpression.evaluate() as! UITableViewStyle
         }
         let tableView = self.init(frame: .zero, style: style)
@@ -76,12 +76,11 @@ extension UITableView {
             // TODO: it would be better if we never added cell template nodes to
             // the hierarchy, rather than having to remove them afterwards
             node.removeFromParent()
-            if let expression = node.expressions["reuseIdentifier"] {
-                let idExpression = LayoutExpression(
-                    expression: expression,
-                    type: RuntimeType(String.self),
-                    for: node
-                )
+            if let expression = node.expressions["reuseIdentifier"], let idExpression = LayoutExpression(
+                expression: expression,
+                type: RuntimeType(String.self),
+                for: node
+            ) {
                 if let reuseIdentifier = try? idExpression.evaluate() as! String {
                     if node.viewClass is UITableViewCell.Type {
                         registerLayout(Layout(node), forReuseIdentifier: reuseIdentifier, key: &cellDataKey)
@@ -146,8 +145,8 @@ extension UITableView {
 extension UITableViewController {
     open override class func create(with node: LayoutNode) throws -> UITableViewController {
         var style = UITableViewStyle.plain
-        if let expression = node.expressions["style"] ?? node.expressions["tableView.style"] {
-            let styleExpression = LayoutExpression(expression: expression, type: tableViewStyle, for: node)
+        if let expression = node.expressions["style"] ?? node.expressions["tableView.style"],
+            let styleExpression = LayoutExpression(expression: expression, type: tableViewStyle, for: node) {
             style = try styleExpression.evaluate() as! UITableViewStyle
         }
         let viewController = self.init(style: style)
@@ -424,8 +423,8 @@ extension UITableViewHeaderFooterView {
 
     open override class func create(with node: LayoutNode) throws -> UITableViewHeaderFooterView {
         var reuseIdentifier: String?
-        if let expression = node.expressions["reuseIdentifier"] {
-            let idExpression = LayoutExpression(expression: expression, type: RuntimeType(String.self), for: node)
+        if let expression = node.expressions["reuseIdentifier"],
+            let idExpression = LayoutExpression(expression: expression, type: RuntimeType(String.self), for: node) {
             reuseIdentifier = try idExpression.evaluate() as? String
         }
         let view = self.init() // Workaround for `self.init(reuseIdentifier:)` causing build failure
@@ -501,13 +500,13 @@ extension UITableViewCell {
 
     open override class func create(with node: LayoutNode) throws -> UITableViewCell {
         var style = UITableViewCellStyle.default
-        if let expression = node.expressions["style"] {
-            let styleExpression = LayoutExpression(expression: expression, type: tableViewCellStyle, for: node)
+        if let expression = node.expressions["style"],
+            let styleExpression = LayoutExpression(expression: expression, type: tableViewCellStyle, for: node) {
             style = try styleExpression.evaluate() as! UITableViewCellStyle
         }
         var reuseIdentifier: String?
-        if let expression = node.expressions["reuseIdentifier"] {
-            let idExpression = LayoutExpression(expression: expression, type: RuntimeType(String.self), for: node)
+        if let expression = node.expressions["reuseIdentifier"],
+            let idExpression = LayoutExpression(expression: expression, type: RuntimeType(String.self), for: node) {
             reuseIdentifier = try idExpression.evaluate() as? String
         }
         let cell: UITableViewCell

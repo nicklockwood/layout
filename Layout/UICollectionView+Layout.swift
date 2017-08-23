@@ -25,12 +25,11 @@ extension UICollectionView {
 
     open override class func create(with node: LayoutNode) throws -> UICollectionView {
         let layout: UICollectionViewLayout
-        if let expression = node.expressions["collectionViewLayout"] {
-            let layoutExpression = LayoutExpression(
-                expression: expression,
-                type: RuntimeType(UICollectionViewLayout.self),
-                for: node
-            )
+        if let expression = node.expressions["collectionViewLayout"], let layoutExpression = LayoutExpression(
+            expression: expression,
+            type: RuntimeType(UICollectionViewLayout.self),
+            for: node
+        ) {
             layout = try layoutExpression.evaluate() as! UICollectionViewLayout
         } else {
             layout = defaultLayout(for: node)
@@ -79,12 +78,11 @@ extension UICollectionView {
             // TODO: it would be better if we never added cell template nodes to
             // the hierarchy, rather than having to remove them afterwards
             node.removeFromParent()
-            if let expression = node.expressions["reuseIdentifier"] {
-                let idExpression = LayoutExpression(
-                    expression: expression,
-                    type: RuntimeType(String.self),
-                    for: node
-                )
+            if let expression = node.expressions["reuseIdentifier"], let idExpression = LayoutExpression(
+                expression: expression,
+                type: RuntimeType(String.self),
+                for: node
+            ) {
                 if let reuseIdentifier = try? idExpression.evaluate() as! String {
                     registerLayout(Layout(node), forCellReuseIdentifier: reuseIdentifier)
                 }
@@ -158,12 +156,11 @@ extension UICollectionView: LayoutDelegate {
 extension UICollectionViewController {
     open override class func create(with node: LayoutNode) throws -> UICollectionViewController {
         let layout: UICollectionViewLayout
-        if let expression = node.expressions["collectionViewLayout"] {
-            let layoutExpression = LayoutExpression(
-                expression: expression,
-                type: RuntimeType(UICollectionViewLayout.self),
-                for: node
-            )
+        if let expression = node.expressions["collectionViewLayout"], let layoutExpression = LayoutExpression(
+            expression: expression,
+            type: RuntimeType(UICollectionViewLayout.self),
+            for: node
+        ) {
             layout = try layoutExpression.evaluate() as! UICollectionViewLayout
         } else {
             layout = UICollectionView.defaultLayout(for: node)

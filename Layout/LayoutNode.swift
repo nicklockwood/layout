@@ -657,7 +657,7 @@ public class LayoutNode: NSObject {
         }
         try completeSetup()
         for (symbol, string) in expressions {
-            var expression: LayoutExpression
+            var expression: LayoutExpression!
             var isViewControllerExpression = false
             var isViewExpression = false
             switch symbol {
@@ -708,6 +708,9 @@ public class LayoutNode: NSObject {
                 } else {
                     expression = LayoutExpression(expression: string, type: type, for: self)
                 }
+            }
+            guard expression != nil else {
+                continue
             }
             // Only set constant values once
             if expression.symbols.isEmpty {
