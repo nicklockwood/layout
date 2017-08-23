@@ -220,6 +220,48 @@ class LayoutExpressionTests: XCTestCase {
         XCTAssertNil(expression.error)
     }
 
+    // MARK: Expression comments
+
+    func testParseExpressionWithCommentWithoutBraces() {
+        let expression = try? parseExpression("4 + 5 // hello")
+        XCTAssertNotNil(expression)
+        XCTAssertEqual(expression?.symbols, [.infix("+")])
+        XCTAssertEqual(expression?.description, "4 + 5 // hello")
+    }
+
+    func testParseExpressionWithCommentWithBraces() {
+        let expression = try? parseExpression("{4 + 5 // hello}")
+        XCTAssertNotNil(expression)
+        XCTAssertEqual(expression?.symbols, [.infix("+")])
+        XCTAssertEqual(expression?.description, "4 + 5 // hello")
+    }
+
+    func testParseStringExpressionWithComment() {
+        guard let parts = try? parseStringExpression("foo {4 + 5 // hello } bar") else {
+            XCTFail()
+            return
+        }
+        guard parts.count == 3 else {
+            XCTFail()
+            return
+        }
+        guard case .string("foo ") = parts[0] else {
+            XCTFail()
+            return
+        }
+        guard case let .expression(expression) = parts[1] else {
+            XCTFail()
+            return
+        }
+        XCTAssertEqual(expression.symbols, [.infix("+")])
+        XCTAssertEqual(expression.description, "4 + 5 // hello")
+        XCTAssertNil(expression.error)
+        guard case .string(" bar") = parts[2] else {
+            XCTFail()
+            return
+        }
+    }
+
     // MARK: Integration tests
 
     func testOptionalBracesInNumberExpression() {
