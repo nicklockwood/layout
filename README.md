@@ -37,6 +37,7 @@
     - [Manual Integration](#manual-integration)
     - [Table Views](#table-views)
     - [Collection Views](#collection-views)
+    - [Stack Views](#stack-views)
     - [Composition](#composition)
     - [Templates](#templates)
     - [Parameters](#parameters)
@@ -1003,7 +1004,7 @@ These errors are not expected to occur in a correctly implemented layout - they 
 If you are loading XML templates from an external source, you might prefer to catch and log these errors instead of allowing them to crash or fail silently, as there is a greater likelihood of an error making it into production if templates and native code are updated independently.
 
 
-# Table Views
+## Table Views
 
 You can use a `UITableView` inside a Layout template in much the same way as you would use any other view:
 
@@ -1146,7 +1147,7 @@ If you prefer you can create a `<UITableViewController/>` in your XML instead of
 ```
 
 
-# Collection Views
+## Collection Views
 
 Layout supports `UICollectionView` in a similar way to `UITableView`. If you do not specify a custom `UICollectionViewLayout`, Layout assumes that you want to use a `UICollectionViewFlowLayout`, and creates one for you automatically. When using a `UICollectionViewFlowLayout`, you can configure its properties using expressions on the collection view, prefixed with `collectionViewLayout.`:
 
@@ -1230,6 +1231,28 @@ Dynamic collection cell size calculation is also supported. To enable this, just
 Layout does not currently support using XML to define supplementary `UICollectionReusableView` instances, but this will be added in future.
 
 Layout supports the use of `UICollectionViewController`, with the same caveats as for `UITableViewController`.
+
+
+## Stack Views
+
+You can use Layout's expressions to create arbitrarily complex layouts, but sometimes the expressions required to describe relationships between siblings can be quite verbose, and it would be nice to be able to use something more like [flexbox](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Flexible_Box_Layout/Using_CSS_flexible_boxes) to describe the overall arrangemet for a collection of views.
+
+Layout has full support for UIKit's `UIStackView` class, which you can use for flexbox-like collections in situations where `UITableView` or `UICollectionView` would be overkill. Here is an example of a simple vertical stack:
+
+```xml
+<UIStackView
+    alignment="center"
+    axis="vertical"
+    spacing="10">
+    
+    <UILabel text="First row"/>
+    <UILabel text="Second row"/>
+</UIStackView>
+```
+
+Subview nodes nested inside a `UIStackView` are automatically added to the stack view's `arrangedSubviews` array. The `width` and `height` properties are respected for children of a `UIStackView`, but the `top`, `left`, `bottom` and `right` are ignored.
+
+Since `UIStackView` is a non-drawing view, only its position and layout attributes can be configured. Inherited `UIView` properties such as `backgroundColor` or `borderWidth` are unavailable.
 
 
 ## Composition
