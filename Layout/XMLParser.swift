@@ -188,8 +188,8 @@ class XMLParser: NSObject, XMLParserDelegate {
     private func appendText() {
         if !text.isEmpty {
             appendNode(.text(text
-                .replacingOccurrences(of: "[\\t ]+", with: " ", options: .regularExpression)
-                .replacingOccurrences(of: " ?\\n+ ?", with: "\n", options: .regularExpression)
+                    .replacingOccurrences(of: "[\\t ]+", with: " ", options: .regularExpression)
+                    .replacingOccurrences(of: " ?\\n+ ?", with: "\n", options: .regularExpression)
             ))
             text = ""
         }

@@ -1,5 +1,10 @@
 # Change Log
 
+## [0.4.16](https://github.com/schibsted/layout/releases/tag/0.4.16) (2017-08-25)
+
+- Fix for spurious "property unavailable" errors when using `UITableView`, `UICollectionView` or `UIStackView`
+- Added `UIStackView` documentation to README.md
+
 ## [0.4.15](https://github.com/schibsted/layout/releases/tag/0.4.15) (2017-08-22)
 
 - Reverted a change to constant evaluation order in 0.4.14 that caused a regression in one of our projects

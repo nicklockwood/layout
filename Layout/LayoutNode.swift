@@ -599,7 +599,7 @@ public class LayoutNode: NSObject {
                 expressions["height"] = "auto" // TODO: remove special case
             } else if expressions["top"] != nil, expressions["bottom"] != nil {
                 expressions["height"] = "bottom - top"
-            }  else if !(_view is UIScrollView),
+            } else if !(_view is UIScrollView),
                 _usesAutoLayout || _view.intrinsicContentSize.height != UIViewNoIntrinsicMetric {
                 expressions["height"] = "auto"
             } else if parent != nil {

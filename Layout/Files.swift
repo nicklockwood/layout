@@ -56,4 +56,3 @@ func parseIgnoreFile(_ file: URL) throws -> [URL] {
     }
     return paths
 }
-

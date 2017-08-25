@@ -149,7 +149,7 @@ extension UICollectionView: LayoutDelegate {
     func value(forVariableOrConstant name: String) -> Any? {
         guard let layoutNode = layoutNode,
             let value = try? layoutNode.value(forVariableOrConstant: name) else {
-                return nil
+            return nil
         }
         return value
     }
