@@ -57,17 +57,17 @@ extension UIView {
             "position",
             "size",
         ] {
-            types[name]?.setUnavailable("Use top/left/width/height expressions instead")
+            types[name] = .unavailable("Use top/left/width/height expressions instead")
             let name = "\(name)."
             for key in types.keys where key.hasPrefix(name) {
-                types[key]!.setUnavailable("Use top/left/width/height expressions instead")
+                types[key] = .unavailable("Use top/left/width/height expressions instead")
             }
         }
         for name in [
             "layer.anchorPoint",
             "layer.sublayers",
         ] {
-            types[name]?.setUnavailable()
+            types[name] = .unavailable()
         }
         return types
     }

@@ -26,6 +26,7 @@ extension UIStackView {
             "bottom": .bottom,
             "lastBaseline": .lastBaseline, // Valid for horizontal axis only
         ])
+        types["arrangedSubviews"] = .unavailable()
         // UIStackView is a non-drawing view, so none of these properties are available
         for name in [
             "backgroundColor",
@@ -45,7 +46,7 @@ extension UIStackView {
             "layer.shadowPathIsBounds",
             "layer.shadowRadius",
         ] {
-            types[name]?.setUnavailable()
+            types[name] = .unavailable()
         }
         return types
     }

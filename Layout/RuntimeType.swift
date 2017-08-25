@@ -24,8 +24,10 @@ public class RuntimeType: NSObject {
     public private(set) var getter: Getter?
     public private(set) var setter: Setter?
 
-    func setUnavailable(_ reason: String? = nil) {
-        availability = .unavailable(reason: reason)
+    static func unavailable(_ reason: String? = nil) -> RuntimeType {
+        let type = RuntimeType(.any(String.self))
+        type.availability = .unavailable(reason: reason)
+        return type
     }
 
     @nonobjc private init(_ type: Kind) {

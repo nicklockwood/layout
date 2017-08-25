@@ -55,7 +55,7 @@ extension UITableView {
             "contentSize.height",
             "contentSize.width",
         ] {
-            types[name]?.setUnavailable()
+            types[name] = .unavailable()
         }
         return types
     }
