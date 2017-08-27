@@ -586,13 +586,6 @@ extension UITableViewCell {
         contentView.insertSubview(node.view, at: index)
     }
 
-    open override var intrinsicContentSize: CGSize {
-        guard let layoutNode = layoutNode, layoutNode.children.isEmpty else {
-            return super.intrinsicContentSize
-        }
-        return CGSize(width: UIViewNoIntrinsicMetric, height: 44)
-    }
-
     open override func sizeThatFits(_ size: CGSize) -> CGSize {
         if let layoutNode = layoutNode {
             let height = (try? layoutNode.doubleValue(forSymbol: "height")) ?? 0

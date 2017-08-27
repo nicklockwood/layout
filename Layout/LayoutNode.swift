@@ -1180,7 +1180,7 @@ public class LayoutNode: NSObject {
         if expressions["contentSize"] != nil, !_evaluating.contains("contentSize") {
             return try value(forSymbol: "contentSize") as? CGSize ?? .zero
         }
-        // TODO: remove special case
+        // TODO: remove special cases
         if _view is UIStackView {
             return _view?.systemLayoutSizeFitting(CGSize(
                 width: try cgFloatValue(forSymbol: "width"),
@@ -1189,6 +1189,15 @@ public class LayoutNode: NSObject {
         }
         // Try best fit for subviews
         var size = CGSize.zero
+        if let _view = _view as? UITableViewCell {
+            _view.layoutIfNeeded()
+            switch try value(forSymbol: "style") as? UITableViewCellStyle ?? .default {
+            case .default, .subtitle:
+                size.height = (_view.textLabel?.frame.height ?? 0) + (_view.detailTextLabel?.frame.height ?? 0)
+            case .value1, .value2:
+                size.height = max(_view.textLabel?.frame.height ?? 0, _view.detailTextLabel?.frame.height ?? 0)
+            }
+        }
         for child in children where !child.isHidden {
             if !child.widthDependsOnParent {
                 var left: CGFloat = 0
