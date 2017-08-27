@@ -996,10 +996,10 @@ public class LayoutNode: NSObject {
             }
         case "contentInset":
             getter = { [unowned self] in
-                // TODO: would prefer not to use try? for this
-                // Context: not all views have a contentInset property, but we'd like to
-                // be able to reference it for any view since it's used by inferContentSize()
-                (try? self._view?.value(forSymbol: "contentInset")) as? UIEdgeInsets ?? .zero
+                guard self.viewExpressionTypes["contentInset"] != nil else {
+                    return UIEdgeInsets.zero
+                }
+                return self._view?.value(forKey: "contentInset") as? UIEdgeInsets ?? .zero
             }
         case "contentInset.top":
             getter = { [unowned self] in
