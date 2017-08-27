@@ -589,7 +589,7 @@ public class LayoutNode: NSObject {
                 expressions["width"] = "right - left"
             } else if !(_view is UIScrollView),
                 _usesAutoLayout || _view?.intrinsicContentSize.width != UIViewNoIntrinsicMetric {
-                expressions["width"] = "auto"
+                expressions["width"] = "min(auto, 100%)"
             } else if parent != nil {
                 expressions["width"] = "100%"
             }
