@@ -285,4 +285,30 @@ class FormatTests: XCTestCase {
         let output = "<Foo barColor=\"rgb(255, 255, 0)\"/>\n"
         XCTAssertEqual(try format(input), output)
     }
+
+    // MARK: Comments
+
+    func testExpressionWithComment() {
+        let input = "<Foo top=\"10-5* 4//foo\"/>"
+        let output = "<Foo top=\"10 - (5 * 4) // foo\"/>\n"
+        XCTAssertEqual(try format(input), output)
+    }
+
+    func testCommentedOutExpression() {
+        let input = "<Foo top=\"//10-5* 4 \"/>"
+        let output = "<Foo top=\"// 10-5* 4\"/>\n"
+        XCTAssertEqual(try format(input), output)
+    }
+
+    func testStringExpressionWithComment() {
+        let input = "<Foo text=\"hello {10-5* 4//foo} world\"/>"
+        let output = "<Foo text=\"hello {10 - (5 * 4) // foo} world\"/>\n"
+        XCTAssertEqual(try format(input), output)
+    }
+
+    func testCommentedOutStringExpression() {
+        let input = "<Foo text=\"{ //10-5* 4 }\"/>"
+        let output = "<Foo text=\"{// 10-5* 4}\"/>\n"
+        XCTAssertEqual(try format(input), output)
+    }
 }

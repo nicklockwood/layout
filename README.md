@@ -84,7 +84,7 @@ Layout introduces a new node hierarchy for managing views, similar to the "virtu
 
 Unlike UIViews (which use NSCoding for serialization), this hierarchy can be deserialized from a lightweight, human-readable XML format, and also offers a concise API for programmatically generating view layouts in code when you don't want to use a separate resource file.
 
-View properties are specified using *expressions*, which are simple, pure functions stored as strings and evaluated at runtime. Now, I know what you're thinking - *stringly typed code is horrible!* - but Layout's expressions are strongly-typed, and designed to fail early, with detailed error messages to help you debug.
+View properties are specified using *expressions*, which are simple, pure functions stored as strings and evaluated at runtime. Now, I know what you're thinking - *stringly-typed code is horrible!* - but Layout's expressions are strongly-typed, and designed to fail early, with detailed error messages to help you debug.
 
 Layout is designed to work with ordinary UIKit components, not to replace or reinvent them. Layout-based views can be embedded inside Nibs and Storyboards, and Nib and Storyboard-based views can be embedded inside Layout-based views and view controllers, so there is no need to rewrite your entire app if you want to try using Layout.
 
@@ -98,13 +98,13 @@ Layout is provided as a standalone Swift framework that you can use in your app.
 To install Layout using CocoaPods, add the following to your Podfile:
 
 ```ruby
-pod 'Layout', '~> 0.4.12'
+pod 'Layout', '~> 0.4.17'
 ```
 
 To install use Carthage, add this to your Cartfile:
 
 ```
-github "schibsted/Layout" ~> 0.4.12
+github "schibsted/Layout" ~> 0.4.17
 ```
 
 ## Integration
@@ -396,7 +396,7 @@ In this example we've bound the `LayoutNode` containing the `UILabel` to the `la
 * There's no need to use the `@IBOutlet` attribute for your `outlet` property, but you can do so if you feel it makes the purpose clearer. If you do not use `@IBOutlet`, you may need to use `@objc` to ensure the property is visible to Layout at runtime.
 * The type of the `outlet` property can be either `LayoutNode` or a `UIView` subclass that's compatible with the view managed by the node. The syntax is the same in either case - the type will be checked at runtime, and an error will be thrown if it doesn't match up.
 * In the example above we have used Swift's `#keyPath` syntax to specify the `outlet` value, for better static validation. This is recommended, but not required.
-* The `labelNode` outlet in the example has been marked as Optional. It is common to use Implicty Unwrapped Optionals (IUOs) when defining IBOutlets, and that will work with Layout too, but it will result in a hard crash if you make a mistake in your XML and then try to access the outlet. Using regular Optionals means XML errors can be trapped and fixed without restarting the app.
+* The `labelNode` outlet in the example has been marked as Optional. It is common to use Implictly Unwrapped Optionals (IUOs) when defining IBOutlets, and that will work with Layout too, but it will result in a hard crash if you make a mistake in your XML and then try to access the outlet. Using regular Optionals means XML errors can be trapped and fixed without restarting the app.
 
 To specify outlet bindings when using XML templates, use the `outlet` attribute:
 
@@ -491,13 +491,13 @@ UIView.animate(withDuration: 0.4) {
 }
 ```
 
-2. Animated setters. Some properties of UIViews have an animated setter variant that automatically applies an animation when called. For example, calling `UISwitch.setOn(_:animated:)` will animate the state of the switch, whereas settign the `on` property will update it immediately. Layout does not expose the `setOn(_:animated:)` method in XML, however if you have an expression for `<UISwitch isOn="onState"/>` then you can cause it to be updated with an animation by calling `setState(animated:)`:
+2. Animated setters. Some properties of UIViews have an animated setter variant that automatically applies an animation when called. For example, calling `UISwitch.setOn(_:animated:)` will animate the state of the switch, whereas setting the `on` property will update it immediately. Layout does not expose the `setOn(_:animated:)` method in XML, however if you have an expression for `<UISwitch isOn="onState"/>` then you can cause it to be updated with an animation by calling `setState(animated:)`:
 
 ```swift
 self.layoutNode?.setState(["onState": true], animated: true)
 ```
 
-Using the `animated` argument of `setState()` will implictly call the animated variant of the setter for any property that is affected by the update.
+Using the `animated` argument of `setState()` will implicitly call the animated variant of the setter for any property that is affected by the update.
 
 3. User-driven animation. Sometimes you have an animation effect that is controlled by the user dragging or scrolling. For example, you might have a parallax effect when scrolling causes other views to move in various directions or speeds. To implement this kind of animation in Layout, simply call `setState()` inside the scroll or gesture handler, passing any parameters needed for the expressions that position the animated views. You can either implement the animation logic in Swift and pass the results as a state, or compute the animation state using expressions in your Layout XML - whichever works best for your use-case, e.g.
 
@@ -1165,7 +1165,7 @@ Layout also supports using XML layouts for `UITableViewHeaderFooterView`, and th
 </UITableView>
 ```
 
-If you prefer you can create a `<UITableViewController/>` in your XML instead of subclassing `UIViewController` and implementing the table data source and delegate. Note that if you do this, there is no need to explcitly create the `UITableView` yourself, as the `UITableViewController` already includes one. To configure the table, you can set properties of the table view directly on the controller using a `tableView.` prefix, e.g.
+If you prefer you can create a `<UITableViewController/>` in your XML instead of subclassing `UIViewController` and implementing the table data source and delegate. Note that if you do this, there is no need to explicitly create the `UITableView` yourself, as the `UITableViewController` already includes one. To configure the table, you can set properties of the table view directly on the controller using a `tableView.` prefix, e.g.
 
 ```xml
 <UITableViewController
@@ -1270,7 +1270,7 @@ Layout supports the use of `UICollectionViewController`, with the same caveats a
 
 ## Stack Views
 
-You can use Layout's expressions to create arbitrarily complex layouts, but sometimes the expressions required to describe relationships between siblings can be quite verbose, and it would be nice to be able to use something more like [flexbox](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Flexible_Box_Layout/Using_CSS_flexible_boxes) to describe the overall arrangemet for a collection of views.
+You can use Layout's expressions to create arbitrarily complex layouts, but sometimes the expressions required to describe relationships between siblings can be quite verbose, and it would be nice to be able to use something more like [flexbox](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Flexible_Box_Layout/Using_CSS_flexible_boxes) to describe the overall arrangement for a collection of views.
 
 Layout has full support for UIKit's `UIStackView` class, which you can use for flexbox-like collections in situations where `UITableView` or `UICollectionView` would be overkill. Here is an example of a simple vertical stack:
 

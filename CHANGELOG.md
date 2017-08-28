@@ -1,5 +1,16 @@
 # Change Log
 
+## [0.4.17](https://github.com/schibsted/layout/releases/tag/0.4.17) (2017-08-28)
+
+- You can now use `//` comments inside layout expressions
+- Empty expressions are now permitted (they are treated the same as omitting the expression)
+- Table cell `auto` height is now calculated correctly for cells using multiline `textLabel`
+- The `state` property is now deprecated. Use `setState()` instead
+- You can now call animated variants of property setters using `setState(_:animated:)`
+- Default width is now capped at 100% of the parent width for views such as labels
+- Layout now correctly handles custom classes when app name contains spaces or punctuation
+- Throwing an error inside `createView()` for custom view subclasses no longer crashes
+
 ## [0.4.16](https://github.com/schibsted/layout/releases/tag/0.4.16) (2017-08-25)
 
 - Fix for spurious "property unavailable" errors when using `UITableView`, `UICollectionView` or `UIStackView`

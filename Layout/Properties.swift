@@ -186,12 +186,12 @@ extension NSObject {
                 let chars = chars.dropFirst(2)
                 setter = "set\(String(chars)):"
                 if responds(to: Selector(setter)) {
-                    key = "\(String(chars.first!).lowercased())\( String(chars.dropFirst()))"
+                    key = "\(String(chars.first!).lowercased())\(String(chars.dropFirst()))"
                 } else {
                     setter = "setIs\(String(chars)):"
                 }
             } else {
-                setter = "set\(String(chars.first!).uppercased())\( String(chars.dropFirst())):"
+                setter = "set\(String(chars.first!).uppercased())\(String(chars.dropFirst())):"
             }
         }
         if animated, let type = type {
