@@ -482,3 +482,125 @@ extension UITextView {
         }
     }
 }
+
+extension UISegmentedControl {
+    override open class func create(with node: LayoutNode) throws -> UISegmentedControl {
+        var items = [Any]()
+        if let expression = node.expressions["items"],
+            let itemsExpression = LayoutExpression(expression: expression, type: RuntimeType(NSArray.self), for: node) {
+            for item in try itemsExpression.evaluate() as! [Any] {
+                switch item {
+                case is String, is UIImage:
+                    items.append(item)
+                default:
+                    throw LayoutError("\(type(of: item)) is not a valid item type for \(self.classForCoder())", for: node)
+                }
+            }
+        }
+        return self.init(items: items)
+    }
+
+    open override class var expressionTypes: [String: RuntimeType] {
+        var types = super.expressionTypes
+        types["items"] = RuntimeType(NSArray.self)
+        // Background image
+        types["backgroundImage"] = RuntimeType(UIImage.self)
+        types["highlightedBackgroundImage"] = RuntimeType(UIImage.self)
+        types["disabledBackgroundImage"] = RuntimeType(UIImage.self)
+        types["selectedBackgroundImage"] = RuntimeType(UIImage.self)
+        types["focusedBackgroundImage"] = RuntimeType(UIImage.self)
+        // Title color
+        types["titleColor"] = RuntimeType(UIColor.self)
+        types["highlightedTitleColor"] = RuntimeType(UIColor.self)
+        types["disabledTitleColor"] = RuntimeType(UIColor.self)
+        types["selectedTitleColor"] = RuntimeType(UIColor.self)
+        types["focusedTitleColor"] = RuntimeType(UIColor.self)
+        // Title font
+        types["titleFont"] = RuntimeType(UIFont.self)
+        types["highlightedTitleFont"] = RuntimeType(UIFont.self)
+        types["disabledTitleFont"] = RuntimeType(UIFont.self)
+        types["selectedTitleFont"] = RuntimeType(UIFont.self)
+        types["focusedTitleFont"] = RuntimeType(UIFont.self)
+        return types
+    }
+
+    private func setItems(_ items: NSArray?, animated: Bool) throws {
+        let items = items ?? []
+        for (i, item) in items.enumerated() {
+            switch item {
+            case let title as String:
+                if i >= numberOfSegments {
+                    insertSegment(withTitle: title, at: i, animated: animated)
+                } else {
+                    if let oldTitle = titleForSegment(at: i), oldTitle == title {
+                        break
+                    }
+                    removeSegment(at: i, animated: animated)
+                    insertSegment(withTitle: title, at: i, animated: animated)
+                }
+            case let image as UIImage:
+                if i >= numberOfSegments {
+                    insertSegment(with: image, at: i, animated: animated)
+                } else {
+                    if let oldImage = imageForSegment(at: i), oldImage == image {
+                        break
+                    }
+                    removeSegment(at: i, animated: animated)
+                    insertSegment(with: image, at: i, animated: animated)
+                }
+            default:
+                throw SymbolError("items array may only contain Strings or UIImages", for: "items")
+            }
+        }
+        while items.count > numberOfSegments {
+            removeSegment(at: numberOfSegments - 1, animated: animated)
+        }
+    }
+
+    private func setTitleColor(_ color: UIColor?, for state: UIControlState) {
+        var attributes = titleTextAttributes(for: state) ?? [:]
+        attributes[NSForegroundColorAttributeName] = color
+        setTitleTextAttributes(attributes, for: state)
+    }
+
+    private func setTitleFont(_ font: UIFont?, for state: UIControlState) {
+        var attributes = titleTextAttributes(for: state) ?? [:]
+        attributes[NSFontAttributeName] = font
+        setTitleTextAttributes(attributes, for: state)
+    }
+
+    open override func setValue(_ value: Any, forExpression name: String) throws {
+        switch name {
+        case "items": try setItems(value as? NSArray, animated: false)
+            // Background image
+        case "backgroundImage": setBackgroundImage(value as? UIImage, for: .normal, barMetrics: .default)
+        case "highlightedBackgroundImage": setBackgroundImage(value as? UIImage, for: .highlighted, barMetrics: .default)
+        case "disabledBackgroundImage": setBackgroundImage(value as? UIImage, for: .disabled, barMetrics: .default)
+        case "selectedBackgroundImage": setBackgroundImage(value as? UIImage, for: .selected, barMetrics: .default)
+        case "focusedBackgroundImage": setBackgroundImage(value as? UIImage, for: .focused, barMetrics: .default)
+            // Title color
+        case "titleColor": setTitleColor(value as? UIColor, for: .normal)
+        case "highlightedTitleColor": setTitleColor(value as? UIColor, for: .highlighted)
+        case "disabledTitleColor": setTitleColor(value as? UIColor, for: .disabled)
+        case "selectedTitleColor": setTitleColor(value as? UIColor, for: .selected)
+        case "focusedTitleColor": setTitleColor(value as? UIColor, for: .focused)
+            // Title font
+        case "titleFont": setTitleFont(value as? UIFont, for: .normal)
+        case "highlightedTitleFont": setTitleFont(value as? UIFont, for: .highlighted)
+        case "disabledTitleFont": setTitleFont(value as? UIFont, for: .disabled)
+        case "selectedTitleFont": setTitleFont(value as? UIFont, for: .selected)
+        case "focusedTitleFont": setTitleFont(value as? UIFont, for: .focused)
+        default:
+            try super.setValue(value, forExpression: name)
+        }
+    }
+
+    open override func setAnimatedValue(_ value: Any, forExpression name: String) throws {
+        switch name {
+        case "items":
+            try setItems(value as? NSArray, animated: true)
+        default:
+            try super.setAnimatedValue(value, forExpression: name)
+        }
+    }
+}

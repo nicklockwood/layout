@@ -230,6 +230,13 @@ extension NSObject {
                     )
                     fn(self, selector, value as! CGPoint, true)
                     return true
+                case is AnyObject.Type:
+                    let fn = unsafeBitCast(
+                        class_getMethodImplementation(type(of: self), selector),
+                        to: (@convention(c) (AnyObject?, Selector, AnyObject, ObjCBool) -> Void).self
+                    )
+                    fn(self, selector, value as AnyObject, true)
+                    return true
                 default:
                     break
                 }
