@@ -40,6 +40,7 @@
 - [Custom Components](#custom-components)
     - [Namespacing](#namespacing)
     - [Custom Property Types](#custom-property-types)
+    - [Custom Constructor Arguments](#custom-constructor-arguments)
 - [Advanced Topics](#advanced-topics)
     - [Layout-based Components](#layout-based-components)
     - [Manual Integration](#manual-integration)
@@ -1364,6 +1365,47 @@ RuntimeType(NSTextAlignment.self, [
 ```
 
 Swift enum values cannot be set automatically using the Objective-C runtime, but if the underlying type of the property matches the `rawValue` (as is the case for most Objective-C APIs) then it's typically not necessary to also provide a custom `setValue(forExpression:)` implementation. You'll have to determine this by testing it on a per-case basis.
+
+
+## Custom Constructor Arguments
+
+By default, Layout automatically instantiates views using the `init(frame:)` designated initializer, with a size of zero. Sometimes, however, views provide an alternate constructor that accepts one or more arguments that can't be set later. In these cases it is necessary to implement a custom constructor.
+
+To implement a custom view constructor, create an extension as follows:
+
+```swift
+extension MyView {
+
+    open override class var parameterTypes: [String: RuntimeType] {
+        return [
+            "myArgument": RuntimeType(SomeType.self)
+        ]
+    }
+    
+    open override class func create(with node: LayoutNode) throws -> MyView {
+        if let myArgument = try node.value(forExpression: "myArgument") as? SomeType {
+            self.init(myArgument: myArgument)
+            return
+        }
+        self.init(frame: .zero)
+    }
+}
+```
+
+**Note:** we are ovrriding the `parameterTypes` variable here instead of the `expressionTypes` variable we used earlier for implementing custom properties. The difference is that `parameterTypes` are for expressions that are only used for constructing the view, and can't be changed later. Parameter expressions will not be re-evaluated when `state` is updated.
+
+The `create(with:)` method calls `value(forExpression:)` to get the value for the expression. This will return nil if the expression has not been set, so there is no need to check that separately.
+
+In the example above we fall back to the default constructor if the argument isn't set, but if we want to make the argument mandatory, we could fail instead by throwing an error:
+
+```swift
+open override class func create(with node: LayoutNode) throws -> MyView {
+    guard let myArgument = try node.value(forExpression: "myArgument") as? SomeType else {
+        throw LayoutError("myArgument is required")
+    }
+    self.init(myArgument: myArgument)
+}
+```
 
 
 # Advanced Topics

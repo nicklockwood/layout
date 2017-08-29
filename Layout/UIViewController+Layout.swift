@@ -49,6 +49,11 @@ extension UIViewController {
         }
     }
 
+    /// Constructor argument names and types
+    @objc open class var parameterTypes: [String: RuntimeType] {
+        return [:]
+    }
+
     /// Called to construct the view
     @objc open class func create(with _: LayoutNode) throws -> UIViewController {
         return self.init()

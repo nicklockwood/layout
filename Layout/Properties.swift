@@ -92,8 +92,8 @@ extension NSObject {
                     }
                     // Get attributes
                     let attribs = String(cString: cattribs).components(separatedBy: ",")
-                    if attribs.contains("R") {
-                        // skip read-only properties
+                    if attribs.contains("R") || attribs.contains(where: { $0.hasPrefix("S") }) {
+                        // skip read-only properties, or properties with a nonstandard setter
                         continue
                     }
                     let objCType = String(attribs[0].unicodeScalars.dropFirst())

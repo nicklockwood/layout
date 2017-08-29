@@ -22,11 +22,7 @@ extension UITableView {
     }
 
     open override class func create(with node: LayoutNode) throws -> UITableView {
-        var style = UITableViewStyle.plain
-        if let expression = node.expressions["style"],
-            let styleExpression = LayoutExpression(expression: expression, type: tableViewStyle, for: node) {
-            style = try styleExpression.evaluate() as! UITableViewStyle
-        }
+        let style = try node.value(forExpression: "style") as? UITableViewStyle ?? .plain
         let tableView = self.init(frame: .zero, style: style)
         tableView.enableAutoSizing()
         objc_setAssociatedObject(tableView, &layoutNodeKey, Box(node), .OBJC_ASSOCIATION_RETAIN)
@@ -42,9 +38,14 @@ extension UITableView {
         sectionFooterHeight = UITableViewAutomaticDimension
     }
 
+    open override class var parameterTypes: [String: RuntimeType] {
+        return [
+            "style": tableViewStyle,
+        ]
+    }
+
     open override class var expressionTypes: [String: RuntimeType] {
         var types = super.expressionTypes
-        types["style"] = tableViewStyle
         types["separatorStyle"] = RuntimeType(UITableViewCellSeparatorStyle.self, [
             "none": .none,
             "singleLine": .singleLine,
@@ -60,38 +61,30 @@ extension UITableView {
         return types
     }
 
-    open override func setValue(_ value: Any, forExpression name: String) throws {
-        switch name {
-        case "style":
-            break // Ignore this - we set it during creation
-        default:
-            try super.setValue(value, forExpression: name)
-        }
-    }
-
     open override func didInsertChildNode(_ node: LayoutNode, at index: Int) {
         let hadView = (node._view != nil)
+        var isCell = false
         switch node.viewClass {
-        case is UITableViewCell.Type, is UITableViewHeaderFooterView.Type:
+        case is UITableViewCell.Type:
+            isCell = true
+            fallthrough
+        case is UITableViewHeaderFooterView.Type:
             // TODO: it would be better if we never added cell template nodes to
             // the hierarchy, rather than having to remove them afterwards
             node.removeFromParent()
-            if let expression = node.expressions["reuseIdentifier"], let idExpression = LayoutExpression(
-                expression: expression,
-                type: RuntimeType(String.self),
-                for: node
-            ) {
-                if let reuseIdentifier = try? idExpression.evaluate() as! String {
-                    if node.viewClass is UITableViewCell.Type {
+            do {
+                if let reuseIdentifier = try node.value(forExpression: "reuseIdentifier") as? String {
+                    if isCell {
                         registerLayout(Layout(node), forReuseIdentifier: reuseIdentifier, key: &cellDataKey)
                     } else {
                         registerLayout(Layout(node), forReuseIdentifier: reuseIdentifier, key: &headerDataKey)
                     }
+                } else {
+                    let viewType = isCell ? "UITableViewCell" : "UITableViewHeaderFooterView"
+                    layoutError(.message("\(viewType) template missing reuseIdentifier"))
                 }
-            } else if node.viewClass is UITableViewCell.Type {
-                layoutError(.message("UITableViewCell template missing reuseIdentifier"))
-            } else {
-                layoutError(.message("UITableViewHeaderFooterView template missing reuseIdentifier"))
+            } catch {
+                layoutError(LayoutError(error))
             }
         default:
             if tableHeaderView == nil {
@@ -144,11 +137,7 @@ extension UITableView {
 
 extension UITableViewController {
     open override class func create(with node: LayoutNode) throws -> UITableViewController {
-        var style = UITableViewStyle.plain
-        if let expression = node.expressions["style"] ?? node.expressions["tableView.style"],
-            let styleExpression = LayoutExpression(expression: expression, type: tableViewStyle, for: node) {
-            style = try styleExpression.evaluate() as! UITableViewStyle
-        }
+        let style = try node.value(forExpression: "style") as? UITableViewStyle ?? .plain
         let viewController = self.init(style: style)
         if !node.children.contains(where: { $0.viewClass is UITableView.Type }) {
             viewController.tableView.enableAutoSizing()
@@ -159,9 +148,14 @@ extension UITableViewController {
         return viewController
     }
 
+    open override class var parameterTypes: [String: RuntimeType] {
+        return [
+            "style": tableViewStyle,
+        ]
+    }
+
     open override class var expressionTypes: [String: RuntimeType] {
         var types = super.expressionTypes
-        types["style"] = tableViewStyle
         for (key, type) in UITableView.cachedExpressionTypes {
             types["tableView.\(key)"] = type
         }
@@ -170,8 +164,6 @@ extension UITableViewController {
 
     open override func setValue(_ value: Any, forExpression name: String) throws {
         switch name {
-        case "style":
-            break // Ignore this - we set it during creation
         case _ where name.hasPrefix("tableView."):
             try tableView.setValue(value, forExpression: name.substring(from: "tableView.".endIndex))
         default:
@@ -422,11 +414,7 @@ extension UITableViewHeaderFooterView {
     }
 
     open override class func create(with node: LayoutNode) throws -> UITableViewHeaderFooterView {
-        var reuseIdentifier: String?
-        if let expression = node.expressions["reuseIdentifier"],
-            let idExpression = LayoutExpression(expression: expression, type: RuntimeType(String.self), for: node) {
-            reuseIdentifier = try idExpression.evaluate() as? String
-        }
+        let reuseIdentifier = try node.value(forExpression: "reuseIdentifier") as? String
         let view = self.init() // Workaround for `self.init(reuseIdentifier:)` causing build failure
         view.setValue(reuseIdentifier, forKey: "reuseIdentifier")
         if node.expressions.keys.contains(where: { $0.hasPrefix("backgroundView.") }),
@@ -438,9 +426,15 @@ extension UITableViewHeaderFooterView {
         return view
     }
 
+    open override class var parameterTypes: [String: RuntimeType] {
+        return [
+            "reuseIdentifier": RuntimeType(String.self),
+        ]
+    }
+
     open override class var expressionTypes: [String: RuntimeType] {
         var types = super.expressionTypes
-        types["reuseIdentifier"] = RuntimeType(String.self)
+        types["backgroundColor"] = .unavailable("Setting backgroundColor on UITableViewHeaderFooterView is not supported. Use contentView.backgroundColor instead.")
         types["editingAccessoryType"] = types["accessoryType"]
         for (key, type) in UIView.expressionTypes {
             types["contentView.\(key)"] = type
@@ -451,17 +445,6 @@ extension UITableViewHeaderFooterView {
             types["detailTextLabel.\(key)"] = type
         }
         return types
-    }
-
-    open override func setValue(_ value: Any, forExpression name: String) throws {
-        switch name {
-        case "reuseIdentifier":
-            break // Ignore this - we set it during creation
-        case "backgroundColor":
-            throw LayoutError.message("Setting backgroundColor on UITableViewHeaderFooterView is not supported. Use contentView.backgroundColor instead.")
-        default:
-            try super.setValue(value, forExpression: name)
-        }
     }
 
     open override func didInsertChildNode(_ node: LayoutNode, at index: Int) {
@@ -499,16 +482,8 @@ extension UITableViewCell {
     }
 
     open override class func create(with node: LayoutNode) throws -> UITableViewCell {
-        var style = UITableViewCellStyle.default
-        if let expression = node.expressions["style"],
-            let styleExpression = LayoutExpression(expression: expression, type: tableViewCellStyle, for: node) {
-            style = try styleExpression.evaluate() as! UITableViewCellStyle
-        }
-        var reuseIdentifier: String?
-        if let expression = node.expressions["reuseIdentifier"],
-            let idExpression = LayoutExpression(expression: expression, type: RuntimeType(String.self), for: node) {
-            reuseIdentifier = try idExpression.evaluate() as? String
-        }
+        let style = try node.value(forExpression: "style") as? UITableViewCellStyle ?? .default
+        let reuseIdentifier = try node.value(forExpression: "reuseIdentifier") as? String
         let cell: UITableViewCell
         if self == UITableViewCell.self {
             cell = UITableViewCell(style: style, reuseIdentifier: reuseIdentifier)
@@ -530,10 +505,15 @@ extension UITableViewCell {
         return cell
     }
 
+    open override class var parameterTypes: [String: RuntimeType] {
+        return [
+            "style": tableViewCellStyle,
+            "reuseIdentifier": RuntimeType(String.self),
+        ]
+    }
+
     open override class var expressionTypes: [String: RuntimeType] {
         var types = super.expressionTypes
-        types["style"] = tableViewCellStyle
-        types["reuseIdentifier"] = RuntimeType(String.self)
         types["selectionStyle"] = RuntimeType(UITableViewCellSelectionStyle.self, [
             "none": .none,
             "blue": .blue,
@@ -565,15 +545,6 @@ extension UITableViewCell {
             types["detailTextLabel.\(key)"] = type
         }
         return types
-    }
-
-    open override func setValue(_ value: Any, forExpression name: String) throws {
-        switch name {
-        case "style", "reuseIdentifier":
-            break // Ignore this - we set it during creation
-        default:
-            try super.setValue(value, forExpression: name)
-        }
     }
 
     open override func didInsertChildNode(_ node: LayoutNode, at index: Int) {

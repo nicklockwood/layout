@@ -18,28 +18,7 @@ private class Box {
     }
 }
 
-extension UICollectionView {
-    fileprivate weak var layoutNode: LayoutNode? {
-        return (objc_getAssociatedObject(self, &layoutNodeKey) as? Box)?.node
-    }
-
-    open override class func create(with node: LayoutNode) throws -> UICollectionView {
-        let layout: UICollectionViewLayout
-        if let expression = node.expressions["collectionViewLayout"], let layoutExpression = LayoutExpression(
-            expression: expression,
-            type: RuntimeType(UICollectionViewLayout.self),
-            for: node
-        ) {
-            layout = try layoutExpression.evaluate() as! UICollectionViewLayout
-        } else {
-            layout = defaultLayout(for: node)
-        }
-        let collectionView = self.init(frame: .zero, collectionViewLayout: layout)
-        collectionView.register(UICollectionViewCell.self, forCellWithReuseIdentifier: placeholderID)
-        objc_setAssociatedObject(collectionView, &layoutNodeKey, Box(node), .OBJC_ASSOCIATION_RETAIN)
-        return collectionView
-    }
-
+extension UICollectionViewLayout {
     fileprivate static func defaultLayout(for node: LayoutNode) -> UICollectionViewFlowLayout {
         let flowLayout = UICollectionViewFlowLayout()
         if node.expressions["collectionViewLayout.itemSize"] ??
@@ -53,6 +32,20 @@ extension UICollectionView {
             flowLayout.itemSize = CGSize(width: UIViewNoIntrinsicMetric, height: UIViewNoIntrinsicMetric)
         }
         return flowLayout
+    }
+}
+
+extension UICollectionView {
+    fileprivate weak var layoutNode: LayoutNode? {
+        return (objc_getAssociatedObject(self, &layoutNodeKey) as? Box)?.node
+    }
+
+    open override class func create(with node: LayoutNode) throws -> UICollectionView {
+        let layout = try node.value(forExpression: "collectionViewLayout") as? UICollectionViewLayout ?? .defaultLayout(for: node)
+        let collectionView = self.init(frame: .zero, collectionViewLayout: layout)
+        collectionView.register(UICollectionViewCell.self, forCellWithReuseIdentifier: placeholderID)
+        objc_setAssociatedObject(collectionView, &layoutNodeKey, Box(node), .OBJC_ASSOCIATION_RETAIN)
+        return collectionView
     }
 
     open override class var expressionTypes: [String: RuntimeType] {
@@ -78,16 +71,14 @@ extension UICollectionView {
             // TODO: it would be better if we never added cell template nodes to
             // the hierarchy, rather than having to remove them afterwards
             node.removeFromParent()
-            if let expression = node.expressions["reuseIdentifier"], let idExpression = LayoutExpression(
-                expression: expression,
-                type: RuntimeType(String.self),
-                for: node
-            ) {
-                if let reuseIdentifier = try? idExpression.evaluate() as! String {
+            do {
+                if let reuseIdentifier = try node.value(forExpression: "reuseIdentifier") as? String {
                     registerLayout(Layout(node), forCellReuseIdentifier: reuseIdentifier)
+                } else {
+                    layoutError(.message("UICollectionViewCell template missing reuseIdentifier"))
                 }
-            } else {
-                layoutError(.message("UICollectionViewCell template missing reuseIdentifier"))
+            } catch {
+                layoutError(LayoutError(error))
             }
         default:
             if backgroundView == nil {
@@ -155,16 +146,7 @@ extension UICollectionView: LayoutDelegate {
 
 extension UICollectionViewController {
     open override class func create(with node: LayoutNode) throws -> UICollectionViewController {
-        let layout: UICollectionViewLayout
-        if let expression = node.expressions["collectionViewLayout"], let layoutExpression = LayoutExpression(
-            expression: expression,
-            type: RuntimeType(UICollectionViewLayout.self),
-            for: node
-        ) {
-            layout = try layoutExpression.evaluate() as! UICollectionViewLayout
-        } else {
-            layout = UICollectionView.defaultLayout(for: node)
-        }
+        let layout = try node.value(forExpression: "collectionViewLayout") as? UICollectionViewLayout ?? .defaultLayout(for: node)
         let viewController = self.init(collectionViewLayout: layout)
         if !node.children.contains(where: { $0.viewClass is UICollectionView.Type }) {
             viewController.collectionView?.register(UICollectionViewCell.self, forCellWithReuseIdentifier: placeholderID)
@@ -177,6 +159,7 @@ extension UICollectionViewController {
 
     open override class var expressionTypes: [String: RuntimeType] {
         var types = super.expressionTypes
+        types["collectionViewLayout"] = RuntimeType(UICollectionViewFlowLayout.self)
         for (key, type) in UICollectionViewFlowLayout.allPropertyTypes() {
             types["collectionViewLayout.\(key)"] = type
         }
@@ -189,6 +172,10 @@ extension UICollectionViewController {
 
     open override func setValue(_ value: Any, forExpression name: String) throws {
         switch name {
+        case "collectionViewLayout":
+            collectionView?.collectionViewLayout = value as! UICollectionViewLayout
+        case _ where name.hasPrefix("collectionViewLayout."):
+            try collectionView?.setValue(value, forExpression: name)
         case _ where name.hasPrefix("collectionView."):
             try collectionView?.setValue(value, forExpression: name.substring(from: "collectionView.".endIndex))
         default:
@@ -337,9 +324,12 @@ extension UICollectionViewCell {
         throw LayoutError.message("UICollectionViewCells must be created by UICollectionView")
     }
 
+    open override class var parameterTypes: [String: RuntimeType] {
+        return ["reuseIdentifier": RuntimeType(String.self)]
+    }
+
     open override class var expressionTypes: [String: RuntimeType] {
         var types = super.expressionTypes
-        types["reuseIdentifier"] = RuntimeType(String.self)
         for (key, type) in UIView.expressionTypes {
             types["contentView.\(key)"] = type
             types["backgroundView.\(key)"] = type
@@ -349,20 +339,14 @@ extension UICollectionViewCell {
     }
 
     open override func setValue(_ value: Any, forExpression name: String) throws {
-        switch name {
-        case "reuseIdentifier":
-            break // Ignore this, it's only used for template cells
-        default:
-            if name.hasPrefix("backgroundView."), backgroundView == nil {
-                // Add a backgroundView view if required
-                backgroundView = UIView(frame: bounds)
-            }
-            if name.hasPrefix("selectedBackgroundView."), selectedBackgroundView == nil {
-                // Add a selectedBackgroundView view if required
-                selectedBackgroundView = UIView(frame: bounds)
-            }
-            try super.setValue(value, forExpression: name)
+        if name.hasPrefix("backgroundView."), backgroundView == nil {
+            // Add a backgroundView view if required
+            backgroundView = UIView(frame: bounds)
+        } else if name.hasPrefix("selectedBackgroundView."), selectedBackgroundView == nil {
+            // Add a selectedBackgroundView view if required
+            selectedBackgroundView = UIView(frame: bounds)
         }
+        try super.setValue(value, forExpression: name)
     }
 
     open override func didInsertChildNode(_ node: LayoutNode, at index: Int) {

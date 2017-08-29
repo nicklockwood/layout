@@ -81,6 +81,11 @@ extension UIView {
         return types
     }
 
+    /// Constructor argument names and types
+    @objc open class var parameterTypes: [String: RuntimeType] {
+        return [:]
+    }
+
     /// Called to construct the view
     @objc open class func create(with _: LayoutNode) throws -> UIView {
         return self.init()
@@ -218,7 +223,6 @@ extension UIControl {
 }
 
 extension UIButton {
-
     open override class var expressionTypes: [String: RuntimeType] {
         var types = super.expressionTypes
         types["type"] = RuntimeType(UIButtonType.self, [
@@ -486,15 +490,12 @@ extension UITextView {
 extension UISegmentedControl {
     override open class func create(with node: LayoutNode) throws -> UISegmentedControl {
         var items = [Any]()
-        if let expression = node.expressions["items"],
-            let itemsExpression = LayoutExpression(expression: expression, type: RuntimeType(NSArray.self), for: node) {
-            for item in try itemsExpression.evaluate() as! [Any] {
-                switch item {
-                case is String, is UIImage:
-                    items.append(item)
-                default:
-                    throw LayoutError("\(type(of: item)) is not a valid item type for \(self.classForCoder())", for: node)
-                }
+        for item in try node.value(forExpression: "items") as? [Any] ?? [] {
+            switch item {
+            case is String, is UIImage:
+                items.append(item)
+            default:
+                throw LayoutError("\(type(of: item)) is not a valid item type for \(self.classForCoder())", for: node)
             }
         }
         return self.init(items: items)
