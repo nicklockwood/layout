@@ -30,15 +30,19 @@
     - [Fonts](#fonts)
     - [Attributed Strings](#attributed-strings)
     - [Optionals](#optionals)
+- [Standard Components](#standard-components)
+    - [UIControl](#uicontrol)
+    - [UIButton](#uibutton)
+    - [UISegmentedControl](#uisegmentedcontrol)
+    - [UIStackView](#uistackview)
+    - [UITableView](#uitableview)
+    - [UICollectionView](#uicollectionview)
 - [Custom Components](#custom-components)
     - [Namespacing](#namespacing)
     - [Custom Property Types](#custom-property-types)
 - [Advanced Topics](#advanced-topics)
     - [Layout-based Components](#layout-based-components)
     - [Manual Integration](#manual-integration)
-    - [Table Views](#table-views)
-    - [Collection Views](#collection-views)
-    - [Stack Views](#stack-views)
     - [Composition](#composition)
     - [Templates](#templates)
     - [Parameters](#parameters)
@@ -900,146 +904,167 @@ In this example, if the `col` constant is `nil`, we return a default color of wh
 <UIView backgroundColor="col ?? #fff"/>
 ```
 
-# Custom Components
+# Standard Components
 
-Layout has good support for most built-in UIKit views and view controllers out of the box, but it can also be used with custom UI components that you create yourself. If you follow standard conventions for your view interfaces, then for the most part these should *just work*, however you may need to take some extra steps for full compatibility:
+Layout has good support for most built-in UIKit views and view controllers. It can automatically create any `UIView` subclass using `init(frame:)`, and can set any property that is compatible with Key Value Coding (KVC), but some views expect extra intitializer arguments, or have properties that cannot be set by name at runtime, or which require special treatment for other reasons.
 
+The following views and view controllers are known to work correctly, and do not require  any special treatment:
 
-## Namespacing
+* UIView
+* UIViewController
+* UIImageView
+* UILabel
+* UITextField
+* UITextView
 
-As you are probably aware, Swift classes are scoped to a particular module. If you have an app called MyApp and it declares a custom `UIView` subclass called `FooView`, then the fully-qualified class name of the view would be `MyApp.FooView`, not just `FooView`, as it would have been in Objective-C.
+The views listed below are ones that have been given special treatment to make them work better with Layout. If a view is not listed here, it will probably work to some extent, but may need to be partially configured using Swift code. If you encounter such cases, please report them on [Github](https://github.com/schibsted/layout/) so we can add better support for them in future.
 
-Layout deals with the common case for you by inserting the main module's namespace automatically if you don't include it yourself. Either of these will work for referencing a custom view in your XML:
+To configure a view programmatically, create an outlet for it in your XML file:
 
 ```xml
-<MyApp.FooView/>
-
-<FooView/>
+<SomeView outlet="someView"/>
 ```
 
-In the interests of avoiding boilerplate, you should generally use the latter form. However, if you package custom components into a separate module then you will need to refer to them using their fully-qualified name in your XML.
-
-
-## Custom Property Types
-
-As mentioned above, Layout uses the Objective-C runtime to automatically detect property names and types for use with expressions. The Objective-C runtime only supports a subset of possible Swift types, and even for Objective-C types, some runtime information is lost. For example, it's impossible to automatically detect the valid set of raw values and case names for enum types at runtime.
-
-There are also some situations where properties may be exposed in a way that doesn't show up as an Objective-C property at runtime, or the property setter may not be compatible with KVC (Key-Value Coding), resulting in a crash when it is accessed using `setValue(forKey:)`.
-
-To solve this, it is possible to manually expose additional properties and custom setters/getters for views by using an extension. The Layout framework already uses this feature to expose constants for many of the common UIKit enums, but if you are using a 3rd party component, or creating your own, you may need to write an extension to properly support configuration via Layout expressions.
-
-To generate a property type and setter for a custom view, create an extension as follows:
+Then you can perform the configuration in your view controller:
 
 ```swift
-extension MyView {
-
-    open override class var expressionTypes: [String: RuntimeType] {
-        var types = super.expressionTypes
-        types["myProperty"] = RuntimeType(...)
-        return types
-    }
-
-    open override func setValue(_ value: Any, forExpression name: String) throws {
-        switch name {
-        case "myProperty":
-            self.myProperty = values as! ...
-        default:
-            try super.setValue(value, forExpression: name)
-        }
+@IBOutlet weak var someView: SomeView {
+    didSet {
+        someView?.someProperty = foo
     }
 }
 ```
 
-These two overrides add "myProperty" to the list of known expressions for that view, and provide a static setter method for the property.
 
-The `RuntimeType` class shown in the example is a type wrapper used by Layout to work around the limitations of the Swift type system. It can encapsulate information such as the list of possible values for a given enum, which it is not possible to determine automatically at runtime.
+## UIControl
 
-`RuntimeType` can be used to wrap any Swift type, for example:
+`UIControl` requires some special treatment because of the way that action binding is performed. Every `UIControl` has an `addTarget(_:action:for:)` method used for binding methods to specific events. Since Layout is limited to setting properties, there's no direct way to call this method, so instead actions are exposed to Layout using the following pseudo-properties:
 
-```swift
-RuntimeType(MyStructType.self)
+* touchDown
+* touchDownRepeat
+* touchDragInside
+* touchDragOutside
+* touchDragEnter
+* touchDragExit
+* touchUpInside
+* touchUpOutside
+* touchCancel
+* valueChanged
+* primaryActionTriggered
+* editingDidBegin
+* editingChanged
+* editingDidEnd
+* editingDidEndOnExit
+* allTouchEvents
+* allEditingEvents
+* allEvents
+
+These properties are of type `Selector`, and can be set to the name of a method on your view controller. For more details, see the [Actions](#actions) section above.
+
+
+## UIButton
+
+`UIButton` has the ability to change various appearance properties based on its current `UIControlState`, but the API for specifying these properties is method-based rather than property-based, so cannot be exposed directly to Layout. Instead, Layout provides pseudo-properties for each state:
+
+* title
+* highlightedTitle
+* disabledTitle
+* selectedTitle
+* focusedTitle
+* attributedTitle
+* highlightedAttributedTitle
+* disabledAttributedTitle
+* selectedAttributedTitle
+* focusedAttributedTitle
+* titleColor
+* highlightedTitleColor
+* disabledTitleColor
+* selectedTitleColor
+* focusedTitleColor
+* titleShadowColor
+* highlightedTitleShadowColor
+* disabledTitleShadowColor
+* selectedTitleShadowColor
+* focusedTitleShadowColor
+* image
+* highlightedImage
+* disabledImage
+* selectedImage
+* focusedImage
+* backgroundImage
+* highlightedBackgroundImage
+* disabledBackgroundImage
+* selectedBackgroundImage
+* focusedBackgroundImage
+
+
+## UISegmentedControl
+
+`UISegmentedControl` contains a number of segments, each of which can display either an image or title. This is set up using the `init(items:)` constructor, which accepts an array of String or UIImage elements.
+
+Layout exposes this using an `items` expression, however there is no way to specify an array literal in a Layout expression currently, so you will need to pass the array of items using a constant or state variable:
+
+```xml
+<UISegmentedControl items="segmentItems"/>
 ```
 
-It can also be used to specify a set of enum values:
-
 ```swift
-RuntimeType(NSTextAlignment.self, [
-    "left": .left,
-    "right": .right,
-    "center": .center,
-])
+loadLayout(
+    named: "MyLayout.xml",
+    state: [
+        "segmentItems": ["Hello", UIImage(named: "Icon")]
+    ]
+)
 ```
 
-Swift enum values cannot be set automatically using the Objective-C runtime, but if the underlying type of the property matches the `rawValue` (as is the case for most Objective-C APIs) then it's typically not necessary to also provide a custom `setValue(forExpression:)` implementation. You'll have to determine this by testing it on a per-case basis.
-
-
-# Advanced Topics
-
-## Layout-based Components
-
-If you are creating a library of views or controllers that use Layout internally, it probably doesn't make sense to base each component on a subclass of `LayoutViewController`. Ideally there should only be one `LayoutViewController` visible on-screen at once, otherwise the meaning of "reload" becomes ambiguous.
-
-If the consumers of your component library are using `Layout`, then you could expose all your components as xml files and allow them to be composed directly using Layout templates or code, but if you want the library to work well with an ordinary UIKit app, then it is better if each component is exposed as a regular `UIView` or `UIViewController` subclass.
-
-To implement this, you can make use of the `LayoutLoading` protocol. `LayoutLoading` works in the same way as `LayoutViewController`, providing `loadLayout(...)` and `reloadLayout(...)` methods to load the subviews of your view or view controller using Layout templates.
-
-Unlike `LayoutViewController`,  `LayoutLoading` provides no Red Box error console or reloading keyboard shortcuts, and because it is a protocol rather than a base class, it can be applied on top of any existing `UIView` or `UIViewController` base class that you require.
-
-The default implementation of `LayoutLoading` will bubble errors up the responder chain to the first view or view controller that handles them. If the `LayoutLoading` view or view controller is placed inside a root `LayoutViewController`, it will therefore gain all the same debugging benefits as using a `LayoutViewController` base class:
+`UISegmentedControl` also has methods for inserting, removing or updating the segment titles and images, but again this API is not suitable for use with Layout, so instead Layout makes the `items` array available as a pseudo property that can be update at any time. So if you were to change the `segmentItems` state in Swift, the component would update: 
 
 ```swift
-class MyView: UIView, LayoutLoading {
-
-    public override init(frame: CGRect) {
-        super.init(frame: frame)
-
-        loadLayout(
-            named: "MyView.mxl",
-            state: ...,
-            constants: ...,
-        )
-    }
-}
+layoutNode?.setState(["segmentItems": ["Goodbye", UIImage(named: "DifferentIcon")]], animated: true)
 ```
 
-## Manual Integration
+Like `UIButton`, `UISegmentedControl` also has style properties that can vary based on the `UIControlState`, and these are supported in the same way, using pseudo-properties. **Note:** Only a subset of style properties are currently supported:
 
-If you would prefer not to use either the `LayoutViewController` base class or `LayoutLoading` protocol, you can mount a `LayoutNode` directly into a regular view or view controller by using the `mount(in:)` method:
+* backgroundImage
+* highlightedBackgroundImage
+* disabledBackgroundImage
+* selectedBackgroundImage
+* focusedBackgroundImage
+* titleColor
+* highlightedTitleColor
+* disabledTitleColor
+* selectedTitleColor
+* focusedTitleColor
+* titleFont
+* highlightedTitleUIFont
+* disabledTitleUIFont
+* selectedTitleUIFont
+* focusedTitleUIFont
 
-```swift
-class MyViewController: UIViewController {
-    var layoutNode: LayoutNode?
 
-    public override func viewDidLoad() {
-        super.viewDidLoad()
+## UIStackView
 
-        // Create a layout node from and XML file or data object
-        self.layoutNode = try? LayoutNode.with(xmlData: ...)
+You can use Layout's expressions to create arbitrarily complex layouts, but sometimes the expressions required to describe relationships between siblings can be quite verbose, and it would be nice to be able to use something more like [flexbox](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Flexible_Box_Layout/Using_CSS_flexible_boxes) to describe the overall arrangement for a collection of views.
 
-        // Mount it
-        try? self.layoutNode?.mount(in: self)
-    }
+Layout has full support for UIKit's `UIStackView` class, which you can use for flexbox-like collections in situations where `UITableView` or `UICollectionView` would be overkill. Here is an example of a simple vertical stack:
 
-    public override func viewWillLayoutSubviews() {
-        super.viewWillLayoutSubviews()
-
-        // Ensure layout is resized after screen rotation, etc
-        self.layoutNode?.update()
-    }
-}
+```xml
+<UIStackView
+    alignment="center"
+    axis="vertical"
+    spacing="10">
+    
+    <UILabel text="First row"/>
+    <UILabel text="Second row"/>
+</UIStackView>
 ```
-This method of integration does not provide the automatic live reloading feature for local XML files, nor the Red Box debugging interface - both of those are implemented internally by the `LayoutViewController`.
 
-If you are using some fancy architecture like [Viper](https://github.com/MindorksOpenSource/iOS-Viper-Architecture) that splits up view controllers into sub-components, you may find that you need to bind a `LayoutNode` to something other than a `UIView` or `UIViewController` subclass. In that case you can use the `bind(to:)` method, which will connect the node's outlets, actions and delegates to the specified owner object, but won't attempt to mount the view or view controllers.
+Subview nodes nested inside a `UIStackView` are automatically added to the stack view's `arrangedSubviews` array. The `width` and `height` properties are respected for children of a `UIStackView`, but the `top`, `left`, `bottom` and `right` are ignored.
 
-The `mount(in:)` and `bind(to:)` methods may each throw an error if there is a problem with your XML markup, or in an expression's syntax or symbols.
-
-These errors are not expected to occur in a correctly implemented layout - they typically only happen if you have made a mistake in your code - so for release builds it should be OK to suppress them with `try!` or `try?` (assuming you've tested your app properly before releasing it!).
-
-If you are loading XML templates from an external source, you might prefer to catch and log these errors instead of allowing them to crash or fail silently, as there is a greater likelihood of an error making it into production if templates and native code are updated independently.
+Since `UIStackView` is a non-drawing view, only its position and layout attributes can be configured. Inherited `UIView` properties such as `backgroundColor` or `borderWidth` are unavailable.
 
 
-## Table Views
+## UITableView
 
 You can use a `UITableView` inside a Layout template in much the same way as you would use any other view:
 
@@ -1182,7 +1207,7 @@ If you prefer you can create a `<UITableViewController/>` in your XML instead of
 ```
 
 
-## Collection Views
+## UICollectionView
 
 Layout supports `UICollectionView` in a similar way to `UITableView`. If you do not specify a custom `UICollectionViewLayout`, Layout assumes that you want to use a `UICollectionViewFlowLayout`, and creates one for you automatically. When using a `UICollectionViewFlowLayout`, you can configure its properties using expressions on the collection view, prefixed with `collectionViewLayout.`:
 
@@ -1268,26 +1293,143 @@ Layout does not currently support using XML to define supplementary `UICollectio
 Layout supports the use of `UICollectionViewController`, with the same caveats as for `UITableViewController`.
 
 
-## Stack Views
+# Custom Components
 
-You can use Layout's expressions to create arbitrarily complex layouts, but sometimes the expressions required to describe relationships between siblings can be quite verbose, and it would be nice to be able to use something more like [flexbox](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Flexible_Box_Layout/Using_CSS_flexible_boxes) to describe the overall arrangement for a collection of views.
+As covered in the [Standard Components](#standard-components) section above, Layout can create and configure most built-in views and properties automatically without needing any special support, but sometimes a view requires special treatment. The same applies to custom UI components that you create yourself. If you follow standard conventions for your view interfaces, then for the most part these should *just work*, however you may need to take some extra steps for full compatibility:
 
-Layout has full support for UIKit's `UIStackView` class, which you can use for flexbox-like collections in situations where `UITableView` or `UICollectionView` would be overkill. Here is an example of a simple vertical stack:
+
+## Namespacing
+
+As you are probably aware, Swift classes are scoped to a particular module. If you have an app called MyApp and it declares a custom `UIView` subclass called `FooView`, then the fully-qualified class name of the view would be `MyApp.FooView`, not just `FooView`, as it would have been in Objective-C.
+
+Layout deals with the common case for you by inserting the main module's namespace automatically if you don't include it yourself. Either of these will work for referencing a custom view in your XML:
 
 ```xml
-<UIStackView
-    alignment="center"
-    axis="vertical"
-    spacing="10">
-    
-    <UILabel text="First row"/>
-    <UILabel text="Second row"/>
-</UIStackView>
+<MyApp.FooView/>
+
+<FooView/>
 ```
 
-Subview nodes nested inside a `UIStackView` are automatically added to the stack view's `arrangedSubviews` array. The `width` and `height` properties are respected for children of a `UIStackView`, but the `top`, `left`, `bottom` and `right` are ignored.
+In the interests of avoiding boilerplate, you should generally use the latter form. However, if you package custom components into a separate module then you will need to refer to them using their fully-qualified name in your XML.
 
-Since `UIStackView` is a non-drawing view, only its position and layout attributes can be configured. Inherited `UIView` properties such as `backgroundColor` or `borderWidth` are unavailable.
+
+## Custom Property Types
+
+As mentioned above, Layout uses the Objective-C runtime to automatically detect property names and types for use with expressions. The Objective-C runtime only supports a subset of possible Swift types, and even for Objective-C types, some runtime information is lost. For example, it's impossible to automatically detect the valid set of raw values and case names for enum types at runtime.
+
+There are also some situations where properties may be exposed in a way that doesn't show up as an Objective-C property at runtime, or the property setter may not be compatible with KVC (Key-Value Coding), resulting in a crash when it is accessed using `setValue(forKey:)`.
+
+To solve this, it is possible to manually expose additional properties and custom setters/getters for views by using an extension. The Layout framework already uses this feature to expose constants for many of the common UIKit enums, but if you are using a 3rd party component, or creating your own, you may need to write an extension to properly support configuration via Layout expressions.
+
+To generate a property type and setter for a custom view, create an extension as follows:
+
+```swift
+extension MyView {
+
+    open override class var expressionTypes: [String: RuntimeType] {
+        var types = super.expressionTypes
+        types["myProperty"] = RuntimeType(...)
+        return types
+    }
+
+    open override func setValue(_ value: Any, forExpression name: String) throws {
+        switch name {
+        case "myProperty":
+            self.myProperty = values as! ...
+        default:
+            try super.setValue(value, forExpression: name)
+        }
+    }
+}
+```
+
+These two overrides add "myProperty" to the list of known expressions for that view, and provide a static setter method for the property.
+
+The `RuntimeType` class shown in the example is a type wrapper used by Layout to work around the limitations of the Swift type system. It can encapsulate information such as the list of possible values for a given enum, which it is not possible to determine automatically at runtime.
+
+`RuntimeType` can be used to wrap any Swift type, for example:
+
+```swift
+RuntimeType(MyStructType.self)
+```
+
+It can also be used to specify a set of enum values:
+
+```swift
+RuntimeType(NSTextAlignment.self, [
+    "left": .left,
+    "right": .right,
+    "center": .center,
+])
+```
+
+Swift enum values cannot be set automatically using the Objective-C runtime, but if the underlying type of the property matches the `rawValue` (as is the case for most Objective-C APIs) then it's typically not necessary to also provide a custom `setValue(forExpression:)` implementation. You'll have to determine this by testing it on a per-case basis.
+
+
+# Advanced Topics
+
+## Layout-based Components
+
+If you are creating a library of views or controllers that use Layout internally, it probably doesn't make sense to base each component on a subclass of `LayoutViewController`. Ideally there should only be one `LayoutViewController` visible on-screen at once, otherwise the meaning of "reload" becomes ambiguous.
+
+If the consumers of your component library are using `Layout`, then you could expose all your components as xml files and allow them to be composed directly using Layout templates or code, but if you want the library to work well with an ordinary UIKit app, then it is better if each component is exposed as a regular `UIView` or `UIViewController` subclass.
+
+To implement this, you can make use of the `LayoutLoading` protocol. `LayoutLoading` works in the same way as `LayoutViewController`, providing `loadLayout(...)` and `reloadLayout(...)` methods to load the subviews of your view or view controller using Layout templates.
+
+Unlike `LayoutViewController`,  `LayoutLoading` provides no Red Box error console or reloading keyboard shortcuts, and because it is a protocol rather than a base class, it can be applied on top of any existing `UIView` or `UIViewController` base class that you require.
+
+The default implementation of `LayoutLoading` will bubble errors up the responder chain to the first view or view controller that handles them. If the `LayoutLoading` view or view controller is placed inside a root `LayoutViewController`, it will therefore gain all the same debugging benefits as using a `LayoutViewController` base class:
+
+```swift
+class MyView: UIView, LayoutLoading {
+
+    public override init(frame: CGRect) {
+        super.init(frame: frame)
+
+        loadLayout(
+            named: "MyView.mxl",
+            state: ...,
+            constants: ...,
+        )
+    }
+}
+```
+
+## Manual Integration
+
+If you would prefer not to use either the `LayoutViewController` base class or `LayoutLoading` protocol, you can mount a `LayoutNode` directly into a regular view or view controller by using the `mount(in:)` method:
+
+```swift
+class MyViewController: UIViewController {
+    var layoutNode: LayoutNode?
+
+    public override func viewDidLoad() {
+        super.viewDidLoad()
+
+        // Create a layout node from and XML file or data object
+        self.layoutNode = try? LayoutNode.with(xmlData: ...)
+
+        // Mount it
+        try? self.layoutNode?.mount(in: self)
+    }
+
+    public override func viewWillLayoutSubviews() {
+        super.viewWillLayoutSubviews()
+
+        // Ensure layout is resized after screen rotation, etc
+        self.layoutNode?.update()
+    }
+}
+```
+This method of integration does not provide the automatic live reloading feature for local XML files, nor the Red Box debugging interface - both of those are implemented internally by the `LayoutViewController`.
+
+If you are using some fancy architecture like [Viper](https://github.com/MindorksOpenSource/iOS-Viper-Architecture) that splits up view controllers into sub-components, you may find that you need to bind a `LayoutNode` to something other than a `UIView` or `UIViewController` subclass. In that case you can use the `bind(to:)` method, which will connect the node's outlets, actions and delegates to the specified owner object, but won't attempt to mount the view or view controllers.
+
+The `mount(in:)` and `bind(to:)` methods may each throw an error if there is a problem with your XML markup, or in an expression's syntax or symbols.
+
+These errors are not expected to occur in a correctly implemented layout - they typically only happen if you have made a mistake in your code - so for release builds it should be OK to suppress them with `try!` or `try?` (assuming you've tested your app properly before releasing it!).
+
+If you are loading XML templates from an external source, you might prefer to catch and log these errors instead of allowing them to crash or fail silently, as there is a greater likelihood of an error making it into production if templates and native code are updated independently.
 
 
 ## Composition
