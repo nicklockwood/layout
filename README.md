@@ -34,6 +34,7 @@
     - [UIControl](#uicontrol)
     - [UIButton](#uibutton)
     - [UISegmentedControl](#uisegmentedcontrol)
+    - [UIStepper](#uistepper)
     - [UIStackView](#uistackview)
     - [UITableView](#uitableview)
     - [UICollectionView](#uicollectionview)
@@ -909,16 +910,31 @@ In this example, if the `col` constant is `nil`, we return a default color of wh
 
 Layout has good support for most built-in UIKit views and view controllers. It can automatically create any `UIView` subclass using `init(frame:)`, and can set any property that is compatible with Key Value Coding (KVC), but some views expect extra intitializer arguments, or have properties that cannot be set by name at runtime, or which require special treatment for other reasons.
 
-The following views and view controllers are known to work correctly, and do not require  any special treatment:
+The following views and view controllers have all been tested and are known to work correctly:
 
-* UIView
-* UIViewController
+* UIButton
+* UICollectionView
+* UICollectionViewCell
+* UICollectionViewController
+* UIControl
 * UIImageView
 * UILabel
+* UINavigationController
+* UISegmentedControl
+* UIStackView
+* UIStepper
+* UISwitch
+* UITabBarController
+* UITableView
+* UITableViewCell
+* UITableViewController
+* UITableViewHeaderFooterView
 * UITextField
 * UITextView
+* UIView
+* UIViewController
 
-The views listed below are ones that have been given special treatment to make them work better with Layout. If a view is not listed here, it will probably work to some extent, but may need to be partially configured using Swift code. If you encounter such cases, please report them on [Github](https://github.com/schibsted/layout/) so we can add better support for them in future.
+If a view is not listed here, it will probably work to some extent, but may need to be partially configured programmatically using Swift code. If you encounter such cases, please report them on [Github](https://github.com/schibsted/layout/) so we can add better support for them in future.
 
 To configure a view programmatically, create an outlet for it in your XML file:
 
@@ -935,6 +951,8 @@ Then you can perform the configuration in your view controller:
     }
 }
 ```
+
+In some cases, standard UIKit views and controllers have been extended with nonstandard properties or behaviors to help them interface better with Layout. These cases are listed below:
 
 
 ## UIControl
@@ -967,36 +985,23 @@ These properties are of type `Selector`, and can be set to the name of a method 
 
 `UIButton` has the ability to change various appearance properties based on its current `UIControlState`, but the API for specifying these properties is method-based rather than property-based, so cannot be exposed directly to Layout. Instead, Layout provides pseudo-properties for each state:
 
+To set for all states:
+
 * title
-* highlightedTitle
-* disabledTitle
-* selectedTitle
-* focusedTitle
 * attributedTitle
-* highlightedAttributedTitle
-* disabledAttributedTitle
-* selectedAttributedTitle
-* focusedAttributedTitle
 * titleColor
-* highlightedTitleColor
-* disabledTitleColor
-* selectedTitleColor
-* focusedTitleColor
 * titleShadowColor
-* highlightedTitleShadowColor
-* disabledTitleShadowColor
-* selectedTitleShadowColor
-* focusedTitleShadowColor
 * image
-* highlightedImage
-* disabledImage
-* selectedImage
-* focusedImage
 * backgroundImage
-* highlightedBackgroundImage
-* disabledBackgroundImage
-* selectedBackgroundImage
-* focusedBackgroundImage
+
+To set for specific states, where `[state]` can be one of `normal`, `highlighted`, `disabled`, `selected` or `focused`:
+
+* [state]Title
+* [state]AttributedTitle
+* [state]TitleColor
+* [state]TitleShadowColor
+* [state]Image
+* [state]BackgroundImage
 
 
 ## UISegmentedControl
@@ -1024,23 +1029,52 @@ loadLayout(
 layoutNode?.setState(["segmentItems": ["Goodbye", UIImage(named: "DifferentIcon")]], animated: true)
 ```
 
-Like `UIButton`, `UISegmentedControl` also has style properties that can vary based on the `UIControlState`, and these are supported in the same way, using pseudo-properties. **Note:** Only a subset of style properties are currently supported:
+Like `UIButton`, `UISegmentedControl` also has style properties that can vary based on the `UIControlState`, and these are supported in the same way, using pseudo-properties.
+
+To set for all states:
 
 * backgroundImage
-* highlightedBackgroundImage
-* disabledBackgroundImage
-* selectedBackgroundImage
-* focusedBackgroundImage
+* dividerImage
 * titleColor
-* highlightedTitleColor
-* disabledTitleColor
-* selectedTitleColor
-* focusedTitleColor
 * titleFont
-* highlightedTitleUIFont
-* disabledTitleUIFont
-* selectedTitleUIFont
-* focusedTitleUIFont
+
+To set for specific states, where `[state]` can be one of `normal`, `highlighted`, `disabled`, `selected` or `focused`:
+
+* [state]BackgroundImage
+* [state]TitleColor
+* [state]TitleFont
+
+**Note:** Setting `dividerImage` for different states is not currently supported due to limitations of the naming convention. It is also not currently possible to set different images for different `UIBarMetrics` values.
+
+You can also set the content offset for all segments using:
+
+* contentPositionAdjustment
+* contentPositionAdjustment.horizontal
+* contentPositionAdjustment.vertical
+
+Or for specific segments, where `[segment]` can be one of `any`, `left`, `center`, `right`, `alone`:
+
+* [segment]ContentPositionAdjustment
+* [segment]ContentPositionAdjustment.horizontal
+* [segment]ContentPositionAdjustment.vertical
+
+
+## UIStepper
+
+Like `UIButton` and `UISegmentedControl`, `UIStepper` also has state-based pseudo-properties:
+
+To set for all states:
+
+* backgroundImage
+* dividerImage
+* incrementImage
+* decrementImage
+
+To set for specific states, where `[state]` can be one of `normal`, `highlighted`, `disabled`, `selected` or `focused`:
+
+* [state]BackgroundImage
+* [state]IncrementImage
+* [state]DecrementImage
 
 
 ## UIStackView

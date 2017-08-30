@@ -154,6 +154,14 @@ private let controlEvents: [String: UIControlEvents] = [
     "allEvents": .allEvents,
 ]
 
+private let controlStates: [String: UIControlState] = [
+    "normal": .normal,
+    "highlighted": .highlighted,
+    "disabled": .disabled,
+    "selected": .selected,
+    "focused": .focused,
+]
+
 private var layoutActionsKey: UInt8 = 0
 extension UIControl {
     open override class var expressionTypes: [String: RuntimeType] {
@@ -234,50 +242,36 @@ extension UIButton {
             "contactAdd": .contactAdd,
         ])
         types["buttonType"] = types["type"]
-        // Title
         types["title"] = RuntimeType(String.self)
-        types["highlightedTitle"] = RuntimeType(String.self)
-        types["disabledTitle"] = RuntimeType(String.self)
-        types["selectedTitle"] = RuntimeType(String.self)
-        types["focusedTitle"] = RuntimeType(String.self)
-        // Attributed title
+        for state in controlStates.keys {
+            types["\(state)Title"] = RuntimeType(String.self)
+        }
         types["attributedTitle"] = RuntimeType(NSAttributedString.self)
-        types["highlightedAttributedTitle"] = RuntimeType(NSAttributedString.self)
-        types["disabledAttributedTitle"] = RuntimeType(NSAttributedString.self)
-        types["selectedAttributedTitle"] = RuntimeType(NSAttributedString.self)
-        types["focusedAttributedTitle"] = RuntimeType(NSAttributedString.self)
-        // Title color
+        for state in controlStates.keys {
+            types["\(state)AttributedTitle"] = RuntimeType(NSAttributedString.self)
+        }
         types["titleColor"] = RuntimeType(UIColor.self)
-        types["highlightedTitleColor"] = RuntimeType(UIColor.self)
-        types["disabledTitleColor"] = RuntimeType(UIColor.self)
-        types["selectedTitleColor"] = RuntimeType(UIColor.self)
-        types["focusedTitleColor"] = RuntimeType(UIColor.self)
-        // Title shadow color
+        for state in controlStates.keys {
+            types["\(state)TitleColor"] = RuntimeType(UIColor.self)
+        }
         types["titleShadowColor"] = RuntimeType(UIColor.self)
-        types["highlightedTitleShadowColor"] = RuntimeType(UIColor.self)
-        types["disabledTitleShadowColor"] = RuntimeType(UIColor.self)
-        types["selectedTitleShadowColor"] = RuntimeType(UIColor.self)
-        types["focusedTitleShadowColor"] = RuntimeType(UIColor.self)
-        // Title label
+        for state in controlStates.keys {
+            types["\(state)TitleShadowColor"] = RuntimeType(UIColor.self)
+        }
         for (name, type) in UILabel.allPropertyTypes() {
             types["titleLabel.\(name)"] = type
         }
-        // Image
         types["image"] = RuntimeType(UIImage.self)
-        types["highlightedImage"] = RuntimeType(UIImage.self)
-        types["disabledImage"] = RuntimeType(UIImage.self)
-        types["selectedImage"] = RuntimeType(UIImage.self)
-        types["focusedImage"] = RuntimeType(UIImage.self)
-        // ImageView
+        for state in controlStates.keys {
+            types["\(state)Image"] = RuntimeType(UIImage.self)
+        }
         for (name, type) in UIImageView.allPropertyTypes() {
             types["imageView.\(name)"] = type
         }
-        // Background image
         types["backgroundImage"] = RuntimeType(UIImage.self)
-        types["highlightedBackgroundImage"] = RuntimeType(UIImage.self)
-        types["disabledBackgroundImage"] = RuntimeType(UIImage.self)
-        types["selectedBackgroundImage"] = RuntimeType(UIImage.self)
-        types["focusedBackgroundImage"] = RuntimeType(UIImage.self)
+        for state in controlStates.keys {
+            types["\(state)BackgroundImage"] = RuntimeType(UIImage.self)
+        }
         // Setters used for embedded html
         types["text"] = RuntimeType(String.self)
         types["attributedText"] = RuntimeType(NSAttributedString.self)
@@ -287,46 +281,28 @@ extension UIButton {
     open override func setValue(_ value: Any, forExpression name: String) throws {
         switch name {
         case "type", "buttonType": setValue((value as! UIButtonType).rawValue, forKey: "buttonType")
-            // Title
         case "title": setTitle(value as? String, for: .normal)
-        case "highlightedTitle": setTitle(value as? String, for: .highlighted)
-        case "disabledTitle": setTitle(value as? String, for: .disabled)
-        case "selectedTitle": setTitle(value as? String, for: .selected)
-        case "focusedTitle": setTitle(value as? String, for: .focused)
-            // Title color
         case "titleColor": setTitleColor(value as? UIColor, for: .normal)
-        case "highlightedTitleColor": setTitleColor(value as? UIColor, for: .highlighted)
-        case "disabledTitleColor": setTitleColor(value as? UIColor, for: .disabled)
-        case "selectedTitleColor": setTitleColor(value as? UIColor, for: .selected)
-        case "focusedTitleColor": setTitleColor(value as? UIColor, for: .focused)
-            // Title shadow color
         case "titleShadowColor": setTitleShadowColor(value as? UIColor, for: .normal)
-        case "highlightedTitleShadowColor": setTitleShadowColor(value as? UIColor, for: .highlighted)
-        case "disabledTitleShadowColor": setTitleShadowColor(value as? UIColor, for: .disabled)
-        case "selectedTitleShadowColor": setTitleShadowColor(value as? UIColor, for: .selected)
-        case "focusedTitleShadowColor": setTitleShadowColor(value as? UIColor, for: .focused)
-            // Image
         case "image": setImage(value as? UIImage, for: .normal)
-        case "highlightedImage": setImage(value as? UIImage, for: .highlighted)
-        case "disabledImage": setImage(value as? UIImage, for: .disabled)
-        case "selectedImage": setImage(value as? UIImage, for: .selected)
-        case "focusedImage": setImage(value as? UIImage, for: .focused)
-            // Background image
         case "backgroundImage": setBackgroundImage(value as? UIImage, for: .normal)
-        case "highlightedBackgroundImage": setBackgroundImage(value as? UIImage, for: .highlighted)
-        case "disabledBackgroundImage": setBackgroundImage(value as? UIImage, for: .disabled)
-        case "selectedBackgroundImage": setBackgroundImage(value as? UIImage, for: .selected)
-        case "focusedBackgroundImage": setBackgroundImage(value as? UIImage, for: .focused)
-            // Attributed title
         case "attributedTitle": setAttributedTitle(value as? NSAttributedString, for: .normal)
-        case "highlightedAttributedTitle": setAttributedTitle(value as? NSAttributedString, for: .highlighted)
-        case "disabledAttributedTitle": setAttributedTitle(value as? NSAttributedString, for: .disabled)
-        case "selectedAttributedTitle": setAttributedTitle(value as? NSAttributedString, for: .selected)
-        case "focusedAttributedTitle": setAttributedTitle(value as? NSAttributedString, for: .focused)
-            // Setter used for embedded html
         case "text": setTitle(value as? String, for: .normal)
         case "attributedText": setAttributedTitle(value as? NSAttributedString, for: .normal)
         default:
+            if let (prefix, state) = controlStates.first(where: { name.hasPrefix($0.key) }) {
+                switch name.substring(from: prefix.endIndex) {
+                case "Title": setTitle(value as? String, for: state)
+                case "TitleColor": setTitleColor(value as? UIColor, for: state)
+                case "TitleShadowColor":  setTitleShadowColor(value as? UIColor, for: state)
+                case "Image": setImage(value as? UIImage, for: state)
+                case "BackgroundImage":setBackgroundImage(value as? UIImage, for: state)
+                case "AttributedTitle": setAttributedTitle(value as? NSAttributedString, for: state)
+                default:
+                    break
+                }
+                return
+            }
             try super.setValue(value, forExpression: name)
         }
     }
@@ -487,6 +463,14 @@ extension UITextView {
     }
 }
 
+private let controlSegments: [String: UISegmentedControlSegment] = [
+    "any": .any,
+    "left": .left,
+    "center": .center,
+    "right": .right,
+    "alone": .alone,
+]
+
 extension UISegmentedControl {
     override open class func create(with node: LayoutNode) throws -> UISegmentedControl {
         var items = [Any]()
@@ -504,24 +488,28 @@ extension UISegmentedControl {
     open override class var expressionTypes: [String: RuntimeType] {
         var types = super.expressionTypes
         types["items"] = RuntimeType(NSArray.self)
-        // Background image
         types["backgroundImage"] = RuntimeType(UIImage.self)
-        types["highlightedBackgroundImage"] = RuntimeType(UIImage.self)
-        types["disabledBackgroundImage"] = RuntimeType(UIImage.self)
-        types["selectedBackgroundImage"] = RuntimeType(UIImage.self)
-        types["focusedBackgroundImage"] = RuntimeType(UIImage.self)
-        // Title color
+        for state in controlStates.keys {
+            types["\(state)BackgroundImage"] = RuntimeType(UIImage.self)
+        }
+        types["dividerImage"] = RuntimeType(UIImage.self)
+        // TODO: find a good naming scheme for left/right state variants
         types["titleColor"] = RuntimeType(UIColor.self)
-        types["highlightedTitleColor"] = RuntimeType(UIColor.self)
-        types["disabledTitleColor"] = RuntimeType(UIColor.self)
-        types["selectedTitleColor"] = RuntimeType(UIColor.self)
-        types["focusedTitleColor"] = RuntimeType(UIColor.self)
-        // Title font
+        for state in controlStates.keys {
+            types["\(state)TitleColor"] = RuntimeType(UIColor.self)
+        }
         types["titleFont"] = RuntimeType(UIFont.self)
-        types["highlightedTitleFont"] = RuntimeType(UIFont.self)
-        types["disabledTitleFont"] = RuntimeType(UIFont.self)
-        types["selectedTitleFont"] = RuntimeType(UIFont.self)
-        types["focusedTitleFont"] = RuntimeType(UIFont.self)
+        for state in controlStates.keys {
+             types["\(state)TitleFont"] = RuntimeType(UIFont.self)
+        }
+        types["contentPositionAdjustment"] = RuntimeType(UIOffset.self)
+        types["contentPositionAdjustment.horizontal"] = RuntimeType(CGFloat.self)
+        types["contentPositionAdjustment.vertical"] = RuntimeType(CGFloat.self)
+        for segment in controlSegments.keys {
+            types["\(segment)ContentPositionAdjustment"] = RuntimeType(UIOffset.self)
+            types["\(segment)ContentPositionAdjustment.horizontal"] = RuntimeType(CGFloat.self)
+            types["\(segment)ContentPositionAdjustment.vertical"] = RuntimeType(CGFloat.self)
+        }
         return types
     }
 
@@ -573,25 +561,48 @@ extension UISegmentedControl {
     open override func setValue(_ value: Any, forExpression name: String) throws {
         switch name {
         case "items": try setItems(value as? NSArray, animated: false)
-            // Background image
+            // TODO: find a good naming scheme for barMetrics variants
         case "backgroundImage": setBackgroundImage(value as? UIImage, for: .normal, barMetrics: .default)
-        case "highlightedBackgroundImage": setBackgroundImage(value as? UIImage, for: .highlighted, barMetrics: .default)
-        case "disabledBackgroundImage": setBackgroundImage(value as? UIImage, for: .disabled, barMetrics: .default)
-        case "selectedBackgroundImage": setBackgroundImage(value as? UIImage, for: .selected, barMetrics: .default)
-        case "focusedBackgroundImage": setBackgroundImage(value as? UIImage, for: .focused, barMetrics: .default)
-            // Title color
+        case "dividerImage": setDividerImage(value as? UIImage, forLeftSegmentState: .normal, rightSegmentState: .normal, barMetrics: .default)
         case "titleColor": setTitleColor(value as? UIColor, for: .normal)
-        case "highlightedTitleColor": setTitleColor(value as? UIColor, for: .highlighted)
-        case "disabledTitleColor": setTitleColor(value as? UIColor, for: .disabled)
-        case "selectedTitleColor": setTitleColor(value as? UIColor, for: .selected)
-        case "focusedTitleColor": setTitleColor(value as? UIColor, for: .focused)
-            // Title font
         case "titleFont": setTitleFont(value as? UIFont, for: .normal)
-        case "highlightedTitleFont": setTitleFont(value as? UIFont, for: .highlighted)
-        case "disabledTitleFont": setTitleFont(value as? UIFont, for: .disabled)
-        case "selectedTitleFont": setTitleFont(value as? UIFont, for: .selected)
-        case "focusedTitleFont": setTitleFont(value as? UIFont, for: .focused)
+        case "contentPositionAdjustment": setContentPositionAdjustment(value as! UIOffset, forSegmentType: .any, barMetrics: .default)
+        case "contentPositionAdjustment.horizontal":
+            var offset = contentPositionAdjustment(forSegmentType: .any, barMetrics: .default)
+            offset.horizontal = value as! CGFloat
+            setContentPositionAdjustment(offset, forSegmentType: .any, barMetrics: .default)
+        case "contentPositionAdjustment.vertical":
+            var offset = contentPositionAdjustment(forSegmentType: .any, barMetrics: .default)
+            offset.vertical = value as! CGFloat
+            setContentPositionAdjustment(offset, forSegmentType: .any, barMetrics: .default)
         default:
+            if let (prefix, state) = controlStates.first(where: { name.hasPrefix($0.key) }) {
+                switch name.substring(from: prefix.endIndex) {
+                case "BackgroundImage": setBackgroundImage(value as? UIImage, for: state, barMetrics: .default)
+                case "TitleColor": setTitleColor(value as? UIColor, for: state)
+                case "TitleFont": setTitleFont(value as? UIFont, for: state)
+                default:
+                    try super.setValue(value, forExpression: name)
+                }
+                return
+            }
+            if let (prefix, segment) = controlSegments.first(where: { name.hasPrefix($0.key) }) {
+                switch name.substring(from: prefix.endIndex) {
+                case "ContentPositionAdjustment":
+                    setContentPositionAdjustment(value as! UIOffset, forSegmentType: segment, barMetrics: .default)
+                case "ContentPositionAdjustment.horizontal":
+                    var offset = contentPositionAdjustment(forSegmentType: segment, barMetrics: .default)
+                    offset.horizontal = value as! CGFloat
+                    setContentPositionAdjustment(offset, forSegmentType: segment, barMetrics: .default)
+                case "ContentPositionAdjustment.vertical":
+                    var offset = contentPositionAdjustment(forSegmentType: segment, barMetrics: .default)
+                    offset.vertical = value as! CGFloat
+                    setContentPositionAdjustment(offset, forSegmentType: segment, barMetrics: .default)
+                default:
+                    try super.setValue(value, forExpression: name)
+                }
+                return
+            }
             try super.setValue(value, forExpression: name)
         }
     }
@@ -602,6 +613,48 @@ extension UISegmentedControl {
             try setItems(value as? NSArray, animated: true)
         default:
             try super.setAnimatedValue(value, forExpression: name)
+        }
+    }
+}
+
+extension UIStepper {
+    open override class var expressionTypes: [String: RuntimeType] {
+        var types = super.expressionTypes
+        types["backgroundImage"] = RuntimeType(UIImage.self)
+        for state in controlStates.keys {
+            types["\(state)BackgroundImage"] = RuntimeType(UIImage.self)
+        }
+        types["dividerImage"] = RuntimeType(UIImage.self)
+        // TODO: find a good naming scheme for left/right state variants
+        types["incrementImage"] = RuntimeType(UIColor.self)
+        for state in controlStates.keys {
+            types["\(state)IncrementImage"] = RuntimeType(UIImage.self)
+        }
+        types["decrementImage"] = RuntimeType(UIFont.self)
+        for state in controlStates.keys {
+            types["\(state)DecrementImage"] = RuntimeType(UIImage.self)
+        }
+        return types
+    }
+
+    open override func setValue(_ value: Any, forExpression name: String) throws {
+        switch name {
+        case "backgroundImage": setBackgroundImage(value as? UIImage, for: .normal)
+        case "dividerImage": setDividerImage(value as? UIImage, forLeftSegmentState: .normal, rightSegmentState: .normal)
+        case "incrementImage": setIncrementImage(value as? UIImage, for: .normal)
+        case "decrementImage": setDecrementImage(value as? UIImage, for: .normal)
+        default:
+            if let (prefix, state) = controlStates.first(where: { name.hasPrefix($0.key) }) {
+                switch name.substring(from: prefix.endIndex) {
+                case "BackgroundImage": setBackgroundImage(value as? UIImage, for: state)
+                case "IncrementImage": setIncrementImage(value as? UIImage, for: state)
+                case "DecrementImage": setDecrementImage(value as? UIImage, for: state)
+                default:
+                    try super.setValue(value, forExpression: name)
+                }
+                return
+            }
+            try super.setValue(value, forExpression: name)
         }
     }
 }
