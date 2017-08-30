@@ -38,6 +38,8 @@
     - [UIStackView](#uistackview)
     - [UITableView](#uitableview)
     - [UICollectionView](#uicollectionview)
+    - [UITabBarController](#uitabbarcontroller)
+    - [UINavigationController](#uinavigationcontroller)
 - [Custom Components](#custom-components)
     - [Namespacing](#namespacing)
     - [Custom Property Types](#custom-property-types)
@@ -920,6 +922,7 @@ The following views and view controllers have all been tested and are known to w
 * UIImageView
 * UILabel
 * UINavigationController
+* UIScrollView
 * UISegmentedControl
 * UIStackView
 * UIStepper
@@ -1326,6 +1329,77 @@ Dynamic collection cell size calculation is also supported. To enable this, just
 Layout does not currently support using XML to define supplementary `UICollectionReusableView` instances, but this will be added in future.
 
 Layout supports the use of `UICollectionViewController`, with the same caveats as for `UITableViewController`.
+
+
+## UITabBarController
+
+For the most part, Layout works best when implemented on a per-controller basis, with one LayoutViewController for each screen. There is some limited support for collection view controllers such as `UITabBarController` however, as demonstrated in the SampleApp example.
+
+To use a `UITabBarController` simply nest one or more `UIViewController` nodes inside a `UITabBarController` node, as follows:
+
+```xml
+<UITabBarController>
+    <UIViewController ... />
+    <UIViewController ... />
+    ... etc
+</UITabBarController>
+
+```
+
+Every `UIViewController` has a `tabBarItem` property that can be used to configure the tab appearance when that view controller is nested inside a `UITabBarController`, and Layout exposes this object and its properties for configuration via expressions:
+
+```xml
+<UITabBarController>
+    <UIViewController
+        tabBarItem.title="Foo"
+        tabBarItem.image="Bar.png"
+    />
+</UITabBarController>
+
+```
+
+The `tabBarItem` has the following sub-properties that may be set:
+
+* title
+* image
+* selectedImage
+* systemItem
+
+The `systemItem` property overrides the others. It can be set to any of the following constant values:
+
+* more
+* favorites
+* featured
+* topRated
+* recents
+* contacts
+* history
+* bookmarks
+* search
+* downloads
+* mostRecent
+* mostViewed
+
+
+## UINavigationController
+
+`UINavigationController` is not a particularly good fit for the Layout paradigm because it represents a mutable stack of view controllers, and Layout's XML files can only describe a static hierarchy.
+
+You *can* use Layout to specify the *initial* stack of view controllers in a navigation controller, however, which can then be updated programmatically:
+
+```xml
+<UINavigationController>
+    <UIViewController
+        title="Root View"
+    />
+    <UIViewController
+        title="Middle View"
+    />
+    <UIViewController
+        title="Topmost View"
+    />
+</UINavigationController>
+```
 
 
 # Custom Components
