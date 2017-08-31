@@ -1364,8 +1364,11 @@ The `tabBarItem` has the following sub-properties that may be set:
 * image
 * selectedImage
 * systemItem
+* badgeValue
+* badgeColor (iOS 10+ only)
+* titlePositionAdjustment
 
-The `systemItem` property overrides the others. It can be set to any of the following constant values:
+The `systemItem` property overrides the title and image. It can be set to any of the following constant values:
 
 * more
 * favorites
@@ -1398,6 +1401,80 @@ You *can* use Layout to specify the *initial* stack of view controllers in a nav
     <UIViewController
         title="Topmost View"
     />
+</UINavigationController>
+```
+
+As with the tab bar, the navigation bar is not configured directly, but indirectly via the `navigationItem` property of each `UIViewController`. Layout exposes this object and its properties as follows:
+
+```xml
+<UINavigationController>
+    <UIViewController
+        navigationItem.title="Form"
+        navigationItem.leftBarButtonItem.title="Submit"
+        navigationItem.leftBarButtonItem.action="submit:"
+    />
+    ...
+</UINavigationController>
+```
+
+The `navigationItem` has the following sub-properties that may be set:
+
+* title
+* prompt
+* titleView
+* hidesBackButton
+* leftBarButtonItem
+* leftBarButtonItems
+* rightBarButtonItem
+* rightBarButtonItems
+* leftItemsSupplementBackButton
+
+Many of these properties can only be usefully configured via constants or state variables, since there is no way to create literal values for them in an expression, however the `leftBarButtonItem` and `rightBarButtonItem` can also be manipulated directly using the ffollowing sub-properties:
+
+* title
+* image
+* systemItem
+* style
+* action
+* width
+* tintColor
+
+The `action` property is a selector that should match a method on the owning view controller. As with `UIControl`, there is no way to set the target explicitly at present.
+
+The `style` property is an enum that accepts either `plain` (the default), or `done` as its value. The `systemItem` property overrides the title and image, and can be set to any of the following constant values:
+
+* done
+* cancel
+* edit
+* save
+* add
+* flexibleSpace
+* fixedSpace
+* compose
+* reply
+* action
+* organize
+* bookmarks
+* search
+* refresh
+* stop
+* camera
+* trash
+* play
+* pause
+* rewind
+* fastForward
+* undo
+* redo
+* pageCurl
+
+It is also possible to customize the navigation bar and toolbar of a `UINavigationController` at construction time by supplying custom subclasses. This feature is exposed in Layout using constructor expressions:
+
+```xml
+<UINavigationController
+    navigationBarClass="MyNavigationBar"
+    toolbarClass="MyToolbar">
+    ...
 </UINavigationController>
 ```
 

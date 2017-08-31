@@ -91,10 +91,14 @@ public class LayoutNode: NSObject {
 
         if _view == nil {
             if let controllerClass = viewControllerClass {
-                _viewController = try controllerClass.create(with: self)
+                _viewController = try LayoutError.wrap({
+                    try controllerClass.create(with: self)
+                }, for: self)
                 _view = _viewController!.view
             } else {
-                _view = try viewClass.create(with: self)
+                _view = try LayoutError.wrap({
+                    try viewClass.create(with: self)
+                }, for: self)
                 assert(_view != nil)
             }
         }
@@ -943,10 +947,11 @@ public class LayoutNode: NSObject {
 
     /// Useful for custom constructors, and other native extensions
     /// Returns nil if the expression doesn't exist
+    /// Note: thrown error is always a LayoutError
     public func value(forExpression name: String) throws -> Any? {
         try setUpExpression(for: name)
         if let getter = _getters[name] {
-            return try getter()
+            return try LayoutError.wrap(getter, for: self)
         }
         return nil
     }
@@ -1597,6 +1602,10 @@ public class LayoutNode: NSObject {
             if let control = view as? UIControl {
                 control.unbindActions(for: owner)
             }
+            if let viewController = _viewController {
+                viewController.navigationItem.leftBarButtonItem?.unbindAction(for: owner)
+                viewController.navigationItem.rightBarButtonItem?.unbindAction(for: owner)
+            }
             _owner = nil
         }
         for child in children {
@@ -1606,7 +1615,16 @@ public class LayoutNode: NSObject {
     }
 
     private func bindActions() throws {
-        guard let control = view as? UIControl, let owner = _owner else {
+        guard let owner = _owner else { return }
+        guard let control = _view as? UIControl else {
+            if let viewController = _viewController {
+                if let buttonItem = viewController.navigationItem.leftBarButtonItem {
+                    try buttonItem.bindAction(for: owner)
+                }
+                if let buttonItem = viewController.navigationItem.rightBarButtonItem {
+                    try buttonItem.bindAction(for: owner)
+                }
+            }
             return
         }
         try LayoutError.wrap({ try control.bindActions(for: owner) }, for: self)
