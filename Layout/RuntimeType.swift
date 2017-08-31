@@ -101,10 +101,7 @@ public class RuntimeType: NSObject {
         case ":":
             type = .any(Selector.self)
             getter = { target, key in
-                let chars = key.characters
-                let selector = Selector(
-                    "set\(String(chars.first!).uppercased())\(String(chars.dropFirst())):"
-                )
+                let selector = Selector(key)
                 let fn = unsafeBitCast(
                     class_getMethodImplementation(type(of: target), selector),
                     to: (@convention(c) (AnyObject?, Selector) -> Selector?).self
@@ -112,7 +109,10 @@ public class RuntimeType: NSObject {
                 return fn(target, selector)
             }
             setter = { target, key, value in
-                let selector = Selector(key)
+                let chars = key.characters
+                let selector = Selector(
+                    "set\(String(chars.first!).uppercased())\(String(chars.dropFirst())):"
+                )
                 let fn = unsafeBitCast(
                     class_getMethodImplementation(type(of: target), selector),
                     to: (@convention(c) (AnyObject?, Selector, Selector?) -> Void).self
