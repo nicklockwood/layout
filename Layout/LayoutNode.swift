@@ -1104,21 +1104,28 @@ public class LayoutNode: NSObject {
                     try self.value(forVariableOrConstant: symbol) ?? self.localizedString(forKey: tail)
                 }
             default:
+                let fallback: () throws -> Any
+                if viewControllerExpressionTypes[symbol] != nil {
+                    fallback = { [unowned self] in
+                        guard let viewController = self._viewController else {
+                            throw LayoutError("Failed to initialize viewController", for: self)
+                        }
+                        return try viewController.value(forSymbol: symbol)
+                    }
+                } else if viewExpressionTypes[symbol] != nil {
+                    fallback = { [unowned self] in
+                        guard let view = self._view else {
+                            throw LayoutError("Failed to initialize view", for: self)
+                        }
+                        return try view.value(forSymbol: symbol)
+                    }
+                } else {
+                    fallback = {
+                        throw SymbolError("Unknown symbol \(symbol)", for: symbol)
+                    }
+                }
                 getter = { [unowned self] in
-                    // Try local variables/constants first, then
-                    if let value = try self.value(forVariableOrConstant: symbol) {
-                        return value
-                    }
-                    // Then controller/view symbols
-                    if let viewController = self._viewController,
-                        let value = try? viewController.value(forSymbol: symbol) {
-                        // TODO: find a better way to handle falling back toview properties
-                        return value
-                    }
-                    guard let view = self._view else {
-                        throw LayoutError("Failed to initialize view", for: self)
-                    }
-                    return try view.value(forSymbol: symbol)
+                    try self.value(forVariableOrConstant: symbol) ?? fallback()
                 }
             }
         }
