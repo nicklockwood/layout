@@ -358,7 +358,7 @@ class DesignViewController: UIViewController, UIToolbarDelegate, EditViewControl
             }
             return view
         }
-        attempt { try rootNode.update() }
+        rootNode.update()
         guard error == nil else {
             // Avoid breaking the UI
             return
@@ -386,7 +386,7 @@ class DesignViewController: UIViewController, UIToolbarDelegate, EditViewControl
         containerView.center = CGPoint(x: view.bounds.midX, y: view.bounds.midY)
         nodeContainerView.frame = containerView.bounds
         uiContainerView.frame = containerView.bounds
-        attempt { try rootNode.update() }
+        rootNode.update()
         layoutUIViews()
     }
 

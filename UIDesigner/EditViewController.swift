@@ -60,7 +60,7 @@ class EditViewController: UIViewController, UITextFieldDelegate {
     }
 
     override func viewDidLayoutSubviews() {
-        try! rootNode.update()
+        rootNode.update()
     }
 
     private func updateFieldValues() {
@@ -111,7 +111,7 @@ class EditViewController: UIViewController, UITextFieldDelegate {
                 default:
                     return nil
                 }
-            case .enum, .pointer("{CGImage=}"), .pointer("{CGColor=}"):
+            case .enum, .class, .pointer("{CGImage=}"), .pointer("{CGColor=}"):
                 return key
             case .struct, .pointer, .protocol:
                 return nil

@@ -5,6 +5,7 @@ import UIKit
 public class RuntimeType: NSObject {
     public enum Kind {
         case any(Any.Type)
+        case `class`(AnyClass)
         case `struct`(String)
         case pointer(String)
         case `protocol`(Protocol)
@@ -43,6 +44,10 @@ public class RuntimeType: NSObject {
         default:
             self.type = .any(type)
         }
+    }
+
+    @nonobjc public init(class: AnyClass) {
+        self.type = .class(`class`)
     }
 
     @nonobjc public init(_ type: Protocol) {
@@ -97,7 +102,8 @@ public class RuntimeType: NSObject {
             // Can't infer the object type, so ignore it
             return nil
         case "#":
-            type = .any(AnyClass.self)
+            // Can't infer the specific subclass, so ignore it
+            return nil
         case ":":
             type = .any(Selector.self)
             getter = { target, key in
@@ -150,6 +156,8 @@ public class RuntimeType: NSObject {
         case let .any(type),
              let .enum(type, _):
             return "\(type)"
+        case let .class(type):
+            return "\(type).Type"
         case let .struct(type),
              let .pointer(type):
             return type
@@ -203,6 +211,11 @@ public class RuntimeType: NSObject {
                 }
                 return subtype == Swift.type(of: value) || "\(subtype)" == "\(Swift.type(of: value))" ? value : nil
             }
+        case let .class(type):
+            if let value = value as? AnyClass, value.isSubclass(of: type) {
+                return value
+            }
+            return nil
         case let .struct(type):
             if let value = value as? NSValue, String(cString: value.objCType) == type {
                 return value

@@ -15,12 +15,9 @@ struct Layout {
     var relativePath: String?
 
     func getClass() throws -> AnyClass {
-        let classPrefix = (Bundle.main.object(forInfoDictionaryKey: "CFBundleName") as? String ?? "")
-            .replacingOccurrences(of: "[^a-zA-Z0-9_]", with: "_", options: .regularExpression)
-        guard let anyClass = NSClassFromString(className) ??
-            NSClassFromString("\(classPrefix).\(className)") else {
+        guard let cls: AnyClass = classFromString(className) else {
             throw LayoutError.message("Unknown class \(className)")
         }
-        return anyClass
+        return cls
     }
 }

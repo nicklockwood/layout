@@ -691,6 +691,16 @@ struct LayoutExpression {
         )
     }
 
+    init?(classExpression: String, class: AnyClass, for node: LayoutNode) {
+        self.init(
+            anyExpression: classExpression,
+            type: RuntimeType(class: `class`),
+            symbols: [:],
+            lookup: { name in classFromString(name) },
+            for: node
+        )
+    }
+
     init?(expression: String, type: RuntimeType, for node: LayoutNode) {
         switch type.type {
         case let .any(subtype):
@@ -717,6 +727,8 @@ struct LayoutExpression {
                     symbols: expression.symbols
                 )
             }
+        case let .class(subtype):
+            self.init(classExpression: expression, class: subtype, for: node)
         case .struct:
             guard let expression = LayoutExpression(anyExpression: expression, type: type, for: node) else {
                 return nil

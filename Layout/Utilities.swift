@@ -12,3 +12,11 @@ func merge(_ dictionaries: [[String: Any]]) -> [String: Any] {
     }
     return result
 }
+
+private let classPrefix = (Bundle.main.object(forInfoDictionaryKey: "CFBundleName") as? String ?? "")
+    .replacingOccurrences(of: "[^a-zA-Z0-9_]", with: "_", options: .regularExpression)
+
+// Get a class by name
+func classFromString(_ name: String) -> AnyClass? {
+    return NSClassFromString(name) ?? NSClassFromString("\(classPrefix).\(name)")
+}
