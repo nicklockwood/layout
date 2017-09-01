@@ -1118,6 +1118,14 @@ public class LayoutNode: NSObject {
                     }
                 } else {
                     fallback = {
+                        // Need to check for read-only properties, which don't have expressions
+                        if let viewController = self._viewController,
+                            let value = try? viewController.value(forSymbol: symbol) {
+                            return value
+                        }
+                        if let view = self._view, let value = try? view.value(forSymbol: symbol) {
+                            return value
+                        }
                         throw SymbolError("Unknown symbol \(symbol)", for: symbol)
                     }
                 }
