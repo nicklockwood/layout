@@ -598,12 +598,8 @@ public class LayoutNode: NSObject {
                 expressions["width"] = "100%"
             }
         }
-        if expressions["left"] == nil {
-            if expressions["right"] != nil {
-                expressions["left"] = "right - width"
-            } else if parent != nil {
-                expressions["left"] = "0"
-            }
+        if expressions["left"] == nil, expressions["right"] != nil {
+            expressions["left"] = "right - width"
         }
         if expressions["height"] == nil {
             if _class is UIStackView.Type {
@@ -617,12 +613,8 @@ public class LayoutNode: NSObject {
                 expressions["height"] = "100%"
             }
         }
-        if expressions["top"] == nil {
-            if expressions["bottom"] != nil {
-                expressions["top"] = "bottom - height"
-            } else if parent != nil {
-                expressions["top"] = "0"
-            }
+        if expressions["top"] == nil, expressions["bottom"] != nil {
+            expressions["top"] = "bottom - height"
         }
     }
 

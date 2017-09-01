@@ -923,6 +923,7 @@ The following views and view controllers have all been tested and are known to w
 * UILabel
 * UINavigationController
 * UIScrollView
+* UISearchBar
 * UISegmentedControl
 * UIStackView
 * UIStepper
@@ -1383,6 +1384,34 @@ The `systemItem` property overrides the title and image. It can be set to any of
 * mostRecent
 * mostViewed
 
+It is not possible to replace the `UITabBar` of a `UITabBarController` without subclassing it and overriding the `tabBar` property, hhowever, you can customize the tab bar in Layout by adding a `<UITabBar/>` node to your `<UITabBarController/>`:
+
+```xml
+<UITabBarController>
+    <UITabBar
+        backgroundImage="Background.png"
+        barStyle="default"
+        isTranslucent="false"
+    />
+    ...
+</UITabBarController>
+```
+
+The following property and pseudo-property expressions are available for `<UITabBar/>`:
+
+* barStyle
+* barPosition
+* barTintColor
+* isTranslucent
+* tintColor
+* unselectedItemTintColor (iOS 10+ only)
+* backgroundImage
+* selectionIndicatorImage
+* shadowImage
+* itemPositioning
+* itemWidth
+* itemSpacing
+
 
 ## UINavigationController
 
@@ -1494,9 +1523,10 @@ Alternatively, to customize properties of the navigation bar or toolbar, you can
 The following property and pseudo-property expressions are available for `<UINavigationBar/>` and `<UIToolbar/>`:
 
 * barStyle
+* barPosition
+* barTintColor
 * isTranslucent
 * tintColor
-* barTintColor
 * backgroundImage
 * shadowImage
 

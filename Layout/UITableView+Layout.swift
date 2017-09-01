@@ -454,7 +454,7 @@ extension UITableViewHeaderFooterView {
             }
         }
         // Insert child views into `contentView` instead of directly
-        contentView.insertSubview(node.view, at: index)
+        contentView.addSubview(node.view) // Ignore index
     }
 
     open override var intrinsicContentSize: CGSize {
@@ -554,7 +554,7 @@ extension UITableViewCell {
             }
         }
         // Insert child views into `contentView` instead of directly
-        contentView.insertSubview(node.view, at: index)
+        contentView.addSubview(node.view) // Ignore index
     }
 
     open override func sizeThatFits(_ size: CGSize) -> CGSize {

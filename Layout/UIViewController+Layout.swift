@@ -239,12 +239,51 @@ extension UIViewController {
     @objc open func didUpdateLayout(for _: LayoutNode) {}
 }
 
+extension UITabBar {
+    open override class var expressionTypes: [String: RuntimeType] {
+        var types = super.expressionTypes
+        types["selectedImageTintColor"] = .unavailable() // Deprecated
+        types["itemPositioning"] = RuntimeType(UITabBarItemPositioning.self, [
+            "automatic": .automatic,
+            "fill": .fill,
+            "centered": .centered,
+        ])
+        types["barStyle"] = barStyleType
+        types["barPosition"] = barPositionType
+        return types
+    }
+
+    open override func setValue(_ value: Any, forExpression name: String) throws {
+        switch name {
+        case "delegate":
+            if viewController is UITabBarController {
+                throw LayoutError("Cannot change the delegate of a UITabBar managed by a UITabBarController")
+            }
+            fallthrough
+        default:
+            try _setValue(value, ofType: type(of: self).cachedExpressionTypes[name], forKeyPath: name)
+        }
+    }
+}
+
 extension UITabBarController {
+    open override class func create(with node: LayoutNode) throws -> UITabBarController {
+        let tabBarController = self.init()
+        let tabBarType = type(of: tabBarController.tabBar)
+        if let child = node.children.first(where: { $0._class is UITabBar.Type && $0._class != tabBarType }) {
+            throw LayoutError("\(child._class) is not compatible with \(tabBarType)")
+        }
+        return tabBarController
+    }
+
     open override func didInsertChildNode(_ node: LayoutNode, at index: Int) {
         if let viewController = node.viewController {
             var viewControllers = self.viewControllers ?? []
-            viewControllers.insert(viewController, at: index)
+            viewControllers.append(viewController) // Ignore index
             setViewControllers(viewControllers, animated: false)
+        } else if node.viewClass is UITabBar.Type {
+            assert(node._view == nil)
+            node._view = tabBar
         } else {
             super.didInsertChildNode(node, at: index)
         }
@@ -256,16 +295,11 @@ extension UITabBarController {
             let index = viewControllers.index(of: viewController) {
             viewControllers.remove(at: index)
             setViewControllers(viewControllers, animated: false)
-        } else {
+        } else if !(node.viewClass is UITabBar.Type) {
             super.willRemoveChildNode(node, at: index)
         }
     }
 }
-
-private let barStyleType = RuntimeType(UIBarStyle.self, [
-    "default": .default,
-    "black": .black,
-])
 
 extension UINavigationBar: TitleTextAttributes {
     open override class var expressionTypes: [String: RuntimeType] {
@@ -273,6 +307,7 @@ extension UINavigationBar: TitleTextAttributes {
         types["backgroundImage"] = RuntimeType(UIImage.self)
         types["titleVerticalPositionAdjustment"] = RuntimeType(CGFloat.self)
         types["barStyle"] = barStyleType
+        types["barPosition"] = barPositionType
         return types
     }
 
@@ -294,7 +329,7 @@ extension UINavigationBar: TitleTextAttributes {
             setTitleVerticalPositionAdjustment(value as! CGFloat, for: .default)
         case "delegate":
             if viewController is UINavigationController {
-                throw LayoutError("Cannot set the delegate on a UINavigationBar managed by a UINavigationController")
+                throw LayoutError("Cannot change the delegate of a UINavigationBar managed by a UINavigationController")
             }
             fallthrough
         default:
@@ -309,6 +344,7 @@ extension UIToolbar {
         types["backgroundImage"] = RuntimeType(UIImage.self)
         types["shadowImage"] = RuntimeType(UIImage.self)
         types["barStyle"] = barStyleType
+        types["barPosition"] = barPositionType
         // TODO: more properties
         return types
     }
@@ -321,7 +357,7 @@ extension UIToolbar {
             setShadowImage(value as? UIImage, forToolbarPosition: .any)
         case "delegate":
             if viewController is UINavigationController {
-                throw LayoutError("Cannot set the delegate on a UIToolbar managed by a UINavigationController")
+                throw LayoutError("Cannot change the delegate of a UIToolbar managed by a UINavigationController")
             }
             fallthrough
         default:
@@ -362,7 +398,7 @@ extension UINavigationController {
     open override func didInsertChildNode(_ node: LayoutNode, at index: Int) {
         if let viewController = node.viewController {
             var viewControllers = self.viewControllers
-            viewControllers.insert(viewController, at: index)
+            viewControllers.append(viewController) // Ignore index
             self.viewControllers = viewControllers
         } else if node.viewClass is UINavigationBar.Type {
             assert(node._view == nil)

@@ -116,7 +116,7 @@ extension UIView {
                 viewController.addChildViewController(controller)
             }
         }
-        insertSubview(node.view, at: index)
+        addSubview(node.view) // Ignore index
     }
 
     /// Called immediately before a child node is removed
@@ -624,6 +624,33 @@ extension UISegmentedControl: TitleTextAttributes {
         default:
             try super.setAnimatedValue(value, forExpression: name)
         }
+    }
+}
+
+let barStyleType = RuntimeType(UIBarStyle.self, [
+    "default": .default,
+    "black": .black,
+])
+
+let barPositionType = RuntimeType(UIBarPosition.self, [
+    "any": .any,
+    "bottom": .bottom,
+    "top": .top,
+    "topAttached": .topAttached,
+])
+
+extension UISearchBar {
+    open override class var expressionTypes: [String: RuntimeType] {
+        var types = super.expressionTypes
+        types["barStyle"] = barStyleType
+        types["barPosition"] = barPositionType
+        types["searchBarStyle"] = RuntimeType(UISearchBarStyle.self, [
+            "default": .default,
+            "prominent": .prominent,
+            "minimal": .minimal,
+        ])
+        // TODO: more properties
+        return types
     }
 }
 
