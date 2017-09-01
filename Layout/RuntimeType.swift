@@ -47,7 +47,7 @@ public class RuntimeType: NSObject {
     }
 
     @nonobjc public init(class: AnyClass) {
-        self.type = .class(`class`)
+        type = .class(`class`)
     }
 
     @nonobjc public init(_ type: Protocol) {

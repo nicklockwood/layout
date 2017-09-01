@@ -447,7 +447,7 @@ extension UITableViewHeaderFooterView {
         return types
     }
 
-    open override func didInsertChildNode(_ node: LayoutNode, at index: Int) {
+    open override func didInsertChildNode(_ node: LayoutNode, at _: Int) {
         if let viewController = self.viewController {
             for controller in node.viewControllers {
                 viewController.addChildViewController(controller)
@@ -547,7 +547,7 @@ extension UITableViewCell {
         return types
     }
 
-    open override func didInsertChildNode(_ node: LayoutNode, at index: Int) {
+    open override func didInsertChildNode(_ node: LayoutNode, at _: Int) {
         if let viewController = self.viewController {
             for controller in node.viewControllers {
                 viewController.addChildViewController(controller)

@@ -1,5 +1,15 @@
 # Change Log
 
+## [0.4.18](https://github.com/schibsted/layout/releases/tag/0.4.18) (2017-09-01)
+
+- Improved support for `UISearchBar`, `UISegmentedControl` and `UIStepper`
+- Added customization options for `UINavigationController`'s navigation bar and toolbar
+- Added customization options for `UITabBarController`'s tab bar
+- Improved API for handling view constructor arguments and made it public
+- Improved documentation for view and view controller integration
+- Fixed potential array bounds crash when adding views to a view controller
+- Added support for class property expressions
+
 ## [0.4.17](https://github.com/schibsted/layout/releases/tag/0.4.17) (2017-08-28)
 
 - You can now use `//` comments inside layout expressions

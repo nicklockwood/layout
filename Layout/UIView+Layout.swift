@@ -110,7 +110,7 @@ extension UIView {
     }
 
     /// Called immediately after a child node is added
-    @objc open func didInsertChildNode(_ node: LayoutNode, at index: Int) {
+    @objc open func didInsertChildNode(_ node: LayoutNode, at _: Int) {
         if let viewController = self.viewController {
             for controller in node.viewControllers {
                 viewController.addChildViewController(controller)
@@ -294,7 +294,7 @@ extension UIButton {
                 switch name.substring(from: prefix.endIndex) {
                 case "Title": setTitle(value as? String, for: state)
                 case "TitleColor": setTitleColor(value as? UIColor, for: state)
-                case "TitleShadowColor":  setTitleShadowColor(value as? UIColor, for: state)
+                case "TitleShadowColor": setTitleShadowColor(value as? UIColor, for: state)
                 case "Image": setImage(value as? UIImage, for: state)
                 case "BackgroundImage":setBackgroundImage(value as? UIImage, for: state)
                 case "AttributedTitle": setAttributedTitle(value as? NSAttributedString, for: state)
@@ -472,14 +472,14 @@ private let controlSegments: [String: UISegmentedControlSegment] = [
 ]
 
 extension UISegmentedControl: TitleTextAttributes {
-    override open class func create(with node: LayoutNode) throws -> UISegmentedControl {
+    open override class func create(with node: LayoutNode) throws -> UISegmentedControl {
         var items = [Any]()
         for item in try node.value(forExpression: "items") as? [Any] ?? [] {
             switch item {
             case is String, is UIImage:
                 items.append(item)
             default:
-                throw LayoutError("\(type(of: item)) is not a valid item type for \(self.classForCoder())", for: node)
+                throw LayoutError("\(type(of: item)) is not a valid item type for \(classForCoder())", for: node)
             }
         }
         return self.init(items: items)
@@ -500,7 +500,7 @@ extension UISegmentedControl: TitleTextAttributes {
         }
         types["titleFont"] = RuntimeType(UIFont.self)
         for state in controlStates.keys {
-             types["\(state)TitleFont"] = RuntimeType(UIFont.self)
+            types["\(state)TitleFont"] = RuntimeType(UIFont.self)
         }
         types["contentPositionAdjustment"] = RuntimeType(UIOffset.self)
         types["contentPositionAdjustment.horizontal"] = RuntimeType(CGFloat.self)
