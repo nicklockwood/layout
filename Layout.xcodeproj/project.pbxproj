@@ -81,6 +81,7 @@
 		011EC5931F40A2EA00BFA229 /* XMLParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 011EC5911F40A2E200BFA229 /* XMLParser.swift */; };
 		011EC5941F40B98700BFA229 /* XMLParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 011EC5911F40A2E200BFA229 /* XMLParser.swift */; };
 		012073261F39EE0000FD092A /* UIScrollView+Layout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 012073251F39EE0000FD092A /* UIScrollView+Layout.swift */; };
+		01346F8A1F597F88002C0802 /* TitleTextAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01346F891F597F88002C0802 /* TitleTextAttributes.swift */; };
 		0136F1BC1F17863C00C44673 /* PerformanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0136F1BB1F17863C00C44673 /* PerformanceTests.swift */; };
 		0136F1BE1F17863C00C44673 /* Layout.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 011CE6991F053ABD0034771C /* Layout.framework */; };
 		014F37481F352B2600F63CCF /* CollectionCell.xml in Resources */ = {isa = PBXBuildFile; fileRef = 014F37471F352B2600F63CCF /* CollectionCell.xml */; };
@@ -236,6 +237,7 @@
 		011CE6C21F053D530034771C /* StateTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StateTests.swift; sourceTree = "<group>"; };
 		011EC5911F40A2E200BFA229 /* XMLParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = XMLParser.swift; sourceTree = "<group>"; };
 		012073251F39EE0000FD092A /* UIScrollView+Layout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIScrollView+Layout.swift"; sourceTree = "<group>"; };
+		01346F891F597F88002C0802 /* TitleTextAttributes.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TitleTextAttributes.swift; sourceTree = "<group>"; };
 		0136F1B91F17863A00C44673 /* PerformanceTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PerformanceTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		0136F1BB1F17863C00C44673 /* PerformanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerformanceTests.swift; sourceTree = "<group>"; };
 		0136F1BD1F17863C00C44673 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -430,6 +432,7 @@
 				01185CCF1F34E04600D34EA7 /* UICollectionView+Layout.swift */,
 				01185CCD1F334B0B00D34EA7 /* UIStackView+Layout.swift */,
 				0105F7871F0547910067B313 /* UIView+Layout.swift */,
+				01346F891F597F88002C0802 /* TitleTextAttributes.swift */,
 				012073251F39EE0000FD092A /* UIScrollView+Layout.swift */,
 				0105F7881F0547910067B313 /* UIViewController+Layout.swift */,
 				0164F9251F474B5E00AFCDCA /* Utilities.swift */,
@@ -930,6 +933,7 @@
 				012073261F39EE0000FD092A /* UIScrollView+Layout.swift in Sources */,
 				0164F9261F474B5E00AFCDCA /* Utilities.swift in Sources */,
 				01E7E04D1F1C033600B7F9DB /* LayoutNode+Layout.swift in Sources */,
+				01346F8A1F597F88002C0802 /* TitleTextAttributes.swift in Sources */,
 				01CB3DFA1F47559500343286 /* LayoutDelegate.swift in Sources */,
 				0105F7931F0547910067B313 /* UITableView+Layout.swift in Sources */,
 				011EC5921F40A2E200BFA229 /* XMLParser.swift in Sources */,

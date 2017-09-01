@@ -471,7 +471,7 @@ private let controlSegments: [String: UISegmentedControlSegment] = [
     "alone": .alone,
 ]
 
-extension UISegmentedControl {
+extension UISegmentedControl: TitleTextAttributes {
     override open class func create(with node: LayoutNode) throws -> UISegmentedControl {
         var items = [Any]()
         for item in try node.value(forExpression: "items") as? [Any] ?? [] {
@@ -544,6 +544,16 @@ extension UISegmentedControl {
         while items.count > numberOfSegments {
             removeSegment(at: numberOfSegments - 1, animated: animated)
         }
+    }
+
+    var titleColor: UIColor? {
+        get { return titleTextAttributes(for: .normal)?[NSForegroundColorAttributeName] as? UIColor }
+        set { setTitleColor(newValue, for: .normal) }
+    }
+
+    var titleFont: UIFont? {
+        get { return titleTextAttributes(for: .normal)?[NSFontAttributeName] as? UIFont }
+        set { setTitleFont(newValue, for: .normal) }
     }
 
     private func setTitleColor(_ color: UIColor?, for state: UIControlState) {

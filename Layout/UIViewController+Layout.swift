@@ -262,10 +262,93 @@ extension UITabBarController {
     }
 }
 
+private let barStyleType = RuntimeType(UIBarStyle.self, [
+    "default": .default,
+    "black": .black,
+])
+
+extension UINavigationBar: TitleTextAttributes {
+    open override class var expressionTypes: [String: RuntimeType] {
+        var types = super.expressionTypes
+        types["backgroundImage"] = RuntimeType(UIImage.self)
+        types["titleVerticalPositionAdjustment"] = RuntimeType(CGFloat.self)
+        types["barStyle"] = barStyleType
+        return types
+    }
+
+    var titleColor: UIColor? {
+        get { return titleTextAttributes?[NSForegroundColorAttributeName] as? UIColor }
+        set { titleTextAttributes?[NSForegroundColorAttributeName] = newValue }
+    }
+
+    var titleFont: UIFont? {
+        get { return titleTextAttributes?[NSFontAttributeName] as? UIFont }
+        set { titleTextAttributes?[NSFontAttributeName] = newValue }
+    }
+
+    open override func setValue(_ value: Any, forExpression name: String) throws {
+        switch name {
+        case "backgroundImage":
+            setBackgroundImage(value as? UIImage, for: .default)
+        case "titleVerticalPositionAdjustment":
+            setTitleVerticalPositionAdjustment(value as! CGFloat, for: .default)
+        case "delegate":
+            if viewController is UINavigationController {
+                throw LayoutError("Cannot set the delegate on a UINavigationBar managed by a UINavigationController")
+            }
+            fallthrough
+        default:
+            try _setValue(value, ofType: type(of: self).cachedExpressionTypes[name], forKeyPath: name)
+        }
+    }
+}
+
+extension UIToolbar {
+    open override class var expressionTypes: [String: RuntimeType] {
+        var types = super.expressionTypes
+        types["backgroundImage"] = RuntimeType(UIImage.self)
+        types["shadowImage"] = RuntimeType(UIImage.self)
+        types["barStyle"] = barStyleType
+        // TODO: more properties
+        return types
+    }
+
+    open override func setValue(_ value: Any, forExpression name: String) throws {
+        switch name {
+        case "backgroundImage":
+            setBackgroundImage(value as? UIImage, forToolbarPosition: .any, barMetrics: .default)
+        case "shadowImage":
+            setShadowImage(value as? UIImage, forToolbarPosition: .any)
+        case "delegate":
+            if viewController is UINavigationController {
+                throw LayoutError("Cannot set the delegate on a UIToolbar managed by a UINavigationController")
+            }
+            fallthrough
+        default:
+            try _setValue(value, ofType: type(of: self).cachedExpressionTypes[name], forKeyPath: name)
+        }
+    }
+}
+
 extension UINavigationController {
     open override class func create(with node: LayoutNode) throws -> UINavigationController {
-        let navigationBarClass = try node.value(forExpression: "navigationBarClass") as? UINavigationBar.Type
-        let toolbarClass = try node.value(forExpression: "toolbarClass") as? UIToolbar.Type
+        var navigationBarClass = try node.value(forExpression: "navigationBarClass") as? UINavigationBar.Type
+        var toolbarClass = try node.value(forExpression: "toolbarClass") as? UIToolbar.Type
+        for child in node.children {
+            if let cls = navigationBarClass, child._class is UINavigationBar.Type {
+                if child._class.isSubclass(of: cls) {
+                    navigationBarClass = child._class as? UINavigationBar.Type
+                } else if !cls.isSubclass(of: child._class) {
+                    throw LayoutError("\(child._class) is not compatible with \(cls)")
+                }
+            } else if let cls = toolbarClass, child._class is UIToolbar.Type {
+                if child._class.isSubclass(of: cls) {
+                    toolbarClass = child._class as? UIToolbar.Type
+                } else if !cls.isSubclass(of: child._class) {
+                    throw LayoutError("\(child._class) is not compatible with \(cls)")
+                }
+            }
+        }
         return self.init(navigationBarClass: navigationBarClass, toolbarClass: toolbarClass)
     }
 
@@ -281,6 +364,12 @@ extension UINavigationController {
             var viewControllers = self.viewControllers
             viewControllers.insert(viewController, at: index)
             self.viewControllers = viewControllers
+        } else if node.viewClass is UINavigationBar.Type {
+            assert(node._view == nil)
+            node._view = navigationBar
+        } else if node.viewClass is UIToolbar.Type {
+            assert(node._view == nil)
+            node._view = toolbar
         } else {
             super.didInsertChildNode(node, at: index)
         }

@@ -1580,10 +1580,14 @@ public class LayoutNode: NSObject {
             }
         }
         if let type = viewExpressionTypes["delegate"], expressions["delegate"] == nil, type.matches(owner) {
-            _view?.setValue(owner, forKey: "delegate")
+            try LayoutError.wrap({
+                try self._view?.setValue(owner, forExpression: "delegate")
+            }, for: self)
         }
         if let type = viewExpressionTypes["dataSource"], expressions["dataSource"] == nil, type.matches(owner) {
-            _view?.setValue(owner, forKey: "dataSource")
+            try LayoutError.wrap({
+                try _view?.setValue(owner, forExpression: "dataSource")
+            }, for: self)
         }
         try bindActions()
         for child in children {

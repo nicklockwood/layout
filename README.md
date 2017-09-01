@@ -1478,6 +1478,36 @@ It is also possible to customize the navigation bar and toolbar of a `UINavigati
 </UINavigationController>
 ```
 
+Alternatively, to customize properties of the navigation bar or toolbar, you can include a `<UINavigationBar/>` or `<UIToolbar/>` node directly inside the `UINavigationController`, as follows:
+
+```xml
+<UINavigationController>
+    <UINavigationBar
+        backgroundImage="Background.png"
+        barStyle="default"
+        isTranslucent="false"
+    />
+    ...
+</UINavigationController>
+```
+
+The following property and pseudo-property expressions are available for `<UINavigationBar/>` and `<UIToolbar/>`:
+
+* barStyle
+* isTranslucent
+* tintColor
+* barTintColor
+* backgroundImage
+* shadowImage
+
+And the following for `<UINavigationBar/>` only:
+
+* titleColor
+* titleFont
+* titleVerticalPositionAdjustment
+* backIndicatorImage
+* backIndicatorTransitionMaskImage
+
 
 # Custom Components
 
