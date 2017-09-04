@@ -2,7 +2,7 @@
 //  Expression.swift
 //  Expression
 //
-//  Version 0.8.4
+//  Version 0.8.5
 //
 //  Created by Nick Lockwood on 15/09/2016.
 //  Copyright © 2016 Nick Lockwood. All rights reserved.
@@ -356,14 +356,17 @@ public class Expression: CustomStringConvertible {
     /// if it encounters an unexpected token, but won't consume it
     public static func parse(_ input: inout String.UnicodeScalarView.SubSequence,
                              upTo delimiters: String...) -> ParsedExpression {
-        let start = input
+
+        var unicodeScalarView = UnicodeScalarView(input)
+        let start = unicodeScalarView
         var subexpression: Subexpression
         do {
-            subexpression = try input.parseSubexpression(upTo: delimiters)
+            subexpression = try unicodeScalarView.parseSubexpression(upTo: delimiters)
         } catch {
-            let expression = String(start[start.startIndex ..< input.startIndex])
+            let expression = String(start.prefix(upTo: unicodeScalarView.startIndex))
             subexpression = .error(error as! Error, expression)
         }
+        input = String.UnicodeScalarView.SubSequence(unicodeScalarView)
         return ParsedExpression(root: subexpression)
     }
 
@@ -706,16 +709,135 @@ private func isOperator(_ char: UnicodeScalar) -> Bool {
     }
 }
 
+#if swift(>=3.2)
+
+    // Workaround for horribly slow String.UnicodeScalarView.Subsequence perf
+
+    struct UnicodeScalarView {
+        public typealias Index = String.UnicodeScalarView.Index
+
+        private let characters: String.UnicodeScalarView
+        public private(set) var startIndex: Index
+        public private(set) var endIndex: Index
+
+        public init(_ unicodeScalars: String.UnicodeScalarView) {
+            characters = unicodeScalars
+            startIndex = characters.startIndex
+            endIndex = characters.endIndex
+        }
+
+        public init(_ unicodeScalars: String.UnicodeScalarView.SubSequence) {
+            self.init(String.UnicodeScalarView(unicodeScalars))
+        }
+
+        public init(_ string: String) {
+            self.init(string.unicodeScalars)
+        }
+
+        public var first: UnicodeScalar? {
+            return isEmpty ? nil : characters[startIndex]
+        }
+
+        public var count: Int {
+            return characters.distance(from: startIndex, to: endIndex)
+        }
+
+        public var isEmpty: Bool {
+            return startIndex >= endIndex
+        }
+
+        public subscript(_ index: Index) -> UnicodeScalar {
+            return characters[index]
+        }
+
+        public func index(after index: Index) -> Index {
+            return characters.index(after: index)
+        }
+
+        public func prefix(upTo index: Index) -> UnicodeScalarView {
+            var view = UnicodeScalarView(characters)
+            view.startIndex = startIndex
+            view.endIndex = index
+            return view
+        }
+
+        public func suffix(from index: Index) -> UnicodeScalarView {
+            var view = UnicodeScalarView(characters)
+            view.startIndex = index
+            view.endIndex = endIndex
+            return view
+        }
+
+        public func dropFirst() -> UnicodeScalarView {
+            var view = UnicodeScalarView(characters)
+            view.startIndex = characters.index(after: startIndex)
+            view.endIndex = endIndex
+            return view
+        }
+
+        public mutating func popFirst() -> UnicodeScalar? {
+            if isEmpty {
+                return nil
+            }
+            let char = characters[startIndex]
+            startIndex = characters.index(after: startIndex)
+            return char
+        }
+
+        /// Will crash if n > remaining char count
+        public mutating func removeFirst(_ n: Int) {
+            startIndex = characters.index(startIndex, offsetBy: n)
+        }
+
+        /// Will crash if collection is empty
+        @discardableResult
+        public mutating func removeFirst() -> UnicodeScalar {
+            let oldIndex = startIndex
+            startIndex = characters.index(after: startIndex)
+            return characters[oldIndex]
+        }
+
+        /// Returns the remaining characters
+        fileprivate var unicodeScalars: String.UnicodeScalarView.SubSequence {
+            return characters[startIndex ..< endIndex]
+        }
+    }
+
+    typealias _UnicodeScalarView = UnicodeScalarView
+    extension String {
+        init(_ unicodeScalarView: _UnicodeScalarView) {
+            self.init(unicodeScalarView.unicodeScalars)
+        }
+    }
+
+    extension String.UnicodeScalarView {
+        init(_ unicodeScalarView: _UnicodeScalarView) {
+            self.init(unicodeScalarView.unicodeScalars)
+        }
+    }
+
+    extension String.UnicodeScalarView.SubSequence {
+        init(_ unicodeScalarView: _UnicodeScalarView) {
+            self.init(unicodeScalarView.unicodeScalars)
+        }
+    }
+
+#else
+
+    typealias UnicodeScalarView = String.UnicodeScalarView
+
+#endif
+
 // Expression parsing logic
-private extension String.UnicodeScalarView.SubSequence {
+private extension UnicodeScalarView {
 
     mutating func scanCharacters(_ matching: (UnicodeScalar) -> Bool) -> String? {
-        var index = endIndex
-        for (i, c) in enumerated() {
-            if !matching(c) {
-                index = self.index(startIndex, offsetBy: i)
+        var index = startIndex
+        while index < endIndex {
+            if !matching(self[index]) {
                 break
             }
+            index = self.index(after: index)
         }
         if index > startIndex {
             let string = String(prefix(upTo: index))
@@ -906,25 +1028,34 @@ private extension String.UnicodeScalarView.SubSequence {
         }
 
         func scanIdentifier() -> String? {
-            if var identifier = scanCharacter({ isHead($0) || $0 == "." }) {
-                while let tail = scanCharacters(isTail) {
-                    identifier += tail
-                    guard scanCharacter(".") else {
-                        break
-                    }
+            var start = self
+            var identifier = ""
+            if scanCharacter(".") {
+                identifier = "."
+            } else if let head = scanCharacter(isHead) {
+                identifier = head
+                start = self
+                if scanCharacter(".") {
                     identifier.append(".")
                 }
-                let chars = identifier.unicodeScalars
-                if chars.last == "." {
-                    insert(".", at: startIndex)
-                    if chars.count == 1 {
-                        return nil
-                    }
-                    return String(chars.dropLast())
-                }
-                return identifier
+            } else {
+                return nil
             }
-            return nil
+            while let tail = scanCharacters(isTail) {
+                identifier += tail
+                start = self
+                if scanCharacter(".") {
+                    identifier.append(".")
+                }
+            }
+            if identifier.hasSuffix(".") {
+                self = start
+                if identifier == "." {
+                    return nil
+                }
+                identifier = String(identifier.unicodeScalars.dropLast())
+            }
+            return identifier
         }
 
         guard let identifier = scanIdentifier() else {
