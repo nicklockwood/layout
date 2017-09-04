@@ -6,7 +6,7 @@ import Foundation
 private func stringify(_ value: Any) throws -> String {
     switch try unwrap(value) {
     case let number as NSNumber:
-        guard let int = Int64(exactly: Double(number)) else {
+        guard let int = Int64(exactly: number) else {
             return "\(number)"
         }
         return "\(int)"
@@ -210,7 +210,7 @@ struct LayoutExpression {
                 } else if let cgFloatValue = arg as? CGFloat {
                     args.append(Double(cgFloatValue))
                 } else if let numberValue = arg as? NSNumber {
-                    args.append(Double(numberValue))
+                    args.append(Double(truncating: numberValue))
                 } else {
                     return nil
                 }
@@ -232,7 +232,7 @@ struct LayoutExpression {
                 }
                 guard let value = type.cast(anyValue) else {
                     let value = try unwrap(anyValue)
-                    throw Expression.Error.message("\(type(of: value)) is not compatible with expected type \(type)")
+                    throw Expression.Error.message("\(Swift.type(of: value)) is not compatible with expected type \(type)")
                 }
                 return value
             },
@@ -400,23 +400,23 @@ struct LayoutExpression {
                 }
                 let result = try NSMutableAttributedString(
                     data: htmlString.data(using: .utf8, allowLossyConversion: true) ?? Data(),
-                    options: [NSDocumentTypeDocumentAttribute: NSHTMLTextDocumentType],
+                    options: [NSAttributedString.DocumentReadingOptionKey.documentType: NSAttributedString.DocumentType.html],
                     documentAttributes: nil
                 )
                 let correctFont = try node.value(forSymbol: "font") as? UIFont ?? UIFont.systemFont(ofSize: 17)
                 let range = NSMakeRange(0, result.string.utf16.count)
                 result.enumerateAttributes(in: range, options: []) { attribs, range, _ in
                     var attribs = attribs
-                    if let font = attribs[NSFontAttributeName] as? UIFont {
+                    if let font = attribs[NSAttributedStringKey.font] as? UIFont {
                         let traits = font.fontDescriptor.symbolicTraits
                         var descriptor = correctFont.fontDescriptor
                         descriptor = descriptor.withSymbolicTraits(traits) ?? descriptor
-                        attribs[NSFontAttributeName] = UIFont(descriptor: descriptor, size: correctFont.pointSize)
+                        attribs[NSAttributedStringKey.font] = UIFont(descriptor: descriptor, size: correctFont.pointSize)
                         result.setAttributes(attribs, range: range)
                     }
                 }
                 if let color = try node.value(forSymbol: "textColor") as? UIColor {
-                    result.addAttribute(NSForegroundColorAttributeName, value: color, range: range)
+                    result.addAttribute(NSAttributedStringKey.foregroundColor, value: color, range: range)
                 }
                 for (i, substring) in substrings.enumerated().reversed() {
                     let range = (result.string as NSString).range(of: "$\(i)")
@@ -476,7 +476,7 @@ struct LayoutExpression {
                     return size
                 }
                 if string.hasSuffix("%"),
-                    let size = Double(string.substring(to: string.index(before: string.endIndex))) {
+                    let size = Double(String(string.unicodeScalars.dropLast())) {
                     return RelativeFontSize(factor: CGFloat(size / 100))
                 }
                 if let font = UIFont(name: string, size: LayoutExpression.defaultFontSize) {
@@ -588,7 +588,7 @@ struct LayoutExpression {
                     case let trait as UIFontDescriptorSymbolicTraits:
                         traits.insert(trait)
                     case let size as NSNumber:
-                        fontSize = CGFloat(size)
+                        fontSize = CGFloat(truncating: size)
                     case let size as RelativeFontSize:
                         fontSize = (fontSize ?? LayoutExpression.defaultFontSize) * size.factor
                     case let style as UIFontTextStyle:

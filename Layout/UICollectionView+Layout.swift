@@ -148,12 +148,15 @@ extension UICollectionViewController {
     open override class func create(with node: LayoutNode) throws -> UICollectionViewController {
         let layout = try node.value(forExpression: "collectionViewLayout") as? UICollectionViewLayout ?? .defaultLayout(for: node)
         let viewController = self.init(collectionViewLayout: layout)
+        guard let collectionView = viewController.collectionView else {
+            throw LayoutError("Failed to create collectionView")
+        }
         if !node.children.contains(where: { $0.viewClass is UICollectionView.Type }) {
-            viewController.collectionView?.register(UICollectionViewCell.self, forCellWithReuseIdentifier: placeholderID)
+            collectionView.register(UICollectionViewCell.self, forCellWithReuseIdentifier: placeholderID)
         } else if node.expressions.keys.contains(where: { $0.hasPrefix("collectionView.") }) {
             // TODO: figure out how to propagate this config to the view once it has been created
         }
-        objc_setAssociatedObject(viewController.collectionView, &layoutNodeKey, Box(node), .OBJC_ASSOCIATION_RETAIN)
+        objc_setAssociatedObject(collectionView, &layoutNodeKey, Box(node), .OBJC_ASSOCIATION_RETAIN)
         return viewController
     }
 
@@ -177,7 +180,7 @@ extension UICollectionViewController {
         case _ where name.hasPrefix("collectionViewLayout."):
             try collectionView?.setValue(value, forExpression: name)
         case _ where name.hasPrefix("collectionView."):
-            try collectionView?.setValue(value, forExpression: name.substring(from: "collectionView.".endIndex))
+            try collectionView?.setValue(value, forExpression: String(name["collectionView.".endIndex ..< name.endIndex]))
         default:
             try super.setValue(value, forExpression: name)
         }

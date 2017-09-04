@@ -246,8 +246,8 @@ class LayoutLoader {
                     _projectDirectory = projectDirectory
                 }
                 if let projectDirectory = _projectDirectory {
-                    var parts = xmlURL.absoluteString
-                        .substring(from: bundlePath.endIndex).components(separatedBy: "/")
+                    let xmlPath = xmlURL.absoluteString
+                    var parts = xmlPath[bundlePath.endIndex ..< xmlPath.endIndex].components(separatedBy: "/")
                     for (i, part) in parts.enumerated().reversed() {
                         if part.hasSuffix(".bundle") {
                             parts.removeFirst(i + 1)
@@ -319,7 +319,7 @@ class LayoutLoader {
         var path = "Localizable.strings"
         let localizedPath = Bundle.main.path(forResource: "Localizable", ofType: "strings")
         if let resourcePath = Bundle.main.resourcePath, let localizedPath = localizedPath {
-            path = localizedPath.substring(from: resourcePath.endIndex)
+            path = String(localizedPath[resourcePath.endIndex ..< localizedPath.endIndex])
         }
         if let projectDirectory = _projectDirectory,
             let url = try findSourceURL(forRelativePath: path, in: projectDirectory) {

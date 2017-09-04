@@ -682,6 +682,16 @@ public class LayoutNode: NSObject {
                 type = constructorArgumentType
                 // TODO: warn if constructor argument expression is not constant?
             } else {
+                let instance: AnyObject
+                if let viewControllerClass = self.viewControllerClass {
+                    instance = viewControllerClass.init()
+                } else {
+                    instance = viewClass.init()
+                }
+                let mirror = Mirror(reflecting: instance)
+                if mirror.children.contains(where: { $0.label == symbol }) {
+                    throw LayoutError("\(_class) \(symbol) property must be prefixed with @objc to be used with Layout")
+                }
                 throw SymbolError("Unknown property \(symbol)", for: symbol)
             }
             switch type.availability {
@@ -825,10 +835,10 @@ public class LayoutNode: NSObject {
         guard let range = keyPath.range(of: ".") else {
             return nil
         }
-        let key = keyPath.substring(to: range.lowerBound)
+        let key: String = String(keyPath[keyPath.startIndex ..< range.lowerBound])
         // TODO: if not a dictionary, should we use a mirror?
         if let dictionary = dictionary[key] as? [String: Any] {
-            return value(forKeyPath: keyPath.substring(from: range.upperBound), in: dictionary)
+            return value(forKeyPath: String(keyPath[range.upperBound ..< keyPath.endIndex]), in: dictionary)
         }
         return nil
     }
@@ -842,7 +852,7 @@ public class LayoutNode: NSObject {
             return value
         }
         if name.hasPrefix("strings.") {
-            let key = name.substring(from: "strings.".endIndex)
+            let key: String = String(name["strings.".endIndex ..< name.endIndex])
             return attempt({ try localizedString(forKey: key) })
         }
         // TODO: should we check the delegate as well?
@@ -910,7 +920,7 @@ public class LayoutNode: NSObject {
             return Double(cgFloatValue)
         }
         if let numberValue = anyValue as? NSNumber {
-            return Double(numberValue)
+            return Double(truncating: numberValue)
         }
         throw SymbolError("\(symbol) is not a number", for: symbol)
     }
@@ -925,7 +935,7 @@ public class LayoutNode: NSObject {
             return CGFloat(doubleValue)
         }
         if let numberValue = anyValue as? NSNumber {
-            return CGFloat(numberValue)
+            return CGFloat(truncating: numberValue)
         }
         throw SymbolError("\(symbol) is not a number", for: symbol)
     }
@@ -1044,8 +1054,8 @@ public class LayoutNode: NSObject {
             let head: String
             let tail: String
             if let range = symbol.range(of: ".") {
-                head = symbol.substring(to: range.lowerBound)
-                tail = symbol.substring(from: range.upperBound)
+                head = String(symbol[symbol.startIndex ..< range.lowerBound])
+                tail = String(symbol[range.upperBound ..< symbol.endIndex])
             } else {
                 head = ""
                 tail = ""
@@ -1117,16 +1127,16 @@ public class LayoutNode: NSObject {
                         return try view.value(forSymbol: symbol)
                     }
                 } else {
+                    // For read-only properties, which don't have expressions
                     fallback = {
-                        // Need to check for read-only properties, which don't have expressions
                         if let viewController = self._viewController,
                             let value = try? viewController.value(forSymbol: symbol) {
                             return value
                         }
-                        if let view = self._view, let value = try? view.value(forSymbol: symbol) {
-                            return value
+                        guard let view = self._view else {
+                            throw LayoutError("Failed to initialize view", for: self)
                         }
-                        throw SymbolError("Unknown symbol \(symbol)", for: symbol)
+                        return try view.value(forSymbol: symbol)
                     }
                 }
                 getter = { [unowned self] in
@@ -1389,10 +1399,10 @@ public class LayoutNode: NSObject {
     private func setUpConstraints() {
         if _widthConstraint != nil { return }
         _widthConstraint = _view?.widthAnchor.constraint(equalToConstant: 0)
-        _widthConstraint?.priority = UILayoutPriorityRequired - 1
+        _widthConstraint?.priority = UILayoutPriority(rawValue: UILayoutPriority.required.rawValue - 1)
         _widthConstraint?.identifier = "LayoutWidth"
         _heightConstraint = _view?.heightAnchor.constraint(equalToConstant: 0)
-        _heightConstraint?.priority = UILayoutPriorityRequired - 1
+        _heightConstraint?.priority = UILayoutPriority(rawValue: UILayoutPriority.required.rawValue - 1)
         _heightConstraint?.identifier = "LayoutHeight"
     }
 
@@ -1534,6 +1544,9 @@ public class LayoutNode: NSObject {
                 try bind(to: viewController)
                 return
             } catch {
+                if "\(error)".contains("@objc") {
+                    throw error
+                }
                 unbind()
             }
         }
@@ -1546,7 +1559,11 @@ public class LayoutNode: NSObject {
         }
         if let outlet = outlet {
             guard let type = Swift.type(of: owner).allPropertyTypes()[outlet] else {
-                throw LayoutError("`\(Swift.type(of: owner))` does not have an outlet named `\(outlet)`", for: self)
+                let mirror = Mirror(reflecting: owner)
+                if mirror.children.contains(where: { $0.label == outlet }) {
+                    throw LayoutError("\(owner.classForCoder) \(outlet) outlet must be prefixed with @objc or @IBOutlet to be used with Layout")
+                }
+                throw LayoutError("\(owner.classForCoder) does not have an outlet named \(outlet)", for: self)
             }
             var didMatch = false
             var expectedType = "UIView or LayoutNode"

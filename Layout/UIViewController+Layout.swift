@@ -312,13 +312,13 @@ extension UINavigationBar: TitleTextAttributes {
     }
 
     var titleColor: UIColor? {
-        get { return titleTextAttributes?[NSForegroundColorAttributeName] as? UIColor }
-        set { titleTextAttributes?[NSForegroundColorAttributeName] = newValue }
+        get { return titleTextAttributes?[NSAttributedStringKey.foregroundColor] as? UIColor }
+        set { titleTextAttributes?[NSAttributedStringKey.foregroundColor] = newValue }
     }
 
     var titleFont: UIFont? {
-        get { return titleTextAttributes?[NSFontAttributeName] as? UIFont }
-        set { titleTextAttributes?[NSFontAttributeName] = newValue }
+        get { return titleTextAttributes?[NSAttributedStringKey.font] as? UIFont }
+        set { titleTextAttributes?[NSAttributedStringKey.font] = newValue }
     }
 
     open override func setValue(_ value: Any, forExpression name: String) throws {

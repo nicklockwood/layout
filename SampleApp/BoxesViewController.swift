@@ -11,19 +11,19 @@ class BoxesViewController: UIViewController {
         }
     }
 
-    var layoutNode: LayoutNode? {
+    @IBOutlet var layoutNode: LayoutNode? {
         didSet {
             layoutNode?.setState(["isToggled": toggled])
         }
     }
 
-    func setToggled() {
+    @IBAction func setToggled() {
         UIView.animate(withDuration: 0.4) {
             self.toggled = true
         }
     }
 
-    func setUntoggled() {
+    @IBAction func setUntoggled() {
         UIView.animate(withDuration: 0.4) {
             self.toggled = false
         }

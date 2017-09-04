@@ -4,8 +4,8 @@ import UIKit
 
 class PagesViewController: UIViewController, UIScrollViewDelegate {
 
-    var scrollView: UIScrollView!
-    var pageControl: UIPageControl!
+    @IBOutlet var scrollView: UIScrollView?
+    @IBOutlet var pageControl: UIPageControl?
 
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         if scrollView === self.scrollView {

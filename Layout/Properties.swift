@@ -84,7 +84,8 @@ extension NSObject {
         if let properties = class_copyPropertyList(self, &numberOfProperties) {
             for i in 0 ..< Int(numberOfProperties) {
                 let cprop = properties[i]
-                if let cname = property_getName(cprop), let cattribs = property_getAttributes(cprop) {
+                let cname: UnsafePointer<Int8> = property_getName(cprop)
+                if let cattribs = property_getAttributes(cprop) {
                     var name = String(cString: cname)
                     guard !name.hasPrefix("_"), // We don't want to mess with private stuff
                         allProperties[name] == nil else {
@@ -102,7 +103,7 @@ extension NSObject {
                     }
                     if case let .any(type) = type.type, type is Bool.Type,
                         let attrib = attribs.first(where: { $0.hasPrefix("Gis") }) {
-                        name = attrib.substring(from: "G".endIndex)
+                        name = String(attrib.unicodeScalars.dropFirst())
                     }
                     addProperty(name: name, type: type)
                 }
@@ -115,36 +116,35 @@ extension NSObject {
             let ctype = UnsafeMutablePointer<Int8>.allocate(capacity: maxChars)
             for i in 0 ..< Int(numberOfMethods) {
                 let method = methods[i]
-                if let selector = method_getName(method) {
-                    var name = "\(selector)"
-                    guard name.hasPrefix("set"), let colonRange = name.range(of: ":"),
-                        colonRange.upperBound == name.endIndex, !name.hasPrefix("set_") else {
-                        continue
-                    }
-                    name = name.substring(with: "set".endIndex ..< colonRange.lowerBound)
-                    let isName = "is\(name)"
-                    guard allProperties[isName] == nil else {
-                        continue
-                    }
-                    let characters = name.unicodeScalars
-                    name = (characters.first.map { String($0) } ?? "").lowercased() + String(characters.dropFirst())
-                    guard allProperties[name] == nil else {
-                        continue
-                    }
-                    method_getArgumentType(method, 2, ctype, maxChars)
-                    var objCType = String(cString: ctype)
-                    if objCType == "@", name.hasSuffix("olor") {
-                        objCType = "@\"UIColor\"" // Workaround for runtime not knowing the type
-                    }
-                    guard let type = RuntimeType(objCType: objCType) else {
-                        continue
-                    }
-                    if case let .any(type) = type.type, type is Bool.Type,
-                        instancesRespond(to: Selector(isName)) {
-                        name = isName
-                    }
-                    addProperty(name: name, type: type)
+                let selector: Selector = method_getName(method)
+                var name = "\(selector)"
+                guard name.hasPrefix("set"), let colonRange = name.range(of: ":"),
+                    colonRange.upperBound == name.endIndex, !name.hasPrefix("set_") else {
+                    continue
                 }
+                name = String(name["set".endIndex ..< colonRange.lowerBound])
+                let isName = "is\(name)"
+                guard allProperties[isName] == nil else {
+                    continue
+                }
+                let characters = name.unicodeScalars
+                name = (characters.first.map { String($0) } ?? "").lowercased() + String(characters.dropFirst())
+                guard allProperties[name] == nil else {
+                    continue
+                }
+                method_getArgumentType(method, 2, ctype, maxChars)
+                var objCType = String(cString: ctype)
+                if objCType == "@", name.hasSuffix("olor") {
+                    objCType = "@\"UIColor\"" // Workaround for runtime not knowing the type
+                }
+                guard let type = RuntimeType(objCType: objCType) else {
+                    continue
+                }
+                if case let .any(type) = type.type, type is Bool.Type,
+                    instancesRespond(to: Selector(isName)) {
+                    name = isName
+                }
+                addProperty(name: name, type: type)
             }
             ctype.deallocate(capacity: maxChars)
         }
@@ -201,38 +201,39 @@ extension NSObject {
             }
             switch type.type {
             case let .any(type):
+                let method = class_getMethodImplementation(Swift.type(of: self), selector)
                 switch type {
                 case is Double.Type:
                     let fn = unsafeBitCast(
-                        class_getMethodImplementation(type(of: self), selector),
+                        method,
                         to: (@convention(c) (AnyObject?, Selector, Double, ObjCBool) -> Void).self
                     )
-                    fn(self, selector, Double(value as! NSNumber), true)
+                    fn(self, selector, Double(truncating: value as! NSNumber), true)
                     return true
                 case is Float.Type:
                     let fn = unsafeBitCast(
-                        class_getMethodImplementation(type(of: self), selector),
+                        method,
                         to: (@convention(c) (AnyObject?, Selector, Float, ObjCBool) -> Void).self
                     )
-                    fn(self, selector, Float(value as! NSNumber), true)
+                    fn(self, selector, Float(truncating: value as! NSNumber), true)
                     return true
                 case is Bool.Type:
                     let fn = unsafeBitCast(
-                        class_getMethodImplementation(type(of: self), selector),
+                        method,
                         to: (@convention(c) (AnyObject?, Selector, ObjCBool, ObjCBool) -> Void).self
                     )
-                    fn(self, selector, ObjCBool(Bool(value as! NSNumber)), true)
+                    fn(self, selector, ObjCBool(Bool(truncating: value as! NSNumber)), true)
                     return true
                 case is CGPoint.Type:
                     let fn = unsafeBitCast(
-                        class_getMethodImplementation(type(of: self), selector),
+                        method,
                         to: (@convention(c) (AnyObject?, Selector, CGPoint, ObjCBool) -> Void).self
                     )
                     fn(self, selector, value as! CGPoint, true)
                     return true
                 case is AnyObject.Type:
                     let fn = unsafeBitCast(
-                        class_getMethodImplementation(type(of: self), selector),
+                        method,
                         to: (@convention(c) (AnyObject?, Selector, AnyObject, ObjCBool) -> Void).self
                     )
                     fn(self, selector, value as AnyObject, true)
@@ -248,7 +249,11 @@ extension NSObject {
         }
         guard responds(to: Selector(setter)) else {
             if self is NSValue {
-                throw SymbolError("Cannot set property \(key) of immutable \(type(of: self))", for: key)
+                throw SymbolError("Cannot set property \(key) of immutable \(Swift.type(of: self))", for: key)
+            }
+            let mirror = Mirror(reflecting: self)
+            if mirror.children.contains(where: { $0.label == key }) {
+                throw LayoutError("\(classForCoder) \(key) property must be prefixed with @objc to be set at runtime")
             }
             throw SymbolError("Unknown property \(key) of \(classForCoder)", for: key)
         }
@@ -266,14 +271,14 @@ extension NSObject {
         var prevKey = name
         var prevTarget: NSObject?
         var target = self as NSObject
-        var key = name.substring(from: range.upperBound)
-        for subkey in name.substring(to: range.lowerBound).components(separatedBy: ".") {
+        var key: String = String(name[range.upperBound ..< name.endIndex])
+        for subkey in name[name.startIndex ..< range.lowerBound].components(separatedBy: ".") {
             guard target.responds(to: Selector(subkey)) else {
-                if target is NSValue {
+                if target is NSValue.Type {
                     key = "\(subkey).\(key)"
                     break
                 }
-                throw SymbolError("Unknown property \(subkey) of \(type(of: target))", for: name)
+                throw SymbolError("Unknown property \(subkey) of \(target.classForCoder)", for: name)
             }
             guard let nextTarget = target.value(forKey: subkey) as? NSObject else {
                 // We have no way to specify optional assignment, so we'll just fail silently here
@@ -293,10 +298,10 @@ extension NSObject {
         case var point as CGPoint where value is NSNumber:
             switch key {
             case "x":
-                point.x = CGFloat(value as! NSNumber)
+                point.x = CGFloat(truncating: value as! NSNumber)
                 newValue = point as NSValue
             case "y":
-                point.y = CGFloat(value as! NSNumber)
+                point.y = CGFloat(truncating: value as! NSNumber)
                 newValue = point as NSValue
             default:
                 break
@@ -304,10 +309,10 @@ extension NSObject {
         case var size as CGSize where value is NSNumber:
             switch key {
             case "width":
-                size.width = CGFloat(value as! NSNumber)
+                size.width = CGFloat(truncating: value as! NSNumber)
                 newValue = size as NSValue
             case "height":
-                size.height = CGFloat(value as! NSNumber)
+                size.height = CGFloat(truncating: value as! NSNumber)
                 newValue = size as NSValue
             default:
                 break
@@ -315,10 +320,10 @@ extension NSObject {
         case var vector as CGVector where value is NSNumber:
             switch key {
             case "dx":
-                vector.dx = CGFloat(value as! NSNumber)
+                vector.dx = CGFloat(truncating: value as! NSNumber)
                 newValue = vector as NSValue
             case "dy":
-                vector.dy = CGFloat(value as! NSNumber)
+                vector.dy = CGFloat(truncating: value as! NSNumber)
                 newValue = vector as NSValue
             default:
                 break
@@ -327,28 +332,28 @@ extension NSObject {
             if value is NSNumber {
                 switch key {
                 case "x":
-                    rect.origin.x = CGFloat(value as! NSNumber)
+                    rect.origin.x = CGFloat(truncating: value as! NSNumber)
                     newValue = rect as NSValue
                 case "y":
-                    rect.origin.y = CGFloat(value as! NSNumber)
+                    rect.origin.y = CGFloat(truncating: value as! NSNumber)
                     newValue = rect as NSValue
                 case "width":
-                    rect.size.width = CGFloat(value as! NSNumber)
+                    rect.size.width = CGFloat(truncating: value as! NSNumber)
                     newValue = rect as NSValue
                 case "height":
-                    rect.size.height = CGFloat(value as! NSNumber)
+                    rect.size.height = CGFloat(truncating: value as! NSNumber)
                     newValue = rect as NSValue
                 case "origin.x":
-                    rect.origin.x = CGFloat(value as! NSNumber)
+                    rect.origin.x = CGFloat(truncating: value as! NSNumber)
                     newValue = rect as NSValue
                 case "origin.y":
-                    rect.origin.y = CGFloat(value as! NSNumber)
+                    rect.origin.y = CGFloat(truncating: value as! NSNumber)
                     newValue = rect as NSValue
                 case "size.width":
-                    rect.size.width = CGFloat(value as! NSNumber)
+                    rect.size.width = CGFloat(truncating: value as! NSNumber)
                     newValue = rect as NSValue
                 case "size.height":
-                    rect.size.height = CGFloat(value as! NSNumber)
+                    rect.size.height = CGFloat(truncating: value as! NSNumber)
                     newValue = rect as NSValue
                 default:
                     break
@@ -382,7 +387,7 @@ extension NSObject {
                 prevTarget!.setValue(value, forKeyPath: "\(prevKey).\(key)")
                 return
             case "m34": // Used for setting perspective
-                transform.m34 = CGFloat(value as! NSNumber)
+                transform.m34 = CGFloat(truncating: value as! NSNumber)
                 newValue = transform as NSValue
             default:
                 break
@@ -390,16 +395,16 @@ extension NSObject {
         case var insets as UIEdgeInsets where value is NSNumber:
             switch key {
             case "top":
-                insets.top = CGFloat(value as! NSNumber)
+                insets.top = CGFloat(truncating: value as! NSNumber)
                 newValue = insets as NSValue
             case "left":
-                insets.left = CGFloat(value as! NSNumber)
+                insets.left = CGFloat(truncating: value as! NSNumber)
                 newValue = insets as NSValue
             case "bottom":
-                insets.bottom = CGFloat(value as! NSNumber)
+                insets.bottom = CGFloat(truncating: value as! NSNumber)
                 newValue = insets as NSValue
             case "right":
-                insets.right = CGFloat(value as! NSNumber)
+                insets.right = CGFloat(truncating: value as! NSNumber)
                 newValue = insets as NSValue
             default:
                 break
@@ -407,10 +412,10 @@ extension NSObject {
         case var offset as UIOffset where value is NSNumber:
             switch key {
             case "horizontal":
-                offset.horizontal = CGFloat(value as! NSNumber)
+                offset.horizontal = CGFloat(truncating: value as! NSNumber)
                 newValue = offset as NSValue
             case "vertical":
-                offset.vertical = CGFloat(value as! NSNumber)
+                offset.vertical = CGFloat(truncating: value as! NSNumber)
                 newValue = offset as NSValue
             default:
                 break
@@ -423,9 +428,9 @@ extension NSObject {
                 prevTarget.setValue(value, forKey: prevKey)
                 return
             }
-            throw SymbolError("No valid setter found for property \(key) of \(type(of: target))", for: name)
+            throw SymbolError("No valid setter found for property \(key) of \(target.classForCoder)", for: name)
         }
-        throw SymbolError("Cannot set property \(key) of immutable \(type(of: target))", for: name)
+        throw SymbolError("Cannot set property \(key) of immutable \(target.classForCoder)", for: name)
     }
 
     /// Safe version of value(forKey:)
@@ -526,6 +531,12 @@ extension NSObject {
                 throw SymbolError("Unknown property \(key) of UIOffset", for: key)
             }
         default:
+            let mirror = Mirror(reflecting: self)
+            if let field = mirror.children.first(where: { $0.label == key }) {
+                // TODO: check the performance here - if it's really bad we should throw an error instead
+                // or, if it's really good, we should try this first, before using the objc runtime
+                return field.value
+            }
             throw SymbolError("Unknown property \(key) of \(classForCoder)", for: key)
         }
     }
@@ -539,14 +550,14 @@ extension NSObject {
         var prevKey = name
         var prevTarget: NSObject?
         var target = self as NSObject
-        var key = name.substring(from: range.upperBound)
-        for subkey in name.substring(to: range.lowerBound).components(separatedBy: ".") {
+        var key: String = String(name[range.upperBound ..< name.endIndex])
+        for subkey in name[name.startIndex ..< range.lowerBound].components(separatedBy: ".") {
             guard target.responds(to: Selector(subkey)) else {
                 if target is NSValue {
                     key = "\(subkey).\(key)"
                     break
                 }
-                throw SymbolError("Unknown property \(subkey) of \(type(of: target))", for: name)
+                throw SymbolError("Unknown property \(subkey) of \(target.classForCoder)", for: name)
             }
             guard let nextTarget = target.value(forKey: subkey) as? NSObject else {
                 return nil

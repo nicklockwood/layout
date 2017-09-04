@@ -10,6 +10,13 @@ class ExamplesViewController: LayoutViewController, UITabBarControllerDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        // Swift 3.x compatibility
+        #if swift(>=4)
+            let foregroundColorKey = NSAttributedStringKey.foregroundColor
+        #else
+            let foregroundColorKey = NSForegroundColorAttributeName
+        #endif
+
         loadLayout(
             named: "Examples.xml",
             constants: [
@@ -24,7 +31,7 @@ class ExamplesViewController: LayoutViewController, UITabBarControllerDelegate {
                 // Used in text example
                 "attributedString": NSAttributedString(
                     string: "attributed string",
-                    attributes: [NSForegroundColorAttributeName: UIColor.red]
+                    attributes: [foregroundColorKey: UIColor.red]
                 ),
             ]
         )

@@ -86,10 +86,10 @@ public class RuntimeType: NSObject {
         case "@":
             if objCType.hasPrefix("@\"") {
                 let range = "@\"".endIndex ..< objCType.index(before: objCType.endIndex)
-                let className = objCType.substring(with: range)
+                let className: String = String(objCType[range])
                 if className.hasPrefix("<") {
                     let range = "<".endIndex ..< className.index(before: className.endIndex)
-                    let protocolName = className.substring(with: range)
+                    let protocolName: String = String(className[range])
                     if let proto = NSProtocolFromString(protocolName) {
                         type = .protocol(proto)
                         return
@@ -109,7 +109,7 @@ public class RuntimeType: NSObject {
             getter = { target, key in
                 let selector = Selector(key)
                 let fn = unsafeBitCast(
-                    class_getMethodImplementation(type(of: target), selector),
+                    class_getMethodImplementation(Swift.type(of: target), selector),
                     to: (@convention(c) (AnyObject?, Selector) -> Selector?).self
                 )
                 return fn(target, selector)
@@ -120,7 +120,7 @@ public class RuntimeType: NSObject {
                     "set\(String(chars.first!).uppercased())\(String(chars.dropFirst())):"
                 )
                 let fn = unsafeBitCast(
-                    class_getMethodImplementation(type(of: target), selector),
+                    class_getMethodImplementation(Swift.type(of: target), selector),
                     to: (@convention(c) (AnyObject?, Selector, Selector?) -> Void).self
                 )
                 fn(target, selector, value as? Selector)
@@ -128,9 +128,9 @@ public class RuntimeType: NSObject {
         case "{":
             type = .struct(objCType)
         case "^" where objCType.hasPrefix("^{"):
-            type = .pointer(objCType.substring(from: objCType.index(after: objCType.startIndex)))
+            type = .pointer(String(objCType.unicodeScalars.dropFirst()))
         case "r" where objCType.hasPrefix("r^{"):
-            type = .pointer(objCType.substring(from: "r^".endIndex))
+            type = .pointer(String(objCType.unicodeScalars.dropFirst(2)))
         default:
             // Unsupported type
             return nil
@@ -175,23 +175,23 @@ public class RuntimeType: NSObject {
             case is CGFloat.Type:
                 return value as? CGFloat ??
                     (value as? Double).map { CGFloat($0) } ??
-                    (value as? NSNumber).map { CGFloat($0) }
+                    (value as? NSNumber).map { CGFloat(truncating: $0) }
             case is Double.Type:
                 return value as? Double ??
                     (value as? CGFloat).map { Double($0) } ??
-                    (value as? NSNumber).map { Double($0) }
+                    (value as? NSNumber).map { Double(truncating: $0) }
             case is Float.Type:
                 return value as? Float ??
                     (value as? Double).map { Float($0) } ??
-                    (value as? NSNumber).map { Float($0) }
+                    (value as? NSNumber).map { Float(truncating: $0) }
             case is Int.Type:
                 return value as? Int ??
                     (value as? Double).map { Int($0) } ??
-                    (value as? NSNumber).map { Int($0) }
+                    (value as? NSNumber).map { Int(truncating: $0) }
             case is UInt.Type:
                 return value as? UInt ??
                     (value as? Double).map { Int($0) } ??
-                    (value as? NSNumber).map { Int($0) }
+                    (value as? NSNumber).map { Int(truncating: $0) }
             case is Bool.Type:
                 return value as? Bool ??
                     (value as? Double).map { $0 != 0 } ??

@@ -165,7 +165,7 @@ extension UITableViewController {
     open override func setValue(_ value: Any, forExpression name: String) throws {
         switch name {
         case _ where name.hasPrefix("tableView."):
-            try tableView.setValue(value, forExpression: name.substring(from: "tableView.".endIndex))
+            try tableView.setValue(value, forExpression: String(name["tableView.".endIndex ..< name.endIndex]))
         default:
             try super.setValue(value, forExpression: name)
         }

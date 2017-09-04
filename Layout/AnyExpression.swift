@@ -41,7 +41,7 @@ struct AnyExpression: CustomStringConvertible {
     ) {
         var values = [Any]()
         func store(_ value: Any) throws -> Double {
-            if let value = (value as? NSNumber).map({ Double($0) }) {
+            if let value = (value as? NSNumber).map({ Double(truncating: $0) }) {
                 if value.bitPattern & mask == mask {
                     // Value is NaN
                     return Double(bitPattern: mask)

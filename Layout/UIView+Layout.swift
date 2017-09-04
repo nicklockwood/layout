@@ -98,7 +98,7 @@ extension UIView {
 
     // Set expression value with animation (if applicable)
     @objc open func setAnimatedValue(_ value: Any, forExpression name: String) throws {
-        let type = type(of: self).cachedExpressionTypes[name]
+        let type = Swift.type(of: self).cachedExpressionTypes[name]
         if try !_setValue(value, ofType: type, forKey: name, animated: true) {
             try setValue(value, forExpression: name)
         }
@@ -216,7 +216,7 @@ extension UIControl {
                 // Already bound
             } else {
                 if !target.responds(to: action) {
-                    throw LayoutError.message("\(target.classForCoder ?? type(of: target)) does not respond to \(action)")
+                    throw LayoutError.message("\(target.classForCoder ?? type(of: target)) does not respond to \(action).\n\nIf the method exists, it must be prefixed with @objc or @IBAction to be used with Layout")
                 }
                 addTarget(target, action: action, for: event)
             }
@@ -291,7 +291,7 @@ extension UIButton {
         case "attributedText": setAttributedTitle(value as? NSAttributedString, for: .normal)
         default:
             if let (prefix, state) = controlStates.first(where: { name.hasPrefix($0.key) }) {
-                switch name.substring(from: prefix.endIndex) {
+                switch name[prefix.endIndex ..< name.endIndex] {
                 case "Title": setTitle(value as? String, for: state)
                 case "TitleColor": setTitleColor(value as? UIColor, for: state)
                 case "TitleShadowColor": setTitleShadowColor(value as? UIColor, for: state)
@@ -547,24 +547,24 @@ extension UISegmentedControl: TitleTextAttributes {
     }
 
     var titleColor: UIColor? {
-        get { return titleTextAttributes(for: .normal)?[NSForegroundColorAttributeName] as? UIColor }
+        get { return titleTextAttributes(for: .normal)?[NSAttributedStringKey.foregroundColor] as? UIColor }
         set { setTitleColor(newValue, for: .normal) }
     }
 
     var titleFont: UIFont? {
-        get { return titleTextAttributes(for: .normal)?[NSFontAttributeName] as? UIFont }
+        get { return titleTextAttributes(for: .normal)?[NSAttributedStringKey.font] as? UIFont }
         set { setTitleFont(newValue, for: .normal) }
     }
 
     private func setTitleColor(_ color: UIColor?, for state: UIControlState) {
         var attributes = titleTextAttributes(for: state) ?? [:]
-        attributes[NSForegroundColorAttributeName] = color
+        attributes[NSAttributedStringKey.foregroundColor] = color
         setTitleTextAttributes(attributes, for: state)
     }
 
     private func setTitleFont(_ font: UIFont?, for state: UIControlState) {
         var attributes = titleTextAttributes(for: state) ?? [:]
-        attributes[NSFontAttributeName] = font
+        attributes[NSAttributedStringKey.font] = font
         setTitleTextAttributes(attributes, for: state)
     }
 
@@ -587,7 +587,7 @@ extension UISegmentedControl: TitleTextAttributes {
             setContentPositionAdjustment(offset, forSegmentType: .any, barMetrics: .default)
         default:
             if let (prefix, state) = controlStates.first(where: { name.hasPrefix($0.key) }) {
-                switch name.substring(from: prefix.endIndex) {
+                switch name[prefix.endIndex ..< name.endIndex] {
                 case "BackgroundImage": setBackgroundImage(value as? UIImage, for: state, barMetrics: .default)
                 case "TitleColor": setTitleColor(value as? UIColor, for: state)
                 case "TitleFont": setTitleFont(value as? UIFont, for: state)
@@ -597,7 +597,7 @@ extension UISegmentedControl: TitleTextAttributes {
                 return
             }
             if let (prefix, segment) = controlSegments.first(where: { name.hasPrefix($0.key) }) {
-                switch name.substring(from: prefix.endIndex) {
+                switch name[prefix.endIndex ..< name.endIndex] {
                 case "ContentPositionAdjustment":
                     setContentPositionAdjustment(value as! UIOffset, forSegmentType: segment, barMetrics: .default)
                 case "ContentPositionAdjustment.horizontal":
@@ -682,7 +682,7 @@ extension UIStepper {
         case "decrementImage": setDecrementImage(value as? UIImage, for: .normal)
         default:
             if let (prefix, state) = controlStates.first(where: { name.hasPrefix($0.key) }) {
-                switch name.substring(from: prefix.endIndex) {
+                switch name[prefix.endIndex ..< name.endIndex] {
                 case "BackgroundImage": setBackgroundImage(value as? UIImage, for: state)
                 case "IncrementImage": setIncrementImage(value as? UIImage, for: state)
                 case "DecrementImage": setDecrementImage(value as? UIImage, for: state)

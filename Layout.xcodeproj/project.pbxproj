@@ -698,11 +698,13 @@
 					01185CB01F3207FB00D34EA7 = {
 						CreatedOnToolsVersion = 8.3.3;
 						DevelopmentTeam = 8VQKF583ED;
+						LastSwiftMigration = 0900;
 						ProvisioningStyle = Automatic;
 					};
 					011CE6421F05338A0034771C = {
 						CreatedOnToolsVersion = 8.3.3;
 						DevelopmentTeam = 8VQKF583ED;
+						LastSwiftMigration = 0900;
 						ProvisioningStyle = Automatic;
 					};
 					011CE66E1F05372B0034771C = {
@@ -713,13 +715,13 @@
 					011CE6981F053ABD0034771C = {
 						CreatedOnToolsVersion = 8.3.3;
 						DevelopmentTeam = 8VQKF583ED;
-						LastSwiftMigration = 0830;
+						LastSwiftMigration = 0900;
 						ProvisioningStyle = Automatic;
 					};
 					011CE6AC1F053D090034771C = {
 						CreatedOnToolsVersion = 8.3.3;
 						DevelopmentTeam = 8VQKF583ED;
-						LastSwiftMigration = 0830;
+						LastSwiftMigration = 0900;
 						ProvisioningStyle = Automatic;
 					};
 					0136F1B81F17863900C44673 = {
@@ -1106,7 +1108,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.Sandbox;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 3.0;
+				SWIFT_VERSION = 4.0;
 			};
 			name = Debug;
 		};
@@ -1120,7 +1122,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.Sandbox;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 3.0;
+				SWIFT_VERSION = 4.0;
 			};
 			name = Release;
 		};
@@ -1239,7 +1241,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "LayoutTests/LayoutTests-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				SWIFT_VERSION = 3.0;
+				SWIFT_VERSION = 4.0;
 			};
 			name = Debug;
 		};
@@ -1254,7 +1256,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.LayoutTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "LayoutTests/LayoutTests-Bridging-Header.h";
-				SWIFT_VERSION = 3.0;
+				SWIFT_VERSION = 4.0;
 			};
 			name = Release;
 		};
@@ -1338,6 +1340,8 @@
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_SWIFT3_OBJC_INFERENCE = Off;
+				SWIFT_VERSION = 3.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
@@ -1390,6 +1394,8 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
+				SWIFT_SWIFT3_OBJC_INFERENCE = Off;
+				SWIFT_VERSION = 3.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
 				VERSIONING_SYSTEM = "apple-generic";

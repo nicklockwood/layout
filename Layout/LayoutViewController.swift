@@ -4,7 +4,7 @@ import UIKit
 
 open class LayoutViewController: UIViewController, LayoutLoading {
 
-    open var layoutNode: LayoutNode? {
+    @objc open var layoutNode: LayoutNode? {
         didSet {
             if layoutNode?._viewController == self {
                 // TODO: should this use case be allowed at all?
@@ -132,7 +132,7 @@ open class LayoutViewController: UIViewController, LayoutLoading {
                             "top": "previous.bottom + 20",
                             "width": "100% - 40",
                             "left": "20",
-                            "text": "\(i + 1). \(match.path.substring(from: commonPrefix.endIndex))",
+                            "text": "\(i + 1). \(match.path[commonPrefix.endIndex ..< match.path.endIndex])",
                             "contentHorizontalAlignment": "left",
                             "titleColor": "rgba(255,255,255,0.6)",
                             "touchUpInside": "_selectMatch:",
