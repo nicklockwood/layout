@@ -286,7 +286,12 @@ extension UITableView {
             guard let node = view.layoutNode else {
                 preconditionFailure("\(type(of: view)) is not a Layout-managed view")
             }
-            return node
+            if !view.isHidden {
+                node.update()
+                return node
+            }
+            // TODO: reusing a tableHeaderFooterView after reload causes it to be
+            // permanently hidden, which breaks layout. figure out why that is
         }
         guard let layoutsData = objc_getAssociatedObject(self, &headerDataKey) as? NSMutableDictionary,
             let layoutData = layoutsData[identifier] as? LayoutData else {
@@ -378,7 +383,14 @@ extension UITableView {
                 nodes?.add(node)
                 node.delegate = self
                 try node.bind(to: node.view) // TODO: find a better solution for binding
-                node._view?.setValue(identifier, forKey: "reuseIdentifier")
+                let cell = node.view
+                cell.setValue(identifier, forKey: "reuseIdentifier")
+                node._suppressUpdates = true
+                cell.frame.size = CGSize(
+                    width: bounds.width,
+                    height: estimatedRowHeight > 0 ? estimatedRowHeight : rowHeight
+                )
+                node._suppressUpdates = false
                 return node
             case let .failure(error):
                 throw error

@@ -11,7 +11,11 @@ public class LayoutNode: NSObject {
     /// Accessing this property will create the view if it doesn't already exist
     public var view: UIView {
         attempt(setUpExpressions)
-        return _view ?? viewClass.init()
+        if _view == nil {
+            _view = viewClass.init()
+            update()
+        }
+        return _view!
     }
 
     /// The (optional) view controller managed by this node
@@ -1239,6 +1243,8 @@ public class LayoutNode: NSObject {
         var size = CGSize.zero
         if let _view = _view as? UITableViewCell {
             _view.layoutIfNeeded()
+            _view.textLabel?.sizeToFit()
+            _view.detailTextLabel?.sizeToFit()
             switch try value(forSymbol: "style") as? UITableViewCellStyle ?? .default {
             case .default, .subtitle:
                 size.height = (_view.textLabel?.frame.height ?? 0) + (_view.detailTextLabel?.frame.height ?? 0)
@@ -1369,6 +1375,13 @@ public class LayoutNode: NSObject {
             if explicitHeight == nil, fittingSize.height > intrinsicSize.height {
                 size.height = fittingSize.height
             }
+            // TODO: remove special case
+            if _view is UITableViewHeaderFooterView, !children.isEmpty {
+                let inferredSize = try inferContentSize()
+                if inferredSize.height > 0 {
+                    size.height = inferredSize.height
+                }
+            }
             return size
         }
         // Try best fit for content
@@ -1406,7 +1419,7 @@ public class LayoutNode: NSObject {
         _heightConstraint?.identifier = "LayoutHeight"
     }
 
-    private var _suppressUpdates = false
+    var _suppressUpdates = false
 
     // Note: thrown error is always a LayoutError
     private func updateValues(animated: Bool) throws {
