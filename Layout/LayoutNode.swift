@@ -124,7 +124,7 @@ public class LayoutNode: NSObject {
             stopObserving()
         } else if !_observing, parent == nil {
             NotificationCenter.default.addObserver(self, selector: #selector(contentSizeChanged), name: .UIContentSizeCategoryDidChange, object: nil)
-            addObserver(self, forKeyPath: "_view.frame", options: [], context: nil)
+            addObserver(self, forKeyPath: "_view.frame", options: .old, context: nil)
             addObserver(self, forKeyPath: "_view.bounds", options: .old, context: nil)
             _observing = true
         }
@@ -140,12 +140,12 @@ public class LayoutNode: NSObject {
     }
 
     public override func observeValue(
-        forKeyPath keyPath: String?,
+        forKeyPath _: String?,
         of _: Any?,
         change: [NSKeyValueChangeKey: Any]?,
         context _: UnsafeMutableRawPointer?
     ) {
-        if let change = change, let old = change[.oldKey] as? CGRect, old.size == _view?.bounds.size {
+        if let change = change, let old = change[.oldKey] as? CGRect, old.size.isNearlyEqual(to: _view?.bounds.size) {
             return
         }
         update()
