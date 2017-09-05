@@ -116,6 +116,9 @@ extension UITableView {
     }
 
     open override var intrinsicContentSize: CGSize {
+        guard layoutNode != nil else {
+            return super.intrinsicContentSize
+        }
         return CGSize(
             width: contentSize.width + contentInset.left + contentInset.right,
             height: contentSize.height + contentInset.top + contentInset.bottom
