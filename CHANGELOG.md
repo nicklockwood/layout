@@ -1,5 +1,9 @@
 # Change Log
 
+## [0.4.20](https://github.com/schibsted/layout/releases/tag/0.4.20) (2017-09-05)
+
+- Fixed a change in the `LayoutNode.bind()` implementation that cuased a regression in one of our projects
+
 ## [0.4.19](https://github.com/schibsted/layout/releases/tag/0.4.19) (2017-09-05)
 
 - Layout now compiles without modification in Xcode 9 using Swift 3.2 or 4.0
