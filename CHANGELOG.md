@@ -1,5 +1,15 @@
 # Change Log
 
+## [0.4.19](https://github.com/schibsted/layout/releases/tag/0.4.19) (2017-09-05)
+
+- Layout now compiles without modification in Xcode 9 using Swift 3.2 or 4.0
+- Fixed a bug with disappearing UIAlertController buttons in iOS 9 (introduced in 0.4.14)
+- Improved scrolling performance for auto-sized UITableView cells
+- Improved UITableView auto height calculation when using multi-line labels
+- UITableView section headers and footers no longer vanish after calling `reloadData` 
+- Fixed some bugs in parsing of keyPaths in expressions
+- Improved expression parsing performance in Swift 3.2 and above
+
 ## [0.4.18](https://github.com/schibsted/layout/releases/tag/0.4.18) (2017-09-01)
 
 - Improved support for `UISearchBar`, `UISegmentedControl` and `UIStepper`

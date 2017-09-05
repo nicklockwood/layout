@@ -106,13 +106,13 @@ Layout is provided as a standalone Swift framework that you can use in your app.
 To install Layout using CocoaPods, add the following to your Podfile:
 
 ```ruby
-pod 'Layout', '~> 0.4.17'
+pod 'Layout', '~> 0.4.19'
 ```
 
 To install use Carthage, add this to your Cartfile:
 
 ```
-github "schibsted/Layout" ~> 0.4.17
+github "schibsted/Layout" ~> 0.4.19
 ```
 
 ## Integration
@@ -1561,9 +1561,11 @@ In the interests of avoiding boilerplate, you should generally use the latter fo
 
 ## Custom Property Types
 
-As mentioned above, Layout uses the Objective-C runtime to automatically detect property names and types for use with expressions. The Objective-C runtime only supports a subset of possible Swift types, and even for Objective-C types, some runtime information is lost. For example, it's impossible to automatically detect the valid set of raw values and case names for enum types at runtime.
+As mentioned above, Layout uses the Objective-C runtime to automatically detect property names and types for use with expressions. If you are using Swift 4.0 or above, you may need to explicitly annotate your properties with `@objc` for them to work in Layout, as the default behavior is now for properties to not be exposed to the Objective-C runtime.
 
-There are also some situations where properties may be exposed in a way that doesn't show up as an Objective-C property at runtime, or the property setter may not be compatible with KVC (Key-Value Coding), resulting in a crash when it is accessed using `setValue(forKey:)`.
+Even if you mark your properties with `@objc`, the Objective-C runtime only supports a subset of possible Swift types, and even for Objective-C types, some runtime information is lost. For example, it's impossible to automatically detect the valid set of raw values and case names for enum types at runtime.
+
+There are also some situations where otherwise compatible property types may be exposed in a way that doesn't show up as an Objective-C property at runtime, or the property setter may not be compatible with KVC (Key-Value Coding), resulting in a crash when it is accessed using `setValue(forKey:)`.
 
 To solve this, it is possible to manually expose additional properties and custom setters/getters for views by using an extension. The Layout framework already uses this feature to expose constants for many of the common UIKit enums, but if you are using a 3rd party component, or creating your own, you may need to write an extension to properly support configuration via Layout expressions.
 
