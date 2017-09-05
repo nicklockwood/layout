@@ -97,7 +97,7 @@ class LayoutNodeTests: XCTestCase {
         let node = LayoutNode(view: UIView(), expressions: ["width": "5 + layer.foobar"])
         let errors = node.validate()
         XCTAssertEqual(errors.count, 1)
-        XCTAssertTrue(errors.first?.description.contains("Unknown symbol") == true)
+        XCTAssertTrue(errors.first?.description.contains("Unknown property") == true)
         XCTAssertTrue(errors.first?.description.contains("foobar") == true)
     }
 
@@ -105,7 +105,7 @@ class LayoutNodeTests: XCTestCase {
         let node = LayoutNode(view: UIView(), expressions: ["width": "5 + layer.foo.bar"])
         let errors = node.validate()
         XCTAssertEqual(errors.count, 1)
-        XCTAssertTrue(errors.first?.description.contains("Unknown symbol") == true)
+        XCTAssertTrue(errors.first?.description.contains("Unknown property") == true)
         XCTAssertTrue(errors.first?.description.contains("foo.bar") == true)
     }
 
@@ -113,7 +113,7 @@ class LayoutNodeTests: XCTestCase {
         let node = LayoutNode(view: UIView(), expressions: ["width": "5 + frame.foo.bar"])
         let errors = node.validate()
         XCTAssertEqual(errors.count, 1)
-        XCTAssertTrue(errors.first?.description.contains("Unknown symbol") == true)
+        XCTAssertTrue(errors.first?.description.contains("Unknown property") == true)
         XCTAssertTrue(errors.first?.description.contains("foo.bar") == true)
     }
 

@@ -274,7 +274,7 @@ extension NSObject {
         var key: String = String(name[range.upperBound ..< name.endIndex])
         for subkey in name[name.startIndex ..< range.lowerBound].components(separatedBy: ".") {
             guard target.responds(to: Selector(subkey)) else {
-                if target is NSValue.Type {
+                if target is NSValue {
                     key = "\(subkey).\(key)"
                     break
                 }
