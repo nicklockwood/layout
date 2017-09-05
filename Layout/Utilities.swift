@@ -20,3 +20,13 @@ private let classPrefix = (Bundle.main.object(forInfoDictionaryKey: "CFBundleNam
 func classFromString(_ name: String) -> AnyClass? {
     return NSClassFromString(name) ?? NSClassFromString("\(classPrefix).\(name)")
 }
+
+private let precision: CGFloat = 0.001
+
+extension CGSize {
+
+    func isNearlyEqual(to other: CGSize?) -> Bool {
+        guard let other = other else { return false }
+        return (fabs(width - other.width) <= precision) && (fabs(height - other.height) <= precision)
+    }
+}
