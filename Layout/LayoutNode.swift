@@ -1650,7 +1650,7 @@ public class LayoutNode: NSObject {
 
     private func bindActions() throws {
         guard let owner = _owner else { return }
-        guard let control = _view as? UIControl else {
+        guard let control = view as? UIControl else {
             if let viewController = _viewController {
                 if let buttonItem = viewController.navigationItem.leftBarButtonItem {
                     try buttonItem.bindAction(for: owner)
