@@ -88,6 +88,7 @@ public class LayoutNode: NSObject {
     private(set) var _originalExpressions: [String: String]
     var _parameters: [String: RuntimeType]
 
+    // Note: Thrown error is always a LayoutError
     private var _setupComplete = false
     private func completeSetup() throws {
         guard !_setupComplete else { return }
@@ -740,6 +741,7 @@ public class LayoutNode: NSObject {
             cachedValue = nil
         }
         let evaluate = expression.evaluate
+        let symbols = expression.symbols
         expression = LayoutExpression(
             evaluate: { [unowned self] in
                 if let value = cachedValue {
@@ -760,28 +762,21 @@ public class LayoutNode: NSObject {
                     self._evaluating.removeLast()
                 }
                 let value = try SymbolError.wrap(evaluate, for: symbol)
+                if self._setupComplete, symbols.isEmpty {
+                    if isViewControllerExpression {
+                        try self._viewController?.setValue(value, forExpression: symbol)
+                    } else if isViewExpression {
+                        try self._view?.setValue(value, forExpression: symbol)
+                    }
+                    // Replace getter with cached result
+                    self._getters[symbol] = { value }
+                }
                 cachedValue = value
                 return value
             },
             symbols: expression.symbols
         )
         _getters[symbol] = expression.evaluate
-
-        // Only set constant values once
-        if expression.symbols.isEmpty {
-            do {
-                let value = try expression.evaluate()
-                if isViewControllerExpression {
-                    try _viewController?.setValue(value, forExpression: symbol)
-                } else if isViewExpression {
-                    try _view?.setValue(value, forExpression: symbol)
-                }
-                _getters[symbol] = { value }
-                return // Don't add to expressions arrays for re-evaluations
-            } catch {
-                // Something went wrong
-            }
-        }
 
         // Store expression
         if isViewControllerExpression {
@@ -793,7 +788,7 @@ public class LayoutNode: NSObject {
         }
     }
 
-    // Note: thrown error is always a SymbolError
+    // Note: thrown error is always a LayoutError
     private var _settingUpExpressions = false
     private var _expressionsSetUp = false
     private func setUpExpressions() throws {
@@ -805,7 +800,7 @@ public class LayoutNode: NSObject {
         }
         try completeSetup()
         for symbol in expressions.keys {
-            try setUpExpression(for: symbol)
+            try LayoutError.wrap({ try setUpExpression(for: symbol) }, for: self)
         }
 
         #if arch(i386) || arch(x86_64)
@@ -979,6 +974,7 @@ public class LayoutNode: NSObject {
             return try getter()
         }
         assert(expressions[symbol] == nil)
+        attempt(completeSetup) // Using attempt to avoid throwing LayoutError
         let getter: () throws -> Any
         switch symbol {
         case "left":
