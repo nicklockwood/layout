@@ -588,11 +588,12 @@ public class LayoutNode: NSObject {
     // MARK: expressions
 
     private func overrideExpressions() {
-        assert(_setupComplete && _view != nil)
+        assert(_setupComplete && !_expressionsSetUp && _view != nil)
         expressions = _originalExpressions
 
         // layout props
         if expressions["width"] == nil {
+            _getters["width"] = nil
             if expressions["left"] != nil, expressions["right"] != nil {
                 expressions["width"] = "right - left"
             } else if !(_view is UIScrollView),
@@ -603,9 +604,11 @@ public class LayoutNode: NSObject {
             }
         }
         if expressions["left"] == nil, expressions["right"] != nil {
+            _getters["left"] = nil
             expressions["left"] = "right - width"
         }
         if expressions["height"] == nil {
+            _getters["height"] = nil
             if _class is UIStackView.Type {
                 expressions["height"] = "auto" // TODO: remove special case
             } else if expressions["top"] != nil, expressions["bottom"] != nil {
@@ -618,6 +621,7 @@ public class LayoutNode: NSObject {
             }
         }
         if expressions["top"] == nil, expressions["bottom"] != nil {
+            _getters["top"] = nil
             expressions["top"] = "bottom - height"
         }
     }
@@ -694,7 +698,7 @@ public class LayoutNode: NSObject {
                 }
                 let mirror = Mirror(reflecting: instance)
                 if mirror.children.contains(where: { $0.label == symbol }) {
-                    throw LayoutError("\(_class) \(symbol) property must be prefixed with @objc to be used with Layout")
+                    throw SymbolError("\(_class) \(symbol) property must be prefixed with @objc to be used with Layout", for: symbol)
                 }
                 throw SymbolError("Unknown property \(symbol)", for: symbol)
             }
@@ -726,8 +730,43 @@ public class LayoutNode: NSObject {
             }
         }
         guard expression != nil else {
-            return
+            expressions[symbol] = nil
+            return // Expression was empty
         }
+
+        // Store getter
+        var cachedValue: Any?
+        _valueClearers.append {
+            cachedValue = nil
+        }
+        let evaluate = expression.evaluate
+        expression = LayoutExpression(
+            evaluate: { [unowned self] in
+                if let value = cachedValue {
+                    return value
+                }
+                guard !self._evaluating.contains(symbol) else {
+                    // If an expression directly references itself it may be shadowing
+                    // a constant or variable, so check for that first before throwing
+                    if self._evaluating.last == symbol,
+                        let value = try self.value(forVariableOrConstant: symbol) {
+                        return value
+                    }
+                    throw SymbolError("Expression for \(symbol) references a nonexistent symbol of the same name (expressions cannot reference themselves)", for: symbol)
+                }
+                self._evaluating.append(symbol)
+                defer {
+                    assert(self._evaluating.last == symbol)
+                    self._evaluating.removeLast()
+                }
+                let value = try SymbolError.wrap(evaluate, for: symbol)
+                cachedValue = value
+                return value
+            },
+            symbols: expression.symbols
+        )
+        _getters[symbol] = expression.evaluate
+
         // Only set constant values once
         if expression.symbols.isEmpty {
             do {
@@ -741,45 +780,10 @@ public class LayoutNode: NSObject {
                 return // Don't add to expressions arrays for re-evaluations
             } catch {
                 // Something went wrong
-                expression = LayoutExpression(
-                    evaluate: { throw SymbolError(error, for: symbol) },
-                    symbols: []
-                )
             }
-        } else {
-            var cachedValue: Any?
-            _valueClearers.append {
-                cachedValue = nil
-            }
-            let evaluate = expression.evaluate
-            expression = LayoutExpression(
-                evaluate: { [unowned self] in
-                    if let value = cachedValue {
-                        return value
-                    }
-                    guard !self._evaluating.contains(symbol) else {
-                        // If an expression directly references itself it may be shadowing
-                        // a constant or variable, so check for that first before throwing
-                        if self._evaluating.last == symbol,
-                            let value = try self.value(forVariableOrConstant: symbol) {
-                            return value
-                        }
-                        throw SymbolError("Expression for \(symbol) references a nonexistent symbol of the same name (expressions cannot reference themselves)", for: symbol)
-                    }
-                    self._evaluating.append(symbol)
-                    defer {
-                        assert(self._evaluating.last == symbol)
-                        self._evaluating.removeLast()
-                    }
-                    let value = try SymbolError.wrap(evaluate, for: symbol)
-                    cachedValue = value
-                    return value
-                },
-                symbols: expression.symbols
-            )
         }
-        // Store getters and expressions
-        _getters[symbol] = expression.evaluate
+
+        // Store expression
         if isViewControllerExpression {
             _viewControllerExpressions[symbol] = expression
         } else if isViewExpression {
@@ -790,10 +794,15 @@ public class LayoutNode: NSObject {
     }
 
     // Note: thrown error is always a SymbolError
+    private var _settingUpExpressions = false
     private var _expressionsSetUp = false
     private func setUpExpressions() throws {
-        guard !_expressionsSetUp else { return }
-        _expressionsSetUp = true
+        guard !_expressionsSetUp, !_settingUpExpressions else { return }
+        _settingUpExpressions = true
+        defer {
+            _settingUpExpressions = false
+            _expressionsSetUp = true
+        }
         try completeSetup()
         for symbol in expressions.keys {
             try setUpExpression(for: symbol)
@@ -965,10 +974,11 @@ public class LayoutNode: NSObject {
     // Used by LayoutExpression and for unit tests
     // Note: thrown error is always a SymbolError
     func value(forSymbol symbol: String) throws -> Any {
-        try setUpExpressions()
+        try setUpExpression(for: symbol)
         if let getter = _getters[symbol] {
             return try getter()
         }
+        assert(expressions[symbol] == nil)
         let getter: () throws -> Any
         switch symbol {
         case "left":
