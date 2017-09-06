@@ -1,5 +1,13 @@
 # Change Log
 
+## [0.4.21](https://github.com/schibsted/layout/releases/tag/0.4.21) (2017-09-06)
+
+- Fixed some race conditions in the expression setup process that sometimes resulted in spurious errors
+- Fixed a bug where certain readonly properties would incorrectly be marked as settable
+- The `UILabel.textAlignment` property is now respected when using an attributedString expression
+- Paragraph spacing after `<p>` tags in HTML is now zero. Use `<br/>` to insert a blank line between paragraphs
+- Added support for `UILabel.lineBreakMode` property
+
 ## [0.4.20](https://github.com/schibsted/layout/releases/tag/0.4.20) (2017-09-05)
 
 - Fixed a change in the `LayoutNode.bind()` implementation that cuased a regression in one of our projects
