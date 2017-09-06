@@ -59,6 +59,7 @@ extension CGSize {
     extension NSAttributedStringKey {
         static let foregroundColor = NSForegroundColorAttributeName
         static let font = NSFontAttributeName
+        static let paragraphStyle = NSParagraphStyleAttributeName
     }
 
     extension UILayoutPriority {

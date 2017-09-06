@@ -385,6 +385,12 @@ struct LayoutExpression {
         guard let expression = LayoutExpression(interpolatedStringExpression: attributedStringExpression, for: node) else {
             return nil
         }
+        var symbols = expression.symbols
+        for symbol in ["font", "textColor", "textAlignment"] {
+            if node.viewExpressionTypes[symbol] != nil {
+                symbols.insert(symbol)
+            }
+        }
         self.init(
             evaluate: {
                 var substrings = [NSAttributedString]()
@@ -403,7 +409,12 @@ struct LayoutExpression {
                     options: [NSAttributedString.DocumentReadingOptionKey.documentType: NSAttributedString.DocumentType.html],
                     documentAttributes: nil
                 )
-                let correctFont = try node.value(forSymbol: "font") as? UIFont ?? UIFont.systemFont(ofSize: 17)
+                let correctFont: UIFont
+                if symbols.contains("font"), let font = try node.value(forSymbol: "font") as? UIFont {
+                    correctFont = font
+                } else {
+                    correctFont = UIFont.systemFont(ofSize: 17)
+                }
                 let range = NSMakeRange(0, result.string.utf16.count)
                 result.enumerateAttributes(in: range, options: []) { attribs, range, _ in
                     var attribs = attribs
@@ -415,9 +426,22 @@ struct LayoutExpression {
                         result.setAttributes(attribs, range: range)
                     }
                 }
-                if let color = try node.value(forSymbol: "textColor") as? UIColor {
+                if symbols.contains("textColor"),
+                    let color = try node.value(forSymbol: "textColor") as? UIColor {
                     result.addAttribute(NSAttributedStringKey.foregroundColor, value: color, range: range)
                 }
+
+                // Paragraph style
+                var alignment = NSTextAlignment.natural
+                if symbols.contains("textAlignment") {
+                    alignment = try node.value(forSymbol: "textAlignment") as! NSTextAlignment
+                }
+                // TODO: find a good way to support linespacing and paragraph spacing
+                let style = NSMutableParagraphStyle()
+                style.alignment = alignment
+                result.addAttribute(NSAttributedStringKey.paragraphStyle, value: style, range: range)
+
+                // Substitutions
                 for (i, substring) in substrings.enumerated().reversed() {
                     let range = (result.string as NSString).range(of: "$\(i)")
                     if range.location != NSNotFound {
@@ -426,7 +450,7 @@ struct LayoutExpression {
                 }
                 return result
             },
-            symbols: Set(expression.symbols + ["font", "textColor"])
+            symbols: symbols
         )
     }
 

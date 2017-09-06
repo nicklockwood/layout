@@ -57,12 +57,14 @@
                 This text has inline <b>bold</b>, <i>italic</i> and <u>underlined</u>
                 styles, specified using HTML markup.
             </p>
+            <br/>
             <ul>
                 <li>We can</li>
                 <li>even do</li>
                 <li>lists</li>
             </ul>
-            <br/>And embedded {attributedString} constants!
+            <br/>
+            And embedded {attributedString} constants!
         </UILabel>
         <UILabel
             backgroundColor="#0001"
