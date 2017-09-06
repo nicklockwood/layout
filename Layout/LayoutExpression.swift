@@ -386,7 +386,7 @@ struct LayoutExpression {
             return nil
         }
         var symbols = expression.symbols
-        for symbol in ["font", "textColor", "textAlignment"] {
+        for symbol in ["font", "textColor", "textAlignment", "lineBreakMode"] {
             if node.viewExpressionTypes[symbol] != nil {
                 symbols.insert(symbol)
             }
@@ -436,9 +436,14 @@ struct LayoutExpression {
                 if symbols.contains("textAlignment") {
                     alignment = try node.value(forSymbol: "textAlignment") as! NSTextAlignment
                 }
+                var linebreakMode = NSLineBreakMode.byWordWrapping
+                if symbols.contains("lineBreakMode") {
+                    linebreakMode = try node.value(forSymbol: "lineBreakMode") as! NSLineBreakMode
+                }
                 // TODO: find a good way to support linespacing and paragraph spacing
                 let style = NSMutableParagraphStyle()
                 style.alignment = alignment
+                style.lineBreakMode = linebreakMode
                 result.addAttribute(NSAttributedStringKey.paragraphStyle, value: style, range: range)
 
                 // Substitutions

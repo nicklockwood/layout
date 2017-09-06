@@ -374,6 +374,14 @@ private let textTraits = [
         "right": .right,
         "center": .center,
     ]),
+    "lineBreakMode": RuntimeType(NSLineBreakMode.self, [
+        "byWordWrapping": .byWordWrapping,
+        "byCharWrapping": .byCharWrapping,
+        "byClipping": .byClipping,
+        "byTruncatingHead": .byTruncatingHead,
+        "byTruncatingTail": .byTruncatingTail,
+        "byTruncatingMiddle": .byTruncatingMiddle,
+    ]),
 ]
 
 extension UILabel {
