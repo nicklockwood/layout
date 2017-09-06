@@ -94,7 +94,13 @@ extension NSObject {
                     // Get attributes
                     let attribs = String(cString: cattribs).components(separatedBy: ",")
                     if attribs.contains("R") || attribs.contains(where: { $0.hasPrefix("S") }) {
-                        // skip read-only properties, or properties with a nonstandard setter
+                        // Skip read-only properties, or properties with a nonstandard setter
+                        continue
+                    }
+                    let chars = name.characters
+                    let setter = "set\(String(chars.first!).uppercased())\(String(chars.dropFirst())):"
+                    if !instancesRespond(to: Selector(setter)) {
+                        // Despite ostensibly being readwrite, property does not have a standard setter
                         continue
                     }
                     let objCType = String(attribs[0].unicodeScalars.dropFirst())
