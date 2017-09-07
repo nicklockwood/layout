@@ -178,4 +178,48 @@ class UIKitSymbols: XCTestCase {
 
         XCTAssertNoThrow(try output.write(to: url, atomically: true, encoding: .utf8))
     }
+
+    func testBuildSublimeCompletions() {
+        if #available(iOS 11.0, *) {} else {
+            XCTFail("Must be run with latest iOS SDK to ensure all symbols are supported")
+            return
+        }
+
+        // Build output
+        var rows = [String]()
+        let properties = getProperties()
+        for name in properties.keys.sorted() {
+            let props = properties[name]!
+            rows.append("{ \"trigger\": \"\(name)\", \"contents\": \"\(name) $0/>\" }")
+            for prop in props.keys.sorted() {
+                let type = props[prop]!
+                if case .unavailable = type.availability {
+                    continue
+                }
+                let row = "{ \"trigger\": \"\(prop)\t\(type)\", \"contents\": \"\(prop)=\\\"$0\\\"\" }"
+                if !rows.contains(row) {
+                    rows.append(row)
+                }
+            }
+        }
+
+        let output = "{\n" +
+            "    \"scope\": \"text.xml\",\n" +
+            "    \"completions\": [\n        " + rows.joined(separator: ",\n        ") + "\n" +
+            "    ]\n" +
+            "}\n"
+
+        // Write output
+        let url = URL(fileURLWithPath: #file)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .appendingPathComponent("layout.sublime-completions")
+
+        guard FileManager.default.fileExists(atPath: url.path) else {
+            XCTFail("\(url) does not exist")
+            return
+        }
+
+        XCTAssertNoThrow(try output.write(to: url, atomically: true, encoding: .utf8))
+    }
 }
