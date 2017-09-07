@@ -152,17 +152,22 @@ public class RuntimeType: NSObject {
     }
 
     public override var description: String {
-        switch type {
-        case let .any(type),
-             let .enum(type, _):
-            return "\(type)"
-        case let .class(type):
-            return "\(type).Type"
-        case let .struct(type),
-             let .pointer(type):
-            return type
-        case let .protocol(type):
-            return "\(type)"
+        switch availability {
+        case .available:
+            switch type {
+            case let .any(type),
+                 let .enum(type, _):
+                return "\(type)"
+            case let .class(type):
+                return "\(type).Type"
+            case let .struct(type),
+                 let .pointer(type):
+                return type
+            case let .protocol(proto):
+                return "<\(NSStringFromProtocol(proto))>"
+            }
+        case .unavailable:
+            return "<unavailable>"
         }
     }
 

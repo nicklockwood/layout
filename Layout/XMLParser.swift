@@ -83,6 +83,13 @@ enum XMLNode {
         return true
     }
 
+    var name: String? {
+        guard case let .node(name, _, _) = self else {
+            return nil
+        }
+        return name
+    }
+
     public var children: [XMLNode] {
         if case let .node(_, _, children) = self {
             return children

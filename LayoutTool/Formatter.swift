@@ -98,15 +98,9 @@ extension XMLNode {
     private func formatAttribute(key: String, value: String) throws -> String {
         do {
             var description = value
-            switch key {
-            case "top", "left", "bottom", "right", "width", "height", "color",
-                 _ where key.hasSuffix("Color"):
-                let expression = try parseExpression(value)
-                try validateLayoutExpression(expression)
-                description = expression.description
-            default:
-                // We have to treat everying else as a string expression, because if we attempt
-                // to format text outside of {...} as an expression, it will get messed up
+            if attributeIsString(key, inNode: name!) ?? true {
+                // We have to treat everying we aren't sure about as a string expression, because if
+                // we attempt to format text outside of {...} as an expression, it will get messed up
                 let parts = try parseStringExpression(value)
                 description = ""
                 for part in parts {
@@ -118,6 +112,10 @@ extension XMLNode {
                         description += "{\(expression)}"
                     }
                 }
+            } else {
+                let expression = try parseExpression(value)
+                try validateLayoutExpression(expression)
+                description = expression.description
             }
             return "\(key)=\"\(description.xmlEncoded(forAttribute: true))\""
         } catch {

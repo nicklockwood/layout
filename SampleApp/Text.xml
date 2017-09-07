@@ -49,9 +49,9 @@
         <UILabel
             backgroundColor="#0001"
             left="20"
+            lineBreakMode="byWordWrapping"
             numberOfLines="0"
             right="100% - 20"
-            lineBreakMode="byWordWrapping"
             top="previous.bottom + 20">
 
             <p>

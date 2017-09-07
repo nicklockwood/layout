@@ -68,20 +68,15 @@ func rename(_ old: String, to new: String, in xml: [XMLNode]) -> [XMLNode] {
                 var isString = false
                 if value.contains("{") && value.contains("}") {
                     isString = true // May not actually be a string, but we can parse it as one
-                } else if stringExpressions.contains(key) {
+                } else if attributeIsString(key, inNode: name) ?? stringExpressions.contains(key) {
                     isString = true
                 } else {
-                    for suffix in [
+                    isString = [
                         "ID", "Id", "Url", "URL", "Path",
                         "Title", "Text", "String", "Label",
                         "Name", "Identifier", "Key",
                         "Font", "Image", "Icon",
-                    ] {
-                        if key.hasSuffix(suffix) {
-                            isString = true
-                            break
-                        }
-                    }
+                    ].contains { key.hasSuffix($0) }
                 }
                 if !isString, let expression = try? parseExpression(value) {
                     if let result = rename(old, to: new, in: expression) {
