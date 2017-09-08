@@ -95,6 +95,16 @@ class ValidationTests: XCTestCase {
         XCTAssertEqual(attributeIsString(prop, inNode: node), false)
     }
 
+    func testBuiltinAttributeType() {
+        let cls = "UILabel"
+        let prop = "template"
+        let node = try! parseXML("<\(cls) \(prop)=\"\"/>")[0]
+        let type = typeOfAttribute(prop, inNode: node) ?? "<unknown>"
+        XCTAssertEqual(type, "URL")
+        XCTAssertTrue(isStringType(type))
+        XCTAssertEqual(attributeIsString(prop, inNode: node), true)
+    }
+
     // MARK: Unknown node properties
 
     func testUIViewPropertyOfUnknownNode() {

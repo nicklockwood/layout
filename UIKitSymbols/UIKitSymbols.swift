@@ -47,6 +47,7 @@ class UIKitSymbols: XCTestCase {
             "WKWebView",
         ]
         let blacklist = [
+            "AVPlayerViewControllerContentView",
             "UIActionSheet",
             "UIActivityGroupViewController",
             "UICompatibilityInputViewController",
@@ -186,7 +187,11 @@ class UIKitSymbols: XCTestCase {
         }
 
         // Build output
-        var rows = [String]()
+        var rows = [
+            "{ \"trigger\": \"outlet\tString\", \"contents\": \"outlet=\\\"$0\\\"\" }",
+            "{ \"trigger\": \"template\tURL\", \"contents\": \"template=\\\"$0\\\"\" }",
+            "{ \"trigger\": \"xml\tURL\", \"contents\": \"xml=\\\"$0\\\"\" }",
+        ]
         let properties = getProperties()
         for name in properties.keys.sorted() {
             let props = properties[name]!

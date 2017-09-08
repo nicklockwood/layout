@@ -1,6 +1,9 @@
 {
     "scope": "text.xml",
     "completions": [
+        { "trigger": "outlet	String", "contents": "outlet=\"$0\"" },
+        { "trigger": "template	URL", "contents": "template=\"$0\"" },
+        { "trigger": "xml	URL", "contents": "xml=\"$0\"" },
         { "trigger": "AVPictureInPictureViewController", "contents": "AVPictureInPictureViewController $0/>" },
         { "trigger": "delegate	<AVPictureInPictureViewControllerDelegate>", "contents": "delegate=\"$0\"" },
         { "trigger": "playerController	AVPlayerController", "contents": "playerController=\"$0\"" },

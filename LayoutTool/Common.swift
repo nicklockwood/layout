@@ -244,6 +244,7 @@ func isStringType(_ name: String) -> Bool {
         "String", "NSString",
         "Selector",
         "NSAttributedString",
+        "URL", "NSURL",
         "UIImage", "{CGImage=}",
         "UIFont",
     ].contains(name)
@@ -263,21 +264,28 @@ func typeOfAttribute(_ key: String, inNode node: XMLNode) -> String? {
     } else if let type = UIKitSymbols["UIView"]![key] {
         return type
     }
-    // Guess the type based on the name
-    switch key.components(separatedBy: ".").last! {
-    case "left", "right", "x", "width", "top", "bottom", "y", "height":
-        return "CGFloat"
-    case _ where key.hasPrefix("is") || key.hasPrefix("has"):
-        return "Bool"
-    case _ where key.hasSuffix("Color"), "color":
-        return "UIColor"
-    case _ where key.hasSuffix("Size"), "size":
-        return "CGSize"
-    case _ where key.hasSuffix("Delegate"), "delegate",
-         _ where key.hasSuffix("DataSource"), "dataSource":
-        return "Protocol"
+    switch key {
+    case "outlet":
+        return "String"
+    case "xml", "template":
+        return "URL"
     default:
-        return nil
+        // Guess the type from the name
+        switch key.components(separatedBy: ".").last! {
+        case "left", "right", "x", "width", "top", "bottom", "y", "height":
+            return "CGFloat"
+        case _ where key.hasPrefix("is") || key.hasPrefix("has"):
+            return "Bool"
+        case _ where key.hasSuffix("Color"), "color":
+            return "UIColor"
+        case _ where key.hasSuffix("Size"), "size":
+            return "CGSize"
+        case _ where key.hasSuffix("Delegate"), "delegate",
+             _ where key.hasSuffix("DataSource"), "dataSource":
+            return "Protocol"
+        default:
+            return nil
+        }
     }
 }
 
