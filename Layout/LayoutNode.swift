@@ -644,6 +644,7 @@ public class LayoutNode: NSObject {
         _viewControllerExpressions.removeAll()
         _viewExpressions.removeAll()
         _valueClearers.removeAll()
+        _valueHasChanged.removeAll()
         for child in children {
             child.cleanUp()
         }
@@ -655,6 +656,7 @@ public class LayoutNode: NSObject {
     private var _viewControllerExpressions = [String: LayoutExpression]()
     private var _viewExpressions = [String: LayoutExpression]()
     private var _valueClearers = [() -> Void]()
+    private var _valueHasChanged = [String: () -> Bool]()
 
     private lazy var viewControllerConstructorArgumentTypes: [String: RuntimeType]? = self.viewControllerClass?.parameterTypes
     private lazy var viewConstructorArgumentTypes: [String: RuntimeType] = self.viewClass.parameterTypes
@@ -736,9 +738,17 @@ public class LayoutNode: NSObject {
         }
 
         // Store getter
+        var previousValue: Any?
         var cachedValue: Any?
         _valueClearers.append {
+            previousValue = cachedValue
             cachedValue = nil
+        }
+        _valueHasChanged[symbol] = { [unowned self] in
+            guard let previousValue = previousValue, let cachedValue = cachedValue else {
+                return true
+            }
+            return !self.areEqual(previousValue, cachedValue)
         }
         let evaluate = expression.evaluate
         let symbols = expression.symbols
@@ -1161,6 +1171,9 @@ public class LayoutNode: NSObject {
     private func updateExpressionValues(animated: Bool) throws {
         for (name, expression) in _viewControllerExpressions {
             let value = try expression.evaluate()
+            guard _valueHasChanged[name]!() else {
+                continue
+            }
             try _viewController!.setValue(value, forExpression: name)
             if expression.isConstant {
                 _viewControllerExpressions.removeValue(forKey: name)
@@ -1168,6 +1181,9 @@ public class LayoutNode: NSObject {
         }
         for (name, expression) in _viewExpressions {
             let value = try expression.evaluate()
+            guard _valueHasChanged[name]!() else {
+                continue
+            }
             if animated {
                 try _view?.setAnimatedValue(value, forExpression: name)
             } else {
