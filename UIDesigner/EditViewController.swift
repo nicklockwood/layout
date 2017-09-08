@@ -186,14 +186,15 @@ class EditViewController: UIViewController, UITextFieldDelegate {
                 ),
             ]
         )
-        print("creation: ", round((CACurrentMediaTime() - start) * 1000))
+        print("nodes:", children.count)
+        print("creation:", round((CACurrentMediaTime() - start) * 1000))
 
         for view in view.subviews {
             view.removeFromSuperview()
         }
         try! rootNode.mount(in: self)
 
-        print("creation + mount: ", round((CACurrentMediaTime() - start) * 1000))
+        print("creation + mount:", round((CACurrentMediaTime() - start) * 1000))
     }
 
     func didUpdateText() {

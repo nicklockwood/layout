@@ -8,7 +8,7 @@ extension XMLNode {
         case let .node(name, attributes, children):
             guard let firstChar = name.characters.first.map({ String($0) }),
                 firstChar.uppercased() == firstChar else {
-                    return false
+                return false
             }
             for key in attributes.keys {
                 if ["top", "left", "bottom", "right", "width", "height", "backgroundColor"].contains(key) {

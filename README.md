@@ -14,6 +14,7 @@
 - [Usage](#usage)
     - [Installation](#installation)
     - [Integration](#integration)
+    - [Editor Support](#editor-support)
     - [Live Reloading](#live-reloading)
     - [Constants](#constants)
     - [State](#state)
@@ -106,13 +107,13 @@ Layout is provided as a standalone Swift framework that you can use in your app.
 To install Layout using CocoaPods, add the following to your Podfile:
 
 ```ruby
-pod 'Layout', '~> 0.4.21'
+pod 'Layout', '~> 0.4.22'
 ```
 
 To install use Carthage, add this to your Cartfile:
 
 ```
-github "schibsted/Layout" ~> 0.4.21
+github "schibsted/Layout" ~> 0.4.22
 ```
 
 ## Integration
@@ -190,6 +191,22 @@ Use option 1 for layouts generated in code. Use option 2 for XML layout files lo
 Option 3 can be used to load a layout from an arbitrary URL, which can be either a local file or remotely-hosted. This is useful if you need to develop directly on a device, because you can host the layout file on your Mac and then connect to it from the device to allow reloading of changes without recompiling the app. It's also potentially useful in production for hosting layouts in some kind of CMS system.
 
 **Note:** The `loadLayout(withContentsOfURL:)` method offers limited control over caching, etc. so if you intend to host your layout files remotely, it may be better to download the XML to a local cache location first and then load it from there.
+
+
+## Editor Support
+
+You can edit Layout XML files directly in Xcode, but you will probably miss having autocomplete for view properties. There is currently no way to provide autocomplete support in Xcode, however Layout does now include support for the popular [Sublime Text](https://www.sublimetext.com) editor.
+
+To install Layout autocompletion in Sublime Text:
+
+1. Go to `Settings > Browse Packages…`, which will open the Packages directory in the Finder
+2. Copy the `layout.sublime-completions` file from the Layout repository into `Packages/User`
+
+Autocomplete for standard UIKit views and properties will now be available for xml files edited in Sublime Text.
+
+There is currently no way to automatically generate autocomplete suggestions for custom views or properties, though you could manually add these to `layout.sublime-completions` file if you want.
+
+We hope to add support for other editors in future. If you are interested in contributing to this effort, please [create an issue on Github](https://github.com/schibsted/layout/issues) to discuss it.
 
 
 ## Live Reloading
@@ -1681,8 +1698,8 @@ class MyView: UIView, LayoutLoading {
     override func layoutSubviews() {
         super.layoutSubviews()
 
-        // Ensure layout is resized after screen rotation, etc
-        self.layoutNode?.view.frame = self.bounds
+        // Ensure layout is updated after screen rotation, etc
+        self.layoutNode?.update()
     }
 }
 ```
@@ -1713,8 +1730,8 @@ class MyViewController: UIViewController {
     override func viewWillLayoutSubviews() {
         super.viewWillLayoutSubviews()
 
-        // Ensure layout is resized after screen rotation, etc
-        self.layoutNode?.view.frame = self.view.bounds
+        // Ensure layout is updated after screen rotation, etc
+        self.layoutNode?.update()
     }
 }
 ```

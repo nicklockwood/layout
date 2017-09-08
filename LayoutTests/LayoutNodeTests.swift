@@ -3,6 +3,15 @@
 import XCTest
 @testable import Layout
 
+private class TestView: UIView {
+    var wasUpdated = false
+    @objc var testProperty = "" {
+        didSet {
+            wasUpdated = true
+        }
+    }
+}
+
 class LayoutNodeTests: XCTestCase {
 
     // MARK: Expression errors
@@ -223,25 +232,52 @@ class LayoutNodeTests: XCTestCase {
         XCTAssertThrowsError(try node.update(with: layout))
     }
 
-    // MARK: constant persistence
+    // MARK: value persistence
 
     func testLiteralValueNotReapplied() {
-        let label = UILabel()
-        let node = LayoutNode(view: label, expressions: ["text": "foo"])
+        let view = TestView()
+        let node = LayoutNode(view: view, expressions: ["testProperty": "foo"])
+
         node.update()
-        XCTAssertEqual(label.text, "foo")
-        label.text = "bar"
+        XCTAssertTrue(view.wasUpdated)
+        XCTAssertEqual(view.testProperty, "foo")
+
+        view.wasUpdated = false
         node.update()
-        XCTAssertEqual(label.text, "bar")
+        XCTAssertFalse(view.wasUpdated)
+
+        view.testProperty = "bar"
+        node.update()
+        XCTAssertEqual(view.testProperty, "bar")
     }
 
     func testConstantValueNotReapplied() {
-        let label = UILabel()
-        let node = LayoutNode(view: label, constants: ["foo": "foo"], expressions: ["text": "{foo}"])
+        let view = TestView()
+        let node = LayoutNode(view: view, constants: ["foo": "foo"], expressions: ["testProperty": "{foo}"])
+
         node.update()
-        XCTAssertEqual(label.text, "foo")
-        label.text = "bar"
+        XCTAssertTrue(view.wasUpdated)
+        XCTAssertEqual(view.testProperty, "foo")
+
+        view.wasUpdated = false
         node.update()
-        XCTAssertEqual(label.text, "bar")
+        XCTAssertFalse(view.wasUpdated)
+
+        view.testProperty = "bar"
+        node.update()
+        XCTAssertEqual(view.testProperty, "bar")
+    }
+
+    func testUnchangedValueNotReapplied() {
+        let view = TestView()
+        let node = LayoutNode(view: view, state: ["text": "foo"], expressions: ["testProperty": "{text}"])
+
+        node.update()
+        XCTAssertTrue(view.wasUpdated)
+        XCTAssertEqual(view.testProperty, "foo")
+
+        view.wasUpdated = false
+        node.update()
+        XCTAssertFalse(view.wasUpdated)
     }
 }

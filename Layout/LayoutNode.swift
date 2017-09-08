@@ -1271,7 +1271,6 @@ public class LayoutNode: NSObject {
                     var childSize = CGSize.zero
                     if !child.widthDependsOnParent {
                         childSize.width = try child.cgFloatValue(forSymbol: "width")
-
                     }
                     if !child.heightDependsOnParent {
                         childSize.height = try child.cgFloatValue(forSymbol: "height")

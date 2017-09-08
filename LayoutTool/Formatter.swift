@@ -132,7 +132,7 @@ extension XMLNode {
                 let attributes = attributes.sorted(by: { a, b in
                     a.key < b.key // sort alphabetically
                 })
-                if attributes.count < attributeWrap || isParameter || isHTML  {
+                if attributes.count < attributeWrap || isParameter || isHTML {
                     for (key, value) in attributes {
                         xml += try " \(formatAttribute(key: key, value: value))"
                     }

@@ -1,5 +1,15 @@
 # Change Log
 
+## [0.4.22](https://github.com/schibsted/layout/releases/tag/0.4.22) (2017-09-10)
+
+- Added Layout XML file autocompletion support for the Sublime Text editor (see README.md for details)
+- Fixed a regression introduced in version 0.4.21 that caused constant values to be re-evaluated on each update 
+- View and view controller properties whose value has not changed are no longer re-applied on each update
+- Fixed a bug where constant expressions containing `true`, `false` or `nil` were re-evaluated on each update
+- Fixed UIStackView auto sizing, which was broken in version 0.4.18
+- Clarified documentation for creating custom components
+- Improved LayoutTool formatting of expressions
+
 ## [0.4.21](https://github.com/schibsted/layout/releases/tag/0.4.21) (2017-09-06)
 
 - Fixed some race conditions in the expression setup process that sometimes resulted in spurious errors

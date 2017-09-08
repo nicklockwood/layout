@@ -41,9 +41,10 @@ open class LayoutViewController: UIViewController, LayoutLoading {
             errorNode.view.frame = view.bounds
             view.bringSubview(toFront: errorNode.view)
         } else if let view = layoutNode?.view {
-            if self.view.bounds != view.bounds {
-                view.frame = self.view.bounds
-            } else {
+            let oldFrame = view.frame
+            view.frame = self.view.bounds
+            if oldFrame.size.isNearlyEqual(to: view.frame.size) {
+                // Setting frame alone won't have triggered an update
                 layoutNode?.update()
             }
         }
