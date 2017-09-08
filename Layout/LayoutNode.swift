@@ -762,15 +762,6 @@ public class LayoutNode: NSObject {
                     self._evaluating.removeLast()
                 }
                 let value = try SymbolError.wrap(evaluate, for: symbol)
-                if self._setupComplete, symbols.isEmpty {
-                    if isViewControllerExpression {
-                        try self._viewController?.setValue(value, forExpression: symbol)
-                    } else if isViewExpression {
-                        try self._view?.setValue(value, forExpression: symbol)
-                    }
-                    // Replace getter with cached result
-                    self._getters[symbol] = { value }
-                }
                 cachedValue = value
                 return value
             },
@@ -780,9 +771,17 @@ public class LayoutNode: NSObject {
 
         // Store expression
         if isViewControllerExpression {
-            _viewControllerExpressions[symbol] = expression
+            if let viewController = _viewController, expression.isConstant {
+                try viewController.setValue(expression.evaluate(), forExpression: symbol)
+            } else {
+                _viewControllerExpressions[symbol] = expression
+            }
         } else if isViewExpression {
-            _viewExpressions[symbol] = expression
+            if let view = _view, expression.isConstant {
+                try view.setValue(expression.evaluate(), forExpression: symbol)
+            } else {
+                _viewExpressions[symbol] = expression
+            }
         } else {
             _layoutExpressions[symbol] = expression
         }
@@ -1163,6 +1162,9 @@ public class LayoutNode: NSObject {
         for (name, expression) in _viewControllerExpressions {
             let value = try expression.evaluate()
             try _viewController!.setValue(value, forExpression: name)
+            if expression.isConstant {
+                _viewControllerExpressions.removeValue(forKey: name)
+            }
         }
         for (name, expression) in _viewExpressions {
             let value = try expression.evaluate()
@@ -1170,6 +1172,9 @@ public class LayoutNode: NSObject {
                 try _view?.setAnimatedValue(value, forExpression: name)
             } else {
                 try _view?.setValue(value, forExpression: name)
+            }
+            if expression.isConstant {
+                _viewExpressions.removeValue(forKey: name)
             }
         }
         try bindActions()

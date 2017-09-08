@@ -28,8 +28,7 @@ struct LayoutExpression {
     let evaluate: () throws -> Any
     let symbols: Set<String>
 
-    static let void = LayoutExpression(evaluate: { () }, symbols: ["_"])
-    var isVoid: Bool { return symbols.first == "_" }
+    var isConstant: Bool { return symbols.isEmpty }
 
     init(evaluate: @escaping () throws -> Any, symbols: Set<String>) {
         self.symbols = symbols

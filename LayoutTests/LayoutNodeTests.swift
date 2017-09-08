@@ -222,4 +222,26 @@ class LayoutNodeTests: XCTestCase {
         let layout = Layout(LayoutNode(viewController: UIViewController()))
         XCTAssertThrowsError(try node.update(with: layout))
     }
+
+    // MARK: constant persistence
+
+    func testLiteralValueNotReapplied() {
+        let label = UILabel()
+        let node = LayoutNode(view: label, expressions: ["text": "foo"])
+        node.update()
+        XCTAssertEqual(label.text, "foo")
+        label.text = "bar"
+        node.update()
+        XCTAssertEqual(label.text, "bar")
+    }
+
+    func testConstantValueNotReapplied() {
+        let label = UILabel()
+        let node = LayoutNode(view: label, constants: ["foo": "foo"], expressions: ["text": "{foo}"])
+        node.update()
+        XCTAssertEqual(label.text, "foo")
+        label.text = "bar"
+        node.update()
+        XCTAssertEqual(label.text, "bar")
+    }
 }
