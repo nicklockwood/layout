@@ -2,7 +2,7 @@
 
 import XCTest
 
-class ProcessArgumentsTests: XCTestCase {
+class ReturnCodeTests: XCTestCase {
 
     func testReturnsSuccessCodeForExpectedInput() {
         XCTAssertEqual(processArguments(["LayoutTool", "version"]), .success)

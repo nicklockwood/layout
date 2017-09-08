@@ -2,57 +2,9 @@
 
 import XCTest
 
-class FormatTests: XCTestCase {
+class FormatterTests: XCTestCase {
 
-    // MARK: Identification
-
-    func testValidLayout() {
-        let input = "<Foo left=\"5\"/>"
-        let xml = try! XMLParser.parse(data: input.data(using: .utf8)!)
-        XCTAssertTrue(xml.isLayout)
-    }
-
-    func testInvalidLayout() {
-        let input = "<html><p> Hello </p></html>"
-        let xml = try! XMLParser.parse(data: input.data(using: .utf8)!)
-        XCTAssertFalse(xml.isLayout)
-    }
-
-    func testMalformedXML() {
-        let input = "<Foo>\n    <Bar/>\n</Baz>\n"
-        XCTAssertThrowsError(try format(input)) { error in
-            let description = "\(error)"
-            XCTAssert(description.contains("Foo"))
-            XCTAssert(description.contains("Baz"))
-            XCTAssert(description.contains("line 3"))
-        }
-    }
-
-    // MARK: Validation
-
-    func testMissingClosingChevron() {
-        let input = "<Foo left=\"5\"></Foo"
-        XCTAssertThrowsError(try format(input)) { error in
-            guard case let FormatError.parsing(message) = error else {
-                XCTFail()
-                return
-            }
-            XCTAssert(message.contains("line 1"))
-            XCTAssert(message.contains(">"))
-        }
-    }
-
-    func testMissingClosingQuote() {
-        let input = "<Foo left=\"5/>"
-        XCTAssertThrowsError(try format(input)) { error in
-            guard case let FormatError.parsing(message) = error else {
-                XCTFail()
-                return
-            }
-            XCTAssert(message.contains("line 1"))
-            XCTAssert(message.contains("'"))
-        }
-    }
+    // MARK: Invalid expressions
 
     func testMalformedExpression() {
         let input = "<Foo left=\"+\"/>"

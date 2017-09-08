@@ -2,7 +2,7 @@
 
 import XCTest
 
-class RenameTests: XCTestCase {
+class RenamerTests: XCTestCase {
 
     func testRenameStandaloneVariable() {
         let input = "<Foo bar=\"foo\"/>"

@@ -210,6 +210,14 @@ func parseLayoutXML(_ fileURL: URL) throws -> [XMLNode]? {
     }
 }
 
+// Currently only used for testing
+func parseXML(_ xml: String) throws -> [XMLNode] {
+    guard let data = xml.data(using: .utf8, allowLossyConversion: true) else {
+        throw FormatError.parsing("Invalid xml string")
+    }
+    return try FormatError.wrap { try XMLParser.parse(data: data) }
+}
+
 func list(_ files: [String]) -> [FormatError] {
     var errors = [Error]()
     for path in files {
