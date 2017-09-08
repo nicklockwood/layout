@@ -129,8 +129,8 @@ public class LayoutNode: NSObject {
             stopObserving()
         } else if !_observing, parent == nil {
             NotificationCenter.default.addObserver(self, selector: #selector(contentSizeChanged), name: .UIContentSizeCategoryDidChange, object: nil)
-            addObserver(self, forKeyPath: "_view.frame", options: .old, context: nil)
-            addObserver(self, forKeyPath: "_view.bounds", options: .old, context: nil)
+            addObserver(self, forKeyPath: "_view.frame", options: [.old, .new], context: nil)
+            addObserver(self, forKeyPath: "_view.bounds", options: [.old, .new], context: nil)
             _observing = true
         }
     }
@@ -150,7 +150,8 @@ public class LayoutNode: NSObject {
         change: [NSKeyValueChangeKey: Any]?,
         context _: UnsafeMutableRawPointer?
     ) {
-        if let change = change, let old = change[.oldKey] as? CGRect, old.size.isNearlyEqual(to: _view?.bounds.size) {
+        if let change = change, let old = change[.oldKey] as? CGRect,
+            let new = change[.newKey] as? CGRect, old.size.isNearlyEqual(to: new.size) {
             return
         }
         update()
@@ -1261,10 +1262,35 @@ public class LayoutNode: NSObject {
         }
         // TODO: remove special cases
         if _view is UIStackView {
-            return _view?.systemLayoutSizeFitting(CGSize(
-                width: try cgFloatValue(forSymbol: "width"),
-                height: .greatestFiniteMagnitude
-            )) ?? .zero
+            let isVertical = try value(forSymbol: "axis") as! UILayoutConstraintAxis == .vertical
+            let spacing = try cgFloatValue(forSymbol: "spacing")
+            var size = CGSize.zero
+            let children = self.children.filter { !$0.isHidden }
+            if !children.isEmpty {
+                for child in children {
+                    var childSize = CGSize.zero
+                    if !child.widthDependsOnParent {
+                        childSize.width = try child.cgFloatValue(forSymbol: "width")
+
+                    }
+                    if !child.heightDependsOnParent {
+                        childSize.height = try child.cgFloatValue(forSymbol: "height")
+                    }
+                    if isVertical {
+                        size.width = max(size.width, childSize.width)
+                        size.height += childSize.height + spacing
+                    } else {
+                        size.width += childSize.width + spacing
+                        size.height = max(size.height, childSize.height)
+                    }
+                }
+                if isVertical {
+                    size.height -= spacing
+                } else {
+                    size.width -= spacing
+                }
+            }
+            return size
         }
         // Try best fit for subviews
         var size = CGSize.zero
