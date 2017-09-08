@@ -187,8 +187,7 @@ struct LayoutExpression {
             if case let .variable(name) = symbol {
                 var key = name
                 let chars = name.characters
-                if chars.count >= 2, let first = chars.first, let last = chars.last,
-                    last == first, first == "`" {
+                if chars.count >= 2, chars.first == "`", chars.last == "`" {
                     key = String(chars.dropFirst().dropLast())
                 }
                 if let value = lookup(key) ?? node.value(forConstant: key) {
@@ -237,6 +236,8 @@ struct LayoutExpression {
             },
             symbols: Set(expression.symbols.flatMap {
                 switch $0 {
+                case _ where ignoredSymbols.contains($0):
+                    return nil
                 case let .variable(string), let .postfix(string):
                     return string
                 default:

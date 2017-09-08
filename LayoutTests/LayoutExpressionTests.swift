@@ -282,6 +282,12 @@ class LayoutExpressionTests: XCTestCase {
         XCTAssertThrowsError(try expression?.evaluate())
     }
 
+    func testFalseTreatedAsConstant() {
+        let node = LayoutNode()
+        let expression = LayoutExpression(boolExpression: "false", for: node)
+        XCTAssertEqual(expression?.symbols.isEmpty, true)
+    }
+
     func testSetLayerContentsWithCGImageConstant() {
         UIGraphicsBeginImageContext(CGSize(width: 1, height: 1))
         let image: AnyObject = UIGraphicsGetImageFromCurrentImageContext()!.cgImage!
