@@ -1665,14 +1665,10 @@ If the consumers of your component library are using `Layout`, then you could ex
 
 To implement this, you can make use of the `LayoutLoading` protocol. `LayoutLoading` works in the same way as `LayoutViewController`, providing `loadLayout(...)` and `reloadLayout(...)` methods to load the subviews of your view or view controller using Layout templates.
 
-Unlike `LayoutViewController`,  `LayoutLoading` provides no Red Box error console or reloading keyboard shortcuts, and because it is a protocol rather than a base class, it can be applied on top of any existing `UIView` or `UIViewController` base class that you require.
-
-The default implementation of `LayoutLoading` will bubble errors up the responder chain to the first view or view controller that handles them. If the `LayoutLoading` view or view controller is placed inside a root `LayoutViewController`, it will therefore gain all the same debugging benefits as using a `LayoutViewController` base class:
-
 ```swift
 class MyView: UIView, LayoutLoading {
 
-    public override init(frame: CGRect) {
+    override init(frame: CGRect) {
         super.init(frame: frame)
 
         loadLayout(
@@ -1681,8 +1677,20 @@ class MyView: UIView, LayoutLoading {
             constants: ...,
         )
     }
+    
+    override func layoutSubviews() {
+        super.layoutSubviews()
+
+        // Ensure layout is resized after screen rotation, etc
+        self.layoutNode?.view.frame = self.bounds
+    }
 }
 ```
+
+Unlike `LayoutViewController`,  `LayoutLoading` provides no Red Box error console or reloading keyboard shortcuts, and because it is a protocol rather than a base class, it can be applied on top of any existing `UIView` or `UIViewController` base class that you require.
+
+The default implementation of `LayoutLoading` will bubble errors up the responder chain to the first view or view controller that handles them. If the `LayoutLoading` view or view controller is placed inside a root `LayoutViewController`, it will therefore gain all the same debugging benefits as using a `LayoutViewController` base class.
+
 
 ## Manual Integration
 
@@ -1692,7 +1700,7 @@ If you would prefer not to use either the `LayoutViewController` base class or `
 class MyViewController: UIViewController {
     var layoutNode: LayoutNode?
 
-    public override func viewDidLoad() {
+    override func viewDidLoad() {
         super.viewDidLoad()
 
         // Create a layout node from and XML file or data object
@@ -1702,11 +1710,11 @@ class MyViewController: UIViewController {
         try? self.layoutNode?.mount(in: self)
     }
 
-    public override func viewWillLayoutSubviews() {
+    override func viewWillLayoutSubviews() {
         super.viewWillLayoutSubviews()
 
         // Ensure layout is resized after screen rotation, etc
-        self.layoutNode?.update()
+        self.layoutNode?.view.frame = self.view.bounds
     }
 }
 ```
