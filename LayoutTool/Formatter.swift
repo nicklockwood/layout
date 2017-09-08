@@ -43,7 +43,7 @@ extension Collection where Iterator.Element == XMLNode {
         var params = [XMLNode]()
         var nodes = Array(self)
         for (index, node) in nodes.enumerated().reversed() {
-            if node.isParam {
+            if node.isParameter {
                 var i = index
                 while i > 0, nodes[i - 1].isComment {
                     i -= 1
@@ -57,7 +57,7 @@ extension Collection where Iterator.Element == XMLNode {
                 continue
             }
             if let previous = previous {
-                if previous.isParam, !node.isParam, !node.isComment {
+                if previous.isParameter, !node.isParameter, !node.isComment {
                     if !node.isHTML {
                         output += "\n"
                     }
@@ -98,7 +98,7 @@ extension XMLNode {
     private func formatAttribute(key: String, value: String) throws -> String {
         do {
             var description = value
-            if attributeIsString(key, inNode: name!) ?? true {
+            if attributeIsString(key, inNode: self) ?? true {
                 // We have to treat everying we aren't sure about as a string expression, because if
                 // we attempt to format text outside of {...} as an expression, it will get messed up
                 let parts = try parseStringExpression(value)
@@ -132,7 +132,7 @@ extension XMLNode {
                 let attributes = attributes.sorted(by: { a, b in
                     a.key < b.key // sort alphabetically
                 })
-                if attributes.count < attributeWrap || isHTML || isParam {
+                if attributes.count < attributeWrap || isParameter || isHTML  {
                     for (key, value) in attributes {
                         xml += try " \(formatAttribute(key: key, value: value))"
                     }
@@ -141,7 +141,7 @@ extension XMLNode {
                         xml += try "\n\(indent)    \(formatAttribute(key: key, value: value))"
                     }
                 }
-                if isParam {
+                if isParameter {
                     xml += "/>"
                 } else if isEmpty {
                     if attributes.count >= attributeWrap {

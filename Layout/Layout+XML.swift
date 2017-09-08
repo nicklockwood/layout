@@ -31,7 +31,7 @@ extension Layout {
         for node in childNodes {
             switch node {
             case let .node(_, attributes, childNodes):
-                if node.isParam {
+                if node.isParameter {
                     guard childNodes.isEmpty else {
                         throw LayoutError("<param> node should not contain children", for: NSClassFromString(className))
                     }

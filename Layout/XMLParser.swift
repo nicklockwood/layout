@@ -11,41 +11,6 @@ enum XMLNode {
     case text(String)
     case comment(String)
 
-    var isLayout: Bool {
-        switch self {
-        case let .node(name, attributes, children):
-            guard let firstChar = name.characters.first.map({ String($0) }),
-                firstChar.uppercased() == firstChar else {
-                return false
-            }
-            for key in attributes.keys {
-                if ["top", "left", "bottom", "right", "width", "height", "backgroundColor"].contains(key) {
-                    return true
-                }
-                if key.hasPrefix("layer.") {
-                    return true
-                }
-            }
-            return children.isLayout
-        default:
-            return false
-        }
-    }
-
-    public var isParam: Bool {
-        guard case .node("param", _, _) = self else {
-            return false
-        }
-        return true
-    }
-
-    public var isHTML: Bool {
-        guard case let .node(name, _, _) = self, !isParam else {
-            return false
-        }
-        return name.lowercased() == name
-    }
-
     public var isEmpty: Bool {
         switch self {
         case let .node(_, _, children):
@@ -67,6 +32,13 @@ enum XMLNode {
             return false
         }
         return true
+    }
+
+    public var isHTML: Bool {
+        guard case let .node(name, _, _) = self else {
+            return false
+        }
+        return name.lowercased() == name
     }
 
     public var isLinebreak: Bool {
@@ -97,6 +69,13 @@ enum XMLNode {
         return []
     }
 
+    public var attributes: [String: String] {
+        if case let .node(_, attributes, _) = self {
+            return attributes
+        }
+        return [:]
+    }
+
     fileprivate mutating func append(_ node: XMLNode) {
         switch self {
         case let .node(name, attributes, children):
@@ -108,21 +87,6 @@ enum XMLNode {
         default:
             preconditionFailure()
         }
-    }
-}
-
-extension Collection where Iterator.Element == XMLNode {
-    var isLayout: Bool {
-        for node in self {
-            if node.isLayout {
-                return true
-            }
-        }
-        return false
-    }
-
-    var isHTML: Bool {
-        return contains(where: { $0.isHTML })
     }
 }
 
@@ -253,6 +217,12 @@ class XMLParser: NSObject, XMLParserDelegate {
             return
         }
         error = Error(parseError)
+    }
+}
+
+extension Collection where Iterator.Element == XMLNode {
+    var isHTML: Bool {
+        return contains(where: { $0.isHTML })
     }
 }
 

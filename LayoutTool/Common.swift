@@ -250,8 +250,13 @@ func isStringType(_ name: String) -> Bool {
 }
 
 // Returns the type name of an attribute in a node, or nil if uncertain
-func typeOfAttribute(_ key: String, inNode name: String) -> String? {
-    if let props = UIKitSymbols[name], let type = props[key] {
+func typeOfAttribute(_ key: String, inNode node: XMLNode) -> String? {
+    guard let name = node.name else {
+        preconditionFailure()
+    }
+    if let type = node.parameters[key] {
+        return type
+    } else if let props = UIKitSymbols[name], let type = props[key] {
         return type
     } else if name.hasSuffix("Controller"), let type = UIKitSymbols["UIViewController"]![key] {
         return type
@@ -278,6 +283,6 @@ func typeOfAttribute(_ key: String, inNode name: String) -> String? {
 
 // Determines if given attribute should be treated as a string expression
 // Returns true or false if reasonably certain, otherwise returns nil
-func attributeIsString(_ key: String, inNode name: String) -> Bool? {
-    return typeOfAttribute(key, inNode: name).map(isStringType)
+func attributeIsString(_ key: String, inNode node: XMLNode) -> Bool? {
+    return typeOfAttribute(key, inNode: node).map(isStringType)
 }

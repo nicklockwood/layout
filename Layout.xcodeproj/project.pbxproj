@@ -99,6 +99,9 @@
 		018879ED1F2B456A00A64B6B /* PageTemplate.xml in Resources */ = {isa = PBXBuildFile; fileRef = 018879EC1F2B456A00A64B6B /* PageTemplate.xml */; };
 		01B131641F617E6600B426BB /* Symbols.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01EAFD7F1F60649500B73E92 /* Symbols.swift */; };
 		01B1316C1F627E0700B426BB /* ValidationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01B1316B1F627E0700B426BB /* ValidationTests.swift */; };
+		01B1316E1F629F0700B426BB /* XMLNode+Layout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01B1316D1F629F0700B426BB /* XMLNode+Layout.swift */; };
+		01B1316F1F629F0700B426BB /* XMLNode+Layout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01B1316D1F629F0700B426BB /* XMLNode+Layout.swift */; };
+		01B131701F629F0700B426BB /* XMLNode+Layout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01B1316D1F629F0700B426BB /* XMLNode+Layout.swift */; };
 		01CB3DFA1F47559500343286 /* LayoutDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01CB3DF91F47559500343286 /* LayoutDelegate.swift */; };
 		01E7E0491F1A96F600B7F9DB /* Layout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01E7E0481F1A96F600B7F9DB /* Layout.swift */; };
 		01E7E04B1F1BFD9100B7F9DB /* Example.xml in Resources */ = {isa = PBXBuildFile; fileRef = 01E7E04A1F1BFD9100B7F9DB /* Example.xml */; };
@@ -264,6 +267,7 @@
 		0176B8F81F0D153700431A11 /* Localizable.strings */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; path = Localizable.strings; sourceTree = "<group>"; };
 		018879EC1F2B456A00A64B6B /* PageTemplate.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = PageTemplate.xml; sourceTree = "<group>"; };
 		01B1316B1F627E0700B426BB /* ValidationTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ValidationTests.swift; sourceTree = "<group>"; };
+		01B1316D1F629F0700B426BB /* XMLNode+Layout.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "XMLNode+Layout.swift"; sourceTree = "<group>"; };
 		01CB3DF91F47559500343286 /* LayoutDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayoutDelegate.swift; sourceTree = "<group>"; };
 		01DA95861EABFF5F00868113 /* Expression.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Expression.framework; path = "../../../Library/Developer/Xcode/DerivedData/Layout-cidlxdzqvadfbngzwtfaldjrmjir/Build/Products/Debug-iphonesimulator/Expression.framework"; sourceTree = "<group>"; };
 		01E7E0481F1A96F600B7F9DB /* Layout.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Layout.swift; sourceTree = "<group>"; };
@@ -442,6 +446,7 @@
 				01E7E0481F1A96F600B7F9DB /* Layout.swift */,
 				01E7E04E1F1C057700B7F9DB /* Layout+XML.swift */,
 				011EC5911F40A2E200BFA229 /* XMLParser.swift */,
+				01B1316D1F629F0700B426BB /* XMLNode+Layout.swift */,
 				01181E031F0E1FE80011C4DE /* ExpressionParser.swift */,
 				0105F77E1F0547910067B313 /* LayoutExpression.swift */,
 				01E7E0501F1C077900B7F9DB /* LayoutError+LayoutNode.swift */,
@@ -932,6 +937,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				01EAFD801F60649500B73E92 /* Symbols.swift in Sources */,
+				01B1316F1F629F0700B426BB /* XMLNode+Layout.swift in Sources */,
 				011EC5931F40A2EA00BFA229 /* XMLParser.swift in Sources */,
 				0164F9231F470A4400AFCDCA /* Files.swift in Sources */,
 				017539821F28B623005B7516 /* Renamer.swift in Sources */,
@@ -958,6 +964,7 @@
 				3583485B1F3F217200CFB6BB /* main.swift in Sources */,
 				0105F7B91F0AA7E70067B313 /* Formatter.swift in Sources */,
 				01B131641F617E6600B426BB /* Symbols.swift in Sources */,
+				01B131701F629F0700B426BB /* XMLNode+Layout.swift in Sources */,
 				0105F7B11F059CCC0067B313 /* Common.swift in Sources */,
 				01181E0B1F0F7E530011C4DE /* Expression.swift in Sources */,
 			);
@@ -1026,6 +1033,7 @@
 				0105F78B1F0547910067B313 /* LayoutExpression.swift in Sources */,
 				0105F7921F0547910067B313 /* Properties.swift in Sources */,
 				01181E041F0E1FE80011C4DE /* ExpressionParser.swift in Sources */,
+				01B1316E1F629F0700B426BB /* XMLNode+Layout.swift in Sources */,
 				01146B121F4700AD008A9B24 /* Files.swift in Sources */,
 				0105F78E1F0547910067B313 /* LayoutNode.swift in Sources */,
 				01181E091F0F7E430011C4DE /* Expression.swift in Sources */,
