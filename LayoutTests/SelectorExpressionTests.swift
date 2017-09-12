@@ -4,11 +4,11 @@ import XCTest
 @testable import Layout
 
 private class TestView: UIView {
-    var action: Selector?
+    @objc var action: Selector?
 }
 
 private class TestViewController: UIViewController {
-    func foo(_: UIView) {
+    @objc func foo(_: UIView) {
         print("It works!")
     }
 }

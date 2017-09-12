@@ -4,7 +4,7 @@ import XCTest
 @testable import Layout
 
 extension UIColor {
-    static var testColor: UIColor { return UIColor.brown }
+    @objc static var testColor: UIColor { return UIColor.brown }
 }
 
 class ColorExpressionTests: XCTestCase {
