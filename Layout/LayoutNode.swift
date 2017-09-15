@@ -566,6 +566,10 @@ public class LayoutNode: NSObject {
             }
         }
 
+        for (name, type) in layout.parameters where _parameters[name] == nil { // TODO: should parameter shadowing be allowed?
+            _parameters[name] = type
+        }
+
         for (name, expression) in layout.expressions where _originalExpressions[name] == nil {
             _originalExpressions[name] = expression
         }
