@@ -10,70 +10,94 @@ extension NSObject {
         if let memoized = objc_getAssociatedObject(self, &propertiesKey) as? [String: RuntimeType] {
             return memoized
         }
-        if "\(self)".hasPrefix("_") { // We don't want to mess with private stuff
+        let name = "\(self)"
+        if !name.hasPrefix("("), name.contains("_") { // We don't want to mess with private stuff
             return [:]
         }
         var allProperties = [String: RuntimeType]()
         func addProperty(name: String, type: RuntimeType) {
             allProperties[name] = type
+            let availability = type.availability
             switch type.type {
-            case let .struct(objCType):
-                if objCType.hasPrefix("{CGPoint") {
-                    allProperties[name] = RuntimeType(CGPoint.self)
-                    allProperties["\(name).x"] = RuntimeType(CGFloat.self)
-                    allProperties["\(name).y"] = RuntimeType(CGFloat.self)
-                } else if objCType.hasPrefix("{CGSize") {
-                    allProperties[name] = RuntimeType(CGSize.self)
-                    allProperties["\(name).width"] = RuntimeType(CGFloat.self)
-                    allProperties["\(name).height"] = RuntimeType(CGFloat.self)
-                } else if objCType.hasPrefix("{CGVector") {
-                    allProperties[name] = RuntimeType(CGVector.self)
-                    allProperties["\(name).dx"] = RuntimeType(CGFloat.self)
-                    allProperties["\(name).dy"] = RuntimeType(CGFloat.self)
-                } else if objCType.hasPrefix("{CGRect") {
-                    allProperties[name] = RuntimeType(CGRect.self)
-                    allProperties["\(name).x"] = RuntimeType(CGFloat.self)
-                    allProperties["\(name).y"] = RuntimeType(CGFloat.self)
-                    allProperties["\(name).width"] = RuntimeType(CGFloat.self)
-                    allProperties["\(name).height"] = RuntimeType(CGFloat.self)
-                    allProperties["\(name).origin"] = RuntimeType(CGPoint.self)
-                    allProperties["\(name).origin.x"] = RuntimeType(CGFloat.self)
-                    allProperties["\(name).origin.y"] = RuntimeType(CGFloat.self)
-                    allProperties["\(name).size"] = RuntimeType(CGSize.self)
-                    allProperties["\(name).size.width"] = RuntimeType(CGFloat.self)
-                    allProperties["\(name).size.height"] = RuntimeType(CGFloat.self)
-                } else if objCType.hasPrefix("{CGAffineTransform") {
-                    allProperties[name] = RuntimeType(CGAffineTransform.self)
-                    allProperties["\(name).rotation"] = RuntimeType(CGFloat.self)
-                    allProperties["\(name).scale"] = RuntimeType(CGFloat.self)
-                    allProperties["\(name).scale.x"] = RuntimeType(CGFloat.self)
-                    allProperties["\(name).scale.y"] = RuntimeType(CGFloat.self)
-                    allProperties["\(name).translation.x"] = RuntimeType(CGFloat.self)
-                    allProperties["\(name).translation.y"] = RuntimeType(CGFloat.self)
-                } else if objCType.hasPrefix("{CATransform3D") {
-                    allProperties[name] = RuntimeType(CATransform3D.self)
-                    allProperties["\(name).m34"] = RuntimeType(CGFloat.self) // Used for perspective
-                    allProperties["\(name).rotation"] = RuntimeType(CGFloat.self)
-                    allProperties["\(name).rotation.x"] = RuntimeType(CGFloat.self)
-                    allProperties["\(name).rotation.y"] = RuntimeType(CGFloat.self)
-                    allProperties["\(name).rotation.z"] = RuntimeType(CGFloat.self)
-                    allProperties["\(name).scale"] = RuntimeType(CGFloat.self)
-                    allProperties["\(name).scale.x"] = RuntimeType(CGFloat.self)
-                    allProperties["\(name).scale.y"] = RuntimeType(CGFloat.self)
-                    allProperties["\(name).scale.z"] = RuntimeType(CGFloat.self)
-                    allProperties["\(name).translation.x"] = RuntimeType(CGFloat.self)
-                    allProperties["\(name).translation.y"] = RuntimeType(CGFloat.self)
-                    allProperties["\(name).translation.z"] = RuntimeType(CGFloat.self)
-                } else if objCType.hasPrefix("{UIEdgeInsets") {
-                    allProperties[name] = RuntimeType(UIEdgeInsets.self)
-                    allProperties["\(name).top"] = RuntimeType(CGFloat.self)
-                    allProperties["\(name).left"] = RuntimeType(CGFloat.self)
-                    allProperties["\(name).bottom"] = RuntimeType(CGFloat.self)
-                    allProperties["\(name).right"] = RuntimeType(CGFloat.self)
-                } else if objCType.hasPrefix("{UIOffset") {
-                    allProperties[name] = RuntimeType(UIOffset.self)
-                    allProperties["\(name).horizontal"] = RuntimeType(CGFloat.self)
-                    allProperties["\(name).vertical"] = RuntimeType(CGFloat.self)
+            case let .struct(type):
+                // NOTE: although we don't technically need to add all the sub-properties here
+                // because type(forKeyPath:) can find them, it helps with lookup performance
+                // and is also helpful when generating lists of properties for autocomplete
+                switch type {
+                case "CGPoint":
+                    allProperties[name] = RuntimeType(CGPoint.self, availability)
+                    for key in ["x", "y"] {
+                        allProperties["\(name).\(key)"] = RuntimeType(CGFloat.self, availability)
+                    }
+                case "CGSize":
+                    allProperties[name] = RuntimeType(CGSize.self, availability)
+                    for key in ["width", "height"] {
+                        allProperties["\(name).\(key)"] = RuntimeType(CGFloat.self, availability)
+                    }
+                case "CGVector":
+                    allProperties[name] = RuntimeType(CGVector.self, availability)
+                    for key in ["dx", "dy"] {
+                        allProperties["\(name).\(key)"] = RuntimeType(CGFloat.self, availability)
+                    }
+                case "CGRect":
+                    allProperties[name] = RuntimeType(CGRect.self, availability)
+                    allProperties["\(name).origin"] = RuntimeType(CGPoint.self, availability)
+                    allProperties["\(name).size"] = RuntimeType(CGSize.self, availability)
+                    for key in [
+                        "x", "y",
+                        "width", "height",
+                        "origin.x", "origin.y",
+                        "size.width", "size.height",
+                    ] {
+                        allProperties["\(name).\(key)"] = RuntimeType(CGFloat.self, availability)
+                    }
+                case "CGAffineTransform":
+                    allProperties[name] = RuntimeType(CGAffineTransform.self, availability)
+                    for key in [
+                        "rotation",
+                        "scale", "scale.x", "scale.y",
+                        "translation.x", "translation.y",
+                    ] {
+                        allProperties["\(name).\(key)"] = RuntimeType(CGFloat.self, availability)
+                    }
+                case "CATransform3D":
+                    allProperties[name] = RuntimeType(CATransform3D.self, availability)
+                    for key in [
+                        "rotation", "rotation.x", "rotation.y", "rotation.z",
+                        "scale", "scale.x", "scale.y", "scale.z",
+                        "translation.x", "translation.y", "translation.z",
+                        "m34", // Used for perspective
+                    ] {
+                        allProperties["\(name).\(key)"] = RuntimeType(CGFloat.self, availability)
+                    }
+                case "UIEdgeInsets":
+                    allProperties[name] = RuntimeType(UIEdgeInsets.self, availability)
+                    for key in ["top", "left", "bottom", "right"] {
+                        allProperties["\(name).\(key)"] = RuntimeType(CGFloat.self, availability)
+                    }
+                case "UIOffset":
+                    allProperties[name] = RuntimeType(UIOffset.self, availability)
+                    for key in ["horizontal", "vertical"] {
+                        allProperties["\(name).\(key)"] = RuntimeType(CGFloat.self, availability)
+                    }
+                case "NSDirectionalEdgeInsets":
+                    #if swift(>=3.2)
+                        if #available(iOS 11.0, *) {
+                            allProperties[name] = RuntimeType(NSDirectionalEdgeInsets.self, availability)
+                            for key in ["top", "bottom", "leading", "trailing"] {
+                                allProperties["\(name).\(key)"] = RuntimeType(CGFloat.self, availability)
+                            }
+                        } else {
+                            // TODO: gracefully allow use on older iOS versions
+                            let type = RuntimeType.unavailable("NSDirectionalEdgeInsets is not supported on iOS versions prior to 11")
+                            allProperties[name] = type
+                            for key in ["top", "bottom", "leading", "trailing"] {
+                                allProperties["\(name).\(key)"] = type
+                            }
+                        }
+                    #endif
+                default:
+                    break
                 }
             default:
                 break
@@ -87,29 +111,26 @@ extension NSObject {
                 let cname: UnsafePointer<Int8> = property_getName(cprop)
                 if let cattribs = property_getAttributes(cprop) {
                     var name = String(cString: cname)
-                    guard !name.hasPrefix("_"), // We don't want to mess with private stuff
+                    guard !name.contains("_"), // We don't want to mess with private stuff
                         allProperties[name] == nil else {
                         continue
                     }
                     // Get attributes
-                    let attribs = String(cString: cattribs).components(separatedBy: ",")
-                    if attribs.contains("R") || attribs.contains(where: { $0.hasPrefix("S") }) {
-                        // Skip read-only properties, or properties with a nonstandard setter
-                        continue
-                    }
                     let chars = name.characters
                     let setter = "set\(String(chars.first!).uppercased())\(String(chars.dropFirst())):"
-                    if !instancesRespond(to: Selector(setter)) {
-                        // Despite ostensibly being readwrite, property does not have a standard setter
-                        continue
-                    }
+                    let writable = instancesRespond(to: Selector(setter))
+                    let attribs = String(cString: cattribs).components(separatedBy: ",")
                     let objCType = String(attribs[0].unicodeScalars.dropFirst())
-                    guard let type = RuntimeType(objCType: objCType) else {
+                    guard let type = RuntimeType(objCType: objCType, writable ? .readWrite : .readOnly) else {
                         continue
                     }
                     if case let .any(type) = type.type, type is Bool.Type,
                         let attrib = attribs.first(where: { $0.hasPrefix("Gis") }) {
                         name = String(attrib.unicodeScalars.dropFirst())
+                    }
+                    let typeName = type.description
+                    if !typeName.hasPrefix("("), typeName.contains("_") { // We don't want to mess with private stuff
+                        continue
                     }
                     addProperty(name: name, type: type)
                 }
@@ -558,11 +579,11 @@ extension NSObject {
         var target = self as NSObject
         var key: String = String(name[range.upperBound ..< name.endIndex])
         for subkey in name[name.startIndex ..< range.lowerBound].components(separatedBy: ".") {
+            if target is NSValue {
+                key = "\(subkey).\(key)"
+                break
+            }
             guard target.responds(to: Selector(subkey)) else {
-                if target is NSValue {
-                    key = "\(subkey).\(key)"
-                    break
-                }
                 throw SymbolError("Unknown property \(subkey) of \(target.classForCoder)", for: name)
             }
             guard let nextTarget = target.value(forKey: subkey) as? NSObject else {
@@ -594,7 +615,7 @@ extension NSObject {
                 switch key {
                 case "rotation", "rotation.x", "rotation.y", "rotation.z",
                      "scale", "scale.x", "scale.y", "scale.z",
-                     "translation", "translation.x", "translation.y", "translation.z":
+                     "translation.x", "translation.y", "translation.z":
                     return prevTarget.value(forKeyPath: "\(prevKey).\(key)")
                 default:
                     break

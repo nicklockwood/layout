@@ -196,10 +196,9 @@ class LayoutNodeTests: XCTestCase {
     func testUpdateViewWithSubclass() {
         let node = LayoutNode(view: UIView())
         XCTAssertTrue(node.view.classForCoder == UIView.self)
-        XCTAssertEqual(node.viewExpressionTypes, UIView.cachedExpressionTypes)
         let layout = Layout(LayoutNode(view: UILabel()))
         try! node.update(with: layout)
-        XCTAssertEqual(node.viewExpressionTypes, UILabel.cachedExpressionTypes)
+        XCTAssertTrue(node.view.classForCoder == UILabel.self)
     }
 
     func testUpdateViewWithSuperclass() {
@@ -220,10 +219,9 @@ class LayoutNodeTests: XCTestCase {
     func testUpdateViewControllerWithSubclass() {
         let node = LayoutNode(viewController: UIViewController())
         XCTAssertTrue(node.viewController?.classForCoder == UIViewController.self)
-        XCTAssertEqual(node.viewControllerExpressionTypes, UIViewController.cachedExpressionTypes)
         let layout = Layout(LayoutNode(viewController: UITabBarController()))
         try! node.update(with: layout)
-        XCTAssertEqual(node.viewControllerExpressionTypes, UITabBarController.cachedExpressionTypes)
+        XCTAssertTrue(node.viewController?.classForCoder == UITabBarController.self)
     }
 
     func testUpdateViewControllerWithSuperclass() {

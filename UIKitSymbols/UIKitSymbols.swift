@@ -28,7 +28,7 @@ class UIKitSymbols: XCTestCase {
             if class_getSuperclass(cls) != nil,
                 cls.isSubclass(of: UIView.self) || cls.isSubclass(of: UIViewController.self) {
                 let name = NSStringFromClass(cls)
-                if !name.hasPrefix("_"), !name.contains(".") {
+                if !name.contains("_"), !name.contains(".") {
                     names.append(name)
                 }
             }
@@ -169,8 +169,8 @@ class UIKitSymbols: XCTestCase {
         ]
 
         // Dedupe view and controller keys
-        let viewControllerKeys = UIViewController.expressionTypes
-        let viewKeys = UIView.expressionTypes
+        let viewControllerKeys = UIViewController.cachedExpressionTypes
+        let viewKeys = UIView.cachedExpressionTypes
 
         // Get properties
         var result = [String: [String: RuntimeType]]()
@@ -179,20 +179,26 @@ class UIKitSymbols: XCTestCase {
             let cls: AnyClass? = NSClassFromString(name)
             switch cls {
             case let viewClass as UIView.Type:
-                props = viewClass.expressionTypes
+                props = viewClass.cachedExpressionTypes
+                if viewClass == UIView.self {
+                    break
+                }
                 for (key, type) in viewKeys where props[key] == type {
                     props.removeValue(forKey: key)
                 }
             case let controllerClass as UIViewController.Type:
-                props = controllerClass.expressionTypes
-                for (key, type) in viewControllerKeys where props[key] == type {
-                    props.removeValue(forKey: key)
+                props = controllerClass.cachedExpressionTypes
+                if controllerClass == UIViewController.self {
+                    break
                 }
-                for (key, type) in viewKeys where props[key] == type {
+                for (key, type) in viewControllerKeys where props[key] == type {
                     props.removeValue(forKey: key)
                 }
             default:
                 props = [:]
+            }
+            for (key, type) in props where !type.isWritable {
+                props.removeValue(forKey: key)
             }
             result[name] = props
         }
@@ -217,7 +223,7 @@ class UIKitSymbols: XCTestCase {
                 output += "\n"
                 for prop in props.keys.sorted() {
                     let type = props[prop]!
-                    if case .unavailable = type.availability {
+                    if !type.isWritable {
                         continue
                     }
                     output += "        \"\(prop)\": \"\(type)\",\n"
@@ -266,7 +272,7 @@ class UIKitSymbols: XCTestCase {
             rows.append("{ \"trigger\": \"\(name)\", \"contents\": \"\(name) $0/>\" }")
             for prop in props.keys.sorted() {
                 let type = props[prop]!
-                if case .unavailable = type.availability {
+                if !type.isWritable {
                     continue
                 }
                 let row = "{ \"trigger\": \"\(prop)\t\(type)\", \"contents\": \"\(prop)=\\\"$0\\\"\" }"

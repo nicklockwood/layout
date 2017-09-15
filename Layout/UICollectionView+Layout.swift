@@ -336,7 +336,7 @@ extension UICollectionViewCell {
 
     open override class var expressionTypes: [String: RuntimeType] {
         var types = super.expressionTypes
-        for (key, type) in UIView.expressionTypes {
+        for (key, type) in UIView.cachedExpressionTypes {
             types["contentView.\(key)"] = type
             types["backgroundView.\(key)"] = type
             types["selectedBackgroundView.\(key)"] = type

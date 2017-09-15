@@ -451,11 +451,11 @@ extension UITableViewHeaderFooterView {
         var types = super.expressionTypes
         types["backgroundColor"] = .unavailable("Setting backgroundColor on UITableViewHeaderFooterView is not supported. Use contentView.backgroundColor instead.")
         types["editingAccessoryType"] = types["accessoryType"]
-        for (key, type) in UIView.expressionTypes {
+        for (key, type) in UIView.cachedExpressionTypes {
             types["contentView.\(key)"] = type
             types["backgroundView.\(key)"] = type
         }
-        for (key, type) in UILabel.expressionTypes {
+        for (key, type) in UILabel.cachedExpressionTypes {
             types["textLabel.\(key)"] = type
             types["detailTextLabel.\(key)"] = type
         }
@@ -547,15 +547,15 @@ extension UITableViewCell {
             "detailButton": .detailButton,
         ])
         types["editingAccessoryType"] = types["accessoryType"]
-        for (key, type) in UIView.expressionTypes {
+        for (key, type) in UIView.cachedExpressionTypes {
             types["contentView.\(key)"] = type
             types["backgroundView.\(key)"] = type
             types["selectedBackgroundView.\(key)"] = type
         }
-        for (key, type) in UIImageView.expressionTypes {
+        for (key, type) in UIImageView.cachedExpressionTypes {
             types["imageView.\(key)"] = type
         }
-        for (key, type) in UILabel.expressionTypes {
+        for (key, type) in UILabel.cachedExpressionTypes {
             types["textLabel.\(key)"] = type
             types["detailTextLabel.\(key)"] = type
         }

@@ -76,10 +76,10 @@ public class LayoutNode: NSObject {
     }
 
     /// Get the view class without side-effects of accessing view
-    var viewClass: UIView.Type { return _class as? UIView.Type ?? UIView.self }
+    public var viewClass: UIView.Type { return _class as? UIView.Type ?? UIView.self }
 
     /// Get the view controller class without side-effects of accessing view
-    var viewControllerClass: UIViewController.Type? { return _class as? UIViewController.Type }
+    public var viewControllerClass: UIViewController.Type? { return _class as? UIViewController.Type }
 
     // For internal use
     private(set) var _class: AnyClass
@@ -245,6 +245,7 @@ public class LayoutNode: NSObject {
     // MARK: Validation
 
     /// Test if the specified expression is valid for a given view or view controller class
+    /// NOTE: only used by UIDesigner - should we deprecate this?
     public static func isValidExpressionName(
         _ name: String, for viewOrViewControllerClass: AnyClass) -> Bool {
         switch name {
@@ -254,7 +255,7 @@ public class LayoutNode: NSObject {
             if let viewClass = viewOrViewControllerClass as? UIView.Type {
                 return viewClass.cachedExpressionTypes[name] != nil
             } else if let viewControllerClass = viewOrViewControllerClass as? UIViewController.Type {
-                return viewControllerClass.cachedExpressionTypes[name] != nil
+                return viewControllerClass.cachedExpressionTypes[name] ?? UIView.cachedExpressionTypes[name] != nil
             }
             preconditionFailure("\(viewOrViewControllerClass) is not a UIView or UIViewController subclass")
         }
@@ -659,8 +660,8 @@ public class LayoutNode: NSObject {
     private var _valueClearers = [() -> Void]()
     private var _valueHasChanged = [String: () -> Bool]()
 
-    private lazy var viewControllerConstructorArgumentTypes: [String: RuntimeType]? = self.viewControllerClass?.parameterTypes
-    private lazy var viewConstructorArgumentTypes: [String: RuntimeType] = self.viewClass.parameterTypes
+    private lazy var constructorArgumentTypes: [String: RuntimeType] =
+        self.viewControllerClass?.parameterTypes ?? self.viewClass.parameterTypes
 
     // Note: thrown error is always a SymbolError
     private func setUpExpression(for symbol: String) throws {
@@ -682,17 +683,23 @@ public class LayoutNode: NSObject {
         default:
             let type: RuntimeType
             if let viewControllerType = viewControllerExpressionTypes[symbol] {
-                isViewControllerExpression = true
-                type = viewControllerType
+                if viewControllerType.isWritable {
+                    type = viewControllerType
+                    isViewControllerExpression = true
+                } else {
+                    type = constructorArgumentTypes[symbol] ?? viewControllerType
+                }
             } else if let viewType = viewExpressionTypes[symbol] {
-                isViewExpression = true
-                type = viewType
+                if viewType.isWritable {
+                    type = viewType
+                    isViewExpression = true
+                } else {
+                    type = constructorArgumentTypes[symbol] ?? viewType
+                }
             } else if let parameterType = _parameters[symbol] {
                 type = parameterType
-            } else if let constructorArgumentType =
-                viewControllerConstructorArgumentTypes?[symbol] ?? viewConstructorArgumentTypes[symbol] {
-                type = constructorArgumentType
-                // TODO: warn if constructor argument expression is not constant?
+            } else if let constructorType = constructorArgumentTypes[symbol] {
+                type = constructorType
             } else {
                 let instance: AnyObject
                 if let viewControllerClass = self.viewControllerClass {
@@ -707,8 +714,10 @@ public class LayoutNode: NSObject {
                 throw SymbolError("Unknown property \(symbol)", for: symbol)
             }
             switch type.availability {
-            case .available:
+            case .readWrite:
                 break
+            case .readOnly:
+                throw SymbolError("\(_class).\(symbol) is read-only", for: symbol)
             case let .unavailable(reason):
                 throw SymbolError("\(_class).\(symbol) is not available in Layout\(reason.map { ". \($0)" } ?? "")", for: symbol)
             }

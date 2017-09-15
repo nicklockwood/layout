@@ -768,9 +768,9 @@ struct LayoutExpression {
             )
         case .enum:
             self.init(enumExpression: expression, type: type, for: node)
-        case .pointer("{CGColor=}"):
+        case .pointer("CGColor"):
             self.init(cgColorExpression: expression, for: node)
-        case .pointer("{CGImage=}"):
+        case .pointer("CGImage"):
             self.init(cgImageExpression: expression, for: node)
         case .pointer, .protocol:
             self.init(anyExpression: expression, type: type, nullable: true, for: node)

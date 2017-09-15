@@ -71,7 +71,7 @@ class ValidationTests: XCTestCase {
         let prop = "text"
         let node = try! parseXML("<\(cls) \(prop)=\"\"/>")[0]
         let type = typeOfAttribute(prop, inNode: node) ?? "<unknown>"
-        XCTAssertEqual(type, "NSString")
+        XCTAssertEqual(type, "String")
         XCTAssertTrue(isStringType(type))
         XCTAssertEqual(attributeIsString(prop, inNode: node), true)
     }

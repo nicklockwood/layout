@@ -3,73 +3,144 @@
 import UIKit
 
 public class RuntimeType: NSObject {
-    public enum Kind {
+
+    public enum Kind: Equatable, CustomStringConvertible {
         case any(Any.Type)
         case `class`(AnyClass)
         case `struct`(String)
         case pointer(String)
         case `protocol`(Protocol)
         case `enum`(Any.Type, [String: Any])
+
+        public static func ==(lhs: Kind, rhs: Kind) -> Bool {
+            return lhs.description == rhs.description
+        }
+
+        public var description: String {
+            switch self {
+            case let .any(type),
+                 let .enum(type, _):
+                return "\(type)"
+            case let .class(type):
+                return "\(type).Type"
+            case let .struct(type),
+                 let .pointer(type):
+                return type
+            case let .protocol(proto):
+                return "<\(NSStringFromProtocol(proto))>"
+            }
+        }
     }
 
-    public enum Availability {
-        case available
+    public enum Availability: Equatable {
+        case readOnly
+        case readWrite
         case unavailable(reason: String?)
+
+        @available(*, deprecated, message: "Use readWrite instead")
+        static var available = Availability.readWrite
+
+        public static func ==(lhs: Availability, rhs: Availability) -> Bool {
+            switch (lhs, rhs) {
+            case (.readWrite, .readWrite), (.readOnly, .readOnly):
+                return true
+            case let (.unavailable(lhs), .unavailable(rhs)):
+                return lhs == rhs
+            case (.readWrite, _), (.readOnly, _), (.unavailable, _):
+                return false
+            }
+        }
     }
 
     public typealias Getter = (_ target: AnyObject, _ key: String) -> Any?
     public typealias Setter = (_ target: AnyObject, _ key: String, _ value: Any) throws -> Void
 
     public let type: Kind
-    public private(set) var availability = Availability.available
-    public private(set) var getter: Getter?
-    public private(set) var setter: Setter?
+    private(set) var availability = Availability.readWrite
+    private(set) var getter: Getter?
+    private(set) var setter: Setter?
 
-    static func unavailable(_ reason: String? = nil) -> RuntimeType {
-        let type = RuntimeType(.any(String.self))
-        type.availability = .unavailable(reason: reason)
-        return type
+    static func unavailable(_ reason: String? = nil) -> RuntimeType? {
+        #if arch(i386) || arch(x86_64)
+            return RuntimeType(.any(String.self), .unavailable(reason: reason))
+        #else
+            return nil
+        #endif
     }
 
-    @nonobjc private init(_ type: Kind) {
-        self.type = type
-    }
-
-    @nonobjc public init(_ type: Any.Type) {
-        switch "\(type)" {
-        case "CGColor":
-            self.type = .pointer("{CGColor=}")
-        case "CGImage":
-            self.type = .pointer("{CGImage=}")
-        default:
-            self.type = .any(type)
+    public var isReadable: Bool {
+        switch availability {
+        case .readOnly, .readWrite:
+            return true
+        case .unavailable:
+            return false
         }
     }
 
-    @nonobjc public init(class: AnyClass) {
-        type = .class(`class`)
+    public var isWritable: Bool {
+        switch availability {
+        case .readWrite:
+            return true
+        case .readOnly, .unavailable:
+            return false
+        }
     }
 
-    @nonobjc public init(_ type: Protocol) {
-        self.type = .protocol(type)
+    @nonobjc private init(_ type: Kind, _ availability: Availability = .readWrite) {
+        self.type = type
+        self.availability = availability
     }
 
-    @nonobjc public convenience init?(_ typeName: String) {
+    @nonobjc public convenience init(_ type: Any.Type, _ availability: Availability = .readWrite) {
+        let name = "\(type)"
+        switch name {
+        case "CGColor", "CGImage", "CGPath":
+            self.init(.pointer(name), availability)
+        case "NSString":
+            self.init(.any(String.self), availability)
+        default:
+            self.init(.any(type), availability)
+        }
+    }
+
+    @nonobjc public convenience init(class: AnyClass, _ availability: Availability = .readWrite) {
+        self.init(.class(`class`), availability)
+    }
+
+    @nonobjc public convenience init(_ type: Protocol, _ availability: Availability = .readWrite) {
+        self.init(.protocol(type), availability)
+    }
+
+    @nonobjc public convenience init?(_ typeName: String, _ availability: Availability = .readWrite) {
         guard let type = typesByName[typeName] ?? NSClassFromString(typeName) else {
             guard let proto = NSProtocolFromString(typeName) else {
                 return nil
             }
-            self.init(proto)
+            self.init(proto, availability)
             return
         }
-        self.init(type)
+        self.init(type, availability)
     }
 
-    @nonobjc public init?(objCType: String) {
+    @nonobjc public init?(objCType: String, _ availability: Availability = .readWrite) {
         guard let first = objCType.unicodeScalars.first else {
             assertionFailure("Empty objCType")
             return nil
         }
+        func sanitizedStructName(_ objCType: String) -> String {
+            guard let equalRange = objCType.range(of: "="),
+                let braceRange = objCType.range(of: "{") else {
+                return objCType
+            }
+            let name: String = String(objCType[braceRange.upperBound ..< equalRange.lowerBound])
+            switch name {
+            case "_NSRange":
+                return "NSRange" // Yay! special cases
+            default:
+                return name
+            }
+        }
+        self.availability = availability
         switch first {
         case "c" where OBJC_BOOL_IS_BOOL == 0, "B":
             type = .any(Bool.self)
@@ -95,7 +166,11 @@ public class RuntimeType: NSObject {
                         return
                     }
                 } else if let cls = NSClassFromString(className) {
-                    type = .any(cls)
+                    if cls == NSString.self {
+                        type = .any(String.self)
+                    } else {
+                        type = .any(cls)
+                    }
                     return
                 }
             }
@@ -126,11 +201,10 @@ public class RuntimeType: NSObject {
                 fn(target, selector, value as? Selector)
             }
         case "{":
-            type = .struct(objCType)
-        case "^" where objCType.hasPrefix("^{"):
-            type = .pointer(String(objCType.unicodeScalars.dropFirst()))
-        case "r" where objCType.hasPrefix("r^{"):
-            type = .pointer(String(objCType.unicodeScalars.dropFirst(2)))
+            type = .struct(sanitizedStructName(objCType))
+        case "^" where objCType.hasPrefix("^{"),
+             "r" where objCType.hasPrefix("r^{"):
+            type = .pointer(sanitizedStructName(objCType))
         default:
             // Unsupported type
             return nil
@@ -145,30 +219,42 @@ public class RuntimeType: NSObject {
         setter = { target, key, value in
             target.setValue((value as? T)?.rawValue, forKey: key)
         }
+        availability = .readWrite
     }
 
     @nonobjc public init<T: Any>(_ type: T.Type, _ values: [String: T]) {
         self.type = .enum(type, values)
+        availability = .readWrite
     }
 
     public override var description: String {
         switch availability {
-        case .available:
-            switch type {
-            case let .any(type),
-                 let .enum(type, _):
-                return "\(type)"
-            case let .class(type):
-                return "\(type).Type"
-            case let .struct(type),
-                 let .pointer(type):
-                return type
-            case let .protocol(proto):
-                return "<\(NSStringFromProtocol(proto))>"
-            }
+        case .readWrite, .readOnly:
+            return type.description
         case .unavailable:
             return "<unavailable>"
         }
+    }
+
+    public override func isEqual(_ object: Any?) -> Bool {
+        guard let object = object as? RuntimeType else {
+            return false
+        }
+        if self === object {
+            return true
+        }
+        switch (availability, object.availability) {
+        case (.readWrite, .readWrite), (.readOnly, .readOnly):
+            return type == object.type
+        case let (.unavailable(lreason), .unavailable(rreason)):
+            return lreason == rreason
+        case (.readWrite, _), (.readOnly, _), (.unavailable, _):
+            return false
+        }
+    }
+
+    public override var hash: Int {
+        return description.hashValue
     }
 
     public func cast(_ value: Any) -> Any? {
@@ -228,24 +314,22 @@ public class RuntimeType: NSObject {
             return nil
         case let .pointer(type):
             switch type {
-            case "{CGColor=}":
-                if let value = value as? UIColor {
-                    return value.cgColor
-                }
-                if let value = optionalValue(of: value), "\(value)".hasPrefix("<CGColor") {
+            case "CGColor" where value is UIColor:
+                return (value as! UIColor).cgColor
+            case "CGImage" where value is UIImage:
+                return (value as! UIImage).cgImage
+            case "CGColor", "CGImage":
+                if let value = optionalValue(of: value), "\(value)".hasPrefix("<\(type)") {
                     return value
                 }
                 return nil
-            case "{CGImage=}":
-                if let value = value as? UIImage {
-                    return value.cgImage
-                }
-                if let value = optionalValue(of: value), "\(value)".hasPrefix("<CGImage") {
+            case "CGPath":
+                if let value = optionalValue(of: value), "\(value)".hasPrefix("Path") {
                     return value
                 }
                 return nil
             default:
-                return value // No validation possible
+                return value // No way to validate
             }
         case let .enum(type, enumValues):
             if let key = value as? String, let value = enumValues[key] {
@@ -289,8 +373,6 @@ private let typesByName: [String: Any.Type] = [
     "Float": Float.self,
     "Double": Double.self,
     "CGFloat": CGFloat.self,
-    "CGColor": CGColor.self,
-    "CGImage": CGImage.self,
     "CGPoint": CGPoint.self,
     "CGSize": CGSize.self,
     "CGRect": CGRect.self,
@@ -299,5 +381,8 @@ private let typesByName: [String: Any.Type] = [
     "CATransform3D": CATransform3D.self,
     "UIEdgeInsets": UIEdgeInsets.self,
     "UIOffset": UIOffset.self,
+    "CGColor": CGColor.self,
+    "CGImage": CGImage.self,
+    "CGPath": CGPath.self,
     "Selector": Selector.self,
 ]

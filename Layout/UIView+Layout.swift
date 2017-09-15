@@ -39,23 +39,29 @@ extension UIView {
             "bottomLeft": .bottomLeft,
             "bottomRight": .bottomRight,
         ])
-        // TODO: better approach to layer properties?
-        for (name, type) in (layerClass as! NSObject.Type).allPropertyTypes() {
+        for (name, type) in (layerClass as! CALayer.Type).cachedExpressionTypes {
             types["layer.\(name)"] = type
         }
-        types["layer.contents"] = RuntimeType(CGImage.self)
         // Explicitly disabled properties
         for name in [
+            "autoresizingMask",
             "bounds",
             "center",
             "frame",
             "frameOrigin",
-            "layer.bounds",
-            "layer.frame",
-            "layer.position",
             "origin",
             "position",
             "size",
+            "topAnchor",
+            "bottomAnchor",
+            "leftAnchor",
+            "rightAnchor",
+            "widthAnchor",
+            "heightAnchor",
+            "leadingAnchor",
+            "trailingAnchor",
+            "centerXAnchor",
+            "centerYAnchor",
         ] {
             types[name] = .unavailable("Use top/left/width/height expressions instead")
             let name = "\(name)."
@@ -64,10 +70,12 @@ extension UIView {
             }
         }
         for name in [
-            "layer.anchorPoint",
-            "layer.sublayers",
+            "needsDisplayInRect",
         ] {
             types[name] = .unavailable()
+            for key in types.keys where key.hasPrefix(name) {
+                types[key] = .unavailable()
+            }
         }
         return types
     }
@@ -325,6 +333,8 @@ private let textInputTraits: [String: RuntimeType] = {
     ]
     if #available(iOS 10.0, *) {
         keyboardTypes["asciiCapableNumberPad"] = .asciiCapableNumberPad
+    } else {
+        keyboardTypes["asciiCapableNumberPad"] = .asciiCapable
     }
     return [
         "autocapitalizationType": RuntimeType(UITextAutocapitalizationType.self, [

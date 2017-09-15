@@ -92,6 +92,9 @@ class EditViewController: UIViewController, UITextFieldDelegate {
         ]
         expressionFields.removeAll()
         func filterTypes(_ key: String, _ type: RuntimeType) -> String? {
+            if !type.isWritable {
+                return nil
+            }
             switch type.type {
             case let .any(subtype):
                 switch subtype {
@@ -111,7 +114,7 @@ class EditViewController: UIViewController, UITextFieldDelegate {
                 default:
                     return nil
                 }
-            case .enum, .class, .pointer("{CGImage=}"), .pointer("{CGColor=}"):
+            case .enum, .class, .pointer("CGImage"), .pointer("CGColor"):
                 return key
             case .struct, .pointer, .protocol:
                 return nil

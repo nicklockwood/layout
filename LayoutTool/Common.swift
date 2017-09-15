@@ -245,7 +245,7 @@ func isStringType(_ name: String) -> Bool {
         "Selector",
         "NSAttributedString",
         "URL", "NSURL",
-        "UIImage", "{CGImage=}",
+        "UIImage", "CGImage",
         "UIFont",
     ].contains(name)
 }
