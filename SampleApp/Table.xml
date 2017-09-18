@@ -7,7 +7,7 @@
         contentOffset.y="-safeAreaInsets.top"
         estimatedSectionHeaderHeight="20"
         outlet="tableView"
-        scrollIndicatorInsets.bottom="bottomLayoutGuide.length"
+        scrollIndicatorInsets.bottom="safeAreaInsets.bottom"
         scrollIndicatorInsets.top="safeAreaInsets.top"
         style="plain">
 

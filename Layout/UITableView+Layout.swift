@@ -136,6 +136,12 @@ extension UITableView {
             }
         }
     }
+
+    open override func didUpdateLayout(for node: LayoutNode) {
+        for cell in visibleCells {
+            cell.layoutNode?.update()
+        }
+    }
 }
 
 extension UITableViewController {

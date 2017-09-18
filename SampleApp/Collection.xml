@@ -5,12 +5,12 @@
         collectionViewLayout.itemSize.width="(100% - (6 * 10)) / 7"
         collectionViewLayout.minimumInteritemSpacing="10"
         collectionViewLayout.scrollDirection="vertical"
-        contentInset.bottom="bottomLayoutGuide.length"
         contentInset.top="safeAreaInsets.top"
+        contentInset.bottom="safeAreaInsets.bottom"
         contentInsetAdjustmentBehavior="never"
         contentOffset.y="-safeAreaInsets.top"
         outlet="collectionView"
-        scrollIndicatorInsets.bottom="bottomLayoutGuide.length"
+        scrollIndicatorInsets.bottom="safeAreaInsets.bottom"
         scrollIndicatorInsets.top="safeAreaInsets.top">
 
         <UICollectionViewCell

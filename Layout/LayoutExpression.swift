@@ -59,7 +59,7 @@ struct LayoutExpression {
                   for prop: String, in node: LayoutNode,
                   symbols: [Expression.Symbol: Expression.Symbol.Evaluator] = [:]) {
 
-        let prop = "parent.\(prop)"
+        let prop = "containerSize.\(prop)"
         var symbols = symbols
         symbols[.postfix("%")] = { [unowned node] args in
             try node.doubleValue(forSymbol: prop) / 100 * args[0]

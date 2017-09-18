@@ -1079,6 +1079,40 @@ public class LayoutNode: NSObject {
             getter = { [unowned self] in
                 self.safeAreaInsets.right
             }
+        case "containerSize.width":
+            getter = { [unowned self] in
+                if let superview = self.parent?._view {
+                    switch superview {
+                    case let view as UITableViewCell:
+                        return view.contentView.frame.width
+                    case let view as UITableViewHeaderFooterView:
+                        return view.contentView.frame.width
+                    // TODO: should we handle scrollview content inset here?
+                    default:
+                        break
+                    }
+                }
+                return try SymbolError.wrap({
+                    try self.cgFloatValue(forSymbol: "parent.width")
+                }, for: symbol)
+            }
+        case "containerSize.height":
+            getter = { [unowned self] in
+                if let superview = self.parent?._view {
+                    switch superview {
+                    case let view as UITableViewCell:
+                        return view.frame.height - self.safeAreaInsets.top - self.safeAreaInsets.bottom
+                    case let view as UITableViewHeaderFooterView:
+                        return view.contentView.frame.height
+                    // TODO: should we handle scrollview content inset here?
+                    default:
+                        break
+                    }
+                }
+                return try SymbolError.wrap({
+                    try self.cgFloatValue(forSymbol: "parent.height")
+                }, for: symbol)
+            }
         case "inferredSize":
             getter = { [unowned self] in
                 try self.inferSize()
@@ -1295,7 +1329,8 @@ public class LayoutNode: NSObject {
         if let result = _widthDependsOnParent {
             return result
         }
-        if value(forSymbol: "width", dependsOn: "parent.width") {
+        if value(forSymbol: "width", dependsOn: "parent.width") ||
+            value(forSymbol: "width", dependsOn: "containerSize.width") {
             _widthDependsOnParent = true
             return true
         }
@@ -1314,7 +1349,8 @@ public class LayoutNode: NSObject {
         if let result = _heightDependsOnParent {
             return result
         }
-        if value(forSymbol: "height", dependsOn: "parent.height") {
+        if value(forSymbol: "height", dependsOn: "parent.height") ||
+            value(forSymbol: "height", dependsOn: "containerSize.height"){
             _heightDependsOnParent = true
             return true
         }
