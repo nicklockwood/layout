@@ -1,5 +1,6 @@
 <UIScrollView
     backgroundColor="white"
+    contentInsetAdjustmentBehavior="never"
     contentInset.top=
         "safeAreaInsets.top + 20"
     contentSize.height="auto + 20"

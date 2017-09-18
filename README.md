@@ -22,6 +22,7 @@
     - [Outlets](#outlets)
     - [Delegates](#delegates)
     - [Animation](#animation)
+    - [Safe Area Insets](#safe-area-insets)
 - [Expressions](#expressions)
     - [Layout Properties](#layout-properties)
     - [Geometry](#geometry)
@@ -536,6 +537,42 @@ func scrollViewDidScroll(_ scrollView: UIScrollView) {
 }
 ```
 
+## Safe Area Insets
+
+iOS 11 introduced the concept of "safe area" - a generalization of the top and bottom layout guides that were provided before for offsetting content to account for status, navigation and tool/tab bars.
+
+In order to prevent you from needing to include conditional compilation in your templates, Layout makes the iOS 11 `safeAreaInsets` property available across all iOS versions (falling back to layout guides as the underlying implementation on iOS 10 and earlier).
+
+To position a view inside the safe are of its parent, you could write:
+
+```xml
+<UIView
+    top="parent.safeAreaInsets.top"
+    left="parent.safeAreaInsets.left"
+    bottom="100% - parent.safeAreaInsets.bottom"
+    right="100% - parent.safeAreaInsets.bottom"
+/>
+```
+
+**Note:** The value for `safeAreaInsets` exposed by Layout differs slightly from the documented behavior for `UIView.safeAreaInsets`:
+
+Apple states that the `safeAreaInsets` value accounts for the status bar and other UI such as navigation or toolbars, but *only* for the root view of a view controller. For subviews, the insets reflect only the portion of the view that is covered by those bars, so for a small view in the middle of the screen, the insets would always be zero since the toolbars or iPhone X notch would never overlap this view.
+
+For Layout, this approach creates problems, as your view frame may depend on the `safeAreaInsets` value, which would in turn be affected by the frame, creating a cyclic dependency. Rather than try to resolve this recursively, Layout always returns insets relative to the current view controller, so even for subviews that do not overlap the screen edges, the value of `safeAreaInsets` will be the same as for the root view.
+
+`UIScrollView` derives its insets automatically on iOS 11, but this behavior differs slightly from iOS 10. To achieve consistent behavior, you can use the `contentInsetAdjustmentBehavior` property, and then set the `contentInset` manually:
+
+```xml
+<UIScrollView
+    contentInsetAdjustmentBehavior="never"
+    contentInset="parent.safeAreaInsets"
+    scrollIndicatorInsets.top="parent.safeAreaInsets.top"
+    scrollIndicatorInsets.bottom="parent.safeAreaInsets.bottom"
+/>
+```
+
+As with the `safeAreaInsets` property itself, Layout permits you to set `contentInsetAdjustmentBehavior` on earlier iOS versions to simplify backwards compatibility, however, setting it to any value other than `never` is prohibited on iOS versions earlier than 11.
+
 
 # Expressions
 
@@ -630,7 +667,7 @@ loadLayout(
 For many geometric struct types, such as `CGPoint`, `CGSize`, `CGRect`, `CGAffineTransform` and `UIEdgeInsets`, Layout has built-in support for directly referencing the member properties in expressions. To set the top `contentInset` value for a `UIScrollView`, you could use:
 
 ```xml
-<UIScrollView contentInset.top="topLayoutGuide.length + 10"/>
+<UIScrollView contentInset.top="safeAreaInsets.top + 10"/>
 ```
 
 And to explicitly set the `contentSize`, you could use:
