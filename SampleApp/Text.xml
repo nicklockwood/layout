@@ -2,6 +2,8 @@
     <UIScrollView
         contentInset.top="max(safeAreaInsets.top + 10, 20)"
         contentInset.bottom="safeAreaInsets.bottom"
+        contentInset.left="safeAreaInsets.left"
+        contentInset.right="safeAreaInsets.right"
         contentSize.height="auto + 20"
         contentInsetAdjustmentBehavior="never"
         scrollIndicatorInsets.bottom="safeAreaInsets.bottom"

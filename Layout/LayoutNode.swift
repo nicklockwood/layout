@@ -1088,13 +1088,14 @@ public class LayoutNode: NSObject {
                         return view.contentView.frame.width
                     case let view as UITableViewHeaderFooterView:
                         return view.contentView.frame.width
-                    // TODO: should we handle scrollview content inset here?
                     default:
                         break
                     }
                 }
                 return try SymbolError.wrap({
-                    try self.cgFloatValue(forSymbol: "parent.width")
+                    let contentInset = try self.parent?.computeContentInset() ?? .zero
+                    return try self.cgFloatValue(forSymbol: "parent.width") -
+                        contentInset.left - contentInset.right
                 }, for: symbol)
             }
         case "containerSize.height":
@@ -1102,16 +1103,17 @@ public class LayoutNode: NSObject {
                 if let superview = self.parent?._view {
                     switch superview {
                     case let view as UITableViewCell:
-                        return view.frame.height - self.safeAreaInsets.top - self.safeAreaInsets.bottom
+                        return view.contentView.frame.height
                     case let view as UITableViewHeaderFooterView:
                         return view.contentView.frame.height
-                    // TODO: should we handle scrollview content inset here?
                     default:
                         break
                     }
                 }
                 return try SymbolError.wrap({
-                    try self.cgFloatValue(forSymbol: "parent.height")
+                    let contentInset = try self.parent?.computeContentInset() ?? .zero
+                    return try self.cgFloatValue(forSymbol: "parent.height") -
+                        contentInset.top - contentInset.bottom
                 }, for: symbol)
             }
         case "inferredSize":
@@ -1295,8 +1297,8 @@ public class LayoutNode: NSObject {
         return view.isHidden
     }
 
-    /// Safe area (for any iOS version)
-    public var safeAreaInsets: UIEdgeInsets {
+    // Safe area (for any iOS version)
+    private var safeAreaInsets: UIEdgeInsets {
         #if swift(>=3.2)
             if #available(iOS 11.0, *), let viewController = _view?.viewController {
                 // This is the root view of a controller, so we can use the inset value directly, as per
@@ -1431,7 +1433,7 @@ public class LayoutNode: NSObject {
             }
         }
         // If zero, fill superview
-        let contentInset = try value(forSymbol: "contentInset") as! UIEdgeInsets
+        let contentInset = try computeContentInset()
         if size.width <= 0, let width = _view?.superview?.bounds.size.width {
             size.width = width - contentInset.left - contentInset.right
         }
@@ -1447,13 +1449,17 @@ public class LayoutNode: NSObject {
         return size
     }
 
+    private func computeContentInset() throws -> UIEdgeInsets {
+        return try value(forSymbol: "contentInset") as! UIEdgeInsets
+    }
+
     private func computeExplicitWidth() throws -> CGFloat? {
         if !_evaluating.contains("width"),
             !_evaluating.contains("height") || !value(forSymbol: "width", dependsOn: "height") {
             return try cgFloatValue(forSymbol: "width")
         }
         if expressions["contentSize.width"] != nil, !_evaluating.contains("contentSize.width") {
-            let contentInset = try value(forSymbol: "contentInset") as! UIEdgeInsets
+            let contentInset = try computeContentInset()
             return try cgFloatValue(forSymbol: "contentSize.width") + contentInset.left + contentInset.right
         }
         return nil
@@ -1465,7 +1471,7 @@ public class LayoutNode: NSObject {
             return try cgFloatValue(forSymbol: "height")
         }
         if expressions["contentSize.height"] != nil, !_evaluating.contains("contentSize.height") {
-            let contentInset = try value(forSymbol: "contentInset") as! UIEdgeInsets
+            let contentInset = try computeContentInset()
             return try cgFloatValue(forSymbol: "contentSize.height") + contentInset.top + contentInset.bottom
         }
         return nil
@@ -1548,7 +1554,7 @@ public class LayoutNode: NSObject {
         }
         // Try best fit for content
         size = try inferContentSize()
-        let contentInset = try value(forSymbol: "contentInset") as! UIEdgeInsets
+        let contentInset = try computeContentInset()
         return CGSize(
             width: size.width + contentInset.left + contentInset.right,
             height: size.height + contentInset.top + contentInset.bottom
