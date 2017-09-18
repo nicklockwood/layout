@@ -37,7 +37,7 @@ public class LayoutNode: NSObject {
         return [viewController]
     }
 
-    /// The name of an outlet belonging to the nodes' owne that the node should bind to
+    /// The name of an outlet belonging to the nodes' owner that the node should bind to
     public private(set) var outlet: String?
 
     /// The expressions used to initialized the node
@@ -123,24 +123,43 @@ public class LayoutNode: NSObject {
         }
     }
 
-    private var _observing = false
-    private func updateObservers() {
-        if _observing, parent != nil {
-            stopObserving()
-        } else if !_observing, parent == nil {
-            NotificationCenter.default.addObserver(self, selector: #selector(contentSizeChanged), name: .UIContentSizeCategoryDidChange, object: nil)
-            addObserver(self, forKeyPath: "_view.frame", options: [.old, .new], context: nil)
-            addObserver(self, forKeyPath: "_view.bounds", options: [.old, .new], context: nil)
-            _observing = true
+    private var _observingFrame = false
+    private func _stopObservingFrame() {
+        if _observingFrame {
+            NotificationCenter.default.removeObserver(self)
+            removeObserver(self, forKeyPath: "_view.frame")
+            removeObserver(self, forKeyPath: "_view.bounds")
+            _observingFrame = false
+        }
+    }
+
+    private var _observingInsets = false
+    private func _stopObservingInsets() {
+        if #available(iOS 11.0, *), _observingInsets {
+            removeObserver(self, forKeyPath: "_view.safeAreaInsets")
+            _observingInsets = false
         }
     }
 
     private func stopObserving() {
-        if _observing {
-            NotificationCenter.default.removeObserver(self)
-            removeObserver(self, forKeyPath: "_view.frame")
-            removeObserver(self, forKeyPath: "_view.bounds")
-            _observing = false
+        _stopObservingFrame()
+        _stopObservingInsets()
+    }
+
+    private func updateObservers() {
+        if _observingFrame, parent != nil {
+            _stopObservingFrame()
+        } else if !_observingFrame, parent == nil {
+            NotificationCenter.default.addObserver(self, selector: #selector(contentSizeChanged), name: .UIContentSizeCategoryDidChange, object: nil)
+            addObserver(self, forKeyPath: "_view.frame", options: [.old, .new], context: nil)
+            addObserver(self, forKeyPath: "_view.bounds", options: [.old, .new], context: nil)
+            _observingFrame = true
+        }
+        if _observingInsets, viewControllerClass == nil {
+            _stopObservingInsets()
+        } else if #available(iOS 11.0, *), !_observingInsets, viewControllerClass != nil {
+            addObserver(self, forKeyPath: "_view.safeAreaInsets", options: [.old, .new], context: nil)
+            _observingInsets = true
         }
     }
 
@@ -150,9 +169,13 @@ public class LayoutNode: NSObject {
         change: [NSKeyValueChangeKey: Any]?,
         context _: UnsafeMutableRawPointer?
     ) {
-        if let change = change, let old = change[.oldKey] as? CGRect,
-            let new = change[.newKey] as? CGRect, old.size.isNearlyEqual(to: new.size) {
-            return
+        if let change = change {
+            if let old = change[.oldKey] as? CGRect, let new = change[.newKey] as? CGRect, old.size.isNearlyEqual(to: new.size) {
+                return
+            }
+            if let old = change[.oldKey] as? UIEdgeInsets, let new = change[.newKey] as? UIEdgeInsets, old.isNearlyEqual(to: new) {
+                return
+            }
         }
         update()
     }
@@ -1036,6 +1059,26 @@ public class LayoutNode: NSObject {
             getter = { [unowned self] in
                 self._layoutGuideController?.bottomLayoutGuide.length ?? 0
             }
+        case "safeAreaInsets":
+            getter = { [unowned self] in
+                self.safeAreaInsets
+            }
+        case "safeAreaInsets.top":
+            getter = { [unowned self] in
+                self.safeAreaInsets.top
+            }
+        case "safeAreaInsets.left":
+            getter = { [unowned self] in
+                self.safeAreaInsets.left
+            }
+        case "safeAreaInsets.bottom":
+            getter = { [unowned self] in
+                self.safeAreaInsets.bottom
+            }
+        case "safeAreaInsets.right":
+            getter = { [unowned self] in
+                self.safeAreaInsets.right
+            }
         case "inferredSize":
             getter = { [unowned self] in
                 try self.inferSize()
@@ -1215,6 +1258,23 @@ public class LayoutNode: NSObject {
     /// Is the layout's view hidden?
     public var isHidden: Bool {
         return view.isHidden
+    }
+
+    /// Safe area (for any iOS version)
+    public var safeAreaInsets: UIEdgeInsets {
+        #if swift(>=3.2)
+            if #available(iOS 11.0, *), let viewController = _view?.viewController {
+                // This is the root view of a controller, so we can use the inset value directly, as per
+                // https://developer.apple.com/documentation/uikit/uiview/2891103-safeareainsets
+                return viewController.view.safeAreaInsets
+            }
+        #endif
+        return UIEdgeInsets(
+            top: _layoutGuideController?.topLayoutGuide.length ?? 0,
+            left: 0,
+            bottom: _layoutGuideController?.bottomLayoutGuide.length ?? 0,
+            right: 0
+        )
     }
 
     /// The anticipated frame for the view, based on the current state

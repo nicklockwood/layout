@@ -1,7 +1,8 @@
 <PagesViewController backgroundColor="#ddd">
     <UIScrollView
-        contentInset.bottom="bottomLayoutGuide.length"
-        contentInset.top="max(topLayoutGuide.length + 10, 20)"
+        contentInset.bottom="safeAreaInsets.bottom"
+        contentInset.top="max(safeAreaInsets.top + 10, 20)"
+        contentInsetAdjustmentBehavior="never"
         contentSize.height="100% - contentInset.top - contentInset.bottom"
         contentSize.width="300%"
         isPagingEnabled="true"
@@ -32,7 +33,7 @@
         />
     </UIScrollView>
     <UIPageControl
-        bottom="100% - bottomLayoutGuide.length - 40"
+        bottom="100% - parent.safeAreaInsets.bottom - 40"
         isUserInteractionEnabled="false"
         left="50% - (width / 2)"
         numberOfPages="3"

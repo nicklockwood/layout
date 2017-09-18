@@ -24,11 +24,20 @@ func classFromString(_ name: String) -> AnyClass? {
 private let precision: CGFloat = 0.001
 
 extension CGSize {
-
-    // Check if two sizes are approximately equal
     func isNearlyEqual(to other: CGSize?) -> Bool {
         guard let other = other else { return false }
-        return (fabs(width - other.width) <= precision) && (fabs(height - other.height) <= precision)
+        return abs(width - other.width) <= precision && abs(height - other.height) <= precision
+    }
+}
+
+extension UIEdgeInsets {
+    func isNearlyEqual(to other: UIEdgeInsets?) -> Bool {
+        guard let other = other else { return false }
+        return
+            abs(left - other.left) <= precision &&
+            abs(right - other.right) <= precision &&
+            abs(top - other.top) <= precision &&
+            abs(bottom - other.bottom) <= precision
     }
 }
 

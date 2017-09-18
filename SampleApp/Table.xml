@@ -1,14 +1,14 @@
 <TableViewController backgroundColor="white">
     <UITableView
         backgroundColor="tintColor"
-        contentInset.bottom="bottomLayoutGuide.length"
-        contentInset.top="topLayoutGuide.length"
+        contentInset.bottom="safeAreaInsets.bottom"
+        contentInset.top="safeAreaInsets.top"
         contentInsetAdjustmentBehavior="never"
-        contentOffset.y="-topLayoutGuide.length"
+        contentOffset.y="-safeAreaInsets.top"
         estimatedSectionHeaderHeight="20"
         outlet="tableView"
         scrollIndicatorInsets.bottom="bottomLayoutGuide.length"
-        scrollIndicatorInsets.top="topLayoutGuide.length"
+        scrollIndicatorInsets.top="safeAreaInsets.top"
         style="plain">
 
         <!-- Table header -->

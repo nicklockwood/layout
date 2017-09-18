@@ -1,57 +1,55 @@
 <BoxesViewController
     backgroundColor="white"
-    outlet="layoutNode"
-    inset="15">
-
-    <param name="inset" type="CGFloat"/>
+    outlet="layoutNode">
 
     <UIScrollView
-        contentInset.left="inset"
-        contentInset.right="inset"
-        contentInset.bottom="scrollIndicatorInsets.bottom + inset"
-        contentInset.top="max(topLayoutGuide.length + 10, inset)"
-        scrollIndicatorInsets.bottom="bottomLayoutGuide.length + 50"
-        scrollIndicatorInsets.top="topLayoutGuide.length">
+        contentInset.left="15"
+        contentInset.right="15"
+        contentInset.bottom="safeAreaInsets.bottom + 50"
+        contentInset.top="max(safeAreaInsets.top + 5, 15)"
+        contentInsetAdjustmentBehavior="never"
+        scrollIndicatorInsets.bottom="safeAreaInsets.bottom + 50"
+        scrollIndicatorInsets.top="safeAreaInsets.top">
 
         <!-- First column -->
         <UIView
             backgroundColor="colors.red"
             height="width"
             transform.rotation="isToggled ? pi / 2 : 0"
-            width="isToggled ? (100% - inset*3) / 2 : (100% - inset*4) / 3"
+            width="isToggled ? (100% - 15*3) / 2 : (100% - 15*4) / 3"
         />
         <UIView
             backgroundColor="colors.orange"
             height="width"
-            top="inset + previous.bottom"
+            top="15 + previous.bottom"
             width="previous.width"
         />
         <UILabel
             numberOfLines="0"
             text="{strings.Lorem.Ipsum}"
-            top="inset + previous.bottom"
-            width="isToggled ? previous.width : 100% - inset*2"
+            top="15 + previous.bottom"
+            width="isToggled ? previous.width : 100% - 15*2"
         />
 
         <!-- Second column -->
         <UIView
             backgroundColor="colors.blue"
             height="width / 2"
-            left="width + inset"
-            width="isToggled ? (100% - inset*3) / 2 : (100% - inset*4) / 3"
+            left="width + 15"
+            width="isToggled ? (100% - 15*3) / 2 : (100% - 15*4) / 3"
         />
         <UIView
             backgroundColor="colors.green"
             height="width"
             left="previous.left"
-            top="inset + previous.bottom"
+            top="15 + previous.bottom"
             width="previous.width"
         />
         <UIView
             backgroundColor="colors.pink"
             height="width"
-            left="isToggled ? previous.left : previous.right + inset"
-            top="isToggled ? inset + previous.bottom : 0"
+            left="isToggled ? previous.left : previous.right + 15"
+            top="isToggled ? 15 + previous.bottom : 0"
             width="previous.width"
         />
     </UIScrollView>
@@ -59,7 +57,7 @@
     <!-- Floating button -->
     <UIView
         backgroundColor="#fff9"
-        bottom="previous.bottom - bottomLayoutGuide.length"
+        bottom="previous.bottom - parent.safeAreaInsets.bottom"
         height="50"
         left="0"
         width="100%">
@@ -68,8 +66,8 @@
             backgroundColor="isToggled ? colors.blue : colors.red"
             bottom="100% - 10"
             layer.cornerRadius="5"
-            left="inset"
-            right="100% - inset"
+            left="15"
+            right="100% - 15"
             title="Toggle"
             top="10"
             touchUpInside="{isToggled ? 'setUntoggled' : 'setToggled'}"
