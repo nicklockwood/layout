@@ -158,7 +158,7 @@ public class LayoutNode: NSObject {
         if _observingInsets, viewControllerClass == nil {
             _stopObservingInsets()
         } else if #available(iOS 11.0, *), !_observingInsets, viewControllerClass != nil {
-            addObserver(self, forKeyPath: "_view.safeAreaInsets", options: [.old, .new], context: nil)
+            addObserver(self, forKeyPath: "_view.safeAreaInsets", options: [.new], context: nil)
             _observingInsets = true
         }
     }
@@ -173,7 +173,8 @@ public class LayoutNode: NSObject {
             if let old = change[.oldKey] as? CGRect, let new = change[.newKey] as? CGRect, old.size.isNearlyEqual(to: new.size) {
                 return
             }
-            if let old = change[.oldKey] as? UIEdgeInsets, let new = change[.newKey] as? UIEdgeInsets, old.isNearlyEqual(to: new) {
+            if change[.newKey] as? UIEdgeInsets != nil, _view?.window == nil {
+                // If not yet mounted, safe area insets can't be valid
                 return
             }
         }
