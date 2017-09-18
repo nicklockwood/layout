@@ -23,6 +23,15 @@ class EditViewController: UIViewController {
         textView.dataDetectorTypes = []
         textView.font = UIFont(name: "Courier", size: 13)!
         textView.text = try! String(contentsOf: Bundle.main.url(forResource: "Default", withExtension: "xml")!)
+
+        #if swift(>=3.2)
+            if #available(iOS 11.0, *) {
+                textView.smartQuotesType = .no
+                textView.smartDashesType = .no
+                textView.smartInsertDeleteType = .no
+            }
+        #endif
+
         view.addSubview(textView)
 
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardDidShow(_:)), name: .UIKeyboardDidShow, object: nil)

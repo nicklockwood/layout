@@ -316,6 +316,10 @@ extension UIButton {
     }
 }
 
+private enum SmartTextEnumType: Int {
+    case `default`, no, yes
+}
+
 private let textInputTraits: [String: RuntimeType] = {
     var keyboardTypes: [String: UIKeyboardType] = [
         "default": .default,
@@ -336,7 +340,7 @@ private let textInputTraits: [String: RuntimeType] = {
     } else {
         keyboardTypes["asciiCapableNumberPad"] = .asciiCapable
     }
-    return [
+    var traitTypes = [
         "autocapitalizationType": RuntimeType(UITextAutocapitalizationType.self, [
             "none": .none,
             "words": .words,
@@ -376,6 +380,38 @@ private let textInputTraits: [String: RuntimeType] = {
         "enablesReturnKeyAutomatically": RuntimeType(Bool.self),
         "isSecureTextEntry": RuntimeType(Bool.self),
     ]
+
+    #if swift(>=3.2)
+        if #available(iOS 11.0, *) {
+            traitTypes["smartQuotesType"] = RuntimeType(UITextSmartQuotesType.self, [
+                "default": .default,
+                "no": .no,
+                "yes": .yes,
+            ])
+            traitTypes["smartDashesType"] = RuntimeType(UITextSmartDashesType.self, [
+                "default": .default,
+                "no": .no,
+                "yes": .yes,
+            ])
+            traitTypes["smartInsertDeleteType"] = RuntimeType(UITextSmartInsertDeleteType.self, [
+                "default": .default,
+                "no": .no,
+                "yes": .yes,
+            ])
+        }
+    #endif
+
+    // Fallback for older iOS versions
+    if traitTypes["smartQuotesType"] == nil {
+        for key in ["smartQuotesType", "smartDashesType", "smartInsertDeleteType"] {
+            traitTypes[key] = RuntimeType(SmartTextEnumType.self, [
+                "default": .default,
+                "no": .no,
+                "yes": .yes,
+            ])
+        }
+    }
+    return traitTypes
 }()
 
 private let textTraits = [
@@ -447,6 +483,27 @@ extension UITextField {
         case "returnKeyType": returnKeyType = value as! UIReturnKeyType
         case "enablesReturnKeyAutomatically": enablesReturnKeyAutomatically = value as! Bool
         case "isSecureTextEntry": isSecureTextEntry = value as! Bool
+        case "smartQuotesType":
+            #if swift(>=3.2)
+                if #available(iOS 11.0, *) {
+                    smartQuotesType = value as! UITextSmartQuotesType
+                }
+            #endif
+            // TODO: warn about unavailability
+        case "smartDashesType":
+            #if swift(>=3.2)
+                if #available(iOS 11.0, *) {
+                    smartDashesType = value as! UITextSmartDashesType
+                }
+            #endif
+            // TODO: warn about unavailability
+        case "smartInsertDeleteType":
+            #if swift(>=3.2)
+                if #available(iOS 11.0, *) {
+                    smartInsertDeleteType = value as! UITextSmartInsertDeleteType
+                }
+            #endif
+            // TODO: warn about unavailability
         default:
             try super.setValue(value, forExpression: name)
         }
@@ -475,6 +532,27 @@ extension UITextView {
         case "returnKeyType": returnKeyType = value as! UIReturnKeyType
         case "enablesReturnKeyAutomatically": enablesReturnKeyAutomatically = value as! Bool
         case "isSecureTextEntry": isSecureTextEntry = value as! Bool
+        case "smartQuotesType":
+            #if swift(>=3.2)
+                if #available(iOS 11.0, *) {
+                    smartQuotesType = value as! UITextSmartQuotesType
+                }
+            #endif
+            // TODO: warn about unavailability
+        case "smartDashesType":
+            #if swift(>=3.2)
+                if #available(iOS 11.0, *) {
+                    smartDashesType = value as! UITextSmartDashesType
+                }
+            #endif
+            // TODO: warn about unavailability
+        case "smartInsertDeleteType":
+            #if swift(>=3.2)
+                if #available(iOS 11.0, *) {
+                    smartInsertDeleteType = value as! UITextSmartInsertDeleteType
+                }
+            #endif
+            // TODO: warn about unavailability
         default:
             try super.setValue(value, forExpression: name)
         }
