@@ -5,8 +5,11 @@ import Foundation
 extension Layout {
 
     public init(xmlData: Data, relativeTo: String? = #file) throws {
-        let xml: [XMLNode] = try LayoutError.wrap {
-            try XMLParser.parse(data: xmlData, options: .skipComments)
+        let xml: [XMLNode]
+        do {
+            xml = try XMLParser.parse(data: xmlData, options: .skipComments)
+        } catch {
+            throw LayoutError("XML parsing error: \(error)")
         }
         guard let root = xml.first else {
             throw LayoutError("Empty XML document.")

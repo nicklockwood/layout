@@ -232,9 +232,13 @@ class LayoutLoader {
 
         func processLayoutData(_ data: Data) throws {
             assert(Thread.isMainThread) // TODO: can we parse XML in the background instead?
-            let layout = try Layout(xmlData: data, relativeTo: relativeTo ?? _xmlURL.path)
-            queue.async { cache[self._xmlURL] = layout }
-            layout.processTemplates(completion: completion)
+            do {
+                let layout = try Layout(xmlData: data, relativeTo: relativeTo ?? _xmlURL.path)
+                queue.async { cache[self._xmlURL] = layout }
+                layout.processTemplates(completion: completion)
+            } catch {
+                throw LayoutError("\(error) in \(xmlURL.lastPathComponent)")
+            }
         }
 
         // If it's a bundle resource url, replace with equivalent source url
