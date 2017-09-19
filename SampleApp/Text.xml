@@ -1,15 +1,15 @@
 <UIViewController backgroundColor="#fee">
     <UIScrollView
-        contentInset.top="max(safeAreaInsets.top + 10, 20)"
         contentInset.bottom="safeAreaInsets.bottom"
         contentInset.left="safeAreaInsets.left"
         contentInset.right="safeAreaInsets.right"
-        contentSize.height="auto + 20"
+        contentInset.top="max(safeAreaInsets.top + 10, 20)"
         contentInsetAdjustmentBehavior="never"
-        scrollIndicatorInsets.bottom="safeAreaInsets.bottom"
-        scrollIndicatorInsets.top="safeAreaInsets.top"
+        contentSize.height="auto + 20"
         layoutMargins.left="20"
-        layoutMargins.right="20">
+        layoutMargins.right="20"
+        scrollIndicatorInsets.bottom="safeAreaInsets.bottom"
+        scrollIndicatorInsets.top="safeAreaInsets.top">
 
         <UILabel
             backgroundColor="#0001"

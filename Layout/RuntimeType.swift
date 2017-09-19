@@ -313,18 +313,21 @@ public class RuntimeType: NSObject {
             }
             return nil
         case let .pointer(type):
+            guard let value = optionalValue(of: value) else {
+                return nil
+            }
             switch type {
             case "CGColor" where value is UIColor:
                 return (value as! UIColor).cgColor
             case "CGImage" where value is UIImage:
                 return (value as! UIImage).cgImage
-            case "CGColor", "CGImage":
-                if let value = optionalValue(of: value), "\(value)".hasPrefix("<\(type)") {
+            case "CGPath":
+                if "\(value)".hasPrefix("Path") {
                     return value
                 }
-                return nil
-            case "CGPath":
-                if let value = optionalValue(of: value), "\(value)".hasPrefix("Path") {
+                fallthrough
+            case "CGColor", "CGImage":
+                if "\(value)".hasPrefix("<\(type)") {
                     return value
                 }
                 return nil

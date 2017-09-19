@@ -1,5 +1,14 @@
 # Change Log
 
+## [0.4.23](https://github.com/schibsted/layout/releases/tag/0.4.23) (2017-09-19)
+
+- Added full, backwards-compatible support for safe areas on iOS 11 (see README.md for details)
+- Percentage sizes now take content insets into account when used inside a scroll view
+- Added support for new iOS 11 text input properties
+- Improved messaging for XML parsing errors
+- Fixed a bug when using parameters with external XML references
+- Removed private view properties from the Sublime Text autocomplete suggestions
+
 ## [0.4.22](https://github.com/schibsted/layout/releases/tag/0.4.22) (2017-09-10)
 
 - Added Layout XML file autocompletion support for the Sublime Text editor (see README.md for details)

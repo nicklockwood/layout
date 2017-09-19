@@ -1353,7 +1353,7 @@ public class LayoutNode: NSObject {
             return result
         }
         if value(forSymbol: "height", dependsOn: "parent.height") ||
-            value(forSymbol: "height", dependsOn: "containerSize.height"){
+            value(forSymbol: "height", dependsOn: "containerSize.height") {
             _heightDependsOnParent = true
             return true
         }
