@@ -42,7 +42,7 @@ class EditViewController: UIViewController, UITextFieldDelegate {
     }
 
     var rootNode: LayoutNode!
-    var classField: UITextField?
+    @objc var classField: UITextField?
     var expressionFields = [String: UITextField]()
 
     override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {

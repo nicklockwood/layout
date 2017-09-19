@@ -200,7 +200,7 @@ class DesignViewController: UIViewController, UIToolbarDelegate, EditViewControl
         }
     }
 
-    func editNode() {
+    @objc func editNode() {
         if selectedNode == editViewController?.node || error != nil {
             return
         }
@@ -224,7 +224,7 @@ class DesignViewController: UIViewController, UIToolbarDelegate, EditViewControl
         editViewController = viewController
     }
 
-    func addNode() {
+    @objc func addNode() {
         let newNode = LayoutNode(view: UIView())
         if let selectedNode = selectedNode {
             newNode.view.frame = selectedNode.view.bounds
@@ -252,7 +252,7 @@ class DesignViewController: UIViewController, UIToolbarDelegate, EditViewControl
         editNode()
     }
 
-    func deleteNode() {
+    @objc func deleteNode() {
         if let selectedNode = selectedNode, selectedNode != rootNode {
             let parentNode = selectedNode.parent
             selectedNode.removeFromParent()
@@ -278,7 +278,7 @@ class DesignViewController: UIViewController, UIToolbarDelegate, EditViewControl
         editViewController = nil
     }
 
-    func selectNode(_ gesture: UITapGestureRecognizer) {
+    @objc func selectNode(_ gesture: UITapGestureRecognizer) {
         guard error == nil else {
             // Avoid breaking the UI
             return
@@ -292,7 +292,7 @@ class DesignViewController: UIViewController, UIToolbarDelegate, EditViewControl
         }
     }
 
-    func replaceNode(_ node: LayoutNode, with newNode: LayoutNode) {
+    @objc func replaceNode(_ node: LayoutNode, with newNode: LayoutNode) {
         // Tree
         if let navigationController = splitViewController?.viewControllers[0] as? UINavigationController {
             for controller in navigationController.viewControllers {
@@ -317,7 +317,7 @@ class DesignViewController: UIViewController, UIToolbarDelegate, EditViewControl
         updateUI()
     }
 
-    func changeDevice() {
+    @objc func changeDevice() {
         let device = DeviceType(rawValue: deviceControl.selectedSegmentIndex)!
         let orientation = DeviceOrientation(rawValue: orientationControl.selectedSegmentIndex)!
         UIView.animate(withDuration: 0.25) {
