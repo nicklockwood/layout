@@ -23,7 +23,7 @@ extension Layout {
         try self.init(xmlNode: root, relativeTo: relativeTo)
     }
 
-    private init(xmlNode: XMLNode, relativeTo: String? = #file) throws {
+    private init(xmlNode: XMLNode, relativeTo: String?) throws {
         guard case .node(let className, var attributes, let childNodes) = xmlNode else {
             preconditionFailure()
         }
@@ -68,7 +68,7 @@ extension Layout {
                     isHTML = true
                 } else {
                     text = ""
-                    try children.append(Layout(xmlNode: node))
+                    try children.append(Layout(xmlNode: node, relativeTo: relativeTo))
                 }
             case let .text(string):
                 text += isHTML ? string.xmlEncoded() : string

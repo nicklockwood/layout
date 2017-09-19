@@ -90,7 +90,10 @@ private extension Layout {
         }
         if let templatePath = templatePath {
             requestCount += 1
-            LayoutLoader().loadLayout(withContentsOfURL: urlFromString(templatePath)) { layout, _error in
+            LayoutLoader().loadLayout(
+                withContentsOfURL: urlFromString(templatePath),
+                relativeTo: relativePath
+            ) { layout, _error in
                 if _error != nil {
                     error = _error
                 } else if let layout = layout {
@@ -246,7 +249,7 @@ class LayoutLoader {
             let bundlePath = Bundle.main.bundleURL.absoluteString
             if xmlURL.absoluteString.hasPrefix(bundlePath) {
                 if _projectDirectory == nil, let relativeTo = relativeTo,
-                    let projectDirectory = findProjectDirectory(at: "\(relativeTo)") {
+                    let projectDirectory = findProjectDirectory(at: relativeTo) {
                     _projectDirectory = projectDirectory
                 }
                 if let projectDirectory = _projectDirectory {
