@@ -123,10 +123,16 @@ public class LayoutNode: NSObject {
         }
     }
 
+    private var _observingContentSizeCategory = false
+    private func _stopObservingContentSizeCategory() {
+        if _observingContentSizeCategory {
+            NotificationCenter.default.removeObserver(self, name: .UIContentSizeCategoryDidChange, object: nil)
+        }
+    }
+
     private var _observingFrame = false
     private func _stopObservingFrame() {
         if _observingFrame {
-            NotificationCenter.default.removeObserver(self)
             removeObserver(self, forKeyPath: "_view.frame")
             removeObserver(self, forKeyPath: "_view.bounds")
             _observingFrame = false
@@ -142,17 +148,20 @@ public class LayoutNode: NSObject {
     }
 
     private func stopObserving() {
+        _stopObservingContentSizeCategory()
         _stopObservingFrame()
         _stopObservingInsets()
     }
 
     private func updateObservers() {
-        if _observingFrame, parent != nil {
-            _stopObservingFrame()
-        } else if !_observingFrame, parent == nil {
-            NotificationCenter.default.addObserver(self, selector: #selector(contentSizeChanged), name: .UIContentSizeCategoryDidChange, object: nil)
-            addObserver(self, forKeyPath: "_view.frame", options: [.old, .new], context: nil)
-            addObserver(self, forKeyPath: "_view.bounds", options: [.old, .new], context: nil)
+        if _observingContentSizeCategory, parent != nil {
+            _stopObservingContentSizeCategory()
+        } else if !_observingContentSizeCategory, parent == nil {
+            NotificationCenter.default.addObserver(self, selector: #selector(contentSizeCategoryChanged), name: .UIContentSizeCategoryDidChange, object: nil)
+        }
+        if !_observingFrame {
+            addObserver(self, forKeyPath: "_view.frame", options: [.new], context: nil)
+            addObserver(self, forKeyPath: "_view.bounds", options: [.new], context: nil)
             _observingFrame = true
         }
         if _observingInsets, viewControllerClass == nil {
@@ -169,19 +178,31 @@ public class LayoutNode: NSObject {
         change: [NSKeyValueChangeKey: Any]?,
         context _: UnsafeMutableRawPointer?
     ) {
-        if let change = change {
-            if let old = change[.oldKey] as? CGRect, let new = change[.newKey] as? CGRect, old.size.isNearlyEqual(to: new.size) {
-                return
-            }
-            if change[.newKey] as? UIEdgeInsets != nil, _view?.window == nil {
-                // If not yet mounted, safe area insets can't be valid
-                return
-            }
+        guard let change = change, _setupComplete, !_suppressUpdates else {
+            return
         }
-        update()
+        if let new = change[.newKey] as? CGRect {
+            if !new.size.isNearlyEqual(to: frame.size) {
+                var root = self
+                while let parent = root.parent {
+                    root = parent
+                }
+                if root._view?.superview != nil {
+                    root.update()
+                }
+            }
+            return
+        }
+        if change[.newKey] as? UIEdgeInsets != nil {
+            if _view?.window != nil {
+                // If not yet mounted, safe area insets can't be valid
+                update()
+            }
+            return
+        }
     }
 
-    @objc private func contentSizeChanged() {
+    @objc private func contentSizeCategoryChanged() {
         guard _setupComplete else {
             return
         }
@@ -1661,11 +1682,8 @@ public class LayoutNode: NSObject {
             viewController.addChildViewController(controller)
         }
         viewController.view.addSubview(view)
-        if _view?.frame != viewController.view.bounds {
-            _view?.frame = viewController.view.bounds
-        } else {
-            update()
-        }
+        _view?.frame = viewController.view.bounds
+        update()
     }
 
     /// Mounts a node inside the specified view, and binds the view as its owner
