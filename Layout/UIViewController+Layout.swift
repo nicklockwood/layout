@@ -83,6 +83,45 @@ extension UIViewController {
         types["navigationItem.leftBarButtonItem.systemItem"] = barButtonSystemItemType
         types["navigationItem.rightBarButtonItem.systemItem"] = barButtonSystemItemType
         // TODO: barButtonItem.backgroundImage, etc
+        // Explicitly disabled properties
+        for name in [
+            "SKUIStackedBarSplit",
+            "aggregateStatisticsDisplayCountKey",
+            "appearanceTransitionsAreDisabled",
+            "autoresizesArchivedViewToFullSize",
+            "childModalViewController",
+            "containmentSupport",
+            "contentSizeForViewInPopover",
+            "customNavigationInteractiveTransitionDuration",
+            "customNavigationInteractiveTransitionPercentComplete",
+            "customTransitioningView",
+            "disableRootPromotion",
+            "dropShadowView",
+            "formSheetSize",
+            "ignoresParentMargins",
+            "isFinishingModalTransition",
+            "isInAnimatedVCTransition",
+            "isInWillRotateCallback",
+            "isPerformingModalTransition",
+            "modalTransitionView",
+            "mutableChildViewControllers",
+            "navigationInsetAdjustment",
+            "needsDidMoveCleanup",
+            "overrideTraitCollection",
+            "parentModalViewController",
+            "sKUIStackedBarSplit",
+            "searchBarHidNavBar",
+            "shouldForceNonAnimatedTransition",
+            "showsBackgroundShadow",
+            "storePageProtocol",
+            "useLegacyContainment",
+            "wantsFullScreenLayout",
+        ] {
+            types[name] = nil
+            for key in types.keys where key.hasPrefix(name) {
+                types[key] = nil
+            }
+        }
         return types
     }
 

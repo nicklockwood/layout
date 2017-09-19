@@ -32,8 +32,54 @@ extension CALayer {
                 types[key] = .unavailable()
             }
         }
-        for key in types.keys where key.hasPrefix("double") {
-            types[key] = nil
+        for name in [
+            "acceleratesDrawing",
+            "allowsContentsRectCornerMasking",
+            "allowsDisplayCompositing",
+            "allowsGroupBlending",
+            "allowsHitTesting",
+            "backgroundColorPhase",
+            "behaviors",
+            "canDrawConcurrently",
+            "clearsContext",
+            "coefficientOfRestitution",
+            "contentsContainsSubtitles",
+            "contentsDither",
+            "contentsMultiplyByColor",
+            "contentsOpaque",
+            "contentsScaling",
+            "continuousCorners",
+            "cornerContentsCenter",
+            "cornerContentsMaskEdges",
+            "doubleBounds",
+            "doublePosition",
+            "flipsHorizontalAxis",
+            "hitTestsAsOpaque",
+            "inheritsTiming",
+            "invertsShadow",
+            "isFlipped",
+            "isFrozen",
+            "literalContentsCenter",
+            "mass",
+            "meshTransform",
+            "momentOfIntertia",
+            "motionBlurAmount",
+            "needsLayoutOnGeometryChange",
+            "perspectiveDistance",
+            "preloadsCache",
+            "presentationModifiers",
+            "rasterizationPrefersDisplayCompositing",
+            "sizeRequisition",
+            "sortsSublayers",
+            "stateTransitions",
+            "states",
+            "velocityStretch",
+            "wantsExtendedDynamicRangeContent",
+        ] {
+            types[name] = nil
+            for key in types.keys where key.hasPrefix(name) {
+                types[key] = nil
+            }
         }
         return types
     }

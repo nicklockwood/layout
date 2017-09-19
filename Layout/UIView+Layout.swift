@@ -39,9 +39,19 @@ extension UIView {
             "bottomLeft": .bottomLeft,
             "bottomRight": .bottomRight,
         ])
+        types["tintAdjustmentMode"] = RuntimeType(UIViewTintAdjustmentMode.self, [
+            "automatic": .automatic,
+            "normal": .normal,
+            "dimmed": .dimmed,
+        ])
+        types["safeAreaInsets"] = RuntimeType(UIEdgeInsets.self, .readOnly)
+        for key in ["top", "left", "bottom", "right"] {
+            types["safeAreaInsets.\(key)"] = RuntimeType(CGFloat.self, .readOnly)
+        }
         for (name, type) in (layerClass as! CALayer.Type).cachedExpressionTypes {
             types["layer.\(name)"] = type
         }
+
         // Explicitly disabled properties
         for name in [
             "autoresizingMask",
@@ -71,10 +81,46 @@ extension UIView {
         }
         for name in [
             "needsDisplayInRect",
+            "layer.delegate",
         ] {
             types[name] = .unavailable()
             for key in types.keys where key.hasPrefix(name) {
                 types[key] = .unavailable()
+            }
+        }
+        for name in [
+            "allowsBaselineOffsetApproximation",
+            "animationInfo",
+            "charge",
+            "clearsContext",
+            "clipsSubviews",
+            "compositingMode",
+            "contentStretch",
+            "contentsPosition",
+            "customAlignmentRectInsets",
+            "customBaselineOffsetFromBottom",
+            "customFirstBaselineOffsetFromContentTop",
+            "deliversButtonsForGesturesToSuperview",
+            "deliversTouchesForGesturesToSuperview",
+            "edgesInsettingLayoutMarginsFromSafeArea",
+            "edgesPreservingSuperviewLayoutMargins",
+            "enabledGestures",
+            "fixedBackgroundPattern",
+            "gesturesEnabled",
+            "interactionTintColor",
+            "invalidatingIntrinsicContentSizeAlsoInvalidatesSuperview",
+            "isBaselineRelativeAlignmentRectInsets",
+            "needsDisplayOnBoundsChange",
+            "neverCacheContentLayoutSize",
+            "previewingSegueTemplateStorage",
+            "rotationBy",
+            "skipsSubviewEnumeration",
+            "viewTraversalMark",
+            "wantsDeepColorDrawing",
+        ] {
+            types[name] = nil
+            for key in types.keys where key.hasPrefix(name) {
+                types[key] = nil
             }
         }
         return types
@@ -266,14 +312,14 @@ extension UIButton {
         for state in controlStates.keys {
             types["\(state)TitleShadowColor"] = RuntimeType(UIColor.self)
         }
-        for (name, type) in UILabel.allPropertyTypes() {
+        for (name, type) in UILabel.cachedExpressionTypes {
             types["titleLabel.\(name)"] = type
         }
         types["image"] = RuntimeType(UIImage.self)
         for state in controlStates.keys {
             types["\(state)Image"] = RuntimeType(UIImage.self)
         }
-        for (name, type) in UIImageView.allPropertyTypes() {
+        for (name, type) in UIImageView.cachedExpressionTypes {
             types["imageView.\(name)"] = type
         }
         types["backgroundImage"] = RuntimeType(UIImage.self)
