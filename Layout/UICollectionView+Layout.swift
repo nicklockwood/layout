@@ -41,7 +41,9 @@ extension UICollectionView {
     }
 
     open override class func create(with node: LayoutNode) throws -> UICollectionView {
-        let layout = try node.value(forExpression: "collectionViewLayout") as? UICollectionViewLayout ?? .defaultLayout(for: node)
+        let layout = try node.value(
+            forExpression: "collectionViewLayout"
+        ) as? UICollectionViewLayout ?? .defaultLayout(for: node)
         let collectionView = self.init(frame: .zero, collectionViewLayout: layout)
         collectionView.register(UICollectionViewCell.self, forCellWithReuseIdentifier: placeholderID)
         objc_setAssociatedObject(collectionView, &layoutNodeKey, Box(node), .OBJC_ASSOCIATION_RETAIN)
@@ -54,6 +56,18 @@ extension UICollectionView {
             types["collectionViewLayout.\(key)"] = type
         }
         types["collectionViewLayout.scrollDirection"] = collectionViewScrollDirection
+
+        #if swift(>=3.2)
+            if #available(iOS 11.0, *) {
+                types["reorderingCadence"] = RuntimeType(UICollectionViewReorderingCadence.self, [
+                    "immediate": .immediate,
+                    "fast": .fast,
+                    "slow": .slow,
+                ])
+            }
+            // TODO: warn about unavailability
+        #endif
+
         for name in [
             "contentSize",
             "contentSize.height",
