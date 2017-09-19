@@ -140,6 +140,13 @@ public class LayoutNode: NSObject {
     }
 
     private var _observingInsets = false
+    private var _shouldObserveInsets: Bool {
+        guard let viewControllerClass = viewControllerClass else {
+            return false
+        }
+        return !(viewControllerClass is UITabBarController.Type) &&
+            !(viewControllerClass is UINavigationController.Type)
+    }
     private func _stopObservingInsets() {
         if #available(iOS 11.0, *), _observingInsets {
             removeObserver(self, forKeyPath: "_view.safeAreaInsets")
@@ -160,14 +167,14 @@ public class LayoutNode: NSObject {
             NotificationCenter.default.addObserver(self, selector: #selector(contentSizeCategoryChanged), name: .UIContentSizeCategoryDidChange, object: nil)
         }
         if !_observingFrame {
-            addObserver(self, forKeyPath: "_view.frame", options: [.new], context: nil)
-            addObserver(self, forKeyPath: "_view.bounds", options: [.new], context: nil)
+            addObserver(self, forKeyPath: "_view.frame", options: .new, context: nil)
+            addObserver(self, forKeyPath: "_view.bounds", options: .new, context: nil)
             _observingFrame = true
         }
-        if _observingInsets, viewControllerClass == nil {
+        if _observingInsets, !_shouldObserveInsets {
             _stopObservingInsets()
-        } else if #available(iOS 11.0, *), !_observingInsets, viewControllerClass != nil {
-            addObserver(self, forKeyPath: "_view.safeAreaInsets", options: [.new], context: nil)
+        } else if #available(iOS 11.0, *), !_observingInsets, _shouldObserveInsets {
+            addObserver(self, forKeyPath: "_view.safeAreaInsets", options: .new, context: nil)
             _observingInsets = true
         }
     }
@@ -178,11 +185,12 @@ public class LayoutNode: NSObject {
         change: [NSKeyValueChangeKey: Any]?,
         context _: UnsafeMutableRawPointer?
     ) {
-        guard let change = change, _setupComplete, !_suppressUpdates else {
+        guard _setupComplete, !_suppressUpdates, let new = change?[.newKey] else {
             return
         }
-        if let new = change[.newKey] as? CGRect {
-            if !new.size.isNearlyEqual(to: frame.size) {
+        switch new {
+        case let rect as CGRect:
+            if !rect.size.isNearlyEqual(to: frame.size) {
                 var root = self
                 while let parent = root.parent {
                     root = parent
@@ -191,14 +199,14 @@ public class LayoutNode: NSObject {
                     root.update()
                 }
             }
-            return
-        }
-        if change[.newKey] as? UIEdgeInsets != nil {
-            if _view?.window != nil {
+        case let insets as UIEdgeInsets:
+            if _view?.window != nil, !insets.isNearlyEqual(to: _previousSafeAreaInsets) {
                 // If not yet mounted, safe area insets can't be valid
                 update()
             }
-            return
+            _previousSafeAreaInsets = insets
+        default:
+            preconditionFailure()
         }
     }
 
@@ -1319,6 +1327,7 @@ public class LayoutNode: NSObject {
     }
 
     // Safe area (for any iOS version)
+    private var _previousSafeAreaInsets: UIEdgeInsets = .zero
     private var safeAreaInsets: UIEdgeInsets {
         #if swift(>=3.2)
             if #available(iOS 11.0, *), let viewController = _view?.viewController {
@@ -1632,17 +1641,20 @@ public class LayoutNode: NSObject {
         guard _suppressUpdates == false, let _view = _view else { return }
         defer { _suppressUpdates = false }
         _suppressUpdates = true
-        if _view.translatesAutoresizingMaskIntoConstraints {
-            let transform = _view.layer.transform
-            _view.layer.transform = CATransform3DIdentity
-            _view.frame = frame
-            _view.layer.transform = transform
-        } else if let _widthConstraint = _widthConstraint, let _heightConstraint = _heightConstraint {
-            setUpConstraints()
-            _widthConstraint.constant = frame.width
-            _widthConstraint.isActive = true
-            _heightConstraint.constant = frame.height
-            _heightConstraint.isActive = true
+        let frame = self.frame
+        if frame != _view.frame {
+            if _view.translatesAutoresizingMaskIntoConstraints {
+                let transform = _view.layer.transform
+                _view.layer.transform = CATransform3DIdentity
+                _view.frame = frame
+                _view.layer.transform = transform
+            } else if let _widthConstraint = _widthConstraint, let _heightConstraint = _heightConstraint {
+                setUpConstraints()
+                _widthConstraint.constant = frame.width
+                _widthConstraint.isActive = true
+                _heightConstraint.constant = frame.height
+                _heightConstraint.isActive = true
+            }
         }
         for child in children {
             try LayoutError.wrap(child.updateFrame, for: self)
