@@ -123,6 +123,12 @@ extension UICollectionView {
             }
         }
     }
+
+    open override func didUpdateLayout(for _: LayoutNode) {
+        for cell in visibleCells {
+            cell.layoutNode?.update()
+        }
+    }
 }
 
 extension UICollectionView: LayoutDelegate {
@@ -285,6 +291,7 @@ extension UICollectionView {
             }
             let cell = dequeueReusableCell(withReuseIdentifier: identifier, for: indexPath)
             if let node = cell.layoutNode {
+                node.update() // Ensure frame is updated before re-use
                 return node
             }
             switch layoutData {
