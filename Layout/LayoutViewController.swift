@@ -196,6 +196,7 @@ open class LayoutViewController: UIViewController, LayoutLoading {
         try? _errorNode?.bind(to: self)
         view.addSubview(_errorNode!.view)
         _errorNode!.view.frame = view.bounds
+        _errorNode!.update()
         UIView.animate(withDuration: 0.25) {
             self._errorNode?.view.alpha = 1
         }

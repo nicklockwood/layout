@@ -13,7 +13,6 @@ public class LayoutNode: NSObject {
         attempt(setUpExpressions)
         if _view == nil {
             _view = viewClass.init()
-            update()
         }
         return _view!
     }
@@ -1516,6 +1515,9 @@ public class LayoutNode: NSObject {
         }
         // Try AutoLayout
         if _usesAutoLayout, let _widthConstraint = _widthConstraint, let _heightConstraint = _heightConstraint {
+            let wasSuppressingUpdates = _suppressUpdates
+            _suppressUpdates = true
+            _view.layoutIfNeeded()
             let transform = _view.layer.transform
             _view.layer.transform = CATransform3DIdentity
             let frame = _view.frame
@@ -1541,13 +1543,13 @@ public class LayoutNode: NSObject {
             } else {
                 _heightConstraint.isActive = false
             }
-            _view.layoutIfNeeded()
             let size = _view.frame.size
             _widthConstraint.isActive = false
             _heightConstraint.isActive = false
             _view.translatesAutoresizingMaskIntoConstraints = usesAutoresizing
             _view.frame = frame
             _view.layer.transform = transform
+            _suppressUpdates = wasSuppressingUpdates
             if size.width > 0 || size.height > 0 {
                 return size
             }
