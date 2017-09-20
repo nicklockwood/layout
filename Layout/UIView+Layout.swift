@@ -384,6 +384,7 @@ private let textInputTraits: [String: RuntimeType] = {
     if #available(iOS 10.0, *) {
         keyboardTypes["asciiCapableNumberPad"] = .asciiCapableNumberPad
     } else {
+        // TODO: show warning?
         keyboardTypes["asciiCapableNumberPad"] = .asciiCapable
     }
     var traitTypes = [
@@ -427,6 +428,13 @@ private let textInputTraits: [String: RuntimeType] = {
         "isSecureTextEntry": RuntimeType(Bool.self),
     ]
 
+    for key in ["smartQuotesType", "smartDashesType", "smartInsertDeleteType"] {
+        traitTypes[key] = RuntimeType(SmartTextEnumType.self, [
+            "default": .default,
+            "no": .no,
+            "yes": .yes,
+        ])
+    }
     #if swift(>=3.2)
         if #available(iOS 11.0, *) {
             traitTypes["smartQuotesType"] = RuntimeType(UITextSmartQuotesType.self, [
@@ -447,16 +455,6 @@ private let textInputTraits: [String: RuntimeType] = {
         }
     #endif
 
-    // Fallback for older iOS versions
-    if traitTypes["smartQuotesType"] == nil {
-        for key in ["smartQuotesType", "smartDashesType", "smartInsertDeleteType"] {
-            traitTypes[key] = RuntimeType(SmartTextEnumType.self, [
-                "default": .default,
-                "no": .no,
-                "yes": .yes,
-            ])
-        }
-    }
     return traitTypes
 }()
 

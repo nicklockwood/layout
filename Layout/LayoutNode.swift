@@ -775,7 +775,7 @@ public class LayoutNode: NSObject {
             case .readOnly:
                 throw SymbolError("\(_class).\(symbol) is read-only", for: symbol)
             case let .unavailable(reason):
-                throw SymbolError("\(_class).\(symbol) is not available in Layout\(reason.map { ". \($0)" } ?? "")", for: symbol)
+                throw SymbolError("\(_class).\(symbol) is not available\(reason.map { ". \($0)" } ?? "")", for: symbol)
             }
             if case let .any(kind) = type.type, kind is CGFloat.Type {
                 switch symbol {

@@ -138,6 +138,7 @@ extension UIViewController {
         newItem.badgeValue = oldItem.badgeValue
         if #available(iOS 10.0, *) {
             newItem.badgeColor = oldItem.badgeColor
+            // TODO: warn if badgeColor unsupported
         }
         newItem.titlePositionAdjustment = oldItem.titlePositionAdjustment
         // TODO: badgeTextAttributes
@@ -165,6 +166,7 @@ extension UIViewController {
         tabBarItem.badgeValue = oldTabBarItem.badgeValue
         if #available(iOS 10.0, *) {
             tabBarItem.badgeColor = oldTabBarItem.badgeColor
+            // TODO: warn if badgeColor unsupported
         }
         tabBarItem.titlePositionAdjustment = oldTabBarItem.titlePositionAdjustment
     }

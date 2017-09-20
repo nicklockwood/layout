@@ -10,6 +10,7 @@
         contentInsetAdjustmentBehavior="never"
         contentOffset.y="-safeAreaInsets.top"
         outlet="collectionView"
+        reorderingCadence="fast"
         scrollIndicatorInsets.bottom="safeAreaInsets.bottom"
         scrollIndicatorInsets.top="safeAreaInsets.top">
 

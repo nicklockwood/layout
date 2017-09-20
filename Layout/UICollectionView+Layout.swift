@@ -57,6 +57,8 @@ extension UICollectionView {
         }
         types["collectionViewLayout.scrollDirection"] = collectionViewScrollDirection
 
+        // TODO: fail gracefully on iOS 10
+        types["reorderingCadence"] = .unavailable("Requires iOS 11 or above,")
         #if swift(>=3.2)
             if #available(iOS 11.0, *) {
                 types["reorderingCadence"] = RuntimeType(UICollectionViewReorderingCadence.self, [
@@ -65,7 +67,6 @@ extension UICollectionView {
                     "slow": .slow,
                 ])
             }
-            // TODO: warn about unavailability
         #endif
 
         for name in [

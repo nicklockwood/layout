@@ -13,6 +13,12 @@ extension UIScrollView {
 
     open override class var expressionTypes: [String: RuntimeType] {
         var types = super.expressionTypes
+        types["contentInsetAdjustmentBehavior"] = RuntimeType(ContentInsetAdjustmentBehavior.self, [
+            "automatic": .automatic,
+            "scrollableAxes": .scrollableAxes,
+            "never": .never,
+            "always": .always,
+        ])
         #if swift(>=3.2)
             if #available(iOS 11.0, *) {
                 types["contentInsetAdjustmentBehavior"] = RuntimeType(UIScrollViewContentInsetAdjustmentBehavior.self, [
@@ -23,14 +29,6 @@ extension UIScrollView {
                 ])
             }
         #endif
-        if types["contentInsetAdjustmentBehavior"] == nil {
-            types["contentInsetAdjustmentBehavior"] = RuntimeType(ContentInsetAdjustmentBehavior.self, [
-                "automatic": .automatic,
-                "scrollableAxes": .scrollableAxes,
-                "never": .never,
-                "always": .always,
-            ])
-        }
         types["indicatorStyle"] = RuntimeType(UIScrollViewIndicatorStyle.self, [
             "default": .default,
             "black": .black,
