@@ -1,39 +1,33 @@
 <UIViewController backgroundColor="#fee">
     <UIScrollView
-        contentInset.bottom="safeAreaInsets.bottom"
-        contentInset.left="safeAreaInsets.left"
-        contentInset.right="safeAreaInsets.right"
+        contentInset.bottom="safeAreaInsets.bottom + 20"
+        contentInset.left="safeAreaInsets.left + 20"
+        contentInset.right="safeAreaInsets.right + 20"
         contentInset.top="max(safeAreaInsets.top + 10, 20)"
         contentInsetAdjustmentBehavior="never"
-        contentSize.height="auto + 20"
-        layoutMargins.left="20"
-        layoutMargins.right="20"
         scrollIndicatorInsets.bottom="safeAreaInsets.bottom"
         scrollIndicatorInsets.top="safeAreaInsets.top">
 
         <UILabel
             backgroundColor="#0001"
             font="bold"
-            left="20"
             text="Left-aligned bold text"
         />
         <UILabel
             backgroundColor="#0001"
             font="italic"
-            left="20"
-            right="100% - 20"
             text="Center-aligned italic text"
             textAlignment="center"
             top="previous.bottom + 20"
+            width="100%"
         />
         <UILabel
             backgroundColor="#0001"
             font="bold italic"
-            left="20"
-            right="100% - 20"
             text="Right-aligned bold italic text"
             textAlignment="right"
             top="previous.bottom + 20"
+            width="100%"
         />
         <UILabel
             backgroundColor="#0001"
@@ -46,18 +40,16 @@
         />
         <UILabel
             backgroundColor="#0001"
-            left="20"
             text="This text is colored"
             textColor="#09f"
             top="previous.bottom + 20"
         />
         <UILabel
             backgroundColor="#0001"
-            left="20"
             lineBreakMode="byWordWrapping"
             numberOfLines="0"
-            right="100% - 20"
-            top="previous.bottom + 20">
+            top="previous.bottom + 20"
+            width="100%">
 
             <p>
                 This text has inline <b>bold</b>, <i>italic</i> and <u>underlined</u>
@@ -75,11 +67,10 @@
         <UILabel
             backgroundColor="#0001"
             font="body"
-            left="20"
             numberOfLines="0"
-            right="100% - 20"
             text="This text is using the 'body' UIFontTextStyle, and respects the user's dynamic font size setting"
             top="previous.bottom + 20"
+            width="100%"
         />
     </UIScrollView>
 </UIViewController>

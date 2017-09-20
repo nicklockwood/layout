@@ -111,7 +111,7 @@ To install Layout using CocoaPods, add the following to your Podfile:
 pod 'Layout', '~> 0.4.22'
 ```
 
-To install use Carthage, add this to your Cartfile:
+To install using Carthage, add this to your Cartfile:
 
 ```
 github "schibsted/Layout" ~> 0.4.22
@@ -744,7 +744,18 @@ In addition to reducing boilerplate, strings referenced directly from your XML w
 
 ## Colors
 
-Colors can be specified using CSS-style rgb(a) hex literals. These can be 3, 4, 6 or 8 digits long, and are prefixed with a `#`:
+As of iOS 11, you can use define named colors as XCAssets. To support this feature, color expressions are now treated as strings representing the name of a color asset:
+
+
+```xml
+<UIImageView image="MyColor"/>
+
+<UIImageView image="my-color"/>
+
+<UIImageView image="color_number_{level}"/>
+```
+
+Colors can also be specified using CSS-style rgb(a) hex literals. These can be 3, 4, 6 or 8 digits long, and are prefixed with a `#`:
 
 ```
 #fff // opaque white
@@ -753,7 +764,7 @@ Colors can be specified using CSS-style rgb(a) hex literals. These can be 3, 4, 
 #ff00007f // 50% transparent red
 ```
 
-All built-in static UIColor constants are supported as well:
+Built-in static UIColor constants are supported as well:
 
 ```
 white
@@ -777,7 +788,9 @@ You can use these literals and functions as part of a more complex expression, f
 <UIView backgroundColor="rgba(255, 255, 255, 1 - transparency)"/>
 ```
 
-The use of color literals is convenient for development purposes, but you are encouraged to define constants for any commonly uses colors in your app, as these will be easier to refactor later.
+Note that there is no need to enclose these expressions in braces. Unless the expression clashes with a color asset name, Layout will understand what you meant.
+
+The use of color literals is convenient for development purposes, but you are encouraged to define constants (or XCAssets, if you are taregting iOS 11 and above) for any commonly used colors in your app, as these will be easier to refactor later.
 
 To supply custom named color constants, you can pass colors in the constants dictionary when loading a layout:
 
@@ -796,7 +809,7 @@ You can also define a custom colors using extension on `UIColor`, and Layout wil
 
 ```swift
 extension UIColor {
-    static var headerColor: UIColor { return UIColor(0.6, 0.5, 0.5, 1) }
+    @objc static var headerColor: UIColor { return UIColor(0.6, 0.5, 0.5, 1) }
 }
 ```
 
@@ -807,7 +820,6 @@ Colors defined in this way can be referenced by name from inside any color expre
 
 <UIView backgroundColor="header"/>
 ```
-
 
 ## Images
 

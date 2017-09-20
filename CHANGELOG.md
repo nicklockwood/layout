@@ -1,5 +1,16 @@
 # Change Log
 
+## [0.4.24](https://github.com/schibsted/layout/releases/tag/0.4.24) (2017-09-20)
+
+- Color expressions now support named color assets in iOS 11
+- It is no longer necessary to manually call `update()` after resizing a view programmatically
+- Fixed `UIScrollView.contentInsetAdjustmentBehavior` error on iOS 11 when building with iOS 10 SDK
+- Added caching for color literals, improving performance for commonly-used colors
+- Fixed bug where Layout sometimes failed to locate source XML file when using template composition
+- Fixed landscape layout for `UITabBarController` on the iPhone X
+- Fixed a bug where `UICollectionView` cells failed to resize themselves after reuse
+- Added support for `UICollectionView.reorderingCadence` property
+
 ## [0.4.23](https://github.com/schibsted/layout/releases/tag/0.4.23) (2017-09-19)
 
 - Added full, backwards-compatible support for safe areas on iOS 11 (see README.md for details)

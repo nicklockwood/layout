@@ -34,7 +34,7 @@ private let colorSymbols: [AnyExpression.Symbol: AnyExpression.SymbolEvaluator] 
     .function("rgba", arity: 4): { args in
         guard let r = args[0] as? Double, let g = args[1] as? Double,
             let b = args[2] as? Double, let a = args[3] as? Double else {
-                throw Expression.Error.message("Type mismatch")
+            throw Expression.Error.message("Type mismatch")
         }
         return UIColor(red: CGFloat(r / 255), green: CGFloat(g / 255), blue: CGFloat(b / 255), alpha: CGFloat(a))
     },
@@ -120,14 +120,14 @@ func stringToColorAsset(_ string: String) throws -> UIColor {
     #if swift(>=3.2)
         let (name, bundle, traits) = try stringToAsset(string)
         if #available(iOS 11.0, *) {
-        if let color = UIColor(named: name, in: bundle, compatibleWith: traits) {
-        _colorAssetCache[string] = color
-        return color
-        }
-        if let bundle = bundle {
-        throw Expression.Error.message("Color named `\(string)` not found in bundle \(bundle.bundleIdentifier ?? "<unknown>")")
-        }
-        throw Expression.Error.message("Invalid color name `\(string)`")
+            if let color = UIColor(named: name, in: bundle, compatibleWith: traits) {
+                _colorAssetCache[string] = color
+                return color
+            }
+            if let bundle = bundle {
+                throw Expression.Error.message("Color named `\(string)` not found in bundle \(bundle.bundleIdentifier ?? "<unknown>")")
+            }
+            throw Expression.Error.message("Invalid color name `\(string)`")
         }
     #endif
     throw Expression.Error.message("Named colors are only supported in iOS 11 and above")

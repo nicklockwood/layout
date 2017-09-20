@@ -117,7 +117,6 @@ class ColorExpressionTests: XCTestCase {
             } else {
                 XCTAssert("\(error)".contains("iOS 11"))
             }
-
         }
     }
 }
