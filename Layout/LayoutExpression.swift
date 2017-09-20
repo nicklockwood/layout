@@ -24,6 +24,115 @@ private let ignoredSymbols: Set<Expression.Symbol> = [
     .variable("nil"),
 ]
 
+private let colorSymbols: [AnyExpression.Symbol: AnyExpression.SymbolEvaluator] = [
+    .function("rgb", arity: 3): { args in
+        guard let r = args[0] as? Double, let g = args[1] as? Double, let b = args[2] as? Double else {
+            throw Expression.Error.message("Type mismatch")
+        }
+        return UIColor(red: CGFloat(r / 255), green: CGFloat(g / 255), blue: CGFloat(b / 255), alpha: 1)
+    },
+    .function("rgba", arity: 4): { args in
+        guard let r = args[0] as? Double, let g = args[1] as? Double,
+            let b = args[2] as? Double, let a = args[3] as? Double else {
+                throw Expression.Error.message("Type mismatch")
+        }
+        return UIColor(red: CGFloat(r / 255), green: CGFloat(g / 255), blue: CGFloat(b / 255), alpha: CGFloat(a))
+    },
+]
+
+private func cast(_ anyValue: Any, as type: RuntimeType) throws -> Any {
+    guard let value = type.cast(anyValue) else {
+        let value = try unwrap(anyValue)
+        throw Expression.Error.message("\(Swift.type(of: value)) is not compatible with expected type \(type)")
+    }
+    return value
+}
+
+private var _colorCache = [String: UIColor]()
+private let colorLookup = { (string: String) -> Any? in
+    if let color = _colorCache[string] {
+        return color
+    }
+    if string.hasPrefix("#") {
+        var string = String(string.characters.dropFirst())
+        switch string.characters.count {
+        case 3:
+            string += "f"
+            fallthrough
+        case 4:
+            let chars = string.characters
+            let red = chars[chars.index(chars.startIndex, offsetBy: 0)]
+            let green = chars[chars.index(chars.startIndex, offsetBy: 1)]
+            let blue = chars[chars.index(chars.startIndex, offsetBy: 2)]
+            let alpha = chars[chars.index(chars.startIndex, offsetBy: 3)]
+            string = "\(red)\(red)\(green)\(green)\(blue)\(blue)\(alpha)\(alpha)"
+        case 6:
+            string += "ff"
+        case 8:
+            break
+        default:
+            return nil
+        }
+        if let rgba = Double("0x" + string).flatMap({ UInt32(exactly: $0) }) {
+            let red = CGFloat((rgba & 0xFF00_0000) >> 24) / 255
+            let green = CGFloat((rgba & 0x00FF_0000) >> 16) / 255
+            let blue = CGFloat((rgba & 0x0000_FF00) >> 8) / 255
+            let alpha = CGFloat((rgba & 0x0000_00FF) >> 0) / 255
+            return UIColor(red: red, green: green, blue: blue, alpha: alpha)
+        }
+    } else if UIColor.responds(to: Selector(string)) {
+        if let color = UIColor.value(forKey: string) as? UIColor {
+            _colorCache[string] = color
+            return color
+        }
+    } else {
+        let key = string + "Color"
+        if UIColor.responds(to: Selector(key)), let color = UIColor.value(forKey: key) as? UIColor {
+            _colorCache[string] = color
+            return color
+        }
+    }
+    // TODO: should we check for asset names here too?
+    return nil
+}
+
+private func stringToAsset(_ string: String) throws -> (name: String, bundle: Bundle?, traits: UITraitCollection?) {
+    let parts = string.components(separatedBy: ":")
+    switch parts.count {
+    case 1:
+        return (parts[0], nil, nil)
+    case 2:
+        let identifier = parts.first!
+        guard let bundle = Bundle(identifier: identifier) else {
+            throw Expression.Error.message("Could not locate bundle with identifier \(identifier)")
+        }
+        return (parts.last!, bundle, nil)
+    default:
+        throw Expression.Error.message("Invalid XCAsset name format: \(string)")
+    }
+}
+
+private var _colorAssetCache = [String: UIColor]()
+func stringToColorAsset(_ string: String) throws -> UIColor {
+    if let color = _colorAssetCache[string] {
+        return color
+    }
+    #if swift(>=3.2)
+        let (name, bundle, traits) = try stringToAsset(string)
+        if #available(iOS 11.0, *) {
+        if let color = UIColor(named: name, in: bundle, compatibleWith: traits) {
+        _colorAssetCache[string] = color
+        return color
+        }
+        if let bundle = bundle {
+        throw Expression.Error.message("Color named `\(string)` not found in bundle \(bundle.bundleIdentifier ?? "<unknown>")")
+        }
+        throw Expression.Error.message("Invalid color name `\(string)`")
+        }
+    #endif
+    throw Expression.Error.message("Named colors are only supported in iOS 11 and above")
+}
+
 struct LayoutExpression {
     let evaluate: () throws -> Any
     let symbols: Set<String>
@@ -228,11 +337,7 @@ struct LayoutExpression {
                 if nullable, optionalValue(of: anyValue) == nil {
                     return anyValue
                 }
-                guard let value = type.cast(anyValue) else {
-                    let value = try unwrap(anyValue)
-                    throw Expression.Error.message("\(Swift.type(of: value)) is not compatible with expected type \(type)")
-                }
-                return value
+                return try cast(anyValue, as: type)
             },
             symbols: Set(expression.symbols.flatMap {
                 switch $0 {
@@ -247,83 +352,19 @@ struct LayoutExpression {
         )
     }
 
-    private init?(colorExpression: String, type: RuntimeType, for node: LayoutNode) {
-        self.init(
-            anyExpression: colorExpression,
-            type: type,
-            symbols: [
-                .function("rgb", arity: 3): { args in
-                    guard let r = args[0] as? Double, let g = args[1] as? Double, let b = args[2] as? Double else {
-                        throw Expression.Error.message("Type mismatch")
-                    }
-                    return UIColor(red: CGFloat(r / 255), green: CGFloat(g / 255), blue: CGFloat(b / 255), alpha: 1)
-                },
-                .function("rgba", arity: 4): { args in
-                    guard let r = args[0] as? Double, let g = args[1] as? Double,
-                        let b = args[2] as? Double, let a = args[3] as? Double else {
-                        throw Expression.Error.message("Type mismatch")
-                    }
-                    return UIColor(red: CGFloat(r / 255), green: CGFloat(g / 255), blue: CGFloat(b / 255), alpha: CGFloat(a))
-                },
-            ],
-            lookup: { string in
-                if string.hasPrefix("#") {
-                    var string = String(string.characters.dropFirst())
-                    switch string.characters.count {
-                    case 3:
-                        string += "f"
-                        fallthrough
-                    case 4:
-                        let chars = string.characters
-                        let red = chars[chars.index(chars.startIndex, offsetBy: 0)]
-                        let green = chars[chars.index(chars.startIndex, offsetBy: 1)]
-                        let blue = chars[chars.index(chars.startIndex, offsetBy: 2)]
-                        let alpha = chars[chars.index(chars.startIndex, offsetBy: 3)]
-                        string = "\(red)\(red)\(green)\(green)\(blue)\(blue)\(alpha)\(alpha)"
-                    case 6:
-                        string += "ff"
-                    case 8:
-                        break
-                    default:
-                        return nil
-                    }
-                    if let rgba = Double("0x" + string).flatMap({ UInt32(exactly: $0) }) {
-                        let red = CGFloat((rgba & 0xFF00_0000) >> 24) / 255
-                        let green = CGFloat((rgba & 0x00FF_0000) >> 16) / 255
-                        let blue = CGFloat((rgba & 0x0000_FF00) >> 8) / 255
-                        let alpha = CGFloat((rgba & 0x0000_00FF) >> 0) / 255
-                        return UIColor(red: red, green: green, blue: blue, alpha: alpha)
-                    }
-                } else if UIColor.responds(to: Selector(string)) {
-                    return UIColor.value(forKey: string)
-                } else {
-                    let key = string + "Color"
-                    if UIColor.responds(to: Selector(key)) {
-                        return UIColor.value(forKey: key)
-                    }
-                }
-                return nil
-            },
-            for: node
-        )
-    }
+    private init?(interpolatedStringExpression expression: String,
+                  symbols: [AnyExpression.Symbol: AnyExpression.SymbolEvaluator] = [:],
+                  numericSymbols: [AnyExpression.Symbol: Expression.Symbol.Evaluator] = [:],
+                  lookup: @escaping (String) -> Any? = { _ in nil },
+                  for node: LayoutNode) {
 
-    init?(colorExpression: String, for node: LayoutNode) {
-        self.init(colorExpression: colorExpression, type: RuntimeType(UIColor.self), for: node)
-    }
-
-    init?(cgColorExpression: String, for node: LayoutNode) {
-        self.init(colorExpression: cgColorExpression, type: RuntimeType(CGColor.self), for: node)
-    }
-
-    private init?(interpolatedStringExpression expression: String, for node: LayoutNode) {
         enum ExpressionPart {
             case string(String)
             case expression(() throws -> Any)
         }
 
         do {
-            var symbols = Set<String>()
+            var expressionSymbols = Set<String>()
             let parts: [ExpressionPart] = try parseStringExpression(expression).flatMap { part in
                 switch part {
                 case let .expression(parsedExpression):
@@ -331,11 +372,14 @@ struct LayoutExpression {
                         anyExpression: parsedExpression.expression,
                         type: RuntimeType(Any.self),
                         nullable: true,
+                        symbols: symbols,
+                        numericSymbols: numericSymbols,
+                        lookup: lookup,
                         for: node
                     ) else {
                         return nil
                     }
-                    symbols.formUnion(expression.symbols)
+                    expressionSymbols.formUnion(expression.symbols)
                     return .expression(expression.evaluate)
                 case let .string(string):
                     return .string(string)
@@ -355,13 +399,10 @@ struct LayoutExpression {
                         }
                     }
                 },
-                symbols: symbols
+                symbols: expressionSymbols
             )
         } catch {
-            self.init(
-                evaluate: { throw error },
-                symbols: []
-            )
+            self.init(evaluate: { throw error }, symbols: [])
         }
     }
 
@@ -527,7 +568,6 @@ struct LayoutExpression {
         // Generate evaluator
         self.init(
             evaluate: {
-
                 // Parse font parts
                 var parts = [Any]()
                 var string = ""
@@ -637,6 +677,79 @@ struct LayoutExpression {
         )
     }
 
+    private init?(colorExpression: String, type: RuntimeType, for node: LayoutNode) {
+        do {
+            let parts = try parseStringExpression(colorExpression)
+            if parts.count == 1 {
+                switch parts[0] {
+                case let .string(name):
+                    do {
+                        // Attempt to interpret as an asset name
+                        let color = try cast(stringToColorAsset(name), as: type)
+                        self.init(evaluate: { color }, symbols: [])
+                        return
+                    } catch {
+                        // Attempt to interpret as a color expression
+                        guard let parsedExpression = try? parseExpression(name),
+                            !parsedExpression.symbols.contains(.infix(":")) else {
+                            throw error
+                        }
+                        self.init(
+                            anyExpression: parsedExpression.expression,
+                            type: type,
+                            nullable: false,
+                            symbols: colorSymbols,
+                            lookup: colorLookup,
+                            for: node
+                        )
+                    }
+                case let .expression(parsedExpression):
+                    guard let anyExpression = LayoutExpression(
+                        anyExpression: parsedExpression.expression,
+                        type: RuntimeType(Any.self),
+                        nullable: false,
+                        symbols: colorSymbols,
+                        lookup: colorLookup,
+                        for: node
+                    ) else {
+                        return nil
+                    }
+                    self.init(
+                        evaluate: {
+                            switch try unwrap(anyExpression.evaluate()) {
+                            case let name as String:
+                                return try cast(stringToColorAsset(name), as: type)
+                            case let color:
+                                return try cast(color, as: type)
+                            }
+                        },
+                        symbols: []
+                    )
+                }
+            } else {
+                guard let nameExpression = LayoutExpression(stringExpression: colorExpression, for: node) else {
+                    return nil
+                }
+                self.init(
+                    evaluate: {
+                        try stringToColorAsset(nameExpression.evaluate() as! String)
+                    },
+                    symbols: []
+                )
+            }
+        } catch {
+            self.init(evaluate: { throw error }, symbols: [])
+        }
+    }
+
+    init?(colorExpression: String, for node: LayoutNode) {
+        self.init(colorExpression: colorExpression, type: RuntimeType(UIColor.self), for: node)
+    }
+
+    init?(cgColorExpression: String, for node: LayoutNode) {
+        self.init(colorExpression: cgColorExpression, type: RuntimeType(CGColor.self), for: node)
+    }
+
     init?(imageExpression: String, for node: LayoutNode) {
         guard let expression = LayoutExpression(interpolatedStringExpression: imageExpression, for: node) else {
             return nil
@@ -669,17 +782,8 @@ struct LayoutExpression {
                     }
                     return image
                 } else {
-                    let parts = string.components(separatedBy: ":")
-                    var bundle = Bundle.main
-                    if parts.count == 2 {
-                        let identifier = parts.first!
-                        string = parts.last!
-                        guard let _bundle = Bundle(identifier: identifier) else {
-                            throw Expression.Error.message("Could not locate bundle with identifier \(identifier)")
-                        }
-                        bundle = _bundle
-                    }
-                    if let image = UIImage(named: parts.last!, in: bundle, compatibleWith: nil) {
+                    let (name, bundle, traits) = try stringToAsset(string)
+                    if let image = UIImage(named: name, in: bundle, compatibleWith: traits) {
                         return image
                     }
                     throw Expression.Error.message("Invalid image name \(string)")

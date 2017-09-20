@@ -88,4 +88,36 @@ class ColorExpressionTests: XCTestCase {
         )
         XCTAssertEqual(node.view.layer.backgroundColor, color.cgColor)
     }
+
+    func testBracedColor() {
+        let node = LayoutNode()
+        let expression = LayoutExpression(colorExpression: "{red}", for: node)
+        let expected = UIColor(red: 1, green: 0, blue: 0, alpha: 1)
+        XCTAssertEqual(try expression?.evaluate() as? UIColor, expected)
+    }
+
+    func testNamedColor() {
+        let node = LayoutNode()
+        let expression = LayoutExpression(colorExpression: "com.LayoutTests:MyColor", for: node)
+        XCTAssertThrowsError(try expression?.evaluate() as? UIColor) { error in
+            if #available(iOS 11.0, *) {
+                XCTAssert("\(error)".contains("in bundle"))
+            } else {
+                XCTAssert("\(error)".contains("iOS 11"))
+            }
+        }
+    }
+
+    func testNamedColorAssetExpression() {
+        let node = LayoutNode()
+        let expression = LayoutExpression(colorExpression: "MyColor{1}", for: node)
+        XCTAssertThrowsError(try expression?.evaluate() as? UIColor) { error in
+            if #available(iOS 11.0, *) {
+                XCTAssert("\(error)".contains("Invalid color name"))
+            } else {
+                XCTAssert("\(error)".contains("iOS 11"))
+            }
+
+        }
+    }
 }

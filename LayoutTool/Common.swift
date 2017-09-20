@@ -246,6 +246,7 @@ func isStringType(_ name: String) -> Bool {
         "NSAttributedString",
         "URL", "NSURL",
         "UIImage", "CGImage",
+        "UIColor", "CGColor", // NOTE: special case handling
         "UIFont",
     ].contains(name)
 }
@@ -292,5 +293,17 @@ func typeOfAttribute(_ key: String, inNode node: XMLNode) -> String? {
 // Determines if given attribute should be treated as a string expression
 // Returns true or false if reasonably certain, otherwise returns nil
 func attributeIsString(_ key: String, inNode node: XMLNode) -> Bool? {
-    return typeOfAttribute(key, inNode: node).map(isStringType)
+    guard let type = typeOfAttribute(key, inNode: node) else {
+        return nil
+    }
+    switch type {
+    case "UIColor", "CGColor":
+        if let expression = node.attributes[key], !expression.contains("{"),
+            expression.contains("rgb(") || expression.contains("rgba(") {
+            return false
+        }
+        return true
+    default:
+        return isStringType(type)
+    }
 }
