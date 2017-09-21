@@ -22,13 +22,26 @@ struct ParsedLayoutExpression: CustomStringConvertible {
         return "\(expression) // \(comment)"
     }
 
+    var isEmpty: Bool { return error == .unexpectedToken("") }
     var symbols: Set<Expression.Symbol> { return expression.symbols }
     var error: Expression.Error? { return expression.error }
 }
 
-enum ParsedExpressionPart {
+enum ParsedExpressionPart: CustomStringConvertible {
     case string(String)
+    case comment(String)
     case expression(ParsedLayoutExpression)
+
+    var description: String {
+        switch self {
+        case let .string(string):
+            return string
+        case let .comment(comment):
+            return "// \(comment)"
+        case let .expression(expression):
+            return "{\(expression)}"
+        }
+    }
 }
 
 // Prevent cache from distorting performance test results
@@ -42,8 +55,8 @@ func parseExpression(_ expression: String) throws -> ParsedLayoutExpression {
     }
     let parsedExpression: ParsedExpression
     var comment: String?
-    var characters = String.UnicodeScalarView.SubSequence(
-        expression.trimmingCharacters(in: .whitespacesAndNewlines).unicodeScalars)
+    var characters = String.UnicodeScalarView.SubSequence(expression.unicodeScalars)
+    characters.skipWhitespace()
     switch characters.first ?? " " {
     case "{":
         characters.removeFirst()
@@ -60,6 +73,7 @@ func parseExpression(_ expression: String) throws -> ParsedLayoutExpression {
     if let error = parsedExpression.error, error != .unexpectedToken("") {
         throw error
     }
+    characters.skipWhitespace()
     if !characters.isEmpty {
         throw Expression.Error.message("Unexpected token `\(String(characters))`")
     }
@@ -79,33 +93,37 @@ func parseStringExpression(_ expression: String) throws -> [ParsedExpressionPart
     var parts = [ParsedExpressionPart]()
     var string = ""
     var characters = String.UnicodeScalarView.SubSequence(expression.unicodeScalars)
-    while let char = characters.first {
-        switch char {
-        case "{":
-            characters.removeFirst()
-            if !string.isEmpty {
-                parts.append(.string(string))
-                string = ""
+    if let comment = characters.readComment(upTo: nil) {
+        return [.comment(comment)]
+    } else {
+        while let char = characters.first {
+            switch char {
+            case "{":
+                characters.removeFirst()
+                if !string.isEmpty {
+                    parts.append(.string(string))
+                    string = ""
+                }
+                let parsedExpression = Expression.parse(&characters, upTo: "}", "//")
+                if let error = parsedExpression.error, error != .unexpectedToken("") {
+                    throw error
+                }
+                let comment = characters.readComment(upTo: "}")
+                parts.append(.expression(ParsedLayoutExpression(parsedExpression, comment: comment)))
+                if characters.first != "}" {
+                    fallthrough
+                }
+                characters.removeFirst()
+            case "}":
+                throw Expression.Error.message("Unexpected `}`")
+            default:
+                characters.removeFirst()
+                string.append(Character(char))
             }
-            let parsedExpression = Expression.parse(&characters, upTo: "}", "//")
-            if let error = parsedExpression.error, error != .unexpectedToken("") {
-                throw error
-            }
-            let comment = characters.readComment(upTo: "}")
-            parts.append(.expression(ParsedLayoutExpression(parsedExpression, comment: comment)))
-            if characters.first != "}" {
-                fallthrough
-            }
-            characters.removeFirst()
-        case "}":
-            throw Expression.Error.message("Unexpected `}`")
-        default:
-            characters.removeFirst()
-            string.append(Character(char))
         }
-    }
-    if !string.isEmpty {
-        parts.append(.string(string))
+        if !string.isEmpty {
+            parts.append(.string(string))
+        }
     }
     if !runningInUnitTest {
         _stringExpressionCache[expression] = parts
@@ -143,23 +161,31 @@ func validateLayoutExpression(_ parsedExpression: ParsedLayoutExpression) throws
     }
 }
 
+private let whitespaceChars = CharacterSet.whitespacesAndNewlines
+
 private extension String.UnicodeScalarView.SubSequence {
-    mutating func readComment(upTo delimiter: UnicodeScalar?) -> String? {
-        var comment: String?
-        if count >= 2, first == "/", self[index(after: startIndex)] == "/" {
-            removeFirst(2)
-            guard let delimiter = delimiter else {
-                comment = String(self).trimmingCharacters(in: .whitespacesAndNewlines)
-                removeAll()
-                return comment
-            }
-            var output = String.UnicodeScalarView()
-            while let char = first, char != delimiter {
-                removeFirst()
-                output.append(char)
-            }
-            comment = String(output).trimmingCharacters(in: .whitespacesAndNewlines)
+    mutating func skipWhitespace() {
+        while let char = first, whitespaceChars.contains(char) {
+            removeFirst()
         }
-        return comment
+    }
+
+    mutating func readComment(upTo delimiter: UnicodeScalar?) -> String? {
+        let start = self
+        skipWhitespace()
+        guard popFirst() == "/", popFirst() == "/" else {
+            self = start
+            return nil
+        }
+        guard let delimiter = delimiter else {
+            let comment = String(self).trimmingCharacters(in: .whitespacesAndNewlines)
+            removeAll()
+            return comment
+        }
+        var output = String.UnicodeScalarView.SubSequence()
+        while first != delimiter {
+            output.append(removeFirst())
+        }
+        return String(output).trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }

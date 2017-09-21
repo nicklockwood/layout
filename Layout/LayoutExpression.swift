@@ -255,12 +255,8 @@ struct LayoutExpression {
                   lookup: @escaping (String) -> Any? = { _ in nil },
                   for node: LayoutNode) {
         do {
-            let parsedExpression = try parseExpression(anyExpression).expression
-            if parsedExpression.error == .unexpectedToken("") {
-                return nil
-            }
             self.init(
-                anyExpression: parsedExpression,
+                anyExpression: try parseExpression(anyExpression),
                 type: type,
                 nullable: nullable,
                 symbols: symbols,
@@ -269,16 +265,13 @@ struct LayoutExpression {
                 for: node
             )
         } catch {
-            self.init(
-                evaluate: { throw error },
-                symbols: []
-            )
+            self.init(evaluate: { throw error }, symbols: [])
         }
     }
 
     // symbols are assumed to be pure - i.e. they will always return the same value
     // numericSymbols are assumed to be impure - i.e. they won't always return the same value
-    private init?(anyExpression parsedExpression: ParsedExpression,
+    private init?(anyExpression parsedExpression: ParsedLayoutExpression,
                   type: RuntimeType,
                   nullable: Bool,
                   symbols: [AnyExpression.Symbol: AnyExpression.SymbolEvaluator] = [:],
@@ -286,7 +279,7 @@ struct LayoutExpression {
                   lookup: @escaping (String) -> Any? = { _ in nil },
                   for node: LayoutNode) {
 
-        if parsedExpression.error == .unexpectedToken("") {
+        if parsedExpression.isEmpty {
             return nil
         }
         var constants = [String: Any]()
@@ -325,7 +318,7 @@ struct LayoutExpression {
             return try fn(args)
         }
         let expression = AnyExpression(
-            parsedExpression,
+            parsedExpression.expression,
             options: [.boolSymbols, .pureSymbols],
             constants: constants,
             symbols: symbols,
@@ -369,7 +362,7 @@ struct LayoutExpression {
                 switch part {
                 case let .expression(parsedExpression):
                     guard let expression = LayoutExpression(
-                        anyExpression: parsedExpression.expression,
+                        anyExpression: parsedExpression,
                         type: RuntimeType(Any.self),
                         nullable: true,
                         symbols: symbols,
@@ -383,6 +376,8 @@ struct LayoutExpression {
                     return .expression(expression.evaluate)
                 case let .string(string):
                     return .string(string)
+                case .comment:
+                    return nil
                 }
             }
             if parts.isEmpty {
@@ -695,7 +690,7 @@ struct LayoutExpression {
                             throw error
                         }
                         self.init(
-                            anyExpression: parsedExpression.expression,
+                            anyExpression: parsedExpression,
                             type: type,
                             nullable: false,
                             symbols: colorSymbols,
@@ -705,7 +700,7 @@ struct LayoutExpression {
                     }
                 case let .expression(parsedExpression):
                     guard let anyExpression = LayoutExpression(
-                        anyExpression: parsedExpression.expression,
+                        anyExpression: parsedExpression,
                         type: RuntimeType(Any.self),
                         nullable: false,
                         symbols: colorSymbols,
@@ -725,6 +720,8 @@ struct LayoutExpression {
                         },
                         symbols: []
                     )
+                case .comment:
+                    return nil
                 }
             } else {
                 guard let nameExpression = LayoutExpression(stringExpression: colorExpression, for: node) else {

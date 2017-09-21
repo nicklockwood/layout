@@ -246,9 +246,9 @@ class FormatterTests: XCTestCase {
         XCTAssertEqual(try format(input), output)
     }
 
-    func testCommentedOutExpression() {
-        let input = "<Foo top=\"//10-5* 4 \"/>"
-        let output = "<Foo top=\"// 10-5* 4\"/>\n"
+    func testExpressionWithCommentInBraces() {
+        let input = "<Foo top=\"{10-5* 4//foo}\"/>"
+        let output = "<Foo top=\"10 - (5 * 4) // foo\"/>\n"
         XCTAssertEqual(try format(input), output)
     }
 
@@ -258,9 +258,51 @@ class FormatterTests: XCTestCase {
         XCTAssertEqual(try format(input), output)
     }
 
+    func testCommentedOutExpression() {
+        let input = "<Foo top=\"//10-5* 4 \"/>"
+        let output = "<Foo top=\"// 10-5* 4\"/>\n"
+        XCTAssertEqual(try format(input), output)
+    }
+
+    func testCommentedOutExpressionInBraces() {
+        let input = "<Foo top=\" {//10-5* 4} \"/>"
+        let output = "<Foo top=\"// 10-5* 4\"/>\n"
+        XCTAssertEqual(try format(input), output)
+    }
+
+    func testCommentBeforeExpressionInBraces() {
+        let input = "<Foo top=\" //{10-5* 4} \"/>"
+        let output = "<Foo top=\"// {10-5* 4}\"/>\n"
+        XCTAssertEqual(try format(input), output)
+    }
+
     func testCommentedOutStringExpression() {
         let input = "<Foo text=\"{ //10-5* 4 }\"/>"
         let output = "<Foo text=\"{// 10-5* 4}\"/>\n"
+        XCTAssertEqual(try format(input), output)
+    }
+
+    func testCommentedOutStringExpression2() {
+        let input = "<Foo text=\" //hello world\"/>"
+        let output = "<Foo text=\"// hello world\"/>\n"
+        XCTAssertEqual(try format(input), output)
+    }
+
+    func testCommentedOutColorExpression() {
+        let input = "<UIImageView image=\" //MyColor\"/>"
+        let output = "<UIImageView image=\"// MyColor\"/>\n"
+        XCTAssertEqual(try format(input), output)
+    }
+
+    func testCommentedOutImageExpression() {
+        let input = "<UIImageView image=\" //MyImage.png\"/>"
+        let output = "<UIImageView image=\"// MyImage.png\"/>\n"
+        XCTAssertEqual(try format(input), output)
+    }
+
+    func testCommentedOutURLExpressionWithoutComment() {
+        let input = "<Foo url=\"//http://example.com\"/>"
+        let output = "<Foo url=\"// http://example.com\"/>\n"
         XCTAssertEqual(try format(input), output)
     }
 }

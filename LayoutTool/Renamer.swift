@@ -79,8 +79,8 @@ func rename(_ old: String, to new: String, in xml: [XMLNode]) -> [XMLNode] {
                     ].contains { key.hasSuffix($0) }
                 }
                 if !isString, let expression = try? parseExpression(value) {
-                    if let result = rename(old, to: new, in: expression) {
-                        attributes[key] = result
+                    if let renamed = rename(old, to: new, in: expression) {
+                        attributes[key] = renamed
                     }
                 } else if let parts = try? parseStringExpression(value),
                     let result = rename(old, to: new, in: parts) {
@@ -104,14 +104,14 @@ private func rename(_ old: String, to new: String, in parts: [ParsedExpressionPa
     var changed = false
     let parts: [String] = parts.map {
         switch $0 {
-        case let .string(text):
-            return text
+        case .string, .comment:
+            return $0.description
         case let .expression(expression):
-            if let result = rename(old, to: new, in: expression) {
+            if let renamed = rename(old, to: new, in: expression) {
                 changed = true
-                return "{\(result)}"
+                return "{\(renamed)}"
             }
-            return expression.description
+            return $0.description
         }
     }
     return changed ? parts.joined() : nil

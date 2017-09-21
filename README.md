@@ -32,6 +32,7 @@
     - [Fonts](#fonts)
     - [Attributed Strings](#attributed-strings)
     - [Optionals](#optionals)
+    - [Comments](#comments)
 - [Standard Components](#standard-components)
     - [UIControl](#uicontrol)
     - [UIButton](#uibutton)
@@ -972,6 +973,64 @@ In this example, if the `col` constant is `nil`, we return a default color of wh
 
 ```xml
 <UIView backgroundColor="col ?? #fff"/>
+```
+
+## Comments
+
+Complicated or obscure code often benefits from documentation in the form of inline comments. You can insert comments into your XML layout files as follows:
+
+```xml
+<!-- `name` is the user's full name -->
+<UILabel text="{name}"/>
+```
+
+Unfortunately, while XML supports comment tags *between* nodes, there is no way to place comments between attributes within a node, so if a node has multiple attributes this approach is not very satisfactory.
+
+To work around this, Layout allows you to use C-style "//" comments *inside* the expression attributes themselves:
+
+```xml
+<UILabel
+    text="{name // the user's full name}"
+    backgroundColor="colors.primary // the primary color"
+/>
+```
+
+This feature is also very convenient during development if you want to temporarily comment-out an expression:
+
+```xml
+<UIView temporarilyDisabledProperty="// someValue"/>
+```
+
+Comments can be used in any expression. For string-type expressions there are a few caveats: In a string expression, anything outside of `{...}` braces is considerd to be part of the literal string value, and that includes `/` characters. For that reason, this won't work as intended:
+
+```xml
+<UIImage image="MyImage.png // comment"/>
+```
+
+Because the image attribute in the above expression is interpreted as a string, the "// comment" is treated as part of the name. The workaround for this is to put the comment inside `{...}`. Either of the following will work:
+
+```xml
+<UIImage image="MyImage.png{// comment}"/>
+
+<UIImage image="{'MyImage.png' // comment}"/>
+```
+
+The exception to this is for when the entire expression is commented out. If you wish to temporarily comment-out an expression, placing "//" at the start of the comment will work regardless of the expression type:
+
+```xml
+<UIImage image="// MyImage.png"/>
+```
+
+In the unlikely event that you need a string expression to begin with "//", you can escape the slashes using `{...}`:
+
+```xml
+<UILabel text="// this is a comment"/>
+
+<UILabel text="{// this is also a comment}"/>
+
+<UILabel text="{'// this is not a comment'}"/>
+
+<UILabel text="{'//'} this is also not a comment"/>
 ```
 
 # Standard Components

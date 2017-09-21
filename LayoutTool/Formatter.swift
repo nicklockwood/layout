@@ -102,16 +102,15 @@ extension XMLNode {
                 // We have to treat everying we aren't sure about as a string expression, because if
                 // we attempt to format text outside of {...} as an expression, it will get messed up
                 let parts = try parseStringExpression(value)
-                description = ""
                 for part in parts {
                     switch part {
-                    case let .string(string):
-                        description += string
+                    case .string, .comment:
+                        break
                     case let .expression(expression):
                         try validateLayoutExpression(expression)
-                        description += "{\(expression)}"
                     }
                 }
+                description = parts.map { $0.description }.joined()
             } else {
                 let expression = try parseExpression(value)
                 try validateLayoutExpression(expression)

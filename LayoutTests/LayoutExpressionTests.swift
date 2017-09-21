@@ -229,11 +229,32 @@ class LayoutExpressionTests: XCTestCase {
         XCTAssertEqual(expression?.description, "4 + 5 // hello")
     }
 
+    func testCommentedOutExpressionWithoutBraces() {
+        let expression = try? parseExpression(" //4 + 5")
+        XCTAssertNotNil(expression)
+        XCTAssertEqual(expression?.isEmpty, true)
+        XCTAssertEqual(expression?.description, "// 4 + 5")
+    }
+
     func testParseExpressionWithCommentWithBraces() {
         let expression = try? parseExpression("{4 + 5 // hello}")
         XCTAssertNotNil(expression)
         XCTAssertEqual(expression?.symbols, [.infix("+")])
         XCTAssertEqual(expression?.description, "4 + 5 // hello")
+    }
+
+    func testCommentedOutExpressionWithBraces() {
+        let expression = try? parseExpression("{ //4 + 5}")
+        XCTAssertNotNil(expression)
+        XCTAssertEqual(expression?.isEmpty, true)
+        XCTAssertEqual(expression?.description, "// 4 + 5")
+    }
+
+    func testParseExpressionWithCommentBeforeBraces() {
+        let expression = try? parseExpression(" //{4 + 5}")
+        XCTAssertNotNil(expression)
+        XCTAssertEqual(expression?.isEmpty, true)
+        XCTAssertEqual(expression?.description, "// {4 + 5}")
     }
 
     func testParseStringExpressionWithComment() {
@@ -260,6 +281,23 @@ class LayoutExpressionTests: XCTestCase {
             XCTFail()
             return
         }
+    }
+
+    func testCommentedOutStringExpression() {
+        guard let parts = try? parseStringExpression(" //hello {'world'}") else {
+            XCTFail()
+            return
+        }
+        guard parts.count == 1 else {
+            XCTFail()
+            return
+        }
+        guard case let .comment(comment) = parts[0] else {
+            XCTFail()
+            return
+        }
+        XCTAssertEqual(comment, "hello {'world'}")
+        XCTAssertEqual(parts[0].description, "// hello {'world'}")
     }
 
     // MARK: Integration tests
@@ -327,5 +365,44 @@ class LayoutExpressionTests: XCTestCase {
         )
         node.update()
         XCTAssertThrowsError(try node.throwUnhandledError())
+    }
+
+    func testCommentedOutBoolExpression() {
+        let node = LayoutNode()
+        let expression = LayoutExpression(boolExpression: "// false", for: node)
+        XCTAssertNil(expression)
+    }
+
+    func testCommentedOutColorExpression() {
+        let node = LayoutNode()
+        let expression = LayoutExpression(colorExpression: "// red", for: node)
+        XCTAssertNil(expression)
+    }
+
+    func testCommentedOutImageExpression() {
+        let node = LayoutNode()
+        let expression = LayoutExpression(colorExpression: "// MyImage.png", for: node)
+        XCTAssertNil(expression)
+    }
+
+    func testBoolExpressionWithComment() {
+        let node = LayoutNode()
+        let expression = LayoutExpression(boolExpression: "false // comment", for: node)
+        XCTAssertNotNil(expression)
+        XCTAssertEqual(try! expression?.evaluate() as? Bool, false)
+    }
+
+    func testColorExpressionWithComment() {
+        let node = LayoutNode()
+        let expression = LayoutExpression(colorExpression: "red // comment", for: node)
+        XCTAssertNotNil(expression)
+        XCTAssertEqual(try! expression?.evaluate() as? UIColor, .red)
+    }
+
+    func testImageExpressionWithComment() { // Not supported
+        let node = LayoutNode()
+        let expression = LayoutExpression(colorExpression: "MyImage.png // comment", for: node)
+        XCTAssertNotNil(expression)
+        XCTAssertThrowsError(try expression?.evaluate())
     }
 }
