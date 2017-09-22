@@ -68,7 +68,7 @@ public class LayoutNode: NSObject {
             if (delegate as AnyObject).responds(to: selector) {
                 return delegate
             }
-            responder = responder?.next
+            responder = responder?.next ?? (responder as? UIViewController)?.parent
             delegate = responder as? LayoutDelegate
         }
         return parent?.delegate(for: selector)

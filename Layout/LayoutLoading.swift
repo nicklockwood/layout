@@ -74,15 +74,17 @@ public extension LayoutLoading {
     /// Default error handler implementation - bubbles error up to the first
     /// responder that will handle it, or log the error if no handler is found
     func layoutError(_ error: LayoutError) {
-        var responder = (self as? UIResponder)?.next
-        while responder != nil {
-            if let errorHandler = responder as? LayoutLoading {
-                errorHandler.layoutError(error)
-                return
+        DispatchQueue.main.async {
+            var responder = (self as? UIResponder)?.next
+            while responder != nil {
+                if let errorHandler = responder as? LayoutLoading {
+                    errorHandler.layoutError(error)
+                    return
+                }
+                responder = responder?.next ?? (responder as? UIViewController)?.parent
             }
-            responder = responder?.next
+            print("Layout error: \(error)")
         }
-        print("Layout error: \(error)")
     }
 
     // Used by LayoutViewController

@@ -148,15 +148,17 @@ extension UICollectionView {
 
 extension UICollectionView: LayoutDelegate {
     public func layoutError(_ error: LayoutError) {
-        var responder: UIResponder? = self
-        while responder != nil {
-            if let errorHandler = responder as? LayoutLoading {
-                errorHandler.layoutError(error)
-                break
+        DispatchQueue.main.async {
+            var responder: UIResponder? = self.next
+            while responder != nil {
+                if let errorHandler = responder as? LayoutLoading {
+                    errorHandler.layoutError(error)
+                    break
+                }
+                responder = responder?.next ?? (responder as? UIViewController)?.parent
             }
-            responder = responder?.next
+            print("Layout error: \(error)")
         }
-        print("Layout error: \(error)")
     }
 
     func value(forVariableOrConstant name: String) -> Any? {
