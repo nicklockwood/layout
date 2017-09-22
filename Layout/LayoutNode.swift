@@ -655,8 +655,8 @@ public class LayoutNode: NSObject {
             _getters["width"] = nil
             if expressions["left"] != nil, expressions["right"] != nil {
                 expressions["width"] = "right - left"
-            } else if !(_view is UIScrollView),
-                _usesAutoLayout || _view?.intrinsicContentSize.width != UIViewNoIntrinsicMetric {
+            } else if !(_view is UIScrollView), _view is UIImageView || _usesAutoLayout ||
+                _view?.intrinsicContentSize.width != UIViewNoIntrinsicMetric {
                 expressions["width"] = "min(auto, 100%)"
             } else if parent != nil {
                 expressions["width"] = "100%"
@@ -672,8 +672,8 @@ public class LayoutNode: NSObject {
                 expressions["height"] = "auto" // TODO: remove special case
             } else if expressions["top"] != nil, expressions["bottom"] != nil {
                 expressions["height"] = "bottom - top"
-            } else if !(_view is UIScrollView),
-                _usesAutoLayout || _view?.intrinsicContentSize.height != UIViewNoIntrinsicMetric {
+            } else if !(_view is UIScrollView), _view is UIImageView || _usesAutoLayout ||
+                _view?.intrinsicContentSize.height != UIViewNoIntrinsicMetric {
                 expressions["height"] = "auto"
             } else if parent != nil {
                 expressions["height"] = "100%"

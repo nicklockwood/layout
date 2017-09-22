@@ -10,12 +10,10 @@
     textLabel.text="Title #{row}">
 
     <UIImageView
-        height="auto"
         highlightedImage="{whiteImage}"
         image="{image}"
         right="100% - 20"
         tintColor="colors.red"
         top="20"
-        width="auto"
     />
 </UITableViewCell>
