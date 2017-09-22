@@ -1,5 +1,12 @@
 # Change Log
 
+## [0.4.25](https://github.com/schibsted/layout/releases/tag/0.4.25) (2017-09-22)
+
+- Fixed regression in auto-sizing of AutoLayout-based components
+- Commenting-out string-based expressions now works more intuitively (see README.md for details)
+- Commenting-out `outlet`, `xml` or `template` attributes now works as you would expect
+- Width and height of `UIImageView` are now set to `auto` by default
+
 ## [0.4.24](https://github.com/schibsted/layout/releases/tag/0.4.24) (2017-09-20)
 
 - Color expressions now support named color assets in iOS 11
