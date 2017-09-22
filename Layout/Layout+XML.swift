@@ -77,12 +77,34 @@ extension Layout {
             }
         }
 
-        let outlet = attributes["outlet"]
-        attributes["outlet"] = nil
-        let xmlPath = attributes["xml"]
-        attributes["xml"] = nil
-        let templatePath = attributes["template"]
-        attributes["template"] = nil
+        func parseStringAttribute(for name: String) throws -> String? {
+            guard let expression = attributes[name] else {
+                return nil
+            }
+            attributes[name] = nil
+            do {
+                let parts = try parseStringExpression(expression)
+                if parts.count == 1 {
+                    switch parts[0] {
+                    case .comment:
+                        return nil
+                    case let .string(string):
+                        return string
+                    case .expression:
+                        break
+                    }
+                } else if parts.isEmpty {
+                    return nil
+                }
+                throw LayoutError("\(name) must be a literal value, not an expression")
+            } catch {
+                throw LayoutError("\(error)", for: NSClassFromString(className))
+            }
+        }
+        
+        let outlet = try parseStringAttribute(for: "outlet")
+        let xmlPath = try parseStringAttribute(for: "xml")
+        let templatePath = try parseStringAttribute(for: "template")
 
         text = text
             .trimmingCharacters(in: .whitespacesAndNewlines)
