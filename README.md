@@ -1797,7 +1797,7 @@ class MyView: UIView, LayoutLoading {
         super.init(frame: frame)
 
         loadLayout(
-            named: "MyView.mxl",
+            named: "MyView.xml",
             state: ...,
             constants: ...,
         )
@@ -1808,6 +1808,29 @@ class MyView: UIView, LayoutLoading {
 
         // Ensure layout is updated after screen rotation, etc
         self.layoutNode?.update()
+    }
+}
+```
+
+If the layout has a dynamic size, you may wish to update the container view's frame whenever the layout frame changes. To implement that, add the following code:
+
+```swift
+class MyView: UIView, LayoutLoading {
+
+    ...
+    
+    override func layoutSubviews() {
+        super.layoutSubviews()
+
+        // Ensure layout is updated after screen rotation, etc
+        self.layoutNode?.update()
+        
+        // Update frame to match layout
+        self.frame.size = self.intrinsicContentSize
+    }
+    
+    public override var intrinsicContentSize: CGSize {
+        return layoutNode?.frame.size ?? .zero
     }
 }
 ```
