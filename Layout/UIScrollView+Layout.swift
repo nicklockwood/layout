@@ -4,20 +4,13 @@ import Foundation
 
 extension UIScrollView {
 
-    // This property is not available on iOS 10 and earlier
-    // But it's useful to be able to set it to `never` in order
-    // to implement consistent behavior across iOS versions
-    private enum ContentInsetAdjustmentBehavior: Int {
-        case automatic, scrollableAxes, never, always
-    }
-
     open override class var expressionTypes: [String: RuntimeType] {
         var types = super.expressionTypes
-        types["contentInsetAdjustmentBehavior"] = RuntimeType(ContentInsetAdjustmentBehavior.self, [
-            "automatic": .automatic,
-            "scrollableAxes": .scrollableAxes,
-            "never": .never,
-            "always": .always,
+        types["contentInsetAdjustmentBehavior"] = RuntimeType(Int.self, [
+            "automatic": 0,
+            "scrollableAxes": 1,
+            "never": 2,
+            "always": 3,
         ])
         #if swift(>=3.2)
             if #available(iOS 11.0, *) {
@@ -52,18 +45,7 @@ extension UIScrollView {
             if #available(iOS 11.0, *) {
                 fallthrough
             }
-            let key: String
-            switch value as! ContentInsetAdjustmentBehavior {
-            case .automatic:
-                key = "automatic"
-            case .scrollableAxes:
-                key = "scrollableAxes"
-            case .never:
-                return // Do nothing
-            case .always:
-                key = "always"
-            }
-            throw SymbolError("Setting contentInsetAdjustmentBehavior to \(key) is not supported on iOS versions prior to 11. Set it to never for consistent behavior across iOS versions,", for: name)
+            // Does nothing on iOS 10 and earlier
         default:
             try super.setValue(value, forExpression: name)
         }

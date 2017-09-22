@@ -1144,10 +1144,6 @@ public class LayoutNode: NSObject {
                         contentInset.top - contentInset.bottom
                 }, for: symbol)
             }
-        case "inferredSize":
-            getter = { [unowned self] in
-                try self.inferSize()
-            }
         case "inferredSize.width":
             getter = { [unowned self] in
                 try self.inferSize().width
@@ -1156,10 +1152,6 @@ public class LayoutNode: NSObject {
             getter = { [unowned self] in
                 try self.inferSize().height
             }
-        case "inferredContentSize":
-            getter = { [unowned self] in
-                try self.inferContentSize()
-            }
         case "inferredContentSize.width":
             getter = { [unowned self] in
                 try self.inferContentSize().width
@@ -1167,29 +1159,6 @@ public class LayoutNode: NSObject {
         case "inferredContentSize.height":
             getter = { [unowned self] in
                 try self.inferContentSize().height
-            }
-        case "contentInset":
-            getter = { [unowned self] in
-                guard self.viewExpressionTypes["contentInset"] != nil else {
-                    return UIEdgeInsets.zero
-                }
-                return self._view?.value(forKey: "contentInset") as? UIEdgeInsets ?? .zero
-            }
-        case "contentInset.top":
-            getter = { [unowned self] in
-                try (self.value(forSymbol: "contentInset") as! UIEdgeInsets).top
-            }
-        case "contentInset.left":
-            getter = { [unowned self] in
-                try (self.value(forSymbol: "contentInset") as! UIEdgeInsets).left
-            }
-        case "contentInset.bottom":
-            getter = { [unowned self] in
-                try (self.value(forSymbol: "contentInset") as! UIEdgeInsets).bottom
-            }
-        case "contentInset.right":
-            getter = { [unowned self] in
-                try (self.value(forSymbol: "contentInset") as! UIEdgeInsets).right
             }
         default:
             let head: String
@@ -1479,6 +1448,9 @@ public class LayoutNode: NSObject {
     }
 
     private func computeContentInset() throws -> UIEdgeInsets {
+        guard viewClass is UIScrollView.Type else {
+            return .zero
+        }
         return try value(forSymbol: "contentInset") as! UIEdgeInsets
     }
 

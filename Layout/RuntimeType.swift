@@ -258,9 +258,8 @@ public class RuntimeType: NSObject {
     }
 
     public func cast(_ value: Any) -> Any? {
-        switch type {
-        case let .any(subtype):
-            switch subtype {
+        func cast(_ value: Any, as type: Any.Type) -> Any? {
+            switch type {
             case is NSNumber.Type:
                 return value as? NSNumber
             case is CGFloat.Type:
@@ -294,14 +293,18 @@ public class RuntimeType: NSObject {
                 return value as? NSAttributedString ?? NSAttributedString(string: "\(value)")
             case let subtype as AnyClass:
                 return (value as AnyObject).isKind(of: subtype) ? value : nil
-            case _ where subtype == Any.self:
+            case _ where type == Any.self:
                 return value
             default:
                 guard let value = optionalValue(of: value) else {
                     return nil
                 }
-                return subtype == Swift.type(of: value) || "\(subtype)" == "\(Swift.type(of: value))" ? value : nil
+                return type == Swift.type(of: value) || "\(type)" == "\(Swift.type(of: value))" ? value : nil
             }
+        }
+        switch type {
+        case let .any(subtype):
+            return cast(value, as: subtype)
         case let .class(type):
             if let value = value as? AnyClass, value.isSubclass(of: type) {
                 return value
@@ -338,8 +341,8 @@ public class RuntimeType: NSObject {
             if let key = value as? String, let value = enumValues[key] {
                 return value
             }
-            if let value = value as? AnyHashable, let values = Array(enumValues.values) as? [AnyHashable] {
-                return values.contains(value) ? value : nil
+            if let value = cast(value, as: type) as? AnyHashable {
+                return enumValues.values.first { value == $0 as? AnyHashable }
             }
             if type != Swift.type(of: value) {
                 return nil
