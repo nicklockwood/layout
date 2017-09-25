@@ -298,6 +298,9 @@ extension UITabBar {
         switch name {
         case "delegate":
             if viewController is UITabBarController {
+                if value as? UIViewController == viewController {
+                    break
+                }
                 throw LayoutError("Cannot change the delegate of a UITabBar managed by a UITabBarController")
             }
             fallthrough
