@@ -7,7 +7,7 @@ private let placeholderID = NSUUID().uuidString
 private let collectionViewScrollDirection = RuntimeType(UICollectionViewScrollDirection.self, [
     "horizontal": .horizontal,
     "vertical": .vertical,
-])
+] as [String: UICollectionViewScrollDirection])
 
 private var layoutNodeKey = 0
 
@@ -58,14 +58,18 @@ extension UICollectionView {
         types["collectionViewLayout.scrollDirection"] = collectionViewScrollDirection
 
         // TODO: fail gracefully on iOS 10
-        types["reorderingCadence"] = .unavailable("Requires iOS 11 or above,")
+        types["reorderingCadence"] = RuntimeType(Int.self, [
+            "immediate": 0,
+            "fast": 1,
+            "slow": 2,
+        ] as [String: Int])
         #if swift(>=3.2)
             if #available(iOS 11.0, *) {
                 types["reorderingCadence"] = RuntimeType(UICollectionViewReorderingCadence.self, [
                     "immediate": .immediate,
                     "fast": .fast,
                     "slow": .slow,
-                ])
+                ] as [String: UICollectionViewReorderingCadence])
             }
         #endif
 
@@ -77,6 +81,18 @@ extension UICollectionView {
             types[name] = .unavailable()
         }
         return types
+    }
+
+    open override func setValue(_ value: Any, forExpression name: String) throws {
+        switch name {
+        case "reorderingCadence":
+            if #available(iOS 11.0, *) {
+                fallthrough
+            }
+            // Does nothing on iOS 10 and earlier
+        default:
+            try super.setValue(value, forExpression: name)
+        }
     }
 
     open override func didInsertChildNode(_ node: LayoutNode, at index: Int) {

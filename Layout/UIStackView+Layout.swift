@@ -8,14 +8,14 @@ extension UIStackView {
         types["axis"] = RuntimeType(UILayoutConstraintAxis.self, [
             "horizontal": .horizontal,
             "vertical": .vertical,
-        ])
+        ] as [String: UILayoutConstraintAxis])
         types["distribution"] = RuntimeType(UIStackViewDistribution.self, [
             "fill": .fill,
             "fillEqually": .fillEqually,
             "fillProportionally": .fillProportionally,
             "equalSpacing": .equalSpacing,
             "equalCentering": .equalCentering,
-        ])
+        ] as [String: UIStackViewDistribution])
         types["alignment"] = RuntimeType(UIStackViewAlignment.self, [
             "fill": .fill,
             "leading": .leading,
@@ -25,7 +25,7 @@ extension UIStackView {
             "trailing": .trailing,
             "bottom": .bottom,
             "lastBaseline": .lastBaseline, // Valid for horizontal axis only
-        ])
+        ] as [String: UIStackViewAlignment])
         types["arrangedSubviews"] = .unavailable()
         // UIStackView is a non-drawing view, so none of these properties are available
         for name in [

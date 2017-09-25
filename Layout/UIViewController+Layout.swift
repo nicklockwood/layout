@@ -28,7 +28,7 @@ private let barButtonSystemItemType = RuntimeType(UIBarButtonSystemItem.self, [
     "undo": .undo,
     "redo": .redo,
     "pageCurl": .pageCurl,
-])
+] as [String: UIBarButtonSystemItem])
 
 extension UIBarButtonItem {
     func bindAction(for target: AnyObject) throws {
@@ -71,7 +71,7 @@ extension UIViewController {
             "downloads": .downloads,
             "mostRecent": .mostRecent,
             "mostViewed": .mostViewed,
-        ])
+        ] as [String: UITabBarSystemItem])
         // TODO: tabBarItem.badgeTextAttributes
         for (name, type) in UINavigationItem.allPropertyTypes() {
             types["navigationItem.\(name)"] = type
@@ -288,7 +288,7 @@ extension UITabBar {
             "automatic": .automatic,
             "fill": .fill,
             "centered": .centered,
-        ])
+        ] as [String: UITabBarItemPositioning])
         types["barStyle"] = barStyleType
         types["barPosition"] = barPositionType
         return types

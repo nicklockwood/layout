@@ -11,7 +11,7 @@ extension UIScrollView {
             "scrollableAxes": 1,
             "never": 2,
             "always": 3,
-        ])
+        ] as [String: Int])
         #if swift(>=3.2)
             if #available(iOS 11.0, *) {
                 types["contentInsetAdjustmentBehavior"] = RuntimeType(UIScrollViewContentInsetAdjustmentBehavior.self, [
@@ -19,23 +19,23 @@ extension UIScrollView {
                     "scrollableAxes": .scrollableAxes,
                     "never": .never,
                     "always": .always,
-                ])
+                ] as [String: UIScrollViewContentInsetAdjustmentBehavior])
             }
         #endif
         types["indicatorStyle"] = RuntimeType(UIScrollViewIndicatorStyle.self, [
             "default": .default,
             "black": .black,
             "white": .white,
-        ])
+        ] as [String: UIScrollViewIndicatorStyle])
         types["indexDisplayMode"] = RuntimeType(UIScrollViewIndexDisplayMode.self, [
             "automatic": .automatic,
             "alwaysHidden": .alwaysHidden,
-        ])
+        ] as [String: UIScrollViewIndexDisplayMode])
         types["keyboardDismissMode"] = RuntimeType(UIScrollViewKeyboardDismissMode.self, [
             "none": .none,
             "onDrag": .onDrag,
             "interactive": .interactive,
-        ])
+        ] as [String: UIScrollViewKeyboardDismissMode])
         return types
     }
 

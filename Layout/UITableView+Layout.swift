@@ -5,7 +5,7 @@ import UIKit
 private let tableViewStyle = RuntimeType(UITableViewStyle.self, [
     "plain": .plain,
     "grouped": .grouped,
-])
+] as [String: UITableViewStyle])
 
 private var layoutNodeKey = 0
 
@@ -50,7 +50,7 @@ extension UITableView {
             "none": .none,
             "singleLine": .singleLine,
             "singleLineEtched": .singleLineEtched,
-        ])
+        ] as [String: UITableViewCellSeparatorStyle])
         for name in [
             "contentSize",
             "contentSize.height",
@@ -429,7 +429,7 @@ private let tableViewCellStyle = RuntimeType(UITableViewCellStyle.self, [
     "value1": .value1,
     "value2": .value2,
     "subtitle": .subtitle,
-])
+] as [String: UITableViewCellStyle])
 
 extension UITableViewHeaderFooterView {
     weak var layoutNode: LayoutNode? {
@@ -542,18 +542,18 @@ extension UITableViewCell {
             "blue": .blue,
             "gray": .gray,
             "default": .default,
-        ])
+        ] as [String: UITableViewCellSelectionStyle])
         types["focusStyle"] = RuntimeType(UITableViewCellFocusStyle.self, [
             "default": .default,
             "custom": .custom,
-        ])
+        ] as [String: UITableViewCellFocusStyle])
         types["accessoryType"] = RuntimeType(UITableViewCellAccessoryType.self, [
             "none": .none,
             "disclosureIndicator": .disclosureIndicator,
             "detailDisclosureButton": .detailDisclosureButton,
             "checkmark": .checkmark,
             "detailButton": .detailButton,
-        ])
+        ] as [String: UITableViewCellAccessoryType])
         types["editingAccessoryType"] = types["accessoryType"]
         for (key, type) in UIView.cachedExpressionTypes {
             types["contentView.\(key)"] = type

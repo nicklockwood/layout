@@ -38,12 +38,12 @@ extension UIView {
             "topRight": .topRight,
             "bottomLeft": .bottomLeft,
             "bottomRight": .bottomRight,
-        ])
+        ] as [String: UIViewContentMode])
         types["tintAdjustmentMode"] = RuntimeType(UIViewTintAdjustmentMode.self, [
             "automatic": .automatic,
             "normal": .normal,
             "dimmed": .dimmed,
-        ])
+        ] as [String: UIViewTintAdjustmentMode])
         types["safeAreaInsets"] = RuntimeType(UIEdgeInsets.self, .readOnly)
         for key in ["top", "left", "bottom", "right"] {
             types["safeAreaInsets.\(key)"] = RuntimeType(CGFloat.self, .readOnly)
@@ -225,13 +225,13 @@ extension UIControl {
             "top": .top,
             "bottom": .bottom,
             "fill": .fill,
-        ])
+        ] as [String: UIControlContentVerticalAlignment])
         types["contentHorizontalAlignment"] = RuntimeType(UIControlContentHorizontalAlignment.self, [
             "center": .center,
             "left": .left,
             "right": .right,
             "fill": .fill,
-        ])
+        ] as [String: UIControlContentHorizontalAlignment])
         for name in controlEvents.keys {
             types[name] = RuntimeType(Selector.self)
         }
@@ -294,7 +294,7 @@ extension UIButton {
             "infoLight": .infoLight,
             "infoDark": .infoDark,
             "contactAdd": .contactAdd,
-        ])
+        ] as [String: UIButtonType])
         types["buttonType"] = types["type"]
         types["title"] = RuntimeType(String.self)
         for state in controlStates.keys {
@@ -362,10 +362,6 @@ extension UIButton {
     }
 }
 
-private enum SmartTextEnumType: Int {
-    case `default`, no, yes
-}
-
 private let textInputTraits: [String: RuntimeType] = {
     var keyboardTypes: [String: UIKeyboardType] = [
         "default": .default,
@@ -393,23 +389,23 @@ private let textInputTraits: [String: RuntimeType] = {
             "words": .words,
             "sentences": .sentences,
             "allCharacters": .allCharacters,
-        ]),
+        ] as [String: UITextAutocapitalizationType]),
         "autocorrectionType": RuntimeType(UITextAutocorrectionType.self, [
             "default": .default,
             "no": .no,
             "yes": .yes,
-        ]),
+        ] as [String: UITextAutocorrectionType]),
         "spellCheckingType": RuntimeType(UITextSpellCheckingType.self, [
             "default": .default,
             "no": .no,
             "yes": .yes,
-        ]),
+        ] as [String: UITextSpellCheckingType]),
         "keyboardType": RuntimeType(UIKeyboardType.self, keyboardTypes),
         "keyboardAppearance": RuntimeType(UIKeyboardAppearance.self, [
             "default": .default,
             "dark": .dark,
             "light": .light,
-        ]),
+        ] as [String: UIKeyboardAppearance]),
         "returnKeyType": RuntimeType(UIReturnKeyType.self, [
             "default": .default,
             "go": .go,
@@ -423,17 +419,17 @@ private let textInputTraits: [String: RuntimeType] = {
             "done": .done,
             "emergencyCall": .emergencyCall,
             "continue": .continue,
-        ]),
+        ] as [String: UIReturnKeyType]),
         "enablesReturnKeyAutomatically": RuntimeType(Bool.self),
         "isSecureTextEntry": RuntimeType(Bool.self),
     ]
 
     for key in ["smartQuotesType", "smartDashesType", "smartInsertDeleteType"] {
-        traitTypes[key] = RuntimeType(SmartTextEnumType.self, [
-            "default": .default,
-            "no": .no,
-            "yes": .yes,
-        ])
+        traitTypes[key] = RuntimeType(Int.self, [
+            "default": 0,
+            "no": 1,
+            "yes": 2,
+        ] as [String: Int])
     }
     #if swift(>=3.2)
         if #available(iOS 11.0, *) {
@@ -441,17 +437,17 @@ private let textInputTraits: [String: RuntimeType] = {
                 "default": .default,
                 "no": .no,
                 "yes": .yes,
-            ])
+            ] as [String: UITextSmartQuotesType])
             traitTypes["smartDashesType"] = RuntimeType(UITextSmartDashesType.self, [
                 "default": .default,
                 "no": .no,
                 "yes": .yes,
-            ])
+            ] as [String: UITextSmartDashesType])
             traitTypes["smartInsertDeleteType"] = RuntimeType(UITextSmartInsertDeleteType.self, [
                 "default": .default,
                 "no": .no,
                 "yes": .yes,
-            ])
+            ] as [String: UITextSmartInsertDeleteType])
         }
     #endif
 
@@ -463,7 +459,7 @@ private let textTraits = [
         "left": .left,
         "right": .right,
         "center": .center,
-    ]),
+    ] as [String: NSTextAlignment]),
     "lineBreakMode": RuntimeType(NSLineBreakMode.self, [
         "byWordWrapping": .byWordWrapping,
         "byCharWrapping": .byCharWrapping,
@@ -471,7 +467,7 @@ private let textTraits = [
         "byTruncatingHead": .byTruncatingHead,
         "byTruncatingTail": .byTruncatingTail,
         "byTruncatingMiddle": .byTruncatingMiddle,
-    ]),
+    ] as [String: NSLineBreakMode]),
 ]
 
 extension UILabel {
@@ -484,7 +480,7 @@ extension UILabel {
             "alignBaselines": .alignBaselines,
             "alignCenters": .alignCenters,
             "none": .none,
-        ])
+        ] as [String: UIBaselineAdjustment])
         return types
     }
 }
@@ -494,7 +490,7 @@ private let textFieldViewMode = RuntimeType(UITextFieldViewMode.self, [
     "whileEditing": .whileEditing,
     "unlessEditing": .unlessEditing,
     "always": .always,
-])
+] as [String: UITextFieldViewMode])
 
 extension UITextField {
     open override class var expressionTypes: [String: RuntimeType] {
@@ -510,7 +506,7 @@ extension UITextField {
             "line": .line,
             "bezel": .bezel,
             "roundedRect": .roundedRect,
-        ])
+        ] as [String: UITextBorderStyle])
         types["clearButtonMode"] = textFieldViewMode
         types["leftViewMode"] = textFieldViewMode
         types["rightViewMode"] = textFieldViewMode
@@ -788,7 +784,7 @@ extension UISearchBar {
             "default": .default,
             "prominent": .prominent,
             "minimal": .minimal,
-        ])
+        ] as [String: UISearchBarStyle])
         // TODO: more properties
         return types
     }
