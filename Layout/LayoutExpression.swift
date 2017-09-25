@@ -98,39 +98,44 @@ private let colorLookup = { (string: String) -> Any? in
 
 private func stringToAsset(_ string: String) throws -> (name: String, bundle: Bundle?, traits: UITraitCollection?) {
     let parts = string.components(separatedBy: ":")
-    switch parts.count {
-    case 1:
+    if parts.count == 1 {
         return (parts[0], nil, nil)
-    case 2:
-        let identifier = parts.first!
-        guard let bundle = Bundle(identifier: identifier) else {
-            throw Expression.Error.message("Could not locate bundle with identifier \(identifier)")
-        }
-        return (parts.last!, bundle, nil)
-    default:
+    }
+    let identifier = parts[0].trimmingCharacters(in: .whitespaces)
+    if identifier.contains("?") { // might be a ternary expression
+        return (string, nil, nil)
+    }
+    if parts.count > 2 {
         throw Expression.Error.message("Invalid XCAsset name format: \(string)")
     }
+    guard let bundle = Bundle(identifier: identifier) else {
+        throw Expression.Error.message("Could not locate bundle with identifier \(identifier)")
+    }
+    return (parts[1], bundle, nil)
 }
 
 private var _colorAssetCache = [String: UIColor]()
-func stringToColorAsset(_ string: String) throws -> UIColor {
+func stringToColorAsset(_ string: String) throws -> UIColor? {
     if let color = _colorAssetCache[string] {
         return color
     }
+    let asset = try stringToAsset(string)
     #if swift(>=3.2)
-        let (name, bundle, traits) = try stringToAsset(string)
         if #available(iOS 11.0, *) {
-            if let color = UIColor(named: name, in: bundle, compatibleWith: traits) {
+            if let color = UIColor(named: asset.name, in: asset.bundle, compatibleWith: asset.traits) {
                 _colorAssetCache[string] = color
                 return color
             }
-            if let bundle = bundle {
-                throw Expression.Error.message("Color named `\(string)` not found in bundle \(bundle.bundleIdentifier ?? "<unknown>")")
+            if let bundle = asset.bundle {
+                throw Expression.Error.message("Color named `\(asset.name)` not found in bundle \(bundle.bundleIdentifier ?? "<unknown>")")
             }
-            throw Expression.Error.message("Invalid color name `\(string)`")
+            return nil
         }
     #endif
-    throw Expression.Error.message("Named colors are only supported in iOS 11 and above")
+    if asset.bundle != nil {
+        throw Expression.Error.message("Named colors are only supported in iOS 11 and above")
+    }
+    return nil
 }
 
 struct LayoutExpression {
@@ -673,31 +678,34 @@ struct LayoutExpression {
     }
 
     private init?(colorExpression: String, type: RuntimeType, for node: LayoutNode) {
+        func nameToColorAsset(_ name: String) throws -> Any {
+            guard let color = try stringToColorAsset(name) else {
+                throw Expression.Error.message("Invalid color name `\(name)`")
+            }
+            return try cast(color, as: type)
+        }
         do {
             let parts = try parseStringExpression(colorExpression)
             if parts.count == 1 {
                 switch parts[0] {
                 case let .string(name):
-                    do {
-                        // Attempt to interpret as an asset name
-                        let color = try cast(stringToColorAsset(name), as: type)
+                    if let color = try stringToColorAsset(name) {
+                        let color = try cast(color, as: type)
                         self.init(evaluate: { color }, symbols: [])
                         return
-                    } catch {
-                        // Attempt to interpret as a color expression
-                        guard let parsedExpression = try? parseExpression(name),
-                            !parsedExpression.symbols.contains(.infix(":")) else {
-                            throw error
-                        }
-                        self.init(
-                            anyExpression: parsedExpression,
-                            type: type,
-                            nullable: false,
-                            symbols: colorSymbols,
-                            lookup: colorLookup,
-                            for: node
-                        )
                     }
+                    // Attempt to interpret as a color expression
+                    guard let parsedExpression = try? parseExpression(name) else {
+                        throw Expression.Error.message("Invalid color name `\(name)`")
+                    }
+                    self.init(
+                        anyExpression: parsedExpression,
+                        type: type,
+                        nullable: false,
+                        symbols: colorSymbols,
+                        lookup: colorLookup,
+                        for: node
+                    )
                 case let .expression(parsedExpression):
                     guard let anyExpression = LayoutExpression(
                         anyExpression: parsedExpression,
@@ -713,7 +721,7 @@ struct LayoutExpression {
                         evaluate: {
                             switch try unwrap(anyExpression.evaluate()) {
                             case let name as String:
-                                return try cast(stringToColorAsset(name), as: type)
+                                return try nameToColorAsset(name)
                             case let color:
                                 return try cast(color, as: type)
                             }
@@ -723,16 +731,18 @@ struct LayoutExpression {
                 case .comment:
                     return nil
                 }
-            } else {
+            } else if #available(iOS 11.0, *) {
                 guard let nameExpression = LayoutExpression(stringExpression: colorExpression, for: node) else {
                     return nil
                 }
                 self.init(
                     evaluate: {
-                        try stringToColorAsset(nameExpression.evaluate() as! String)
+                        return try nameToColorAsset(nameExpression.evaluate() as! String)
                     },
                     symbols: []
                 )
+            } else {
+                throw Expression.Error.message("Named colors are only supported in iOS 11 and above")
             }
         } catch {
             self.init(evaluate: { throw error }, symbols: [])
