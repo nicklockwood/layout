@@ -187,6 +187,9 @@ open class LayoutViewController: UIViewController, LayoutLoading {
                         "width": "100%",
                         "contentInset.top": "20",
                         "contentInset.bottom": "20",
+                        "contentInset.left": "safeAreaInsets.left",
+                        "contentInset.right": "safeAreaInsets.right",
+                        "contentInsetAdjustmentBehavior": "never",
                     ],
                     children: children
                 ),

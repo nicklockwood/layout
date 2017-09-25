@@ -3,7 +3,7 @@
         contentInset.bottom="safeAreaInsets.bottom"
         contentInset.top="max(safeAreaInsets.top + 10, 20)"
         contentInsetAdjustmentBehavior="never"
-        contentSize.height="100% - contentInset.top - contentInset.bottom"
+        contentSize.height="100%"
         contentSize.width="300%"
         isPagingEnabled="true"
         outlet="scrollView"

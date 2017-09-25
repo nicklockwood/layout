@@ -173,7 +173,6 @@ struct LayoutExpression {
                   for prop: String, in node: LayoutNode,
                   symbols: [Expression.Symbol: Expression.Symbol.Evaluator] = [:]) {
 
-        let prop = "containerSize.\(prop)"
         var symbols = symbols
         symbols[.postfix("%")] = { [unowned node] args in
             try node.doubleValue(forSymbol: prop) / 100 * args[0]
@@ -193,18 +192,18 @@ struct LayoutExpression {
     }
 
     init?(xExpression: String, for node: LayoutNode) {
-        self.init(percentageExpression: xExpression, for: "width", in: node)
+        self.init(percentageExpression: xExpression, for: "parent.containerSize.width", in: node)
     }
 
     init?(yExpression: String, for node: LayoutNode) {
-        self.init(percentageExpression: yExpression, for: "height", in: node)
+        self.init(percentageExpression: yExpression, for: "parent.containerSize.height", in: node)
     }
 
     private init?(sizeExpression: String, for prop: String, in node: LayoutNode) {
         let sizeProp = "inferredSize.\(prop)"
         guard let expression = LayoutExpression(
             percentageExpression: sizeExpression,
-            for: prop, in: node,
+            for: "parent.containerSize.\(prop)", in: node,
             symbols: [.variable("auto"): { [unowned node] _ in
                 try node.doubleValue(forSymbol: sizeProp)
             }]
@@ -229,7 +228,7 @@ struct LayoutExpression {
         let sizeProp = "inferredContentSize.\(prop)"
         guard let expression = LayoutExpression(
             percentageExpression: contentSizeExpression,
-            for: prop, in: node,
+            for: "containerSize.\(prop)", in: node,
             symbols: [.variable("auto"): { [unowned node] _ in
                 try node.doubleValue(forSymbol: sizeProp)
             }]

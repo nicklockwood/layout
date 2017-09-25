@@ -1104,8 +1104,8 @@ public class LayoutNode: NSObject {
             }
         case "containerSize.width":
             getter = { [unowned self] in
-                if let superview = self.parent?._view {
-                    switch superview {
+                if let view = self._view {
+                    switch view {
                     case let view as UITableViewCell:
                         return view.contentView.frame.width
                     case let view as UITableViewHeaderFooterView:
@@ -1115,15 +1115,15 @@ public class LayoutNode: NSObject {
                     }
                 }
                 return try SymbolError.wrap({
-                    let contentInset = try self.parent?.computeContentInset() ?? .zero
-                    return try self.cgFloatValue(forSymbol: "parent.width") -
+                    let contentInset = try self.computeContentInset()
+                    return try self.cgFloatValue(forSymbol: "width") -
                         contentInset.left - contentInset.right
                 }, for: symbol)
             }
         case "containerSize.height":
             getter = { [unowned self] in
-                if let superview = self.parent?._view {
-                    switch superview {
+                if let view = self._view {
+                    switch view {
                     case let view as UITableViewCell:
                         return view.contentView.frame.height
                     case let view as UITableViewHeaderFooterView:
@@ -1133,8 +1133,8 @@ public class LayoutNode: NSObject {
                     }
                 }
                 return try SymbolError.wrap({
-                    let contentInset = try self.parent?.computeContentInset() ?? .zero
-                    return try self.cgFloatValue(forSymbol: "parent.height") -
+                    let contentInset = try self.computeContentInset()
+                    return try self.cgFloatValue(forSymbol: "height") -
                         contentInset.top - contentInset.bottom
                 }, for: symbol)
             }
@@ -1172,11 +1172,11 @@ public class LayoutNode: NSObject {
                     }
                 } else {
                     switch tail {
-                    case "width":
+                    case "width", "containerSize.width":
                         getter = { [unowned self] in
                             self._view?.superview?.bounds.width ?? self._view?.frame.width ?? 0
                         }
-                    case "height":
+                    case "height", "containerSize.height":
                         getter = { [unowned self] in
                             self._view?.superview?.bounds.height ?? self._view?.frame.height ?? 0
                         }
@@ -1325,7 +1325,7 @@ public class LayoutNode: NSObject {
             return result
         }
         if value(forSymbol: "width", dependsOn: "parent.width") ||
-            value(forSymbol: "width", dependsOn: "containerSize.width") {
+            value(forSymbol: "width", dependsOn: "parent.containerSize.width") {
             _widthDependsOnParent = true
             return true
         }
@@ -1345,7 +1345,7 @@ public class LayoutNode: NSObject {
             return result
         }
         if value(forSymbol: "height", dependsOn: "parent.height") ||
-            value(forSymbol: "height", dependsOn: "containerSize.height") {
+            value(forSymbol: "height", dependsOn: "parent.containerSize.height") {
             _heightDependsOnParent = true
             return true
         }
