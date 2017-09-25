@@ -1445,7 +1445,53 @@ public class LayoutNode: NSObject {
         guard viewClass is UIScrollView.Type else {
             return .zero
         }
-        return try value(forSymbol: "contentInset") as! UIEdgeInsets
+        let contentInset = try value(forSymbol: "contentInset") as! UIEdgeInsets
+        #if swift(>=3.2)
+            if #available(iOS 11.0, *) {
+                let contentInsetAdjustmentBehavior = try value(forSymbol: "contentInsetAdjustmentBehavior") as!
+                UIScrollViewContentInsetAdjustmentBehavior
+                switch contentInsetAdjustmentBehavior {
+                case .automatic, .scrollableAxes:
+                    var contentInset = contentInset
+                    var contentSize: CGSize = .zero
+                    if expressions["contentSize.width"] != nil, !_evaluating.contains("contentSize.width") {
+                        contentSize.width = try cgFloatValue(forSymbol: "contentSize.width")
+                    }
+                    if expressions["contentSize.height"] != nil, !_evaluating.contains("contentSize.height") {
+                        contentSize.height = try cgFloatValue(forSymbol: "contentSize.height")
+                    }
+                    var size: CGSize = .zero
+                    if expressions["width"] != nil, !_evaluating.contains("width") {
+                        size.width = try cgFloatValue(forSymbol: "width")
+                    }
+                    if expressions["height"] != nil, !_evaluating.contains("height") {
+                        size.height = try cgFloatValue(forSymbol: "height")
+                    }
+                    let alwaysBounceHorizontal = try value(forSymbol: "alwaysBounceHorizontal") as! Bool
+                    if alwaysBounceHorizontal || contentSize.width > size.width {
+                        contentInset.left += safeAreaInsets.left
+                        contentInset.right += safeAreaInsets.right
+                    }
+                    let alwaysBounceVertical = try value(forSymbol: "alwaysBounceVertical") as! Bool
+                    if alwaysBounceVertical || contentSize.height > size.height ||
+                        contentInsetAdjustmentBehavior == .automatic {
+                        contentInset.top += safeAreaInsets.top
+                        contentInset.bottom += safeAreaInsets.bottom
+                    }
+                    return contentInset
+                case .never:
+                    return contentInset
+                case .always:
+                    return UIEdgeInsets(
+                        top: contentInset.top + safeAreaInsets.top,
+                        left: contentInset.left + safeAreaInsets.left,
+                        bottom: contentInset.bottom + safeAreaInsets.bottom,
+                        right: contentInset.right + safeAreaInsets.right
+                    )
+                }
+            }
+        #endif
+        return contentInset
     }
 
     private func computeExplicitWidth() throws -> CGFloat? {
