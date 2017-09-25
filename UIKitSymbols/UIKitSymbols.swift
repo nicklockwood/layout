@@ -238,7 +238,7 @@ class UIKitSymbols: XCTestCase {
             "let UIKitSymbols: [String: [String: String]] = {\n" +
             "    var symbols = [String: [String: String]]()\n" + output +
             "    return symbols\n" +
-            "}()"
+            "}()\n"
 
         // Write output
         let url = URL(fileURLWithPath: #file)

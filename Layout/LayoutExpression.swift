@@ -737,7 +737,7 @@ struct LayoutExpression {
                 }
                 self.init(
                     evaluate: {
-                        return try nameToColorAsset(nameExpression.evaluate() as! String)
+                        try nameToColorAsset(nameExpression.evaluate() as! String)
                     },
                     symbols: []
                 )

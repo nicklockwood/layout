@@ -20,9 +20,6 @@ extension NSObject {
             let availability = type.availability
             switch type.type {
             case let .struct(type):
-                // NOTE: although we don't technically need to add all the sub-properties here
-                // because type(forKeyPath:) can find them, it helps with lookup performance
-                // and is also helpful when generating lists of properties for autocomplete
                 switch type {
                 case "CGPoint":
                     allProperties[name] = RuntimeType(CGPoint.self, availability)

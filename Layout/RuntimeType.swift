@@ -280,8 +280,8 @@ public class RuntimeType: NSObject {
                     (value as? NSNumber).map { Int(truncating: $0) }
             case is UInt.Type:
                 return value as? UInt ??
-                    (value as? Double).map { Int($0) } ??
-                    (value as? NSNumber).map { Int(truncating: $0) }
+                    (value as? Double).map { UInt($0) } ??
+                    (value as? NSNumber).map { UInt(Int(truncating: $0)) }
             case is Bool.Type:
                 return value as? Bool ??
                     (value as? Double).map { $0 != 0 } ??

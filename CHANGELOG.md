@@ -1,5 +1,17 @@
 # Change Log
 
+## [0.4.26](https://github.com/schibsted/layout/releases/tag/0.4.26) (2017-09-25)
+
+- Errors thrown during expression parsing phase no longer fail silently
+- Fixed spurious error thrown when initializing `UITabBar`
+- Improved error reporting for views conforming to `LayoutLoading` protocol
+- Fixed crash in Collection example when running on iOS 10
+- Fixed infinite loop in `LayoutLoading` protocol error handler
+- Setting and getting `directionalLayoutMargins` now works on iOS 9 and above
+- Getting `effectiveUserInterfaceLayoutDirection` now works on iOS 9 and above
+- Reduced Layout framework compile time by a couple of seconds
+- Updated custom component docs
+
 ## [0.4.25](https://github.com/schibsted/layout/releases/tag/0.4.25) (2017-09-22)
 
 - Fixed regression in auto-sizing of AutoLayout-based components

@@ -101,7 +101,7 @@ extension Layout {
                 throw LayoutError("\(error)", for: NSClassFromString(className))
             }
         }
-        
+
         let outlet = try parseStringAttribute(for: "outlet")
         let xmlPath = try parseStringAttribute(for: "xml")
         let templatePath = try parseStringAttribute(for: "template")

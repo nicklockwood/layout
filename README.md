@@ -561,7 +561,7 @@ Apple states that the `safeAreaInsets` value accounts for the status bar and oth
 
 For Layout, this approach creates problems, as your view frame may depend on the `safeAreaInsets` value, which would in turn be affected by the frame, creating a cyclic dependency. Rather than try to resolve this recursively, Layout always returns insets relative to the current view controller, so even for subviews that do not overlap the screen edges, the value of `safeAreaInsets` will be the same as for the root view.
 
-`UIScrollView` derives its insets automatically on iOS 11, but this behavior differs slightly from iOS 10. To achieve consistent behavior, you can use the `contentInsetAdjustmentBehavior` property, and then set the `contentInset` manually:
+`UIScrollView` derives its insets automatically on iOS 11, but this behavior differs from iOS 10. To achieve consistent behavior, you can set the `contentInsetAdjustmentBehavior` property to `never`, and then set the `contentInset` manually:
 
 ```xml
 <UIScrollView
@@ -572,7 +572,7 @@ For Layout, this approach creates problems, as your view frame may depend on the
 />
 ```
 
-As with the `safeAreaInsets` property itself, Layout permits you to set `contentInsetAdjustmentBehavior` on earlier iOS versions to simplify backwards compatibility, however, setting it to any value other than `never` is prohibited on iOS versions earlier than 11.
+To simplify backwards compatibility, as with the `safeAreaInsets` property itself, Layout permits you to set `contentInsetAdjustmentBehavior` on any iOS version, however the value is ignored on iOS versions earlier than 11.
 
 
 # Expressions
