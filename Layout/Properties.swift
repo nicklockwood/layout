@@ -84,15 +84,8 @@ extension NSObject {
                     #if swift(>=3.2)
                         if #available(iOS 11.0, *) {
                             allProperties[name] = RuntimeType(NSDirectionalEdgeInsets.self, availability)
-                            for key in ["top", "bottom", "leading", "trailing"] {
+                            for key in ["top", "leading", "bottom", "trailing"] {
                                 allProperties["\(name).\(key)"] = RuntimeType(CGFloat.self, availability)
-                            }
-                        } else {
-                            // TODO: gracefully allow use on older iOS versions
-                            let type = RuntimeType.unavailable("NSDirectionalEdgeInsets is not supported on iOS versions prior to 11")
-                            allProperties[name] = type
-                            for key in ["top", "bottom", "leading", "trailing"] {
-                                allProperties["\(name).\(key)"] = type
                             }
                         }
                     #endif
@@ -447,6 +440,28 @@ extension NSObject {
             default:
                 break
             }
+        case let nsValue as NSValue where String(cString: nsValue.objCType).hasPrefix("{NSDirectionalEdgeInsets="):
+            #if swift(>=3.2)
+                if #available(iOS 11.0, *) {
+                    var insets = nsValue.directionalEdgeInsetsValue
+                    switch key {
+                    case "top":
+                        insets.top = CGFloat(truncating: value as! NSNumber)
+                        newValue = NSValue(directionalEdgeInsets: insets)
+                    case "leading":
+                        insets.leading = CGFloat(truncating: value as! NSNumber)
+                        newValue = NSValue(directionalEdgeInsets: insets)
+                    case "bottom":
+                        insets.bottom = CGFloat(truncating: value as! NSNumber)
+                        newValue = NSValue(directionalEdgeInsets: insets)
+                    case "trailing":
+                        insets.trailing = CGFloat(truncating: value as! NSNumber)
+                        newValue = NSValue(directionalEdgeInsets: insets)
+                    default:
+                        break
+                    }
+                }
+            #endif
         default:
             break
         }
@@ -620,6 +635,23 @@ extension NSObject {
                 default:
                     break
                 }
+            case let nsValue as NSValue where String(cString: nsValue.objCType).hasPrefix("{NSDirectionalEdgeInsets="):
+                #if swift(>=3.2)
+                    if #available(iOS 11.0, *) {
+                        switch key {
+                        case "top":
+                            return nsValue.directionalEdgeInsetsValue.top
+                        case "leading":
+                            return nsValue.directionalEdgeInsetsValue.leading
+                        case "bottom":
+                            return nsValue.directionalEdgeInsetsValue.bottom
+                        case "trailing":
+                            return nsValue.directionalEdgeInsetsValue.trailing
+                        default:
+                            break
+                        }
+                    }
+                #endif
             default:
                 break
             }

@@ -48,6 +48,17 @@ extension UIView {
         for key in ["top", "left", "bottom", "right"] {
             types["safeAreaInsets.\(key)"] = RuntimeType(CGFloat.self, .readOnly)
         }
+        #if swift(>=3.2)
+            if #available(iOS 11.0, *) {} else {
+                types["directionalLayoutMargins"] = RuntimeType(UIEdgeInsets.self)
+            }
+        #else
+            types["directionalLayoutMargins"] = RuntimeType(UIEdgeInsets.self)
+        #endif
+        for key in ["top", "leading", "bottom", "trailing"] {
+            types["directionalLayoutMargins.\(key)"] = RuntimeType(CGFloat.self)
+        }
+        types["effectiveUserInterfaceLayoutDirection"] = RuntimeType(UIUserInterfaceLayoutDirection.self, .readOnly)
         for (name, type) in (layerClass as! CALayer.Type).cachedExpressionTypes {
             types["layer.\(name)"] = type
         }
@@ -145,8 +156,46 @@ extension UIView {
         return self.init()
     }
 
+    private var _effectiveUserInterfaceLayoutDirection: UIUserInterfaceLayoutDirection {
+        if #available(iOS 10.0, *) {
+            return effectiveUserInterfaceLayoutDirection
+        } else {
+            return UIApplication.shared.userInterfaceLayoutDirection
+        }
+    }
+
     // Set expression value
     @objc open func setValue(_ value: Any, forExpression name: String) throws {
+        if #available(iOS 11.0, *) {} else {
+            let ltr = (_effectiveUserInterfaceLayoutDirection == .leftToRight)
+            switch name {
+            case "directionalLayoutMargins":
+                layoutMargins = value as! UIEdgeInsets
+                return
+            case "directionalLayoutMargins.top":
+                layoutMargins.top = value as! CGFloat
+                return
+            case "directionalLayoutMargins.leading":
+                if ltr {
+                    layoutMargins.left = value as! CGFloat
+                } else {
+                    layoutMargins.right = value as! CGFloat
+                }
+                return
+            case "directionalLayoutMargins.bottom":
+                layoutMargins.bottom = value as! CGFloat
+                return
+            case "directionalLayoutMargins.trailing":
+                if ltr {
+                    layoutMargins.right = value as! CGFloat
+                } else {
+                    layoutMargins.left = value as! CGFloat
+                }
+                return
+            default:
+                break
+            }
+        }
         try _setValue(value, ofType: type(of: self).cachedExpressionTypes[name], forKeyPath: name)
     }
 
@@ -160,6 +209,25 @@ extension UIView {
 
     /// Get symbol value
     @objc open func value(forSymbol name: String) throws -> Any {
+        if #available(iOS 11.0, *) {} else {
+            let ltr = (_effectiveUserInterfaceLayoutDirection == .leftToRight)
+            switch name {
+            case "directionalLayoutMargins":
+                return layoutMargins
+            case "directionalLayoutMargins.top":
+                return layoutMargins.top
+            case "directionalLayoutMargins.leading":
+                return ltr ? layoutMargins.left : layoutMargins.right
+            case "directionalLayoutMargins.bottom":
+                return layoutMargins.bottom
+            case "directionalLayoutMargins.trailing":
+                return ltr ? layoutMargins.right : layoutMargins.left
+            case "effectiveUserInterfaceLayoutDirection":
+                return _effectiveUserInterfaceLayoutDirection
+            default:
+                break
+            }
+        }
         return try _value(ofType: type(of: self).cachedExpressionTypes[name], forKeyPath: name) as Any
     }
 
