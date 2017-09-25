@@ -6,6 +6,7 @@ import Foundation
 internal struct SymbolError: Error, CustomStringConvertible {
     let symbol: String
     let error: Error
+    var fatal = false
 
     init(_ error: Error, for symbol: String) {
         self.symbol = symbol
@@ -26,6 +27,12 @@ internal struct SymbolError: Error, CustomStringConvertible {
     /// Creates an error for the specified symbol
     init(_ message: String, for symbol: String) {
         self.init(Expression.Error.message(message), for: symbol)
+    }
+
+    /// Creates a fatal error for the specified symbol
+    init(fatal message: String, for symbol: String) {
+        self.init(Expression.Error.message(message), for: symbol)
+        fatal = true
     }
 
     public var description: String {
@@ -103,6 +110,8 @@ public enum LayoutError: Error, Hashable, CustomStringConvertible {
     // error is fundamental, and requires a code change + reload to fix it
     public var isTransient: Bool {
         switch self {
+        case let .generic(error, _):
+            return (error as? SymbolError)?.fatal != true
         case .multipleMatches,
              _ where description.contains("XML"): // TODO: less hacky
             return false

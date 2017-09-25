@@ -765,17 +765,17 @@ public class LayoutNode: NSObject {
                 }
                 let mirror = Mirror(reflecting: instance)
                 if mirror.children.contains(where: { $0.label == symbol }) {
-                    throw SymbolError("\(_class) \(symbol) property must be prefixed with @objc to be used with Layout", for: symbol)
+                    throw SymbolError(fatal: "\(_class) \(symbol) property must be prefixed with @objc to be used with Layout", for: symbol)
                 }
-                throw SymbolError("Unknown property \(symbol)", for: symbol)
+                throw SymbolError(fatal: "Unknown property \(symbol)", for: symbol)
             }
             switch type.availability {
             case .readWrite:
                 break
             case .readOnly:
-                throw SymbolError("\(_class).\(symbol) is read-only", for: symbol)
+                throw SymbolError(fatal: "\(_class).\(symbol) is read-only", for: symbol)
             case let .unavailable(reason):
-                throw SymbolError("\(_class).\(symbol) is not available\(reason.map { ". \($0)" } ?? "")", for: symbol)
+                throw SymbolError(fatal: "\(_class).\(symbol) is not available\(reason.map { ". \($0)" } ?? "")", for: symbol)
             }
             if case let .any(kind) = type.type, kind is CGFloat.Type {
                 switch symbol {
