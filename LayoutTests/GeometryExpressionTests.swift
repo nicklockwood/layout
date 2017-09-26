@@ -136,7 +136,7 @@ class GeometryExpressionTests: XCTestCase {
         let view = UIView()
         view.layer.contentsCenter = CGRect(x: 1, y: 2, width: 5, height: 10)
         let node = LayoutNode(view: view)
-        XCTAssertEqual(try node.value(forSymbol: "layer.contentsCenter.size.width") as? CGFloat, view.layer.contentsCenter.size.width)
+        XCTAssertEqual(try node.value(forSymbol: "layer.contentsCenter.size.width") as? CGFloat, view.layer.contentsCenter.width)
     }
 
     func testSetContentsCenter() {

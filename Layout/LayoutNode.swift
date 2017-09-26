@@ -651,7 +651,7 @@ public class LayoutNode: NSObject {
                 expressions["width"] = "right - left"
             } else if !(_view is UIScrollView), _view is UIImageView || _usesAutoLayout ||
                 _view?.intrinsicContentSize.width != UIViewNoIntrinsicMetric {
-                expressions["width"] = "min(auto, 100%)"
+                expressions["width"] = "100% == 0 ? auto : min(auto, 100%)"
             } else if parent != nil {
                 expressions["width"] = "100%"
             }
@@ -1174,11 +1174,11 @@ public class LayoutNode: NSObject {
                     switch tail {
                     case "width", "containerSize.width":
                         getter = { [unowned self] in
-                            self._view?.superview?.bounds.width ?? self._view?.frame.width ?? 0
+                            self._view?.superview?.bounds.width ?? 0
                         }
                     case "height", "containerSize.height":
                         getter = { [unowned self] in
-                            self._view?.superview?.bounds.height ?? self._view?.frame.height ?? 0
+                            self._view?.superview?.bounds.height ?? 0
                         }
                     default:
                         getter = {
@@ -1426,10 +1426,10 @@ public class LayoutNode: NSObject {
         }
         // If zero, fill superview
         let contentInset = try computeContentInset()
-        if size.width <= 0, let width = _view?.superview?.bounds.size.width {
+        if size.width <= 0, let width = _view?.superview?.bounds.width {
             size.width = width - contentInset.left - contentInset.right
         }
-        if size.height <= 0, let height = _view?.superview?.bounds.size.height {
+        if size.height <= 0, let height = _view?.superview?.bounds.height {
             size.height = height - contentInset.top - contentInset.bottom
         }
         // Check for explicit width / height

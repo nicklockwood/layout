@@ -203,4 +203,42 @@ class LayoutFrameTests: XCTestCase {
         XCTAssertEqual(node.frame.size, CGSize(width: 150, height: 50))
         XCTAssertEqual(node.children[0].frame.size, CGSize(width: 150, height: 20))
     }
+
+    func testAutosizeImage() {
+        let size = CGSize(width: 100, height: 200)
+        UIGraphicsBeginImageContext(size)
+        let image = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        let imageView = UIImageView(image: image)
+        imageView.frame = CGRect(x: 0, y: 0, width: 35, height: 500)
+        let node = LayoutNode(view: imageView)
+        node.update()
+        XCTAssertEqual(node.frame.size, size)
+        XCTAssertEqual(imageView.frame.size, size)
+    }
+
+    func testAutosizeText() {
+        let text = "This is a line long enough to wrap"
+        var node = LayoutNode(
+            view: UILabel(),
+            expressions: [
+                "text": text,
+                "numberOfLines": "0",
+            ]
+        )
+        node.update()
+        XCTAssertTrue(node.frame.width > 100)
+        XCTAssertTrue(node.frame.height < 30)
+        node = LayoutNode(
+            view: UILabel(),
+            expressions: [
+                "text": text,
+                "width": "50",
+                "numberOfLines": "0",
+            ]
+        )
+        node.update()
+        XCTAssertTrue(node.frame.width <= 50)
+        XCTAssertTrue(node.frame.height > 20)
+    }
 }
