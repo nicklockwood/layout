@@ -83,7 +83,8 @@ extension UIViewController {
         types["navigationItem.leftBarButtonItem.systemItem"] = barButtonSystemItemType
         types["navigationItem.rightBarButtonItem.systemItem"] = barButtonSystemItemType
         // TODO: barButtonItem.backgroundImage, etc
-        // Explicitly disabled properties
+
+        // Private and read-only properties
         for name in [
             "SKUIStackedBarSplit",
             "aggregateStatisticsDisplayCountKey",
@@ -109,6 +110,7 @@ extension UIViewController {
             "needsDidMoveCleanup",
             "overrideTraitCollection",
             "parentModalViewController",
+            "preferredFocusedItem",
             "sKUIStackedBarSplit",
             "searchBarHidNavBar",
             "shouldForceNonAnimatedTransition",
@@ -116,6 +118,14 @@ extension UIViewController {
             "storePageProtocol",
             "useLegacyContainment",
             "wantsFullScreenLayout",
+        ] + [
+            "disablesAutomaticKeyboardDismissal",
+            "interfaceOrientation",
+            "nibName",
+            "nibBundle",
+            "preferredFocusedView",
+            "searchDisplayController",
+            "view", // Not actually read-only, but Layout doesn't allow this to be set
         ] {
             types[name] = nil
             for key in types.keys where key.hasPrefix(name) {

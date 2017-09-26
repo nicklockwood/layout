@@ -10,6 +10,35 @@ extension CALayer {
     @objc class var expressionTypes: [String: RuntimeType] {
         var types = allPropertyTypes()
         types["contents"] = RuntimeType(CGImage.self)
+        types["contentsGravity"] = RuntimeType(String.self, [
+            "center": "center",
+            "top": "top",
+            "bottom": "bottom",
+            "left": "left",
+            "right": "right",
+            "topLeft": "topLeft",
+            "topRight": "topRight",
+            "bottomLeft": "bottomLeft",
+            "bottomRight": "bottomRight",
+            "resize": "resize",
+            "resizeAspect": "resizeAspect",
+            "resizeAspectFill": "resizeAspectFill",
+        ] as [String: String])
+        types["fillMode"] = RuntimeType(String.self, [
+            "backwards": "backwards",
+            "forwards": "forwards",
+            "both": "both",
+            "removed": "removed",
+        ] as [String: String])
+        types["minificationFilter"] = RuntimeType(String.self, [
+            "nearest": "nearest",
+            "linear": "linear",
+        ] as [String: String])
+        types["magnificationFilter"] = RuntimeType(String.self, [
+            "nearest": "nearest",
+            "linear": "linear",
+        ] as [String: String])
+
         // Explicitly disabled properties
         for name in [
             "bounds",
@@ -25,13 +54,14 @@ extension CALayer {
         for name in [
             "anchorPoint",
             "needsDisplayInRect",
-            "sublayers",
         ] {
             types[name] = .unavailable()
             for key in types.keys where key.hasPrefix(name) {
                 types[key] = .unavailable()
             }
         }
+
+        // Private properties
         for name in [
             "acceleratesDrawing",
             "allowsContentsRectCornerMasking",
@@ -62,7 +92,7 @@ extension CALayer {
             "literalContentsCenter",
             "mass",
             "meshTransform",
-            "momentOfIntertia",
+            "momentOfInertia",
             "motionBlurAmount",
             "needsLayoutOnGeometryChange",
             "perspectiveDistance",

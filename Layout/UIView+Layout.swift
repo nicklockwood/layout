@@ -44,10 +44,6 @@ extension UIView {
             "normal": .normal,
             "dimmed": .dimmed,
         ] as [String: UIViewTintAdjustmentMode])
-        types["safeAreaInsets"] = RuntimeType(UIEdgeInsets.self, .readOnly)
-        for key in ["top", "left", "bottom", "right"] {
-            types["safeAreaInsets.\(key)"] = RuntimeType(CGFloat.self, .readOnly)
-        }
         #if swift(>=3.2)
             if #available(iOS 11.0, *) {} else {
                 types["directionalLayoutMargins"] = RuntimeType(UIEdgeInsets.self)
@@ -58,7 +54,6 @@ extension UIView {
         for key in ["top", "leading", "bottom", "trailing"] {
             types["directionalLayoutMargins.\(key)"] = RuntimeType(CGFloat.self)
         }
-        types["effectiveUserInterfaceLayoutDirection"] = RuntimeType(UIUserInterfaceLayoutDirection.self, .readOnly)
         for (name, type) in (layerClass as! CALayer.Type).cachedExpressionTypes {
             types["layer.\(name)"] = type
         }
@@ -69,10 +64,6 @@ extension UIView {
             "bounds",
             "center",
             "frame",
-            "frameOrigin",
-            "origin",
-            "position",
-            "size",
             "topAnchor",
             "bottomAnchor",
             "leftAnchor",
@@ -99,6 +90,9 @@ extension UIView {
                 types[key] = .unavailable()
             }
         }
+
+
+        // Private and read-only properties
         for name in [
             "allowsBaselineOffsetApproximation",
             "animationInfo",
@@ -117,17 +111,24 @@ extension UIView {
             "edgesPreservingSuperviewLayoutMargins",
             "enabledGestures",
             "fixedBackgroundPattern",
+            "frameOrigin",
             "gesturesEnabled",
             "interactionTintColor",
             "invalidatingIntrinsicContentSizeAlsoInvalidatesSuperview",
             "isBaselineRelativeAlignmentRectInsets",
             "needsDisplayOnBoundsChange",
             "neverCacheContentLayoutSize",
+            "origin",
+            "position",
             "previewingSegueTemplateStorage",
             "rotationBy",
+            "size",
             "skipsSubviewEnumeration",
             "viewTraversalMark",
             "wantsDeepColorDrawing",
+        ] + [
+            "effectiveUserInterfaceLayoutDirection",
+            "safeAreaInsets",
         ] {
             types[name] = nil
             for key in types.keys where key.hasPrefix(name) {
@@ -154,6 +155,29 @@ extension UIView {
     /// Called to construct the view
     @objc open class func create(with _: LayoutNode) throws -> UIView {
         return self.init()
+    }
+
+    // Return the best available VC for computing the layout guide
+    var _layoutGuideController: UIViewController? {
+        let viewController = self.viewController
+        return viewController?.navigationController?.topViewController ??
+            viewController?.tabBarController?.selectedViewController ?? viewController
+    }
+
+    var _safeAreaInsets: UIEdgeInsets {
+        #if swift(>=3.2)
+            if #available(iOS 11.0, *), let viewController = self.viewController {
+                // This is the root view of a controller, so we can use the inset value directly, as per
+                // https://developer.apple.com/documentation/uikit/uiview/2891103-safeareainsets
+                return viewController.view.safeAreaInsets
+            }
+        #endif
+        return UIEdgeInsets(
+            top: _layoutGuideController?.topLayoutGuide.length ?? 0,
+            left: 0,
+            bottom: _layoutGuideController?.bottomLayoutGuide.length ?? 0,
+            right: 0
+        )
     }
 
     private var _effectiveUserInterfaceLayoutDirection: UIUserInterfaceLayoutDirection {
@@ -209,6 +233,24 @@ extension UIView {
 
     /// Get symbol value
     @objc open func value(forSymbol name: String) throws -> Any {
+        switch name {
+        case "safeAreaInsets":
+            return _safeAreaInsets
+        case "safeAreaInsets.top":
+            return _safeAreaInsets.top
+        case "safeAreaInsets.left":
+            return _safeAreaInsets.left
+        case "safeAreaInsets.bottom":
+            return _safeAreaInsets.bottom
+        case "safeAreaInsets.right":
+            return _safeAreaInsets.right
+        case "topLayoutGuide.length": // TODO: deprecate this
+            return _layoutGuideController?.topLayoutGuide.length ?? 0
+        case "bottomLayoutGuide.length": // TODO: deprecate this
+            return _layoutGuideController?.bottomLayoutGuide.length ?? 0
+        default:
+            break
+        }
         if #available(iOS 11.0, *) {} else {
             let ltr = (_effectiveUserInterfaceLayoutDirection == .leftToRight)
             switch name {

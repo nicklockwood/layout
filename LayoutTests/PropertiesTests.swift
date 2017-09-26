@@ -89,11 +89,11 @@ class PropertiesTests: XCTestCase {
 
     func testUnavailablePropertyType() {
         let result = TestView.expressionTypes["frame"]
-        XCTAssertEqual(result?.isReadable, false)
+        XCTAssertEqual(result?.isAvailable, false)
     }
 
     func testNestedUnavailablePropertyType() {
         let result = TestView.expressionTypes["frame.origin.x"]
-        XCTAssertEqual(result?.isReadable, false)
+        XCTAssertEqual(result?.isAvailable, false)
     }
 }

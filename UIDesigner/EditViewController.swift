@@ -92,7 +92,7 @@ class EditViewController: UIViewController, UITextFieldDelegate {
         ]
         expressionFields.removeAll()
         func filterTypes(_ key: String, _ type: RuntimeType) -> String? {
-            if !type.isWritable {
+            if !type.isAvailable {
                 return nil
             }
             switch type.type {

@@ -305,9 +305,10 @@ public class LayoutNode: NSObject {
             return true
         default:
             if let viewClass = viewOrViewControllerClass as? UIView.Type {
-                return viewClass.cachedExpressionTypes[name] != nil
+                return viewClass.cachedExpressionTypes[name]?.isAvailable == true
             } else if let viewControllerClass = viewOrViewControllerClass as? UIViewController.Type {
-                return viewControllerClass.cachedExpressionTypes[name] ?? UIView.cachedExpressionTypes[name] != nil
+                return viewControllerClass.cachedExpressionTypes[name]?.isAvailable ??
+                    UIView.cachedExpressionTypes[name]?.isAvailable == true
             }
             preconditionFailure("\(viewOrViewControllerClass) is not a UIView or UIViewController subclass")
         }
@@ -733,41 +734,40 @@ public class LayoutNode: NSObject {
         default:
             let type: RuntimeType
             if let viewControllerType = viewControllerExpressionTypes[symbol] {
-                if viewControllerType.isWritable {
+                if viewControllerType.isAvailable {
                     type = viewControllerType
                     isViewControllerExpression = true
                 } else {
                     type = constructorArgumentTypes[symbol] ?? viewControllerType
                 }
             } else if let viewType = viewExpressionTypes[symbol] {
-                if viewType.isWritable {
+                if viewType.isAvailable {
                     type = viewType
                     isViewExpression = true
                 } else {
                     type = constructorArgumentTypes[symbol] ?? viewType
                 }
             } else if let parameterType = _parameters[symbol] {
+                // TODO: check for parameter type / view type conflicts?
                 type = parameterType
             } else if let constructorType = constructorArgumentTypes[symbol] {
+                // TODO: check for constructor type / view type conflicts?
                 type = constructorType
             } else {
-                let instance: AnyObject
                 if let viewControllerClass = self.viewControllerClass {
-                    instance = viewControllerClass.init()
+                    try SymbolError.wrap({
+                        _ = try viewControllerClass.init().value(forSymbol: symbol)
+                    }, for: symbol)
                 } else {
-                    instance = viewClass.init()
+                    try SymbolError.wrap({
+                        _ = try viewClass.init().value(forSymbol: symbol)
+                    }, for: symbol)
                 }
-                let mirror = Mirror(reflecting: instance)
-                if mirror.children.contains(where: { $0.label == symbol }) {
-                    throw SymbolError(fatal: "\(_class) \(symbol) property must be prefixed with @objc to be used with Layout", for: symbol)
-                }
-                throw SymbolError(fatal: "Unknown property \(symbol)", for: symbol)
+                throw SymbolError(fatal: "\(_class).\(symbol) is private or read-only", for: symbol)
             }
             switch type.availability {
-            case .readWrite:
+            case .available:
                 break
-            case .readOnly:
-                throw SymbolError(fatal: "\(_class).\(symbol) is read-only", for: symbol)
             case let .unavailable(reason):
                 throw SymbolError(fatal: "\(_class).\(symbol) is not available\(reason.map { ". \($0)" } ?? "")", for: symbol)
             }
@@ -1017,13 +1017,6 @@ public class LayoutNode: NSObject {
         throw SymbolError("\(symbol) is not a number", for: symbol)
     }
 
-    // Return the best available VC for computing the layout guide
-    private var _layoutGuideController: UIViewController? {
-        let controller = _view?.viewController
-        return controller?.tabBarController?.selectedViewController ??
-            controller?.navigationController?.topViewController ?? controller
-    }
-
     /// Useful for custom constructors, and other native extensions
     /// Returns nil if the expression doesn't exist
     /// Note: thrown error is always a LayoutError
@@ -1073,34 +1066,6 @@ public class LayoutNode: NSObject {
                 try SymbolError.wrap({
                     try self.cgFloatValue(forSymbol: "top") + self.cgFloatValue(forSymbol: "height")
                 }, for: symbol)
-            }
-        case "topLayoutGuide.length":
-            getter = { [unowned self] in
-                self._layoutGuideController?.topLayoutGuide.length ?? 0
-            }
-        case "bottomLayoutGuide.length":
-            getter = { [unowned self] in
-                self._layoutGuideController?.bottomLayoutGuide.length ?? 0
-            }
-        case "safeAreaInsets":
-            getter = { [unowned self] in
-                self.safeAreaInsets
-            }
-        case "safeAreaInsets.top":
-            getter = { [unowned self] in
-                self.safeAreaInsets.top
-            }
-        case "safeAreaInsets.left":
-            getter = { [unowned self] in
-                self.safeAreaInsets.left
-            }
-        case "safeAreaInsets.bottom":
-            getter = { [unowned self] in
-                self.safeAreaInsets.bottom
-            }
-        case "safeAreaInsets.right":
-            getter = { [unowned self] in
-                self.safeAreaInsets.right
             }
         case "containerSize.width":
             getter = { [unowned self] in
@@ -1290,21 +1255,6 @@ public class LayoutNode: NSObject {
 
     // Safe area (for any iOS version)
     private var _previousSafeAreaInsets: UIEdgeInsets = .zero
-    private var safeAreaInsets: UIEdgeInsets {
-        #if swift(>=3.2)
-            if #available(iOS 11.0, *), let viewController = _view?.viewController {
-                // This is the root view of a controller, so we can use the inset value directly, as per
-                // https://developer.apple.com/documentation/uikit/uiview/2891103-safeareainsets
-                return viewController.view.safeAreaInsets
-            }
-        #endif
-        return UIEdgeInsets(
-            top: _layoutGuideController?.topLayoutGuide.length ?? 0,
-            left: 0,
-            bottom: _layoutGuideController?.bottomLayoutGuide.length ?? 0,
-            right: 0
-        )
-    }
 
     /// The anticipated frame for the view, based on the current state
     // TODO: should this be public?
@@ -1467,6 +1417,7 @@ public class LayoutNode: NSObject {
                     if expressions["height"] != nil, !_evaluating.contains("height") {
                         size.height = try cgFloatValue(forSymbol: "height")
                     }
+                    let safeAreaInsets = view._safeAreaInsets
                     let alwaysBounceHorizontal = try value(forSymbol: "alwaysBounceHorizontal") as! Bool
                     if alwaysBounceHorizontal || contentSize.width > size.width {
                         contentInset.left += safeAreaInsets.left
@@ -1482,6 +1433,7 @@ public class LayoutNode: NSObject {
                 case .never:
                     return contentInset
                 case .always:
+                    let safeAreaInsets = view._safeAreaInsets
                     return UIEdgeInsets(
                         top: contentInset.top + safeAreaInsets.top,
                         left: contentInset.left + safeAreaInsets.left,

@@ -108,10 +108,12 @@ extension NSObject {
                     // Get attributes
                     let chars = name.characters
                     let setter = "set\(String(chars.first!).uppercased())\(String(chars.dropFirst())):"
-                    let writable = instancesRespond(to: Selector(setter))
+                    guard instancesRespond(to: Selector(setter)) else {
+                        continue
+                    }
                     let attribs = String(cString: cattribs).components(separatedBy: ",")
                     let objCType = String(attribs[0].unicodeScalars.dropFirst())
-                    guard let type = RuntimeType(objCType: objCType, writable ? .readWrite : .readOnly) else {
+                    guard let type = RuntimeType(objCType: objCType) else {
                         continue
                     }
                     if case let .any(type) = type.type, type is Bool.Type,
@@ -571,10 +573,8 @@ extension NSObject {
             }
         default:
             let mirror = Mirror(reflecting: self)
-            if let field = mirror.children.first(where: { $0.label == key }) {
-                // TODO: check the performance here - if it's really bad we should throw an error instead
-                // or, if it's really good, we should try this first, before using the objc runtime
-                return field.value
+            if mirror.children.contains(where: { $0.label == key }) {
+                throw LayoutError("\(classForCoder) \(key) property must be prefixed with @objc to be accessed at runtime")
             }
             throw SymbolError("Unknown property \(key) of \(classForCoder)", for: key)
         }

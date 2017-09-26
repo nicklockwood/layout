@@ -33,20 +33,19 @@ public class RuntimeType: NSObject {
     }
 
     public enum Availability: Equatable {
-        case readOnly
-        case readWrite
+        case available
         case unavailable(reason: String?)
 
         @available(*, deprecated, message: "Use readWrite instead")
-        static var available = Availability.readWrite
+        static var isAvailable = Availability.available
 
         public static func ==(lhs: Availability, rhs: Availability) -> Bool {
             switch (lhs, rhs) {
-            case (.readWrite, .readWrite), (.readOnly, .readOnly):
+            case (.available, .available):
                 return true
             case let (.unavailable(lhs), .unavailable(rhs)):
                 return lhs == rhs
-            case (.readWrite, _), (.readOnly, _), (.unavailable, _):
+            case (.available, _), (.unavailable, _):
                 return false
             }
         }
@@ -56,7 +55,7 @@ public class RuntimeType: NSObject {
     public typealias Setter = (_ target: AnyObject, _ key: String, _ value: Any) throws -> Void
 
     public let type: Kind
-    private(set) var availability = Availability.readWrite
+    private(set) var availability = Availability.available
     private(set) var getter: Getter?
     private(set) var setter: Setter?
 
@@ -68,30 +67,21 @@ public class RuntimeType: NSObject {
         #endif
     }
 
-    public var isReadable: Bool {
+    public var isAvailable: Bool {
         switch availability {
-        case .readOnly, .readWrite:
+        case .available:
             return true
         case .unavailable:
             return false
         }
     }
 
-    public var isWritable: Bool {
-        switch availability {
-        case .readWrite:
-            return true
-        case .readOnly, .unavailable:
-            return false
-        }
-    }
-
-    @nonobjc private init(_ type: Kind, _ availability: Availability = .readWrite) {
+    @nonobjc private init(_ type: Kind, _ availability: Availability = .available) {
         self.type = type
         self.availability = availability
     }
 
-    @nonobjc public convenience init(_ type: Any.Type, _ availability: Availability = .readWrite) {
+    @nonobjc public convenience init(_ type: Any.Type, _ availability: Availability = .available) {
         let name = "\(type)"
         switch name {
         case "CGColor", "CGImage", "CGPath":
@@ -103,15 +93,15 @@ public class RuntimeType: NSObject {
         }
     }
 
-    @nonobjc public convenience init(class: AnyClass, _ availability: Availability = .readWrite) {
+    @nonobjc public convenience init(class: AnyClass, _ availability: Availability = .available) {
         self.init(.class(`class`), availability)
     }
 
-    @nonobjc public convenience init(_ type: Protocol, _ availability: Availability = .readWrite) {
+    @nonobjc public convenience init(_ type: Protocol, _ availability: Availability = .available) {
         self.init(.protocol(type), availability)
     }
 
-    @nonobjc public convenience init?(_ typeName: String, _ availability: Availability = .readWrite) {
+    @nonobjc public convenience init?(_ typeName: String, _ availability: Availability = .available) {
         guard let type = typesByName[typeName] ?? NSClassFromString(typeName) else {
             guard let proto = NSProtocolFromString(typeName) else {
                 return nil
@@ -122,7 +112,7 @@ public class RuntimeType: NSObject {
         self.init(type, availability)
     }
 
-    @nonobjc public init?(objCType: String, _ availability: Availability = .readWrite) {
+    @nonobjc public init?(objCType: String, _ availability: Availability = .available) {
         guard let first = objCType.unicodeScalars.first else {
             assertionFailure("Empty objCType")
             return nil
@@ -219,17 +209,17 @@ public class RuntimeType: NSObject {
         setter = { target, key, value in
             target.setValue((value as? T)?.rawValue, forKey: key)
         }
-        availability = .readWrite
+        availability = .available
     }
 
     @nonobjc public init<T: Any>(_ type: T.Type, _ values: [String: T]) {
         self.type = .enum(type, values)
-        availability = .readWrite
+        availability = .available
     }
 
     public override var description: String {
         switch availability {
-        case .readWrite, .readOnly:
+        case .available:
             return type.description
         case .unavailable:
             return "<unavailable>"
@@ -244,11 +234,11 @@ public class RuntimeType: NSObject {
             return true
         }
         switch (availability, object.availability) {
-        case (.readWrite, .readWrite), (.readOnly, .readOnly):
+        case (.available, .available):
             return type == object.type
         case let (.unavailable(lreason), .unavailable(rreason)):
             return lreason == rreason
-        case (.readWrite, _), (.readOnly, _), (.unavailable, _):
+        case (.available, _), (.unavailable, _):
             return false
         }
     }

@@ -197,7 +197,7 @@ class UIKitSymbols: XCTestCase {
             default:
                 props = [:]
             }
-            for (key, type) in props where !type.isWritable {
+            for (key, type) in props where !type.isAvailable {
                 props.removeValue(forKey: key)
             }
             result[name] = props
@@ -223,9 +223,6 @@ class UIKitSymbols: XCTestCase {
                 output += "\n"
                 for prop in props.keys.sorted() {
                     let type = props[prop]!
-                    if !type.isWritable {
-                        continue
-                    }
                     output += "        \"\(prop)\": \"\(type)\",\n"
                 }
                 output += "    ]\n"
@@ -272,9 +269,6 @@ class UIKitSymbols: XCTestCase {
             rows.append("{ \"trigger\": \"\(name)\", \"contents\": \"\(name) $0/>\" }")
             for prop in props.keys.sorted() {
                 let type = props[prop]!
-                if !type.isWritable {
-                    continue
-                }
                 let row = "{ \"trigger\": \"\(prop)\t\(type)\", \"contents\": \"\(prop)=\\\"$0\\\"\" }"
                 if !rows.contains(row) {
                     rows.append(row)

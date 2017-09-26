@@ -24,6 +24,14 @@ class LayoutNodeTests: XCTestCase {
         XCTAssertTrue(errors.first?.description.contains("foobar") == true)
     }
 
+    func testReadOnlyExpression() {
+        let node = LayoutNode(expressions: ["safeAreaInsets.top": "5"])
+        let errors = node.validate()
+        XCTAssertEqual(errors.count, 1)
+        XCTAssertTrue(errors.first?.description.contains("read-only") == true)
+        XCTAssertTrue(errors.first?.description.contains("safeAreaInsets.top") == true)
+    }
+
     func testCircularReference1() {
         let node = LayoutNode(expressions: ["top": "top"])
         let errors = node.validate()
