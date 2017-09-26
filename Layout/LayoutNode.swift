@@ -904,7 +904,7 @@ public class LayoutNode: NSObject {
         guard _parameters[name] != nil else {
             return nil
         }
-        guard let getter = _getters[name] else {
+        guard expressions[name] != nil, let getter = _getters[name] else {
             throw SymbolError("Missing value for parameter \(name)", for: name)
         }
         return try getter()
