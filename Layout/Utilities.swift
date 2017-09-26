@@ -3,8 +3,8 @@
 import UIKit
 
 // Flatten an array of dictionaries
-func merge(_ dictionaries: [[String: Any]]) -> [String: Any] {
-    var result = [String: Any]()
+func merge<T>(_ dictionaries: [[String: T]]) -> [String: T] {
+    var result = [String: T]()
     for dict in dictionaries {
         for (key, value) in dict {
             result[key] = value

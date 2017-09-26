@@ -233,6 +233,11 @@ extension UIViewController {
         return self.init()
     }
 
+    /// Default expressions to use when not specified
+    @objc open class var defaultExpressions: [String: String] {
+        return [:]
+    }
+
     // Set expression value
     @objc open func setValue(_ value: Any, forExpression name: String) throws {
         switch name {

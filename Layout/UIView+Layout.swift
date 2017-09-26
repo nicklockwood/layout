@@ -157,6 +157,11 @@ extension UIView {
         return self.init()
     }
 
+    /// Default expressions to use when not specified
+    @objc open class var defaultExpressions: [String: String] {
+        return [:]
+    }
+
     // Return the best available VC for computing the layout guide
     var _layoutGuideController: UIViewController? {
         let viewController = self.viewController

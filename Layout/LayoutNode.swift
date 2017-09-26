@@ -238,9 +238,14 @@ public class LayoutNode: NSObject {
         self.children = children
 
         _parameters = [:]
-        _originalExpressions = expressions
+        _originalExpressions = [:]
 
         super.init()
+
+        _originalExpressions = merge([
+            viewControllerClass?.defaultExpressions ?? viewClass.defaultExpressions,
+            expressions,
+        ])
     }
 
     /// Create a node for managing a view controller instance
