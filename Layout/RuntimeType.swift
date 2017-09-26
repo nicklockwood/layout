@@ -2,6 +2,20 @@
 
 import UIKit
 
+func sanitizedStructName(_ objCType: String) -> String {
+    guard let equalRange = objCType.range(of: "="),
+        let braceRange = objCType.range(of: "{") else {
+            return objCType
+    }
+    let name: String = String(objCType[braceRange.upperBound ..< equalRange.lowerBound])
+    switch name {
+    case "_NSRange":
+        return "NSRange" // Yay! special cases
+    default:
+        return name
+    }
+}
+
 public class RuntimeType: NSObject {
 
     public enum Kind: Equatable, CustomStringConvertible {
@@ -116,19 +130,6 @@ public class RuntimeType: NSObject {
         guard let first = objCType.unicodeScalars.first else {
             assertionFailure("Empty objCType")
             return nil
-        }
-        func sanitizedStructName(_ objCType: String) -> String {
-            guard let equalRange = objCType.range(of: "="),
-                let braceRange = objCType.range(of: "{") else {
-                return objCType
-            }
-            let name: String = String(objCType[braceRange.upperBound ..< equalRange.lowerBound])
-            switch name {
-            case "_NSRange":
-                return "NSRange" // Yay! special cases
-            default:
-                return name
-            }
         }
         self.availability = availability
         switch first {
@@ -289,6 +290,9 @@ public class RuntimeType: NSObject {
                 guard let value = optionalValue(of: value) else {
                     return nil
                 }
+                if let nsValue = value as? NSValue, sanitizedStructName(String(cString: nsValue.objCType)) == "\(type)" {
+                    return value
+                }
                 return type == Swift.type(of: value) || "\(type)" == "\(Swift.type(of: value))" ? value : nil
             }
         }
@@ -301,7 +305,7 @@ public class RuntimeType: NSObject {
             }
             return nil
         case let .struct(type):
-            if let value = value as? NSValue, String(cString: value.objCType) == type {
+            if let value = value as? NSValue, sanitizedStructName(String(cString: value.objCType)) == type {
                 return value
             }
             return nil
