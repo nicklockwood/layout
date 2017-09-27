@@ -238,14 +238,26 @@ public class LayoutNode: NSObject {
         self.children = children
 
         _parameters = [:]
-        _originalExpressions = [:]
+        _originalExpressions = expressions
 
         super.init()
 
-        _originalExpressions = merge([
-            viewControllerClass?.defaultExpressions ?? viewClass.defaultExpressions,
-            expressions,
-        ])
+        // Merge expressions with defaults
+        let defaultExpressions = viewControllerClass?.defaultExpressions ?? viewClass.defaultExpressions
+        for (key, value) in defaultExpressions {
+            guard _originalExpressions[key] == nil else { continue }
+            switch key {
+            case "left" where _originalExpressions["width"] != nil && _originalExpressions["right"] != nil,
+                 "right" where _originalExpressions["width"] != nil && _originalExpressions["left"] != nil,
+                 "width" where _originalExpressions["left"] != nil && _originalExpressions["right"] != nil,
+                 "top" where _originalExpressions["height"] != nil && _originalExpressions["bottom"] != nil,
+                 "bottom" where _originalExpressions["height"] != nil && _originalExpressions["top"] != nil,
+                 "height" where _originalExpressions["top"] != nil && _originalExpressions["bottom"] != nil:
+                break // Redundant
+            default:
+                _originalExpressions[key] = value
+            }
+        }
     }
 
     /// Create a node for managing a view controller instance
