@@ -269,7 +269,7 @@ class UIKitSymbols: XCTestCase {
             rows.append("{ \"trigger\": \"\(name)\", \"contents\": \"\(name) $0/>\" }")
             for prop in props.keys.sorted() {
                 let type = props[prop]!
-                let row = "{ \"trigger\": \"\(prop)\t\(type)\", \"contents\": \"\(prop)=\\\"$0\\\"\" }"
+                let row = "{ \"trigger\": \"\(prop)\t\(type)\", \"contents\": \"\(prop)\" }"
                 if !rows.contains(row) {
                     rows.append(row)
                 }
