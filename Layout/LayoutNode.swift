@@ -189,7 +189,7 @@ public class LayoutNode: NSObject {
         }
         switch new {
         case let rect as CGRect:
-            if !rect.size.isNearlyEqual(to: frame.size) {
+            if !rect.size.isNearlyEqual(to: _previousFrame.size) {
                 var root = self
                 while let parent = root.parent {
                     root = parent
@@ -1270,8 +1270,8 @@ public class LayoutNode: NSObject {
         return view.isHidden
     }
 
-    // Safe area (for any iOS version)
     private var _previousSafeAreaInsets: UIEdgeInsets = .zero
+    private var _previousFrame: CGRect = .zero
 
     /// The anticipated frame for the view, based on the current state
     // TODO: should this be public?
@@ -1600,7 +1600,7 @@ public class LayoutNode: NSObject {
         _heightConstraint?.identifier = "LayoutHeight"
     }
 
-    var _suppressUpdates = false
+ var _suppressUpdates = false
 
     // Note: thrown error is always a LayoutError
     private func updateValues(animated: Bool) throws {
@@ -1639,6 +1639,7 @@ public class LayoutNode: NSObject {
                 _heightConstraint.isActive = true
             }
         }
+        _previousFrame = frame
         for child in children {
             try LayoutError.wrap(child.updateFrame, for: self)
         }
@@ -1677,7 +1678,9 @@ public class LayoutNode: NSObject {
             viewController.addChildViewController(controller)
         }
         viewController.view.addSubview(view)
+        _suppressUpdates = true
         _view?.frame = viewController.view.bounds
+        _suppressUpdates = false
         update()
     }
 
