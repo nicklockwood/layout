@@ -108,8 +108,11 @@ private func stringToAsset(_ string: String) throws -> (name: String, bundle: Bu
     if parts.count > 2 {
         throw Expression.Error.message("Invalid XCAsset name format: \(string)")
     }
-    guard let bundle = Bundle(identifier: identifier) else {
-        throw Expression.Error.message("Could not locate bundle with identifier \(identifier)")
+    guard let bundle = Bundle(identifier: identifier) ?? Bundle.allBundles.first(where: {
+        $0.infoDictionary?[kCFBundleNameKey as String] as? String == identifier
+    }) else {
+        let nameOrIdentifier = identifier.contains(".") ? "identifier" : "name"
+        throw Expression.Error.message("Could not locate bundle with \(nameOrIdentifier) \(identifier)")
     }
     return (parts[1], bundle, nil)
 }
@@ -791,6 +794,9 @@ struct LayoutExpression {
                     let (name, bundle, traits) = try stringToAsset(string)
                     if let image = UIImage(named: name, in: bundle, compatibleWith: traits) {
                         return image
+                    }
+                    if let bundle = bundle {
+                        throw Expression.Error.message("Image named `\(name)` not found in bundle \(bundle.bundleIdentifier ?? "<unknown>")")
                     }
                     throw Expression.Error.message("Invalid image name \(string)")
                 }
