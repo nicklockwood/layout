@@ -791,7 +791,7 @@ struct LayoutExpression {
                 guard let expression = LayoutExpression(
                     anyExpression: parsedExpression,
                     type: RuntimeType(Any.self),
-                    nullable: false,
+                    nullable: true,
                     for: node
                 ) else {
                     return nil
@@ -869,30 +869,18 @@ struct LayoutExpression {
             case is NSAttributedString.Type:
                 self.init(attributedStringExpression: expression, for: node)
             case is UIColor.Type:
-                self.init(colorExpression: expression, for: node)
+                self.init(colorExpression: expression, type: type, for: node)
             case is UIImage.Type:
-                self.init(imageExpression: expression, for: node)
+                self.init(imageExpression: expression, type: type, for: node)
             case is UIFont.Type:
                 self.init(fontExpression: expression, for: node)
             default:
-                guard let expression = LayoutExpression(anyExpression: expression, type: type, for: node) else {
-                    return nil
-                }
-                self.init(
-                    evaluate: { try unwrap(expression.evaluate()) }, // Handle nil
-                    symbols: expression.symbols
-                )
+                self.init(anyExpression: expression, type: type, nullable: false, for: node)
             }
         case let .class(subtype):
             self.init(classExpression: expression, class: subtype, for: node)
         case .struct:
-            guard let expression = LayoutExpression(anyExpression: expression, type: type, for: node) else {
-                return nil
-            }
-            self.init(
-                evaluate: { try unwrap(expression.evaluate()) }, // Handle nil
-                symbols: expression.symbols
-            )
+            self.init(anyExpression: expression, type: type, nullable: false, for: node)
         case .enum:
             self.init(enumExpression: expression, type: type, for: node)
         case .pointer("CGColor"):

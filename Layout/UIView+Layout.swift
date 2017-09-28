@@ -91,7 +91,6 @@ extension UIView {
             }
         }
 
-
         // Private and read-only properties
         for name in [
             "allowsBaselineOffsetApproximation",
@@ -171,7 +170,7 @@ extension UIView {
 
     var _safeAreaInsets: UIEdgeInsets {
         #if swift(>=3.2)
-            if #available(iOS 11.0, *), let viewController = self.viewController {
+            if #available(iOS 11.0, *), let viewController = viewController {
                 // This is the root view of a controller, so we can use the inset value directly, as per
                 // https://developer.apple.com/documentation/uikit/uiview/2891103-safeareainsets
                 return viewController.view.safeAreaInsets

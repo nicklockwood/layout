@@ -51,13 +51,9 @@ extension UIScrollView {
         }
     }
 
-    open override func didUpdateLayout(for node: LayoutNode) {
-        guard classForCoder == UIScrollView.self else {
-            return // Skip this behavior for subclasses like UITableView
-        }
-        // Update contentSize
-        contentSize = node.contentSize
+    open override func didUpdateLayout(for _: LayoutNode) {
         // Prevents contentOffset glitch when rotating from portrait to landscape
+        // TODO: needs improvement - result can be off by one page sometimes
         if isPagingEnabled {
             let offset = CGPoint(
                 x: round(contentOffset.x / frame.size.width) * frame.width - contentInset.left,

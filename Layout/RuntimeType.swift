@@ -5,7 +5,7 @@ import UIKit
 func sanitizedStructName(_ objCType: String) -> String {
     guard let equalRange = objCType.range(of: "="),
         let braceRange = objCType.range(of: "{") else {
-            return objCType
+        return objCType
     }
     let name: String = String(objCType[braceRange.upperBound ..< equalRange.lowerBound])
     switch name {
@@ -249,6 +249,9 @@ public class RuntimeType: NSObject {
     }
 
     public func cast(_ value: Any) -> Any? {
+        guard let value = optionalValue(of: value) else {
+            return nil
+        }
         func cast(_ value: Any, as type: Any.Type) -> Any? {
             switch type {
             case is NSNumber.Type:
@@ -272,7 +275,7 @@ public class RuntimeType: NSObject {
             case is UInt.Type:
                 return value as? UInt ??
                     (value as? Double).map { UInt($0) } ??
-                    (value as? NSNumber).map { UInt(Int(truncating: $0)) }
+                    (value as? NSNumber).map { UInt(truncating: $0) }
             case is Bool.Type:
                 return value as? Bool ??
                     (value as? Double).map { $0 != 0 } ??
@@ -287,9 +290,6 @@ public class RuntimeType: NSObject {
             case _ where type == Any.self:
                 return value
             default:
-                guard let value = optionalValue(of: value) else {
-                    return nil
-                }
                 if let nsValue = value as? NSValue, sanitizedStructName(String(cString: nsValue.objCType)) == "\(type)" {
                     return value
                 }
@@ -310,9 +310,6 @@ public class RuntimeType: NSObject {
             }
             return nil
         case let .pointer(type):
-            guard let value = optionalValue(of: value) else {
-                return nil
-            }
             switch type {
             case "CGColor" where value is UIColor:
                 return (value as! UIColor).cgColor

@@ -1,5 +1,20 @@
 # Change Log
 
+## [0.5.0](https://github.com/schibsted/layout/releases/tag/0.5.0) (2017-09-28)
+
+- Added `defaultExpressions` property for custom views (see README.md for details)
+- Percentages in `contentSize` expressions now refer to `self.width` instead of `parent.width`
+- Fixed bug that caused views to fail to resize correctly when using default width/height
+- Named Image and color asset expressions can now use bundle name instead of identifier
+- Improved autocomplete behavior for Sublime Text
+- Failing to specify a value for a custom parameter no longer causes a hard crash
+- Fixed bug that caused typecheck for struct types to always fail
+- Removed the `readOnly` availability mode for `RuntimeType` properties
+- A width of `100%` now resolves to zero if the view has no parent, instead of the current size
+- Added support for all `UIScrollView.contentInsetAdjustmentBehavior` modes
+- Removed `LayoutNode.contentSize` property
+- Removed deprecated `state` property
+
 ## [0.4.26](https://github.com/schibsted/layout/releases/tag/0.4.26) (2017-09-25)
 
 - Errors thrown during expression parsing phase no longer fail silently

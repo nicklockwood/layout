@@ -3,8 +3,8 @@
 import UIKit
 
 // Flatten an array of dictionaries
-func merge<T>(_ dictionaries: [[String: T]]) -> [String: T] {
-    var result = [String: T]()
+func merge(_ dictionaries: [[String: Any]]) -> [String: Any] {
+    var result = [String: Any]()
     for dict in dictionaries {
         for (key, value) in dict {
             result[key] = value
@@ -103,6 +103,12 @@ extension UIEdgeInsets {
     }
 
     extension Int {
+        init(truncating number: NSNumber) {
+            self.init(number)
+        }
+    }
+
+    extension UInt {
         init(truncating number: NSNumber) {
             self.init(number)
         }

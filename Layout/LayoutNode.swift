@@ -8,7 +8,7 @@ import UIKit
 public class LayoutNode: NSObject {
 
     /// The view managed by this node
-    /// Accessing this property will create the view if it doesn't already exist
+    /// Accessing this property will instantiate the view if it doesn't already exist
     public var view: UIView {
         attempt(setUpExpressions)
         if _view == nil {
@@ -18,7 +18,7 @@ public class LayoutNode: NSObject {
     }
 
     /// The (optional) view controller managed by this node
-    /// Accessing this property will create the view controller if it doesn't already exist
+    /// Accessing this property will instantiate the view controller if it doesn't already exist
     public var viewController: UIViewController? {
         if _class is UIViewController.Type {
             attempt(setUpExpressions)
@@ -59,19 +59,6 @@ public class LayoutNode: NSObject {
         set {
             _delegate = newValue
         }
-    }
-
-    private func delegate(for selector: Selector) -> LayoutDelegate? {
-        var delegate = self.delegate
-        var responder = delegate as? UIResponder
-        while delegate != nil || responder != nil {
-            if (delegate as AnyObject).responds(to: selector) {
-                return delegate
-            }
-            responder = responder?.next ?? (responder as? UIViewController)?.parent
-            delegate = responder as? LayoutDelegate
-        }
-        return parent?.delegate(for: selector)
     }
 
     /// Get the view class without side-effects of accessing view
@@ -373,6 +360,20 @@ public class LayoutNode: NSObject {
         return errors
     }
 
+    // Find an the appropriate target object for a given selector
+    private func target(for selector: Selector) -> LayoutDelegate? {
+        var delegate = self.delegate
+        var responder = delegate as? UIResponder
+        while delegate != nil || responder != nil {
+            if (delegate as AnyObject).responds(to: selector) {
+                return delegate
+            }
+            responder = responder?.next ?? (responder as? UIViewController)?.parent
+            delegate = responder as? LayoutDelegate
+        }
+        return parent?.target(for: selector)
+    }
+
     private var _unhandledError: LayoutError?
     func throwUnhandledError() throws {
         try _unhandledError.map {
@@ -399,7 +400,7 @@ public class LayoutNode: NSObject {
             }
             return
         }
-        if let delegate = self.delegate(for: #selector(LayoutDelegate.layoutNode(_:didDetectError:))) {
+        if let delegate = self.target(for: #selector(LayoutDelegate.layoutNode(_:didDetectError:))) {
             if error.isTransient {
                 _unhandledError = nil
             }
@@ -407,7 +408,8 @@ public class LayoutNode: NSObject {
         }
     }
 
-    func attempt<T>(_ closure: () throws -> T) -> T? {
+    // Attempt a throwing operation but catch the error and bubble it up the Layout hierarchy
+    private func attempt<T>(_ closure: () throws -> T) -> T? {
         do {
             return try closure()
         } catch {
@@ -841,6 +843,7 @@ public class LayoutNode: NSObject {
                         let value = try self.value(forVariableOrConstant: symbol) {
                         return value
                     }
+                    // TODO: allow expression to reference its previous value instead of treating this as an error
                     throw SymbolError("Expression for \(symbol) references a nonexistent symbol of the same name (expressions cannot reference themselves)", for: symbol)
                 }
                 self._evaluating.append(symbol)
@@ -902,7 +905,7 @@ public class LayoutNode: NSObject {
     // MARK: symbols
 
     private func localizedString(forKey key: String) throws -> String {
-        guard let delegate = self.delegate(for: #selector(LayoutDelegate.layoutNode(_:localizedStringForKey:))) else {
+        guard let delegate = self.target(for: #selector(LayoutDelegate.layoutNode(_:localizedStringForKey:))) else {
             throw SymbolError("No layoutNode(_:localizedStringForKey:) implementation found. Unable to look up localized string", for: key)
         }
         guard let string = delegate.layoutNode?(self, localizedStringForKey: key) else {
@@ -1128,11 +1131,15 @@ public class LayoutNode: NSObject {
             getter = { [unowned self] in
                 try self.inferSize().height
             }
-        case "inferredContentSize.width":
+        case "contentSize":
+            getter = { [unowned self] in
+                try self.inferContentSize()
+            }
+        case "inferredContentSize.width", "contentSize.width":
             getter = { [unowned self] in
                 try self.inferContentSize().width
             }
-        case "inferredContentSize.height":
+        case "inferredContentSize.height", "contentSize.height":
             getter = { [unowned self] in
                 try self.inferContentSize().height
             }
@@ -1328,6 +1335,7 @@ public class LayoutNode: NSObject {
 
     private func inferContentSize() throws -> CGSize {
         // Check for explicit size
+        // TODO: what if contentSize.width and contentSize.height have been set individually?
         if expressions["contentSize"] != nil, !_evaluating.contains("contentSize") {
             return try value(forSymbol: "contentSize") as? CGSize ?? .zero
         }
@@ -1416,7 +1424,7 @@ public class LayoutNode: NSObject {
         #if swift(>=3.2)
             if #available(iOS 11.0, *) {
                 let contentInsetAdjustmentBehavior = try value(forSymbol: "contentInsetAdjustmentBehavior") as!
-                UIScrollViewContentInsetAdjustmentBehavior
+                    UIScrollViewContentInsetAdjustmentBehavior
                 switch contentInsetAdjustmentBehavior {
                 case .automatic, .scrollableAxes:
                     var contentInset = contentInset
@@ -1574,12 +1582,6 @@ public class LayoutNode: NSObject {
         )
     }
 
-    /// The current size of the layout node's contents
-    // TODO: currently this is only used by UIScrollView - should it be public?
-    public var contentSize: CGSize {
-        return attempt(inferContentSize) ?? .zero
-    }
-
     // AutoLayout support
     private var _usesAutoLayout = false
     private func setUpAutoLayout() {
@@ -1600,7 +1602,8 @@ public class LayoutNode: NSObject {
         _heightConstraint?.identifier = "LayoutHeight"
     }
 
- var _suppressUpdates = false
+    // Prevent `update()` from being called when making changes to view properties, etc
+    var _suppressUpdates = false
 
     // Note: thrown error is always a LayoutError
     private func updateValues(animated: Bool) throws {
@@ -1639,6 +1642,14 @@ public class LayoutNode: NSObject {
                 _heightConstraint.isActive = true
             }
         }
+        if viewClass == UIScrollView.self, // Skip this behavior for subclasses like UITableView
+            let scrollView = _view as? UIScrollView {
+            let oldContentSize = scrollView.contentSize
+            let contentSize = try value(forSymbol: "contentSize") as! CGSize
+            if !contentSize.isNearlyEqual(to: oldContentSize) {
+                scrollView.contentSize = contentSize
+            }
+        }
         _previousFrame = frame
         for child in children {
             try LayoutError.wrap(child.updateFrame, for: self)
@@ -1659,10 +1670,7 @@ public class LayoutNode: NSObject {
     /// Re-evaluates all expressions for the node and its children
     /// Note: thrown error is always a LayoutError
     public func update() {
-        attempt {
-            try updateValues(animated: false)
-            try updateFrame()
-        }
+        update(animated: false)
     }
 
     // MARK: binding
