@@ -141,6 +141,22 @@ func stringToColorAsset(_ string: String) throws -> UIColor? {
     return nil
 }
 
+private var _imageAssetCache = NSCache<NSString, UIImage>()
+func stringToImageAsset(_ string: String) throws -> UIImage? {
+    if let image = _imageAssetCache.object(forKey: string as NSString) {
+        return image
+    }
+    let (name, bundle, traits) = try stringToAsset(string)
+    if let image = UIImage(named: name, in: bundle, compatibleWith: traits) {
+        _imageAssetCache.setObject(image, forKey: string as NSString)
+        return image
+    }
+    if let bundle = bundle {
+        throw Expression.Error.message("Image named `\(name)` not found in bundle \(bundle.bundleIdentifier ?? "<unknown>")")
+    }
+    return nil
+}
+
 struct LayoutExpression {
     let evaluate: () throws -> Any
     let symbols: Set<String>
@@ -679,7 +695,7 @@ struct LayoutExpression {
         )
     }
 
-    private init?(colorExpression: String, type: RuntimeType, for node: LayoutNode) {
+    init?(colorExpression: String, type: RuntimeType = RuntimeType(UIColor.self), for node: LayoutNode) {
         func nameToColorAsset(_ name: String) throws -> Any {
             guard let color = try stringToColorAsset(name) else {
                 throw Expression.Error.message("Invalid color name `\(name)`")
@@ -689,6 +705,7 @@ struct LayoutExpression {
         do {
             let parts = try parseStringExpression(colorExpression)
             if parts.count == 1 {
+                let parsedExpression: ParsedLayoutExpression
                 switch parts[0] {
                 case let .string(name):
                     if let color = try stringToColorAsset(name) {
@@ -697,51 +714,43 @@ struct LayoutExpression {
                         return
                     }
                     // Attempt to interpret as a color expression
-                    guard let parsedExpression = try? parseExpression(name) else {
+                    guard let _parsedExpression = try? parseExpression(name) else {
                         throw Expression.Error.message("Invalid color name `\(name)`")
                     }
-                    self.init(
-                        anyExpression: parsedExpression,
-                        type: type,
-                        nullable: false,
-                        symbols: colorSymbols,
-                        lookup: colorLookup,
-                        for: node
-                    )
-                case let .expression(parsedExpression):
-                    guard let anyExpression = LayoutExpression(
-                        anyExpression: parsedExpression,
-                        type: RuntimeType(Any.self),
-                        nullable: false,
-                        symbols: colorSymbols,
-                        lookup: colorLookup,
-                        for: node
-                    ) else {
-                        return nil
-                    }
-                    self.init(
-                        evaluate: {
-                            switch try unwrap(anyExpression.evaluate()) {
-                            case let name as String:
-                                return try nameToColorAsset(name)
-                            case let color:
-                                return try cast(color, as: type)
-                            }
-                        },
-                        symbols: []
-                    )
+                    parsedExpression = _parsedExpression
+                case let .expression(_parsedExpression):
+                    parsedExpression = _parsedExpression
                 case .comment:
                     return nil
                 }
-            } else if #available(iOS 11.0, *) {
-                guard let nameExpression = LayoutExpression(stringExpression: colorExpression, for: node) else {
+                guard let expression = LayoutExpression(
+                    anyExpression: parsedExpression,
+                    type: RuntimeType(Any.self),
+                    nullable: false,
+                    symbols: colorSymbols,
+                    lookup: colorLookup,
+                    for: node
+                ) else {
                     return nil
                 }
                 self.init(
                     evaluate: {
-                        try nameToColorAsset(nameExpression.evaluate() as! String)
+                        switch try unwrap(expression.evaluate()) {
+                        case let name as String:
+                            return try nameToColorAsset(name)
+                        case let color:
+                            return try cast(color, as: type)
+                        }
                     },
-                    symbols: []
+                    symbols: expression.symbols
+                )
+            } else if #available(iOS 11.0, *) {
+                guard let expression = LayoutExpression(stringExpression: colorExpression, for: node) else {
+                    return nil
+                }
+                self.init(
+                    evaluate: { try nameToColorAsset(expression.evaluate() as! String) },
+                    symbols: expression.symbols
                 )
             } else {
                 throw Expression.Error.message("Named colors are only supported in iOS 11 and above")
@@ -751,68 +760,70 @@ struct LayoutExpression {
         }
     }
 
-    init?(colorExpression: String, for node: LayoutNode) {
-        self.init(colorExpression: colorExpression, type: RuntimeType(UIColor.self), for: node)
-    }
-
-    init?(cgColorExpression: String, for node: LayoutNode) {
-        self.init(colorExpression: cgColorExpression, type: RuntimeType(CGColor.self), for: node)
-    }
-
-    init?(imageExpression: String, for node: LayoutNode) {
-        guard let expression = LayoutExpression(interpolatedStringExpression: imageExpression, for: node) else {
-            return nil
+    init?(imageExpression: String, type: RuntimeType = RuntimeType(UIImage.self), for node: LayoutNode) {
+        func nameToImageAsset(_ name: String) throws -> Any {
+            guard let image = try stringToImageAsset(name) else {
+                throw Expression.Error.message("Invalid image name `\(name)`")
+            }
+            return try cast(image, as: type)
         }
-        self.init(
-            evaluate: {
-                let parts = try expression.evaluate() as! [Any]
-                if parts.count == 1, isNil(parts[0]) {
-                    // Explicitly allow empty images
-                    return UIImage()
+        do {
+            let parts = try parseStringExpression(imageExpression)
+            if parts.count == 1 {
+                let parsedExpression: ParsedLayoutExpression
+                switch parts[0] {
+                case let .string(name):
+                    if let image = try stringToImageAsset(name) {
+                        let image = try cast(image, as: type)
+                        self.init(evaluate: { image }, symbols: [])
+                        return
+                    }
+                    // Attempt to interpret as an image expression
+                    guard let _parsedExpression = try? parseExpression(name) else {
+                        throw Expression.Error.message("Invalid image name `\(name)`")
+                    }
+                    parsedExpression = _parsedExpression
+                case let .expression(_parsedExpression):
+                    parsedExpression = _parsedExpression
+                case .comment:
+                    return nil
                 }
-                var image: UIImage?
-                var string = ""
-                for part in parts {
-                    switch part {
-                    case let part as UIImage:
-                        image = part
-                    default:
-                        let stringified = try stringify(part)
-                        if stringified.hasPrefix("<CGImage") {
-                            return UIImage(cgImage: part as! CGImage)
+                guard let expression = LayoutExpression(
+                    anyExpression: parsedExpression,
+                    type: RuntimeType(Any.self),
+                    nullable: false,
+                    for: node
+                ) else {
+                    return nil
+                }
+                self.init(
+                    evaluate: {
+                        let anyValue = try expression.evaluate()
+                        if isNil(anyValue) {
+                            // Explicitly allow empty images
+                            return UIImage()
                         }
-                        string += stringified
-                    }
+                        switch anyValue {
+                        case let name as String:
+                            return try nameToImageAsset(name)
+                        case let image:
+                            return try cast(image, as: type)
+                        }
+                    },
+                    symbols: expression.symbols
+                )
+            } else {
+                guard let expression = LayoutExpression(stringExpression: imageExpression, for: node) else {
+                    return nil
                 }
-                string = string.trimmingCharacters(in: .whitespacesAndNewlines)
-                if let image = image {
-                    if !string.isEmpty {
-                        throw Expression.Error.message("Invalid image specifier `\(string)`")
-                    }
-                    return image
-                } else {
-                    let (name, bundle, traits) = try stringToAsset(string)
-                    if let image = UIImage(named: name, in: bundle, compatibleWith: traits) {
-                        return image
-                    }
-                    if let bundle = bundle {
-                        throw Expression.Error.message("Image named `\(name)` not found in bundle \(bundle.bundleIdentifier ?? "<unknown>")")
-                    }
-                    throw Expression.Error.message("Invalid image name \(string)")
-                }
-            },
-            symbols: expression.symbols
-        )
-    }
-
-    init?(cgImageExpression: String, for node: LayoutNode) {
-        guard let expression = LayoutExpression(imageExpression: cgImageExpression, for: node) else {
-            return nil
+                self.init(
+                    evaluate: { try nameToImageAsset(expression.evaluate() as! String) },
+                    symbols: expression.symbols
+                )
+            }
+        } catch {
+            self.init(evaluate: { throw error }, symbols: [])
         }
-        self.init(
-            evaluate: { (try expression.evaluate() as! UIImage).cgImage as Any },
-            symbols: expression.symbols
-        )
     }
 
     init?(enumExpression: String, type: RuntimeType, for node: LayoutNode) {
@@ -885,9 +896,9 @@ struct LayoutExpression {
         case .enum:
             self.init(enumExpression: expression, type: type, for: node)
         case .pointer("CGColor"):
-            self.init(cgColorExpression: expression, for: node)
+            self.init(colorExpression: expression, type: type, for: node)
         case .pointer("CGImage"):
-            self.init(cgImageExpression: expression, for: node)
+            self.init(imageExpression: expression, type: type, for: node)
         case .pointer, .protocol:
             self.init(anyExpression: expression, type: type, nullable: true, for: node)
         }
