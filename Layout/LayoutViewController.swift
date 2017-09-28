@@ -40,8 +40,20 @@ open class LayoutViewController: UIViewController, LayoutLoading {
         if let errorNode = _errorNode {
             errorNode.view.frame = view.bounds
             view.bringSubview(toFront: errorNode.view)
-        } else if let view = layoutNode?.view {
-            view.frame = self.view.bounds
+        } else if let layoutNode = layoutNode {
+            #if swift(>=3.2)
+                if #available(iOS 11.0, *) {
+                    layoutNode.view.frame = view.bounds
+                    return
+                }
+            #endif
+
+            // For iOS 10 and earlier, changes to the safe area can't be observed
+            // directly, so we always need to call update even if frame hasn't changed
+            layoutNode._suppressUpdates = true
+            layoutNode.view.frame = view.bounds
+            layoutNode._suppressUpdates = false
+            layoutNode.update()
         }
     }
 
