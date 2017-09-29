@@ -431,7 +431,7 @@ In this example we've bound the `LayoutNode` containing the `UILabel` to the `la
 * There's no need to use the `@IBOutlet` attribute for your `outlet` property, but you can do so if you feel it makes the purpose clearer. If you do not use `@IBOutlet`, you may need to use `@objc` to ensure the property is visible to Layout at runtime.
 * The type of the `outlet` property can be either `LayoutNode` or a `UIView` subclass that's compatible with the view managed by the node. The syntax is the same in either case - the type will be checked at runtime, and an error will be thrown if it doesn't match up.
 * In the example above we have used Swift's `#keyPath` syntax to specify the `outlet` value, for better static validation. This is recommended, but not required.
-* The `labelNode` outlet in the example has been marked as Optional. It is common to use Implictly Unwrapped Optionals (IUOs) when defining IBOutlets, and that will work with Layout too, but it will result in a hard crash if you make a mistake in your XML and then try to access the outlet. Using regular Optionals means XML errors can be trapped and fixed without restarting the app.
+* The `labelNode` outlet in the example has been marked as Optional. It is common to use Implicitly Unwrapped Optionals (IUOs) when defining IBOutlets, and that will work with Layout too, but it will result in a hard crash if you make a mistake in your XML and then try to access the outlet. Using regular Optionals means XML errors can be trapped and fixed without restarting the app.
 
 To specify outlet bindings when using XML templates, use the `outlet` attribute:
 
@@ -552,14 +552,14 @@ iOS 11 introduced the concept of the *safe area* - a generalization of the top a
 
 In order to prevent you from needing to include conditional compilation logic in your templates, Layout makes the iOS 11 `safeAreaInsets` property available across all iOS versions (falling back to using layout guides as the underlying implementation on iOS 10 and earlier).
 
-To position a view inside the safe are of its parent, you could write:
+To position a view inside the safe area of its parent, you could write:
 
 ```xml
 <UIView
     top="parent.safeAreaInsets.top"
     left="parent.safeAreaInsets.left"
     bottom="100% - parent.safeAreaInsets.bottom"
-    right="100% - parent.safeAreaInsets.bottom"
+    right="100% - parent.safeAreaInsets.right"
 />
 ```
 
@@ -1026,7 +1026,7 @@ This feature is also very convenient during development if you want to temporari
 <UIView temporarilyDisabledProperty="// someValue"/>
 ```
 
-Comments can be used in any expression, but for string-type expressions there are a few caveats: In a string expression, anything outside of `{...}` braces is considerd to be part of the literal string value, and that includes `/` characters. For that reason, this won't work as intended:
+Comments can be used in any expression, but for string-type expressions there are a few caveats: In a string expression, anything outside of `{...}` braces is considered to be part of the literal string value, and that includes `/` characters. For that reason, this won't work as intended:
 
 ```xml
 <UIImage image="MyImage.png // comment"/>
@@ -1060,7 +1060,7 @@ In the unlikely event that you need the literal value of a string expression to 
 
 # Standard Components
 
-Layout has good support for most built-in UIKit views and view controllers. It can automatically create any `UIView` subclass using `init(frame:)`, and can set any property that is compatible with Key Value Coding (KVC), but some views expect extra intitializer arguments, or have properties that cannot be set by name at runtime, or which require special treatment for other reasons.
+Layout has good support for most built-in UIKit views and view controllers. It can automatically create any `UIView` subclass using `init(frame:)`, and can set any property that is compatible with Key Value Coding (KVC), but some views expect extra initializer arguments, or have properties that cannot be set by name at runtime, or which require special treatment for other reasons.
 
 The following views and view controllers have all been tested and are known to work correctly:
 
@@ -1825,7 +1825,7 @@ open override class func create(with node: LayoutNode) throws -> MyView {
 
 ## Default Expressions
 
-Layout tries to determine sensible defaults for the width and height expressions if unspecified. To do this, it looks at a variety of properties, such as the `intrinsicContentSize` and whether the view uses AutoLayout constraints. This mechansism doesn't work 100% of the time, however.
+Layout tries to determine sensible defaults for the width and height expressions if unspecified. To do this, it looks at a variety of properties, such as the `intrinsicContentSize` and whether the view uses AutoLayout constraints. This mechanism doesn't work 100% of the time, however.
 
 For custom components, you can provide explicit default expressions to be used instead. These are not limited to "width" and "height" expressions - you can provide defaults for any expression type.
 
