@@ -1272,7 +1272,7 @@ public class LayoutNode: NSObject {
                     }
                 } else {
                     // For read-only properties, which don't have expressions
-                    fallback = {
+                    fallback = { [unowned self] in
                         if let viewController = self._viewController,
                             let value = try? viewController.value(forSymbol: symbol) {
                             return value

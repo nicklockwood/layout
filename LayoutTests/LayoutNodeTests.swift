@@ -321,4 +321,21 @@ class LayoutNodeTests: XCTestCase {
         node.update()
         XCTAssertEqual(scrollView.contentInset.top, 5)
     }
+
+    // MARK: memory leaks
+
+    func testLayoutNodeWithSelfReferencingExpressionIsReleased() {
+        weak var node: LayoutNode?
+        do {
+            let strongNode = LayoutNode(
+                view: UIView(),
+                expressions: [
+                    "top": "safeAreaInsets.top",
+                ]
+            )
+            strongNode.update()
+            node = strongNode
+        }
+        XCTAssertNil(node)
+    }
 }
