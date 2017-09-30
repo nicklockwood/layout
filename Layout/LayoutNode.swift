@@ -427,13 +427,6 @@ public class LayoutNode: NSObject {
 
     // MARK: State
 
-    private func areEqual(_ lhs: Any, _ rhs: Any) -> Bool {
-        if let lhs = lhs as? AnyHashable, let rhs = rhs as? AnyHashable {
-            return lhs == rhs
-        }
-        return false // Can't compare equality
-    }
-
     private var _state: Any
 
     /// Update the node state and re-evaluate any expressions that are affected
@@ -835,7 +828,7 @@ public class LayoutNode: NSObject {
             guard let previousValue = previousValue, let cachedValue = cachedValue else {
                 return true
             }
-            return !self.areEqual(previousValue, cachedValue)
+            return !areEqual(previousValue, cachedValue)
         }
         let evaluate = expression.evaluate
         let symbols = expression.symbols
@@ -1028,15 +1021,6 @@ public class LayoutNode: NSObject {
         self.viewControllerClass.map { $0.cachedExpressionTypes } ?? [:]
     }()
 
-    private class func isLayoutSymbol(_ name: String) -> Bool {
-        switch name {
-        case "left", "right", "width", "top", "bottom", "height":
-            return true
-        default:
-            return false
-        }
-    }
-
     private func value(forSymbol name: String, dependsOn symbol: String) -> Bool {
         var checking = [String]()
         func _value(forSymbol name: String, dependsOn symbol: String) -> Bool {
@@ -1195,83 +1179,16 @@ public class LayoutNode: NSObject {
                 try self.inferContentSize().height
             }
         default:
-            let head: String
-            let tail: String
-            if let range = symbol.range(of: ".") {
-                head = String(symbol[symbol.startIndex ..< range.lowerBound])
-                tail = String(symbol[range.upperBound ..< symbol.endIndex])
-            } else {
-                head = ""
-                tail = ""
-            }
-            switch head {
-            case "parent":
-                if parent != nil {
-                    getter = { [unowned self] in
-                        try self.parent?.value(forSymbol: tail) as Any
-                    }
-                } else {
-                    switch tail {
-                    case "width", "containerSize.width":
-                        getter = { [unowned self] in
-                            self._view?.superview?.bounds.width ?? 0
-                        }
-                    case "height", "containerSize.height":
-                        getter = { [unowned self] in
-                            self._view?.superview?.bounds.height ?? 0
-                        }
-                    default:
-                        getter = {
-                            throw SymbolError("Undefined symbol \(tail)", for: symbol)
-                        }
-                    }
-                }
-            case "previous" where LayoutNode.isLayoutSymbol(tail):
-                getter = { [unowned self] in
-                    var previous = self.previous
-                    while previous?.isHidden == true {
-                        previous = previous?.previous
-                    }
-                    return try previous?.value(forSymbol: tail) ?? 0
-                }
-            case "previous":
-                getter = { [unowned self] in
-                    try self.previous?.value(forSymbol: tail) as Any
-                }
-            case "next" where LayoutNode.isLayoutSymbol(tail):
-                getter = { [unowned self] in
-                    var next = self.next
-                    while next?.isHidden == true {
-                        next = next?.next
-                    }
-                    return try next?.value(forSymbol: tail) ?? 0
-                }
-            case "next":
-                getter = { [unowned self] in
-                    try self.next?.value(forSymbol: tail) as Any
-                }
-            case "strings":
-                getter = { [unowned self] in
-                    try self.value(forVariableOrConstant: symbol) ?? self.localizedString(forKey: tail)
-                }
-            default:
+            func getterFor(_ symbol: String) -> Getter {
                 let fallback: Getter
-                if viewControllerExpressionTypes[symbol] != nil {
+                if viewControllerClass != nil, viewControllerExpressionTypes[symbol] != nil {
                     fallback = { [unowned self] in
                         guard let viewController = self._viewController else {
                             throw LayoutError("Failed to initialize viewController", for: self)
                         }
                         return try viewController.value(forSymbol: symbol)
                     }
-                } else if viewExpressionTypes[symbol] != nil {
-                    fallback = { [unowned self] in
-                        guard let view = self._view else {
-                            throw LayoutError("Failed to initialize view", for: self)
-                        }
-                        return try view.value(forSymbol: symbol)
-                    }
-                } else {
-                    // For read-only properties, which don't have expressions
+                } else if viewControllerClass != nil, viewExpressionTypes[symbol] == nil {
                     fallback = { [unowned self] in
                         if let viewController = self._viewController,
                             let value = try? viewController.value(forSymbol: symbol) {
@@ -1282,10 +1199,75 @@ public class LayoutNode: NSObject {
                         }
                         return try view.value(forSymbol: symbol)
                     }
+                } else {
+                    fallback = { [unowned self] in
+                        guard let view = self._view else {
+                            throw LayoutError("Failed to initialize view", for: self)
+                        }
+                        return try view.value(forSymbol: symbol)
+                    }
                 }
-                getter = { [unowned self] in
+                return { [unowned self] in
                     try self.value(forVariableOrConstant: symbol) ?? fallback()
                 }
+            }
+            if let range = symbol.range(of: ".") {
+                let tail: String = String(symbol[range.upperBound ..< symbol.endIndex])
+                switch symbol[symbol.startIndex ..< range.lowerBound] {
+                case "parent":
+                    if parent != nil {
+                        getter = { [unowned self] in
+                            try self.parent?.value(forSymbol: tail) as Any
+                        }
+                    } else {
+                        switch tail {
+                        case "width", "containerSize.width":
+                            getter = { [unowned self] in
+                                self._view?.superview?.bounds.width ?? 0
+                            }
+                        case "height", "containerSize.height":
+                            getter = { [unowned self] in
+                                self._view?.superview?.bounds.height ?? 0
+                            }
+                        default:
+                            getter = {
+                                throw SymbolError("Undefined symbol \(tail)", for: symbol)
+                            }
+                        }
+                    }
+                case "previous" where layoutSymbols.contains(tail):
+                    getter = { [unowned self] in
+                        var previous = self.previous
+                        while previous?.isHidden == true {
+                            previous = previous?.previous
+                        }
+                        return try previous?.value(forSymbol: tail) ?? 0
+                    }
+                case "previous":
+                    getter = { [unowned self] in
+                        try self.previous?.value(forSymbol: tail) as Any
+                    }
+                case "next" where layoutSymbols.contains(tail):
+                    getter = { [unowned self] in
+                        var next = self.next
+                        while next?.isHidden == true {
+                            next = next?.next
+                        }
+                        return try next?.value(forSymbol: tail) ?? 0
+                    }
+                case "next":
+                    getter = { [unowned self] in
+                        try self.next?.value(forSymbol: tail) as Any
+                    }
+                case "strings":
+                    getter = { [unowned self] in
+                        try self.value(forVariableOrConstant: symbol) ?? self.localizedString(forKey: tail)
+                    }
+                default:
+                    getter = getterFor(symbol)
+                }
+            } else {
+                getter = getterFor(symbol)
             }
         }
         _getters[symbol] = getter
@@ -1877,4 +1859,15 @@ public class LayoutNode: NSObject {
         }
         try LayoutError.wrap({ try control.bindActions(for: owner) }, for: self)
     }
+}
+
+private let layoutSymbols: Set<String> = [
+    "left", "right", "width", "top", "bottom", "height",
+]
+
+private func areEqual(_ lhs: Any, _ rhs: Any) -> Bool {
+    if let lhs = lhs as? AnyHashable, let rhs = rhs as? AnyHashable {
+        return lhs == rhs
+    }
+    return false // Can't compare equality
 }
