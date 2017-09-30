@@ -717,18 +717,26 @@ public class LayoutNode: NSObject {
         _viewExpressions.removeAll()
         _valueClearers.removeAll()
         _valueHasChanged.removeAll()
+        _updateExpressionValues = { _ in }
         for child in children {
             child.cleanUp()
         }
     }
 
+    private typealias Getter = () throws -> Any
+
     private var _evaluating = [String]()
-    private var _getters = [String: () throws -> Any]()
+    private var _getters = [String: Getter]()
     private var _layoutExpressions = [String: LayoutExpression]()
     private var _viewControllerExpressions = [String: LayoutExpression]()
+    private var _sortedViewControllerGetters = [Getter]()
     private var _viewExpressions = [String: LayoutExpression]()
+    private var _sortedViewGetters = [Getter]()
     private var _valueClearers = [() -> Void]()
     private var _valueHasChanged = [String: () -> Bool]()
+
+    // Note: thrown error is always a SymbolError
+    private var _updateExpressionValues: (_ animated: Bool) throws -> Void = { _ in }
 
     private lazy var constructorArgumentTypes: [String: RuntimeType] =
         self.viewControllerClass?.parameterTypes ?? self.viewClass.parameterTypes
@@ -861,20 +869,23 @@ public class LayoutNode: NSObject {
 
         // Store expression
         if isViewControllerExpression {
-            if let viewController = _viewController, expression.isConstant {
-                try viewController.setValue(expression.evaluate(), forExpression: symbol)
-            } else {
-                _viewControllerExpressions[symbol] = expression
-            }
+            _viewControllerExpressions[symbol] = expression
         } else if isViewExpression {
-            if let view = _view, expression.isConstant {
-                try view.setValue(expression.evaluate(), forExpression: symbol)
-            } else {
-                _viewExpressions[symbol] = expression
-            }
+            _viewExpressions[symbol] = expression
         } else {
             _layoutExpressions[symbol] = expression
         }
+    }
+
+    private func expressionsContainNonConstantSuperExpression(for key: String) -> Bool {
+        var key = key
+        while let range = key.range(of: ".", options: .backwards) {
+            key = String(key[key.startIndex ..< range.lowerBound])
+            if expressions[key] != nil { // TODO: check if constant
+                return true
+            }
+        }
+        return false
     }
 
     // Note: thrown error is always a LayoutError
@@ -890,6 +901,46 @@ public class LayoutNode: NSObject {
         try completeSetup()
         for symbol in expressions.keys {
             try LayoutError.wrap({ try setUpExpression(for: symbol) }, for: self)
+        }
+
+        var blocks = [(Bool) throws -> Void]()
+        try LayoutError.wrap({
+            for key in _viewControllerExpressions.keys.sorted() {
+                let expression = _viewControllerExpressions[key]!
+                if expression.isConstant, !expressionsContainNonConstantSuperExpression(for: key) {
+                    try _viewController?.setValue(expression.evaluate(), forExpression: key)
+                    continue
+                }
+                blocks.append { [unowned self] _ in
+                    let value = try expression.evaluate()
+                    if self._valueHasChanged[key]!() {
+                        try self._viewController?.setValue(value, forExpression: key)
+                    }
+                }
+            }
+            for key in _viewExpressions.keys.sorted() {
+                let expression = _viewExpressions[key]!
+                if expression.isConstant, !expressionsContainNonConstantSuperExpression(for: key) {
+                    try _view?.setValue(expression.evaluate(), forExpression: key)
+                    continue
+                }
+                blocks.append { [unowned self] animated in
+                    let value = try expression.evaluate()
+                    if self._valueHasChanged[key]!() {
+                        if animated {
+                            try self._view?.setAnimatedValue(value, forExpression: key)
+                        } else {
+                            try self._view?.setValue(value, forExpression: key)
+                        }
+                    }
+                }
+            }
+        }, for: self)
+        _updateExpressionValues = { [unowned self] animated in
+            for block in blocks {
+                try block(animated)
+            }
+            try self.bindActions()
         }
 
         #if arch(i386) || arch(x86_64)
@@ -1057,7 +1108,7 @@ public class LayoutNode: NSObject {
         }
         assert(expressions[symbol] == nil)
         attempt(completeSetup) // Using attempt to avoid throwing LayoutError
-        let getter: () throws -> Any
+        let getter: Getter
         switch symbol {
         case "left":
             getter = { [unowned self] in
@@ -1204,7 +1255,7 @@ public class LayoutNode: NSObject {
                     try self.value(forVariableOrConstant: symbol) ?? self.localizedString(forKey: tail)
                 }
             default:
-                let fallback: () throws -> Any
+                let fallback: Getter
                 if viewControllerExpressionTypes[symbol] != nil {
                     fallback = { [unowned self] in
                         guard let viewController = self._viewController else {
@@ -1239,35 +1290,6 @@ public class LayoutNode: NSObject {
         }
         _getters[symbol] = getter
         return try getter()
-    }
-
-    // Note: thrown error is always a SymbolError
-    private func updateExpressionValues(animated: Bool) throws {
-        for (name, expression) in _viewControllerExpressions {
-            let value = try expression.evaluate()
-            guard _valueHasChanged[name]!() else {
-                continue
-            }
-            try _viewController!.setValue(value, forExpression: name)
-            if expression.isConstant {
-                _viewControllerExpressions.removeValue(forKey: name)
-            }
-        }
-        for (name, expression) in _viewExpressions {
-            let value = try expression.evaluate()
-            guard _valueHasChanged[name]!() else {
-                continue
-            }
-            if animated {
-                try _view?.setAnimatedValue(value, forExpression: name)
-            } else {
-                try _view?.setValue(value, forExpression: name)
-            }
-            if expression.isConstant {
-                _viewExpressions.removeValue(forKey: name)
-            }
-        }
-        try bindActions()
     }
 
     // MARK: layout
@@ -1613,7 +1635,7 @@ public class LayoutNode: NSObject {
         try LayoutError.wrap(setUpExpressions, for: self)
         clearCachedValues()
         try LayoutError.wrap({
-            try updateExpressionValues(animated: animated)
+            try _updateExpressionValues(animated)
         }, for: self)
         for child in children {
             try LayoutError.wrap({

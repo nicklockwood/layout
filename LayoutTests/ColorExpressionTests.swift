@@ -61,12 +61,14 @@ class ColorExpressionTests: XCTestCase {
 
     func testSetBackgroundColor() {
         let node = LayoutNode(expressions: ["backgroundColor": "red"])
+        node.update()
         let expected = UIColor(red: 1, green: 0, blue: 0, alpha: 1)
         XCTAssertEqual(node.view.backgroundColor, expected)
     }
 
     func testSetLayerBackgroundColor() {
         let node = LayoutNode(expressions: ["layer.backgroundColor": "red"])
+        node.update()
         let expected = UIColor(red: 1, green: 0, blue: 0, alpha: 1).cgColor
         XCTAssertEqual(node.view.layer.backgroundColor, expected)
     }
@@ -77,6 +79,7 @@ class ColorExpressionTests: XCTestCase {
             constants: ["color": color],
             expressions: ["layer.backgroundColor": "color"]
         )
+        node.update()
         XCTAssertEqual(node.view.layer.backgroundColor, color)
     }
 
@@ -86,6 +89,7 @@ class ColorExpressionTests: XCTestCase {
             constants: ["color": color],
             expressions: ["layer.backgroundColor": "color"]
         )
+        node.update()
         XCTAssertEqual(node.view.layer.backgroundColor, color.cgColor)
     }
 

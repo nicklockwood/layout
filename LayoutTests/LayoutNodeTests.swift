@@ -286,4 +286,39 @@ class LayoutNodeTests: XCTestCase {
         node.update()
         XCTAssertFalse(view.wasUpdated)
     }
+
+    // MARK: property evaluation order
+
+    func testUpdateContentInsetWithTop() {
+        let scrollView = UIScrollView()
+        let node = LayoutNode(
+            view: scrollView,
+            state: [
+                "inset": UIEdgeInsets.zero,
+                "insetTop": 5
+            ],
+            expressions: [
+                "contentInset": "inset",
+                "contentInset.top": "insetTop",
+            ]
+        )
+
+        node.update()
+        XCTAssertEqual(scrollView.contentInset.top, 5)
+    }
+
+    func testUpdateContentInsetWithConstantTop() {
+        let scrollView = UIScrollView()
+        let node = LayoutNode(
+            view: scrollView,
+            state: ["inset": UIEdgeInsets.zero],
+            expressions: [
+                "contentInset": "inset",
+                "contentInset.top": "5",
+            ]
+        )
+
+        node.update()
+        XCTAssertEqual(scrollView.contentInset.top, 5)
+    }
 }

@@ -334,6 +334,7 @@ class LayoutExpressionTests: XCTestCase {
             constants: ["image": image],
             expressions: ["layer.contents": "{image}"]
         )
+        node.update()
         XCTAssertTrue(node.view.layer.contents as AnyObject === image)
     }
 
@@ -345,6 +346,7 @@ class LayoutExpressionTests: XCTestCase {
             constants: ["image": image],
             expressions: ["layer.contents": "{image}"]
         )
+        node.update()
         XCTAssertTrue(node.view.layer.contents as AnyObject === image.cgImage as AnyObject)
     }
 
@@ -355,6 +357,7 @@ class LayoutExpressionTests: XCTestCase {
             constants: ["path": path],
             expressions: ["layer.shadowPath": "path"]
         )
+        node.update()
         XCTAssertEqual(node.view.layer.shadowPath, path)
     }
 
