@@ -38,7 +38,7 @@ internal struct SymbolError: Error, CustomStringConvertible {
     public var description: String {
         var description = String(describing: error)
         if !description.contains(symbol) {
-            description = "\(description) in \(symbol) expression"
+            description = "\(description) in `\(symbol)` expression"
         }
         return description
     }

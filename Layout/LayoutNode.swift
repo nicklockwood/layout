@@ -1184,7 +1184,7 @@ public class LayoutNode: NSObject {
                 if viewControllerClass != nil, viewControllerExpressionTypes[symbol] != nil {
                     fallback = { [unowned self] in
                         guard let viewController = self._viewController else {
-                            throw LayoutError("Failed to initialize viewController", for: self)
+                            throw SymbolError("Undefined symbol `\(symbol)`", for: symbol)
                         }
                         return try viewController.value(forSymbol: symbol)
                     }
@@ -1195,14 +1195,14 @@ public class LayoutNode: NSObject {
                             return value
                         }
                         guard let view = self._view else {
-                            throw LayoutError("Failed to initialize view", for: self)
+                            throw SymbolError("Undefined symbol `\(symbol)`", for: symbol)
                         }
                         return try view.value(forSymbol: symbol)
                     }
                 } else {
                     fallback = { [unowned self] in
                         guard let view = self._view else {
-                            throw LayoutError("Failed to initialize view", for: self)
+                            throw SymbolError("Undefined symbol `\(symbol)`", for: symbol)
                         }
                         return try view.value(forSymbol: symbol)
                     }
@@ -1231,7 +1231,7 @@ public class LayoutNode: NSObject {
                             }
                         default:
                             getter = {
-                                throw SymbolError("Undefined symbol \(tail)", for: symbol)
+                                throw SymbolError("Undefined symbol `\(tail)`", for: symbol)
                             }
                         }
                     }
