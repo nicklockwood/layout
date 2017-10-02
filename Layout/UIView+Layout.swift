@@ -398,18 +398,29 @@ extension UIControl {
     }
 }
 
+private let _buttonType = RuntimeType(UIButtonType.self, [
+    "custom": .custom,
+    "system": .system,
+    "detailDisclosure": .detailDisclosure,
+    "infoLight": .infoLight,
+    "infoDark": .infoDark,
+    "contactAdd": .contactAdd,
+] as [String: UIButtonType])
+
 extension UIButton {
+    open override class func create(with node: LayoutNode) throws -> UIButton {
+        if let type = try node.value(forExpression: "type") as? UIButtonType {
+            return self.init(type: type)
+        }
+        return self.init(frame: .zero)
+    }
+
+    open override class var parameterTypes: [String: RuntimeType] {
+        return ["type": _buttonType]
+    }
+
     open override class var expressionTypes: [String: RuntimeType] {
         var types = super.expressionTypes
-        types["type"] = RuntimeType(UIButtonType.self, [
-            "custom": .custom,
-            "system": .system,
-            "detailDisclosure": .detailDisclosure,
-            "infoLight": .infoLight,
-            "infoDark": .infoDark,
-            "contactAdd": .contactAdd,
-        ] as [String: UIButtonType])
-        types["buttonType"] = types["type"]
         types["title"] = RuntimeType(String.self)
         for state in controlStates.keys {
             types["\(state)Title"] = RuntimeType(String.self)
@@ -443,12 +454,19 @@ extension UIButton {
         // Setters used for embedded html
         types["text"] = RuntimeType(String.self)
         types["attributedText"] = RuntimeType(NSAttributedString.self)
+        // Private properties
+        for name in [
+            "autosizesToFit",
+            "lineBreakMode",
+            "showPressFeedback",
+        ] {
+            types[name] = nil
+        }
         return types
     }
 
     open override func setValue(_ value: Any, forExpression name: String) throws {
         switch name {
-        case "type", "buttonType": setValue((value as! UIButtonType).rawValue, forKey: "buttonType")
         case "title": setTitle(value as? String, for: .normal)
         case "titleColor": setTitleColor(value as? UIColor, for: .normal)
         case "titleShadowColor": setTitleShadowColor(value as? UIColor, for: .normal)
