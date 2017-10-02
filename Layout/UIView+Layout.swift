@@ -713,6 +713,77 @@ extension UITextView {
     }
 }
 
+extension UISearchBar {
+    open override class var expressionTypes: [String: RuntimeType] {
+        var types = super.expressionTypes
+        types["barPosition"] = barPositionType
+        types["barStyle"] = barStyleType
+        types["scopeButtonTitles"] = RuntimeType(Array<String>.self)
+        types["searchBarStyle"] = RuntimeType(UISearchBarStyle.self, [
+            "default": .default,
+            "prominent": .prominent,
+            "minimal": .minimal,
+        ] as [String: UISearchBarStyle])
+        for (name, type) in textInputTraits {
+            types[name] = type
+        }
+        // Private properties
+        for name in [
+            "centerPlaceholder",
+            "combinesLandscapeBars",
+            "contentInset",
+            "drawsBackground",
+            "drawsBackgroundInPalette",
+            "pretendsIsInBar",
+            "searchFieldLeftViewMode",
+            "searchTextPositionAdjustment",
+            "usesEmbeddedAppearance",
+        ] {
+            types[name] = nil
+            for key in types.keys where key.hasPrefix(name) {
+                types[key] = nil
+            }
+        }
+        return types
+    }
+
+    open override func setValue(_ value: Any, forExpression name: String) throws {
+        switch name {
+        case "autocapitalizationType": autocapitalizationType = value as! UITextAutocapitalizationType
+        case "autocorrectionType": autocorrectionType = value as! UITextAutocorrectionType
+        case "spellCheckingType": spellCheckingType = value as! UITextSpellCheckingType
+        case "keyboardType": keyboardType = value as! UIKeyboardType
+        case "keyboardAppearance": keyboardAppearance = value as! UIKeyboardAppearance
+        case "returnKeyType": returnKeyType = value as! UIReturnKeyType
+        case "enablesReturnKeyAutomatically": enablesReturnKeyAutomatically = value as! Bool
+        case "isSecureTextEntry": isSecureTextEntry = value as! Bool
+        case "smartQuotesType":
+            #if swift(>=3.2)
+                if #available(iOS 11.0, *) {
+                    smartQuotesType = value as! UITextSmartQuotesType
+                }
+            #endif
+            // TODO: warn about unavailability
+        case "smartDashesType":
+            #if swift(>=3.2)
+                if #available(iOS 11.0, *) {
+                    smartDashesType = value as! UITextSmartDashesType
+                }
+            #endif
+            // TODO: warn about unavailability
+        case "smartInsertDeleteType":
+            #if swift(>=3.2)
+                if #available(iOS 11.0, *) {
+                    smartInsertDeleteType = value as! UITextSmartInsertDeleteType
+                }
+            #endif
+            // TODO: warn about unavailability
+        default:
+            try super.setValue(value, forExpression: name)
+        }
+    }
+}
+
 private let controlSegments: [String: UISegmentedControlSegment] = [
     "any": .any,
     "left": .left,
@@ -888,21 +959,6 @@ let barPositionType = RuntimeType(UIBarPosition.self, [
     "top": .top,
     "topAttached": .topAttached,
 ])
-
-extension UISearchBar {
-    open override class var expressionTypes: [String: RuntimeType] {
-        var types = super.expressionTypes
-        types["barStyle"] = barStyleType
-        types["barPosition"] = barPositionType
-        types["searchBarStyle"] = RuntimeType(UISearchBarStyle.self, [
-            "default": .default,
-            "prominent": .prominent,
-            "minimal": .minimal,
-        ] as [String: UISearchBarStyle])
-        // TODO: more properties
-        return types
-    }
-}
 
 extension UIStepper {
     open override class var expressionTypes: [String: RuntimeType] {
