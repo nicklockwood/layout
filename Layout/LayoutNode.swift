@@ -409,7 +409,7 @@ public class LayoutNode: NSObject {
     }
 
     // Attempt a throwing operation but catch the error and bubble it up the Layout hierarchy
-    private func attempt<T>(_ closure: () throws -> T) -> T? {
+    func attempt<T>(_ closure: () throws -> T) -> T? {
         do {
             return try closure()
         } catch {

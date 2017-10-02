@@ -41,9 +41,11 @@ extension UICollectionView {
     }
 
     open override class func create(with node: LayoutNode) throws -> UICollectionView {
-        let layout = try node.value(
-            forExpression: "collectionViewLayout"
-        ) as? UICollectionViewLayout ?? .defaultLayout(for: node)
+        // UICollectionView cannot be created with a nil collectionViewLayout
+        // so we cannot allow create(with:) to throw. Instead, we'll intercept the error
+        let layout = node.attempt {
+            try node.value(forExpression: "collectionViewLayout")
+        } as? UICollectionViewLayout ?? .defaultLayout(for: node)
         let collectionView = self.init(frame: .zero, collectionViewLayout: layout)
         collectionView.register(UICollectionViewCell.self, forCellWithReuseIdentifier: placeholderID)
         objc_setAssociatedObject(collectionView, &layoutNodeKey, Box(node), .OBJC_ASSOCIATION_RETAIN)
