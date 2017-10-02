@@ -945,3 +945,62 @@ extension UIStepper {
         }
     }
 }
+
+private let activityIndicatorStyle = RuntimeType(UIActivityIndicatorViewStyle.self, [
+    "whiteLarge": .whiteLarge,
+    "white": .white,
+    "gray": .gray,
+] as [String: UIActivityIndicatorViewStyle])
+
+extension UIActivityIndicatorView {
+    open override class var expressionTypes: [String: RuntimeType] {
+        var types = super.expressionTypes
+        types["isAnimating"] = RuntimeType(Bool.self)
+        types["activityIndicatorViewStyle"] = activityIndicatorStyle
+
+        // Private properties
+        for name in [
+            "animationDuration",
+            "clockWise",
+            "hasShadow",
+            "innerRadius",
+            "isHighlighted",
+            "shadowColor",
+            "shadowOffset",
+            "spinning",
+            "spinningDuration",
+            "spokeCount",
+            "spokeFrameRatio",
+            "style",
+            "useArtwork",
+            "useOutlineShadow",
+            "width"
+        ] {
+            types[name] = nil
+            for key in types.keys where key.hasPrefix(name) {
+                types[key] = nil
+            }
+        }
+        return types
+    }
+
+    open override func setValue(_ value: Any, forExpression name: String) throws {
+        switch name {
+        case "isAnimating":
+            switch (value as! Bool, isAnimating) {
+            case (true, false):
+                startAnimating()
+            case (false, true):
+                stopAnimating()
+            case (true, true), (false, false):
+                break
+            }
+        default:
+            try super.setValue(value, forExpression: name)
+        }
+    }
+
+    open override class var defaultExpressions: [String: String] {
+        return ["isAnimating": "true"]
+    }
+}
