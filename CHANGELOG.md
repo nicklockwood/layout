@@ -1,5 +1,10 @@
 # Change Log
 
+## [0.5.1](https://github.com/schibsted/layout/releases/tag/0.5.1) (2017-10-02)
+
+- Fixed a retain cycle inside LayoutNode when referencing read-only view properties inside an expression
+- Having expressions for a property and one or more sub-properties (e.g. `contentInset` and `contentInset.left`) now works correctly
+
 ## [0.5.0](https://github.com/schibsted/layout/releases/tag/0.5.0) (2017-09-28)
 
 - Added `defaultExpressions` property for custom views (see README.md for details)

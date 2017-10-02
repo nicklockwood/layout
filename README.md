@@ -2120,6 +2120,10 @@ The Layout project includes the source code for a command-line app called Layout
 
 The latest built binary of LayoutTool is included in the project, and you can just drag-and-drop it to install.
 
+To ensure compatibility, always update LayoutTool at the same time as updating the Layout framework, because using an old version of LayoutTool to process XML files containing newer features may result in data loss or corruption.
+
+**Note:** The LayoutTool binary is only updated when there are changes that affect its behavior, so don't worry if the version doesn't match exactly.
+
 To automatically install LayoutTool into your project using CocoaPods, add the following to your Podfile:
 
 ```ruby
@@ -2169,19 +2173,19 @@ Only class names and values inside expressions will be affected. Attributes (i.e
 
 *Q. How is this different from frameworks like [React Native](https://facebook.github.io/react-native/)?
 
-> React Native is a complete x-platform replacement for native iOS and Android development, whereas Layout is a way to build ordinary iOS UIKit apps more easily.
+> React Native is a complete x-platform replacement for native iOS and Android development, whereas Layout is a way to build ordinary iOS UIKit apps more easily. In particular, Layout has much tighter integration with native UIKit controls, requires less boilerplate to use custom controls, and works directly with your existing native Swift code.
 
 *Q. How is this different from frameworks like [Render](https://github.com/alexdrone/Render)?
 
-> The programming model is very similar, but Layout's runtime expressions mean that you can do a larger proportion of your UI development without needing to restart the Simulator.
+> The programming model is very similar, but Layout's runtime expression language means that you can do a larger proportion of your UI development without needing to restart the Simulator.
 
 *Q. Does Layout use Flexbox?*
 
-> No. Layout requires you to position each view explicitly using top/left/width/height/bottom/right properties, but its percentage-based units and auto-sizing feature make it easy to create complex layouts with minimal code. You can also use iOS's native flexbox-style `UIStackView` within your Layout templates.
+> No. Layout requires you to position each view explicitly using top/left/width/height properties, but its percentage-based units and auto-sizing feature make it easy to create complex layouts with minimal code. You can also use iOS's native flexbox-style `UIStackView` within your Layout templates.
 
 *Q. Why does Layout use XML instead of a more modern format like JSON?*
 
-> XML is better to suited to representing document-like structures such as view hierarchies. JSON does not distinguish between node types, attributes, and children in its syntax, which leads to a lot of extra verbosity when representing hierarchical structures because each node must include keys for "type" and "children", or equivalent. JSON also doesn't support comments, which are useful in complex layouts. While XML isn't perfect, it is the most appropriate of the formats that iOS has built-in support for loading.
+> XML is better to suited to representing document-like structures such as view hierarchies. JSON does not distinguish between node types, attributes, and children in its syntax, which leads to a lot of extra verbosity when representing hierarchical structures because each node must include keys for "type" and "children", or equivalent. JSON also doesn't support comments, which are useful in complex layouts. While XML isn't perfect, it is the most appropriate of the formats that iOS has built-in support for.
 
 *Q. Do I really have to write my layouts in XML?*
 
@@ -2194,6 +2198,10 @@ Only class names and values inside expressions will be affected. Attributes (i.e
 *Q. Does Layout support macOS/AppKit?*
 
 > Not currently, but this would make sense in future given the shared language and similar frameworks.
+
+*Q. Will Layout support Android/Windows?*
+
+> No. There are no plans to port Layout to other platforms at the moment. Android and Windows in particular already use a human-readable XML format for their view templates, which eliminates some of the need for a Layout-like replacement.
 
 *Q. Why isn't Cmd-R reloading my XML file in the simulator?*
 

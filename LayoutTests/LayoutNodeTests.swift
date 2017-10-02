@@ -295,7 +295,7 @@ class LayoutNodeTests: XCTestCase {
             view: scrollView,
             state: [
                 "inset": UIEdgeInsets.zero,
-                "insetTop": 5
+                "insetTop": 5,
             ],
             expressions: [
                 "contentInset": "inset",
