@@ -1004,3 +1004,25 @@ extension UIActivityIndicatorView {
         return ["isAnimating": "true"]
     }
 }
+
+extension UIProgressView {
+    open override class var expressionTypes: [String: RuntimeType] {
+        var types = super.expressionTypes
+        types["progressViewStyle"] = RuntimeType(UIProgressViewStyle.self, [
+            "default": .default,
+            "bar": .bar,
+        ] as [String: UIProgressViewStyle])
+        // Private
+        types["barStyle"] = nil
+        return types
+    }
+
+    open override func setAnimatedValue(_ value: Any, forExpression name: String) throws {
+        switch name {
+        case "progress":
+            setProgress(value as! Float, animated: true)
+        default:
+            try super.setAnimatedValue(value, forExpression: name)
+        }
+    }
+}
