@@ -26,6 +26,7 @@ extension UIStackView {
             "bottom": .bottom,
             "lastBaseline": .lastBaseline, // Valid for horizontal axis only
         ] as [String: UIStackViewAlignment])
+        types["spacing"] = RuntimeType(CGFloat.self)
         types["arrangedSubviews"] = .unavailable()
         // UIStackView is a non-drawing view, so none of these properties are available
         for name in [

@@ -10,6 +10,16 @@ extension CALayer {
     @objc class var expressionTypes: [String: RuntimeType] {
         var types = allPropertyTypes()
         types["contents"] = RuntimeType(CGImage.self)
+        for key in [
+            "borderWidth",
+            "contentsScale",
+            "cornerRadius",
+            "shadowRadius",
+            "rasterizationScale",
+            "zPosition",
+        ] {
+            types[key] = RuntimeType(CGFloat.self)
+        }
         types["contentsGravity"] = RuntimeType(String.self, [
             "center": "center",
             "top": "top",
@@ -61,56 +71,58 @@ extension CALayer {
             }
         }
 
-        // Private properties
-        for name in [
-            "acceleratesDrawing",
-            "allowsContentsRectCornerMasking",
-            "allowsDisplayCompositing",
-            "allowsGroupBlending",
-            "allowsHitTesting",
-            "backgroundColorPhase",
-            "behaviors",
-            "canDrawConcurrently",
-            "clearsContext",
-            "coefficientOfRestitution",
-            "contentsContainsSubtitles",
-            "contentsDither",
-            "contentsMultiplyByColor",
-            "contentsOpaque",
-            "contentsScaling",
-            "continuousCorners",
-            "cornerContentsCenter",
-            "cornerContentsMaskEdges",
-            "doubleBounds",
-            "doublePosition",
-            "flipsHorizontalAxis",
-            "hitTestsAsOpaque",
-            "inheritsTiming",
-            "invertsShadow",
-            "isFlipped",
-            "isFrozen",
-            "literalContentsCenter",
-            "mass",
-            "meshTransform",
-            "momentOfInertia",
-            "motionBlurAmount",
-            "needsLayoutOnGeometryChange",
-            "perspectiveDistance",
-            "preloadsCache",
-            "presentationModifiers",
-            "rasterizationPrefersDisplayCompositing",
-            "sizeRequisition",
-            "sortsSublayers",
-            "stateTransitions",
-            "states",
-            "velocityStretch",
-            "wantsExtendedDynamicRangeContent",
-        ] {
-            types[name] = nil
-            for key in types.keys where key.hasPrefix(name) {
-                types[key] = nil
+        #if arch(i386) || arch(x86_64)
+            // Private properties
+            for name in [
+                "acceleratesDrawing",
+                "allowsContentsRectCornerMasking",
+                "allowsDisplayCompositing",
+                "allowsGroupBlending",
+                "allowsHitTesting",
+                "backgroundColorPhase",
+                "behaviors",
+                "canDrawConcurrently",
+                "clearsContext",
+                "coefficientOfRestitution",
+                "contentsContainsSubtitles",
+                "contentsDither",
+                "contentsMultiplyByColor",
+                "contentsOpaque",
+                "contentsScaling",
+                "continuousCorners",
+                "cornerContentsCenter",
+                "cornerContentsMaskEdges",
+                "doubleBounds",
+                "doublePosition",
+                "flipsHorizontalAxis",
+                "hitTestsAsOpaque",
+                "inheritsTiming",
+                "invertsShadow",
+                "isFlipped",
+                "isFrozen",
+                "literalContentsCenter",
+                "mass",
+                "meshTransform",
+                "momentOfInertia",
+                "motionBlurAmount",
+                "needsLayoutOnGeometryChange",
+                "perspectiveDistance",
+                "preloadsCache",
+                "presentationModifiers",
+                "rasterizationPrefersDisplayCompositing",
+                "sizeRequisition",
+                "sortsSublayers",
+                "stateTransitions",
+                "states",
+                "velocityStretch",
+                "wantsExtendedDynamicRangeContent",
+            ] {
+                types[name] = nil
+                for key in types.keys where key.hasPrefix(name) {
+                    types[key] = nil
+                }
             }
-        }
+        #endif
         return types
     }
 

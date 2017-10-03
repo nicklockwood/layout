@@ -84,54 +84,56 @@ extension UIViewController {
         types["navigationItem.rightBarButtonItem.systemItem"] = barButtonSystemItemType
         // TODO: barButtonItem.backgroundImage, etc
 
-        // Private and read-only properties
-        for name in [
-            "SKUIStackedBarSplit",
-            "aggregateStatisticsDisplayCountKey",
-            "appearanceTransitionsAreDisabled",
-            "autoresizesArchivedViewToFullSize",
-            "childModalViewController",
-            "containmentSupport",
-            "contentSizeForViewInPopover",
-            "customNavigationInteractiveTransitionDuration",
-            "customNavigationInteractiveTransitionPercentComplete",
-            "customTransitioningView",
-            "disableRootPromotion",
-            "dropShadowView",
-            "formSheetSize",
-            "ignoresParentMargins",
-            "isFinishingModalTransition",
-            "isInAnimatedVCTransition",
-            "isInWillRotateCallback",
-            "isPerformingModalTransition",
-            "modalTransitionView",
-            "mutableChildViewControllers",
-            "navigationInsetAdjustment",
-            "needsDidMoveCleanup",
-            "overrideTraitCollection",
-            "parentModalViewController",
-            "preferredFocusedItem",
-            "sKUIStackedBarSplit",
-            "searchBarHidNavBar",
-            "shouldForceNonAnimatedTransition",
-            "showsBackgroundShadow",
-            "storePageProtocol",
-            "useLegacyContainment",
-            "wantsFullScreenLayout",
-        ] + [
-            "disablesAutomaticKeyboardDismissal",
-            "interfaceOrientation",
-            "nibName",
-            "nibBundle",
-            "preferredFocusedView",
-            "searchDisplayController",
-            "view", // Not actually read-only, but Layout doesn't allow this to be set
-        ] {
-            types[name] = nil
-            for key in types.keys where key.hasPrefix(name) {
-                types[key] = nil
+        #if arch(i386) || arch(x86_64)
+            // Private and read-only properties
+            for name in [
+                "SKUIStackedBarSplit",
+                "aggregateStatisticsDisplayCountKey",
+                "appearanceTransitionsAreDisabled",
+                "autoresizesArchivedViewToFullSize",
+                "childModalViewController",
+                "containmentSupport",
+                "contentSizeForViewInPopover",
+                "customNavigationInteractiveTransitionDuration",
+                "customNavigationInteractiveTransitionPercentComplete",
+                "customTransitioningView",
+                "disableRootPromotion",
+                "dropShadowView",
+                "formSheetSize",
+                "ignoresParentMargins",
+                "isFinishingModalTransition",
+                "isInAnimatedVCTransition",
+                "isInWillRotateCallback",
+                "isPerformingModalTransition",
+                "modalTransitionView",
+                "mutableChildViewControllers",
+                "navigationInsetAdjustment",
+                "needsDidMoveCleanup",
+                "overrideTraitCollection",
+                "parentModalViewController",
+                "preferredFocusedItem",
+                "sKUIStackedBarSplit",
+                "searchBarHidNavBar",
+                "shouldForceNonAnimatedTransition",
+                "showsBackgroundShadow",
+                "storePageProtocol",
+                "useLegacyContainment",
+                "wantsFullScreenLayout",
+            ] + [
+                "disablesAutomaticKeyboardDismissal",
+                "interfaceOrientation",
+                "nibName",
+                "nibBundle",
+                "preferredFocusedView",
+                "searchDisplayController",
+                "view", // Not actually read-only, but Layout doesn't allow this to be set
+            ] {
+                types[name] = nil
+                for key in types.keys where key.hasPrefix(name) {
+                    types[key] = nil
+                }
             }
-        }
+        #endif
         return types
     }
 
@@ -269,6 +271,14 @@ extension UIViewController {
         }
     }
 
+    // Set expression value with animation (if applicable)
+    @objc open func setAnimatedValue(_ value: Any, forExpression name: String) throws {
+        let type = Swift.type(of: self).cachedExpressionTypes[name]
+        if try !_setValue(value, ofType: type, forKey: name, animated: true) {
+            try setValue(value, forExpression: name)
+        }
+    }
+
     /// Get symbol value
     @objc open func value(forSymbol name: String) throws -> Any {
         return try _value(ofType: type(of: self).cachedExpressionTypes[name], forKeyPath: name) as Any
@@ -305,7 +315,19 @@ extension UITabBar {
             "centered": .centered,
         ] as [String: UITabBarItemPositioning])
         types["barStyle"] = barStyleType
-        types["barPosition"] = barPositionType
+        types["itemSpacing"] = RuntimeType(CGFloat.self)
+        types["itemWidth"] = RuntimeType(CGFloat.self)
+
+        #if arch(i386) || arch(x86_64)
+            // Private properties
+            for name in [
+                "backgroundEffects",
+                "barPosition",
+                "isLocked",
+            ] {
+                types[name] = nil
+            }
+        #endif
         return types
     }
 
@@ -333,6 +355,24 @@ extension UITabBarController {
             throw LayoutError("\(child._class) is not compatible with \(tabBarType)")
         }
         return tabBarController
+    }
+
+    open override class var expressionTypes: [String: RuntimeType] {
+        var types = super.expressionTypes
+        types["selectedIndex"] = RuntimeType(Int.self)
+
+        #if arch(i386) || arch(x86_64)
+            // Private and read-only properties
+            for name in [
+                "moreChildViewControllers",
+                "showsEditButtonOnLeft",
+            ] + [
+                "tabBar",
+            ] {
+                types[name] = nil
+            }
+        #endif
+        return types
     }
 
     open override func didInsertChildNode(_ node: LayoutNode, at index: Int) {
@@ -367,6 +407,21 @@ extension UINavigationBar: TitleTextAttributes {
         types["titleVerticalPositionAdjustment"] = RuntimeType(CGFloat.self)
         types["barStyle"] = barStyleType
         types["barPosition"] = barPositionType
+        types["prefersLargeTitles"] = RuntimeType(Bool.self)
+
+        #if arch(i386) || arch(x86_64)
+            // Private properties
+            for name in [
+                "backgroundEffects",
+                "forceFullHeightInLandscape",
+                "isLocked",
+                "requestedContentSize",
+                "rightMargin",
+                "titleAutoresizesToFit",
+            ] {
+                types[name] = nil
+            }
+        #endif
         return types
     }
 
@@ -380,6 +435,15 @@ extension UINavigationBar: TitleTextAttributes {
         set { titleTextAttributes?[NSAttributedStringKey.font] = newValue }
     }
 
+    open override func setAnimatedValue(_ value: Any, forExpression name: String) throws {
+        switch name {
+        case "items":
+            setItems(value as? [UINavigationItem], animated: true)
+        default:
+            try super.setAnimatedValue(value, forExpression: name)
+        }
+    }
+
     open override func setValue(_ value: Any, forExpression name: String) throws {
         switch name {
         case "backgroundImage":
@@ -390,7 +454,12 @@ extension UINavigationBar: TitleTextAttributes {
             if viewController is UINavigationController {
                 throw LayoutError("Cannot change the delegate of a UINavigationBar managed by a UINavigationController")
             }
-            fallthrough
+            delegate = value as? UINavigationBarDelegate
+        case "prefersLargeTitles":
+            if #available(iOS 11.0, *) {
+                fallthrough
+            }
+            // Does nothing on iOS 10 and earlier
         default:
             try _setValue(value, ofType: type(of: self).cachedExpressionTypes[name], forKeyPath: name)
         }
@@ -400,11 +469,16 @@ extension UINavigationBar: TitleTextAttributes {
 extension UIToolbar {
     open override class var expressionTypes: [String: RuntimeType] {
         var types = super.expressionTypes
+        types["items"] = RuntimeType(Array<UIBarButtonItem>.self)
         types["backgroundImage"] = RuntimeType(UIImage.self)
         types["shadowImage"] = RuntimeType(UIImage.self)
         types["barStyle"] = barStyleType
         types["barPosition"] = barPositionType
-        // TODO: more properties
+
+        #if arch(i386) || arch(x86_64)
+            // Private properties
+            types["centerTextButtons"] = nil
+        #endif
         return types
     }
 
@@ -452,6 +526,46 @@ extension UINavigationController {
             "navigationBarClass": RuntimeType(class: UINavigationBar.self),
             "toolbarClass": RuntimeType(class: UIToolbar.self),
         ]
+    }
+
+    open override class var expressionTypes: [String: RuntimeType] {
+        var types = super.expressionTypes
+        types["viewControllers"] = RuntimeType(Array<UIViewController>.self)
+        #if arch(i386) || arch(x86_64)
+            // Private and read-only properties
+            for name in [
+                "allowUserInteractionDuringTransition",
+                "avoidMovingNavBarOffscreenBeforeUnhiding",
+                "condensesBarsOnSwipe",
+                "customNavigationTransitionDuration",
+                "detailViewController",
+                "disappearingViewController",
+                "enableBackButtonDuringTransition",
+                "isExpanded",
+                "isInteractiveTransition",
+                "needsDeferredTransition",
+                "pretendNavBarHidden",
+            ] + [
+                "navigationBar",
+                "toolbar",
+            ] {
+                types[name] = nil
+            }
+        #endif
+        return types
+    }
+
+    open override func setAnimatedValue(_ value: Any, forExpression name: String) throws {
+        switch name {
+        case "isNavigationBarHidden":
+            setNavigationBarHidden(value as! Bool, animated: true)
+        case "isToolbarHidden":
+            setToolbarHidden(value as! Bool, animated: true)
+        case "viewControllers":
+            setViewControllers(value as! [UIViewController], animated: true)
+        default:
+            try super.setAnimatedValue(value, forExpression: name)
+        }
     }
 
     open override func didInsertChildNode(_ node: LayoutNode, at index: Int) {

@@ -207,7 +207,7 @@ You can edit Layout XML files directly in Xcode, but you will probably miss havi
 
 To install Layout autocompletion in Sublime Text:
 
-1. Go to `Settings > Browse Packages…`, which will open the Packages directory in the Finder
+1. Go to `Preferences > Browse Packages…`, which will open the Packages directory in the Finder
 2. Copy the `layout.sublime-completions` file from the Layout repository into `Packages/User`
 
 Autocomplete for standard UIKit views, view controllers and properties will now be available for xml files edited in Sublime Text.

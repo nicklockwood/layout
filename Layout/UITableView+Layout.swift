@@ -58,7 +58,37 @@ extension UITableView {
         ] {
             types[name] = .unavailable()
         }
+
+        #if arch(i386) || arch(x86_64)
+            // Private properties
+            for name in [
+                "countStringInsignificantRowCount",
+                "currentTouch",
+                "indexHiddenForSearch",
+                "multiselectCheckmarkColor",
+                "overlapsSectionHeaderViews",
+                "sectionBorderColor",
+                "separatorBottomShadowColor",
+                "separatorTopShadowColor",
+                "tableHeaderBackgroundColor",
+                "usesVariableMargins",
+            ] {
+                types[name] = nil
+                for key in types.keys where key.hasPrefix(name) {
+                    types[key] = nil
+                }
+            }
+        #endif
         return types
+    }
+
+    open override func setAnimatedValue(_ value: Any, forExpression name: String) throws {
+        switch name {
+        case "isEditing":
+            setEditing(value as! Bool, animated: true)
+        default:
+            try super.setAnimatedValue(value, forExpression: name)
+        }
     }
 
     open override func didInsertChildNode(_ node: LayoutNode, at index: Int) {
@@ -467,6 +497,25 @@ extension UITableViewHeaderFooterView {
             types["textLabel.\(key)"] = type
             types["detailTextLabel.\(key)"] = type
         }
+
+        #if arch(i386) || arch(x86_64)
+            // Private and read-only properties
+            for name in [
+                "backgroundImage",
+                "floating",
+                "maxTitleWidth",
+                "text",
+                "textAlignment",
+            ] + [
+                "reuseIdentifier",
+                "sectionHeader",
+                "table",
+                "tableView",
+                "tableViewStyle",
+            ] {
+                types[name] = nil
+            }
+        #endif
         return types
     }
 
@@ -567,7 +616,53 @@ extension UITableViewCell {
             types["textLabel.\(key)"] = type
             types["detailTextLabel.\(key)"] = type
         }
+
+        #if arch(i386) || arch(x86_64)
+            // Private and read-only properties
+            for name in [
+                "accessoryAction",
+                "bottomShadowColor",
+                "clipsContents",
+                "drawingEnabled",
+                "hidesAccessoryWhenEditing",
+                "lineBreakMode",
+                "returnAction",
+                "sectionBorderColor",
+                "sectionLocation",
+                "selectedTextColor",
+                "selectionFadeDuration",
+                "selectionTintColor",
+                "separatorColor",
+                "separatorStyle",
+                "tableBackgroundColor",
+                "tableSpecificElementsHidden",
+                "tableViewStyle",
+                "textAlignment",
+                "textColor",
+                "textFieldOffset",
+                "topShadowColor",
+                "wasSwiped",
+            ] + [
+                "reuseIdentifier",
+                "showingDeleteConfirmation",
+            ] {
+                types[name] = nil
+            }
+        #endif
         return types
+    }
+
+    open override func setAnimatedValue(_ value: Any, forExpression name: String) throws {
+        switch name {
+        case "isEditing":
+            setEditing(value as! Bool, animated: true)
+        case "isSelected":
+            setSelected(value as! Bool, animated: true)
+        case "isHighlighted":
+            setHighlighted(value as! Bool, animated: true)
+        default:
+            try super.setAnimatedValue(value, forExpression: name)
+        }
     }
 
     open override func didInsertChildNode(_ node: LayoutNode, at _: Int) {

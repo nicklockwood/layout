@@ -434,7 +434,7 @@ struct LayoutExpression {
                 if parts.count == 1, isNil(parts[0]) {
                     return ""
                 }
-                return try parts.map({ try stringify($0) }).joined()
+                return try parts.map(stringify).joined()
             },
             symbols: expression.symbols
         )

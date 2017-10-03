@@ -25,6 +25,8 @@ extension UIView {
     @objc open class var expressionTypes: [String: RuntimeType] {
         var types = allPropertyTypes()
         // TODO: support more properties
+        types["alpha"] = RuntimeType(CGFloat.self)
+        types["contentScaleFactor"] = RuntimeType(CGFloat.self)
         types["contentMode"] = RuntimeType(UIViewContentMode.self, [
             "scaleToFill": .scaleToFill,
             "scaleAspectFit": .scaleAspectFit,
@@ -92,49 +94,51 @@ extension UIView {
             }
         }
 
-        // Private and read-only properties
-        for name in [
-            "allowsBaselineOffsetApproximation",
-            "animationInfo",
-            "charge",
-            "clearsContext",
-            "clipsSubviews",
-            "compositingMode",
-            "contentStretch",
-            "contentsPosition",
-            "customAlignmentRectInsets",
-            "customBaselineOffsetFromBottom",
-            "customFirstBaselineOffsetFromContentTop",
-            "deliversButtonsForGesturesToSuperview",
-            "deliversTouchesForGesturesToSuperview",
-            "edgesInsettingLayoutMarginsFromSafeArea",
-            "edgesPreservingSuperviewLayoutMargins",
-            "enabledGestures",
-            "fixedBackgroundPattern",
-            "frameOrigin",
-            "gesturesEnabled",
-            "interactionTintColor",
-            "invalidatingIntrinsicContentSizeAlsoInvalidatesSuperview",
-            "isBaselineRelativeAlignmentRectInsets",
-            "needsDisplayOnBoundsChange",
-            "neverCacheContentLayoutSize",
-            "origin",
-            "position",
-            "previewingSegueTemplateStorage",
-            "rotationBy",
-            "size",
-            "skipsSubviewEnumeration",
-            "viewTraversalMark",
-            "wantsDeepColorDrawing",
-        ] + [
-            "effectiveUserInterfaceLayoutDirection",
-            "safeAreaInsets",
-        ] {
-            types[name] = nil
-            for key in types.keys where key.hasPrefix(name) {
-                types[key] = nil
+        #if arch(i386) || arch(x86_64)
+            // Private and read-only properties
+            for name in [
+                "allowsBaselineOffsetApproximation",
+                "animationInfo",
+                "charge",
+                "clearsContext",
+                "clipsSubviews",
+                "compositingMode",
+                "contentStretch",
+                "contentsPosition",
+                "customAlignmentRectInsets",
+                "customBaselineOffsetFromBottom",
+                "customFirstBaselineOffsetFromContentTop",
+                "deliversButtonsForGesturesToSuperview",
+                "deliversTouchesForGesturesToSuperview",
+                "edgesInsettingLayoutMarginsFromSafeArea",
+                "edgesPreservingSuperviewLayoutMargins",
+                "enabledGestures",
+                "fixedBackgroundPattern",
+                "frameOrigin",
+                "gesturesEnabled",
+                "interactionTintColor",
+                "invalidatingIntrinsicContentSizeAlsoInvalidatesSuperview",
+                "isBaselineRelativeAlignmentRectInsets",
+                "needsDisplayOnBoundsChange",
+                "neverCacheContentLayoutSize",
+                "origin",
+                "position",
+                "previewingSegueTemplateStorage",
+                "rotationBy",
+                "size",
+                "skipsSubviewEnumeration",
+                "viewTraversalMark",
+                "wantsDeepColorDrawing",
+            ] + [
+                "effectiveUserInterfaceLayoutDirection",
+                "safeAreaInsets",
+            ] {
+                types[name] = nil
+                for key in types.keys where key.hasPrefix(name) {
+                    types[key] = nil
+                }
             }
-        }
+        #endif
         return types
     }
 
@@ -302,6 +306,40 @@ extension UIView {
     @objc open func didUpdateLayout(for _: LayoutNode) {}
 }
 
+extension UIImageView {
+    open override class var expressionTypes: [String: RuntimeType] {
+        var types = super.expressionTypes
+        #if arch(i386) || arch(x86_64)
+            // Private properties
+            for name in [
+                "adjustsImageWhenAncestorFocused",
+                "cGImageRef",
+                "drawMode",
+                "masksFocusEffectToContents",
+            ] {
+                types[name] = nil
+            }
+        #endif
+        return types
+    }
+
+    open override func setValue(_ value: Any, forExpression name: String) throws {
+        switch name {
+        case "isAnimating":
+            switch (value as! Bool, isAnimating) {
+            case (true, false):
+                startAnimating()
+            case (false, true):
+                stopAnimating()
+            case (true, true), (false, false):
+                break
+            }
+        default:
+            try super.setValue(value, forExpression: name)
+        }
+    }
+}
+
 private let controlEvents: [String: UIControlEvents] = [
     "touchDown": .touchDown,
     "touchDownRepeat": .touchDownRepeat,
@@ -350,6 +388,16 @@ extension UIControl {
         for name in controlEvents.keys {
             types[name] = RuntimeType(Selector.self)
         }
+
+        #if arch(i386) || arch(x86_64)
+            // Private properties
+            for name in [
+                "adPrivacyData",
+                "requiresDisplayOnTracking",
+            ] {
+                types[name] = nil
+            }
+        #endif
         return types
     }
 
@@ -455,14 +503,17 @@ extension UIButton {
         // Setters used for embedded html
         types["text"] = RuntimeType(String.self)
         types["attributedText"] = RuntimeType(NSAttributedString.self)
-        // Private properties
-        for name in [
-            "autosizesToFit",
-            "lineBreakMode",
-            "showPressFeedback",
-        ] {
-            types[name] = nil
-        }
+
+        #if arch(i386) || arch(x86_64)
+            // Private properties
+            for name in [
+                "autosizesToFit",
+                "lineBreakMode",
+                "showPressFeedback",
+            ] {
+                types[name] = nil
+            }
+        #endif
         return types
     }
 
@@ -587,33 +638,52 @@ private let textInputTraits: [String: RuntimeType] = {
     return traitTypes
 }()
 
-private let textTraits = [
-    "textAlignment": RuntimeType(NSTextAlignment.self, [
-        "left": .left,
-        "right": .right,
-        "center": .center,
-    ] as [String: NSTextAlignment]),
-    "lineBreakMode": RuntimeType(NSLineBreakMode.self, [
-        "byWordWrapping": .byWordWrapping,
-        "byCharWrapping": .byCharWrapping,
-        "byClipping": .byClipping,
-        "byTruncatingHead": .byTruncatingHead,
-        "byTruncatingTail": .byTruncatingTail,
-        "byTruncatingMiddle": .byTruncatingMiddle,
-    ] as [String: NSLineBreakMode]),
-]
+private let textAlignmentType = RuntimeType(NSTextAlignment.self, [
+    "left": .left,
+    "right": .right,
+    "center": .center,
+] as [String: NSTextAlignment])
+
+private let lineBreakModeType = RuntimeType(NSLineBreakMode.self, [
+    "byWordWrapping": .byWordWrapping,
+    "byCharWrapping": .byCharWrapping,
+    "byClipping": .byClipping,
+    "byTruncatingHead": .byTruncatingHead,
+    "byTruncatingTail": .byTruncatingTail,
+    "byTruncatingMiddle": .byTruncatingMiddle,
+] as [String: NSLineBreakMode])
 
 extension UILabel {
     open override class var expressionTypes: [String: RuntimeType] {
         var types = super.expressionTypes
-        for (name, type) in textTraits {
-            types[name] = type
-        }
+        types["textAlignment"] = textAlignmentType
+        types["lineBreakMode"] = lineBreakModeType
         types["baselineAdjustment"] = RuntimeType(UIBaselineAdjustment.self, [
             "alignBaselines": .alignBaselines,
             "alignCenters": .alignCenters,
             "none": .none,
         ] as [String: UIBaselineAdjustment])
+
+        #if arch(i386) || arch(x86_64)
+            // Private properties
+            for name in [
+                "adjustsLetterSpacingToFitWidth",
+                "autotrackTextToFit",
+                "centersHorizontally",
+                "color",
+                "drawsLetterpress",
+                "drawsUnderline",
+                "marqueeEnabled",
+                "marqueeRunning",
+                "minimumFontSize",
+                "rawSize",
+                "rawSize.width",
+                "rawSize.height",
+                "shadowBlur",
+            ] {
+                types[name] = nil
+            }
+        #endif
         return types
     }
 }
@@ -631,9 +701,7 @@ extension UITextField {
         for (name, type) in textInputTraits {
             types[name] = type
         }
-        for (name, type) in textTraits {
-            types[name] = type
-        }
+        types["textAlignment"] = textAlignmentType
         types["borderStyle"] = RuntimeType(UITextBorderStyle.self, [
             "none": .none,
             "line": .line,
@@ -643,6 +711,50 @@ extension UITextField {
         types["clearButtonMode"] = textFieldViewMode
         types["leftViewMode"] = textFieldViewMode
         types["rightViewMode"] = textFieldViewMode
+        types["minimumFontSize"] = RuntimeType(CGFloat.self)
+
+        #if arch(i386) || arch(x86_64)
+            // Private properties
+            for name in [
+                "animating",
+                "atomStyle",
+                "autoresizesTextToFit",
+                "becomesFirstResponderOnClearButtonTap",
+                "clearButtonOffset",
+                "clearButtonStyle",
+                "clearingBehavior",
+                "clearsPlaceholderOnBeginEditing",
+                "contentOffsetForSameViewDrops",
+                "continuousSpellCheckingEnabled",
+                "defaultTextAttributes",
+                "displaySecureEditsUsingPlainText",
+                "displaySecureTextUsingPlainText",
+                "drawsAsAtom",
+                "inactiveHasDimAppearance",
+                "isUndoEnabled",
+                "labelOffset",
+                "nonEditingLinebreakMode",
+                "paddingBottom",
+                "paddingLeft",
+                "paddingRight",
+                "paddingTop",
+                "progress",
+                "recentsAccessoryView",
+                "selectionRange",
+                "shadowBlur",
+                "shadowColor",
+                "shadowOffset",
+                "textAutorresizesToFit",
+                "textCentersHorizontally",
+                "textCentersVertically",
+                "textSelectionBehavior",
+            ] {
+                types[name] = nil
+                for key in types.keys where key.hasPrefix(name) {
+                    types[key] = nil
+                }
+            }
+        #endif
         return types
     }
 
@@ -686,12 +798,31 @@ extension UITextField {
 extension UITextView {
     open override class var expressionTypes: [String: RuntimeType] {
         var types = super.expressionTypes
+        types["textAlignment"] = textAlignmentType
+        types["lineBreakMode"] = lineBreakModeType
         for (name, type) in textInputTraits {
             types[name] = type
         }
-        for (name, type) in textTraits {
-            types[name] = type
-        }
+
+        #if arch(i386) || arch(x86_64)
+            // Private properties
+            for name in [
+                "becomesEditableWithGestures",
+                "contentOffsetForSameViewDrops",
+                "continuousSpellCheckingEnabled",
+                "forceDisableDictation",
+                "forceEnableDictation",
+                "shouldAutoscrollAboveBottom",
+                "shouldPresentSheetsInAWindowLayeredAboveTheKeyboard",
+                "tiledViewsDrawAsynchronously",
+                "usesTiledViews",
+            ] {
+                types[name] = nil
+                for key in types.keys where key.hasPrefix(name) {
+                    types[key] = nil
+                }
+            }
+        #endif
         return types
     }
 
@@ -732,6 +863,18 @@ extension UITextView {
     }
 }
 
+let barStyleType = RuntimeType(UIBarStyle.self, [
+    "default": .default,
+    "black": .black,
+])
+
+let barPositionType = RuntimeType(UIBarPosition.self, [
+    "any": .any,
+    "bottom": .bottom,
+    "top": .top,
+    "topAttached": .topAttached,
+])
+
 extension UISearchBar {
     open override class var expressionTypes: [String: RuntimeType] {
         var types = super.expressionTypes
@@ -746,23 +889,26 @@ extension UISearchBar {
         for (name, type) in textInputTraits {
             types[name] = type
         }
-        // Private properties
-        for name in [
-            "centerPlaceholder",
-            "combinesLandscapeBars",
-            "contentInset",
-            "drawsBackground",
-            "drawsBackgroundInPalette",
-            "pretendsIsInBar",
-            "searchFieldLeftViewMode",
-            "searchTextPositionAdjustment",
-            "usesEmbeddedAppearance",
-        ] {
-            types[name] = nil
-            for key in types.keys where key.hasPrefix(name) {
-                types[key] = nil
+
+        #if arch(i386) || arch(x86_64)
+            // Private properties
+            for name in [
+                "centerPlaceholder",
+                "combinesLandscapeBars",
+                "contentInset",
+                "drawsBackground",
+                "drawsBackgroundInPalette",
+                "pretendsIsInBar",
+                "searchFieldLeftViewMode",
+                "searchTextPositionAdjustment",
+                "usesEmbeddedAppearance",
+            ] {
+                types[name] = nil
+                for key in types.keys where key.hasPrefix(name) {
+                    types[key] = nil
+                }
             }
-        }
+        #endif
         return types
     }
 
@@ -850,6 +996,28 @@ extension UISegmentedControl: TitleTextAttributes {
             types["\(segment)ContentPositionAdjustment.horizontal"] = RuntimeType(CGFloat.self)
             types["\(segment)ContentPositionAdjustment.vertical"] = RuntimeType(CGFloat.self)
         }
+
+        #if arch(i386) || arch(x86_64)
+            // Private properties
+            for name in [
+                "aloneContentPositionAdjustment",
+                "alwaysNotifiesDelegateOfSegmentClicks",
+                "anyContentPositionAdjustment",
+                "axLongPressGestureRecognizer",
+                "barStyle",
+                "controlSize",
+                "removedSegment",
+                "segmentControlStyle",
+                "segmentedControlStyle",
+                "selectedSegment",
+                "transparentBackground",
+            ] {
+                types[name] = nil
+                for key in types.keys where key.hasPrefix(name) {
+                    types[key] = nil
+                }
+            }
+        #endif
         return types
     }
 
@@ -967,18 +1135,6 @@ extension UISegmentedControl: TitleTextAttributes {
     }
 }
 
-let barStyleType = RuntimeType(UIBarStyle.self, [
-    "default": .default,
-    "black": .black,
-])
-
-let barPositionType = RuntimeType(UIBarPosition.self, [
-    "any": .any,
-    "bottom": .bottom,
-    "top": .top,
-    "topAttached": .topAttached,
-])
-
 extension UIStepper {
     open override class var expressionTypes: [String: RuntimeType] {
         var types = super.expressionTypes
@@ -1033,29 +1189,31 @@ extension UIActivityIndicatorView {
         types["isAnimating"] = RuntimeType(Bool.self)
         types["activityIndicatorViewStyle"] = activityIndicatorStyle
 
-        // Private properties
-        for name in [
-            "animationDuration",
-            "clockWise",
-            "hasShadow",
-            "innerRadius",
-            "isHighlighted",
-            "shadowColor",
-            "shadowOffset",
-            "spinning",
-            "spinningDuration",
-            "spokeCount",
-            "spokeFrameRatio",
-            "style",
-            "useArtwork",
-            "useOutlineShadow",
-            "width"
-        ] {
-            types[name] = nil
-            for key in types.keys where key.hasPrefix(name) {
-                types[key] = nil
+        #if arch(i386) || arch(x86_64)
+            // Private properties
+            for name in [
+                "animationDuration",
+                "clockWise",
+                "hasShadow",
+                "innerRadius",
+                "isHighlighted",
+                "shadowColor",
+                "shadowOffset",
+                "spinning",
+                "spinningDuration",
+                "spokeCount",
+                "spokeFrameRatio",
+                "style",
+                "useArtwork",
+                "useOutlineShadow",
+                "width",
+            ] {
+                types[name] = nil
+                for key in types.keys where key.hasPrefix(name) {
+                    types[key] = nil
+                }
             }
-        }
+        #endif
         return types
     }
 

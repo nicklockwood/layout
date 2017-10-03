@@ -780,6 +780,7 @@ public class LayoutNode: NSObject {
                     }, for: symbol)
                 } else {
                     try SymbolError.wrap({
+                        // TODO: dangerous - would crash with UICollectionView
                         _ = try viewClass.init().value(forSymbol: symbol)
                     }, for: symbol)
                 }
@@ -904,10 +905,14 @@ public class LayoutNode: NSObject {
                     try _viewController?.setValue(expression.evaluate(), forExpression: key)
                     continue
                 }
-                blocks.append { [unowned self] _ in
+                blocks.append { [unowned self] animated in
                     let value = try expression.evaluate()
                     if self._valueHasChanged[key]!() {
-                        try self._viewController?.setValue(value, forExpression: key)
+                        if animated {
+                            try self._viewController?.setAnimatedValue(value, forExpression: key)
+                        } else {
+                            try self._viewController?.setValue(value, forExpression: key)
+                        }
                     }
                 }
             }

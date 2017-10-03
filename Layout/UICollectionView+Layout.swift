@@ -85,6 +85,15 @@ extension UICollectionView {
         return types
     }
 
+    open override func setAnimatedValue(_ value: Any, forExpression name: String) throws {
+        switch name {
+        case "collectionViewLayout":
+            setCollectionViewLayout(value as! UICollectionViewLayout, animated: true)
+        default:
+            try super.setAnimatedValue(value, forExpression: name)
+        }
+    }
+
     open override func setValue(_ value: Any, forExpression name: String) throws {
         switch name {
         case "reorderingCadence":
