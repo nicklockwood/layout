@@ -175,31 +175,28 @@ open class LayoutViewController: UIViewController, LayoutLoading {
             ]
         }
         _errorNode = LayoutNode(
-            view: UIControl(),
-            constants: [
-                "error": error,
-            ],
+            view: UIScrollView(),
             expressions: [
-                "width": "100%",
-                "height": "100%",
                 "backgroundColor": "\(background)",
-                "touchDown": "_reloadLayout",
+                "contentInset.top": "max(20, 50% - contentSize.height / 2)",
+                "contentInset.bottom": "20",
+                "contentInset.left": "safeAreaInsets.left",
+                "contentInset.right": "safeAreaInsets.right",
+                "contentInsetAdjustmentBehavior": "never",
             ],
             children: [
                 LayoutNode(
-                    view: UIScrollView(),
+                    view: UIControl(),
+                    constants: [
+                        "error": error,
+                    ],
                     expressions: [
-                        "top": "50% - height / 2",
-                        "height": "min(100%, auto)",
                         "width": "100%",
-                        "contentInset.top": "20",
-                        "contentInset.bottom": "20",
-                        "contentInset.left": "safeAreaInsets.left",
-                        "contentInset.right": "safeAreaInsets.right",
-                        "contentInsetAdjustmentBehavior": "never",
+                        "height": "auto",
+                        "touchDown": "_reloadLayout",
                     ],
                     children: children
-                ),
+                )
             ]
         )
         _errorNode!.view.alpha = 0
@@ -268,3 +265,4 @@ extension LayoutViewController: LayoutDelegate {
         }
     }
 }
+
