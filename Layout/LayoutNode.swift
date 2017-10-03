@@ -774,6 +774,17 @@ public class LayoutNode: NSObject {
                 // TODO: check for constructor type / view type conflicts?
                 type = constructorType
             } else {
+                if let parts = try? parseStringExpression(string), parts.count == 1 {
+                    switch parts[0] {
+                    case .comment:
+                        return
+                    case let .expression(parsedExpression) where
+                        parsedExpression.comment != nil && parsedExpression.isEmpty:
+                        return
+                    default:
+                        break
+                    }
+                }
                 if let viewControllerClass = self.viewControllerClass {
                     try SymbolError.wrap({
                         _ = try viewControllerClass.init().value(forSymbol: symbol)
