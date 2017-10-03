@@ -38,7 +38,11 @@ open class LayoutViewController: UIViewController, LayoutLoading {
         super.viewDidLayoutSubviews()
 
         if let errorNode = _errorNode {
+            errorNode._suppressUpdates = true
             errorNode.view.frame = view.bounds
+            errorNode._suppressUpdates = false
+            errorNode.update()
+
             view.bringSubview(toFront: errorNode.view)
         } else if let layoutNode = layoutNode {
             #if swift(>=3.2)
@@ -142,7 +146,7 @@ open class LayoutViewController: UIViewController, LayoutLoading {
                             "left": "20",
                             "text": "\(i + 1). \(match.path[commonPrefix.endIndex ..< match.path.endIndex])",
                             "contentHorizontalAlignment": "left",
-                            "titleColor": "rgba(255,255,255,0.6)",
+                            "titleColor": "rgba(255,255,255,0.7)",
                             "touchUpInside": "_selectMatch:",
                             "tag": "\(i)",
                         ]
@@ -150,14 +154,21 @@ open class LayoutViewController: UIViewController, LayoutLoading {
                 )
             }
         default:
-            background = "#f00"
+            background = "red"
+            var message = "\(error)."
+            let suggestions = error.suggestions
+            if suggestions.count == 1 {
+                message += " Did you mean \(suggestions[0])?"
+            } else if !suggestions.isEmpty {
+                message += " Did you mean one of the following?"
+            }
             children = [
                 LayoutNode(
                     view: UILabel(),
                     expressions: [
                         "width": "min(auto, 100% - 40)",
                         "left": "(100% - width) / 2",
-                        "text": "{error}",
+                        "text": message,
                         "textColor": "white",
                         "numberOfLines": "0",
                     ]
@@ -169,16 +180,43 @@ open class LayoutViewController: UIViewController, LayoutLoading {
                         "width": "auto",
                         "left": "(100% - width) / 2",
                         "text": "[\(reloadMessage)]",
-                        "textColor": "rgba(255,255,255,0.6)",
+                        "textColor": "rgba(255,255,255,0.7)",
                     ]
                 ),
             ]
+            if suggestions.count > 1 {
+                children.insert(
+                    LayoutNode(
+                        view: UILabel(),
+                        expressions: [
+                            "width": "min(auto, 100% - 40)",
+                            "left": "(100% - width) / 2",
+                            "text": suggestions.joined(separator: ", "),
+                            "textColor": "rgba(255,255,255,0.7)",
+                            "numberOfLines": "0",
+                            "top": "previous.bottom + 20",
+                        ]
+                    ), at: 1
+                )
+                children.insert(
+                    LayoutNode(
+                        view: UIView(),
+                        expressions: [
+                            "width": "min(auto, 100% - 40)",
+                            "left": "(100% - width) / 2",
+                            "height": "1",
+                            "top": "previous.bottom + 20",
+                            "backgroundColor": "white",
+                        ]
+                    ), at: 2
+                )
+            }
         }
         _errorNode = LayoutNode(
             view: UIScrollView(),
             expressions: [
                 "backgroundColor": "\(background)",
-                "contentInset.top": "max(20, 50% - contentSize.height / 2)",
+                "contentInset.top": "max(max(safeAreaInsets.top + 10, 20), 50% - contentSize.height / 2)",
                 "contentInset.bottom": "20",
                 "contentInset.left": "safeAreaInsets.left",
                 "contentInset.right": "safeAreaInsets.right",

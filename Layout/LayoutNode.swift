@@ -785,17 +785,16 @@ public class LayoutNode: NSObject {
                         break
                     }
                 }
-                if let viewControllerClass = self.viewControllerClass {
-                    try SymbolError.wrap({
-                        _ = try viewControllerClass.init().value(forSymbol: symbol)
-                    }, for: symbol)
-                } else {
-                    try SymbolError.wrap({
-                        // TODO: dangerous - would crash with UICollectionView
-                        _ = try viewClass.init().value(forSymbol: symbol)
-                    }, for: symbol)
+                if let viewControllerClass = self.viewControllerClass,
+                    let viewController = try? viewControllerClass.create(with: self),
+                    let _ = try? viewController.value(forSymbol: symbol) {
+                        throw SymbolError(fatal: "\(_class).\(symbol) is private or read-only", for: symbol)
                 }
-                throw SymbolError(fatal: "\(_class).\(symbol) is private or read-only", for: symbol)
+                if let view = try? viewClass.create(with: self),
+                    let _ = try? view.value(forSymbol: symbol) {
+                    throw SymbolError(fatal: "\(_class).\(symbol) is private or read-only", for: symbol)
+                }
+                throw SymbolError("Unknown property `\(symbol)` of \(_class)", for: symbol)
             }
             switch type.availability {
             case .available:
