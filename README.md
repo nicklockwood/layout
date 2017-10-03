@@ -41,6 +41,8 @@
     - [UIStackView](#uistackview)
     - [UITableView](#uitableview)
     - [UICollectionView](#uicollectionview)
+    - [UIWebView](#uiwebview)
+    - [WKWebView](#wkwebview)
     - [UITabBarController](#uitabbarcontroller)
     - [UINavigationController](#uinavigationcontroller)
 - [Custom Components](#custom-components)
@@ -1486,9 +1488,86 @@ Layout does not currently support using XML to define supplementary `UICollectio
 Layout supports the use of `UICollectionViewController`, with the same caveats as for `UITableViewController`.
 
 
+## UIWebView
+
+The API for `UIWebView` uses methods for loading content, which isn't directly usable from XML, so Layout exposes these methods as properties instead. To load a URL, you can use the `request` property, as follows:
+
+```xml
+<UIWebView request="http://apple.com"/>
+
+<UIWebView request="{urlRequestConstant}"/>
+```
+
+You can use a literal URL string or a constant or state variable containing a `URL` or `URLRequest` value. The `request` parameter can also be used for local file content. Paths without a scheme or leading `/` are assumed to be relative to the app resources bundle, and ones beginning with `~/` are relative to the user directory:
+
+```xml
+<!-- bundled resource -->
+<UIWebView request="pages/index.html"/>
+
+<!-- user document -->
+<UIWebView request="~/Documents/homepage.html"/>
+```
+
+To load a literal HTML string you can use the `htmlString` property:
+
+```xml
+<UIWebView htmlString="&lt;p&gt;Hello World&lt;/p&gt;"/>
+
+<UIWebView htmlString="{htmlConstant}"/>
+```
+
+**Note:** if you specify a literal HTML string in your Layout XML then you will have to encode the tags using `&lt;`, `&gt;` and `&quot;`.
+
+The `UIWebView.loadHTMLString()` method also accepts a `baseURL` parameter for relative URLs inside the HTML. Layout exposes this as a separate `baseURL` property:
+
+```xml
+<UIWebView
+	baseURL="http://example.com"
+    htmlString="&lt;img href=&quot;/someImage.jpg&quot;&gt;"
+/>
+```
+
+If you need to adjust the content insets for the web view, you can do this via the `scrollView` property:
+
+```xml
+<UIWebView
+	scrollView.contentInsetAdjustmentBehavior="never"
+    scrollView.contentInset.bottom="safeAreaInsets.bottom"
+    scrollView.scrollIndicatorInsets="scrollView.contentInset"
+    request="..."
+/>
+```
+
+## WKWebView
+
+Layout supports `WKWebView` in the same way as `UIWebView`, by converting the various load methods into properties. In addition to the aforementioned `scrollView`, `request`, `htmlString` and `baseURL` properties, for `WKWebView` Layout also adds `fileURL` and `readAccessURL` properties, which are used for secure access to local web content:
+
+```xml
+<WKWebView
+	readAccessURL="~/Documents"
+    fileURL="~/Documents/homepage.html"
+/>
+```
+
+Layout also exposes the `configuration` property of `WKWebView`. This is a read-only property, but you can set it with a constant value when constructing your view, or configure the properties individually using expressions:
+
+```xml
+<WKWebView
+    configuration="baseConfiguration"
+    request="..."
+/>
+
+<WKWebView
+    configuration.allowsAirPlayForMediaPlayback="true"
+    configuration.allowsInlineMediaPlayback="false"
+    request="..."
+/>
+```
+
+
 ## UITabBarController
 
-For the most part, Layout works best when implemented on a per-screen basis, with one LayoutViewController for each screen. There is some limited support for defining collection view controllers such as `UITabBarController` however, as demonstrated in the SampleApp.
+For the most part, Layout works best when implemented on a per-screen basis, with one `LayoutViewController` for each screen. There is basic support for defining collection view controllers such as `UITabBarController` however, as demonstrated in the SampleApp.
 
 To define a `UITabBarController`-based layout in XML, nest one or more `UIViewController` nodes inside a `UITabBarController` node, as follows:
 

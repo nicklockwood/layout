@@ -826,6 +826,63 @@ struct LayoutExpression {
         }
     }
 
+    init?(urlExpression: String, for node: LayoutNode) {
+        guard let expression = LayoutExpression(interpolatedStringExpression: urlExpression, for: node) else {
+            return nil
+        }
+        // TODO: optimize for constant URLs
+        // TODO: should empty string return nil instead of URL with empy path?
+        self.init(
+            evaluate: {
+                let parts = try expression.evaluate() as! [Any]
+                if parts.count == 1 {
+                    switch parts[0] {
+                    case let url as URL:
+                        return url
+                    case let path as String:
+                        return urlFromString(path)
+                    default:
+                        if isNil(parts[0]) {
+                            return urlFromString("")
+                        }
+                        return try cast(parts[0], as: RuntimeType(URL.self))
+                    }
+                }
+                return try urlFromString(parts.map(stringify).joined())
+            },
+            symbols: expression.symbols
+        )
+    }
+
+    init?(urlRequestExpression: String, for node: LayoutNode) {
+        guard let expression = LayoutExpression(interpolatedStringExpression: urlRequestExpression, for: node) else {
+            return nil
+        }
+        // TODO: optimize for constant URLs
+        self.init(
+            evaluate: {
+                let parts = try expression.evaluate() as! [Any]
+                if parts.count == 1 {
+                    switch parts[0] {
+                    case let urlRequest as URLRequest:
+                        return urlRequest
+                    case let url as URL:
+                        return URLRequest(url: url)
+                    case let path as String:
+                        return URLRequest(url: urlFromString(path))
+                    default:
+                        if isNil(parts[0]) {
+                            return URLRequest(url: urlFromString(""))
+                        }
+                        return try cast(parts[0], as: RuntimeType(URLRequest.self))
+                    }
+                }
+                return try URLRequest(url: urlFromString(parts.map(stringify).joined()))
+            },
+            symbols: expression.symbols
+        )
+    }
+
     init?(enumExpression: String, type: RuntimeType, for node: LayoutNode) {
         guard case let .enum(_, values) = type.type else { preconditionFailure() }
         self.init(
@@ -861,8 +918,7 @@ struct LayoutExpression {
         switch type.type {
         case let .any(subtype):
             switch subtype {
-            case is String.Type,
-                 is NSString.Type:
+            case is String.Type, is NSString.Type:
                 self.init(stringExpression: expression, for: node)
             case is Selector.Type:
                 self.init(selectorExpression: expression, for: node)
@@ -874,6 +930,10 @@ struct LayoutExpression {
                 self.init(imageExpression: expression, type: type, for: node)
             case is UIFont.Type:
                 self.init(fontExpression: expression, for: node)
+            case is URL.Type, is NSURL.Type:
+                self.init(urlExpression: expression, for: node)
+            case is URLRequest.Type, is NSURLRequest.Type:
+                self.init(urlRequestExpression: expression, for: node)
             default:
                 self.init(anyExpression: expression, type: type, nullable: false, for: node)
             }

@@ -1,6 +1,7 @@
 //  Copyright © 2017 Schibsted. All rights reserved.
 
 import UIKit
+import WebKit
 
 private var _cachedExpressionTypes = [Int: [String: RuntimeType]]()
 
@@ -1086,8 +1087,11 @@ extension UIProgressView {
             "default": .default,
             "bar": .bar,
         ] as [String: UIProgressViewStyle])
-        // Private
-        types["barStyle"] = nil
+
+        #if arch(i386) || arch(x86_64)
+            // Private
+            types["barStyle"] = nil
+        #endif
         return types
     }
 
@@ -1097,6 +1101,147 @@ extension UIProgressView {
             setProgress(value as! Float, animated: true)
         default:
             try super.setAnimatedValue(value, forExpression: name)
+        }
+    }
+}
+
+private var baseURLKey = 1
+
+extension UIWebView {
+    open override class var expressionTypes: [String: RuntimeType] {
+        var types = super.expressionTypes
+        types["baseURL"] = RuntimeType(URL.self)
+        types["htmlString"] = RuntimeType(String.self)
+        types["request"] = RuntimeType(URLRequest.self)
+        types["paginationMode"] = RuntimeType(UIWebPaginationMode.self, [
+            "unpaginated": .unpaginated,
+            "leftToRight": .leftToRight,
+            "topToBottom": .topToBottom,
+            "bottomToTop": .bottomToTop,
+            "rightToLeft": .rightToLeft,
+        ] as [String: UIWebPaginationMode])
+        types["paginationBreakingMode"] = RuntimeType(UIWebPaginationBreakingMode.self, [
+            "page": .page,
+            "column": .column,
+        ] as [String: UIWebPaginationBreakingMode])
+        for (key, type) in UIScrollView.expressionTypes {
+            types["scrollView.\(key)"] = type
+        }
+        // TODO: support loading data
+        // TODO: support inline html
+
+        #if arch(i386) || arch(x86_64)
+            // Private
+            types["detectsPhoneNumbers"] = nil
+        #endif
+        return types
+    }
+
+    @nonobjc private var baseURL: URL? {
+        get { return objc_getAssociatedObject(self, &baseURLKey) as? URL }
+        set {
+            let url = baseURL.flatMap { $0.absoluteString.isEmpty ? nil : $0 }
+            objc_setAssociatedObject(self, &baseURLKey, url, .OBJC_ASSOCIATION_RETAIN)
+        }
+    }
+
+    open override func setValue(_ value: Any, forExpression name: String) throws {
+        switch name {
+        case "baseURL":
+            baseURL = value as? URL
+        case "htmlString":
+            loadHTMLString(value as! String, baseURL: baseURL)
+        case "request":
+            loadRequest(value as! URLRequest)
+        default:
+            try super.setValue(value, forExpression: name)
+        }
+    }
+}
+
+private var readAccessURLKey = 1
+
+extension WKWebView {
+    open override class func create(with node: LayoutNode) throws -> WKWebView {
+        if let configuration = try node.value(forExpression: "configuration") as? WKWebViewConfiguration {
+            return self.init(frame: .zero, configuration: configuration)
+        }
+        return self.init(frame: .zero)
+    }
+
+    open override class var parameterTypes: [String: RuntimeType] {
+        return ["configuration": RuntimeType(WKWebViewConfiguration.self)]
+    }
+
+    open override class var expressionTypes: [String: RuntimeType] {
+        var types = super.expressionTypes
+        types["baseURL"] = RuntimeType(URL.self)
+        types["fileURL"] = RuntimeType(URL.self)
+        types["readAccessURL"] = RuntimeType(URL.self)
+        types["htmlString"] = RuntimeType(String.self)
+        types["request"] = RuntimeType(URLRequest.self)
+        types["uiDelegate"] = RuntimeType(WKUIDelegate.self)
+        types["UIDelegate"] = nil // TODO: find a way to automate this renaming
+        for (key, type) in UIScrollView.expressionTypes {
+            types["scrollView.\(key)"] = type
+        }
+        for (key, type) in WKWebViewConfiguration.allPropertyTypes() {
+            types["configuration.\(key)"] = type
+        }
+        types["configuration.selectionGranularity"] = RuntimeType(WKSelectionGranularity.self, [
+            "dynamic": .dynamic,
+            "character": .character,
+        ] as [String: WKSelectionGranularity])
+        // TODO: support loading data
+        // TODO: support inline html
+        // TODO: support binding uiDelegate, navigationDelegate
+        return types
+    }
+
+    @nonobjc private var readAccessURL: URL? {
+        get { return objc_getAssociatedObject(self, &readAccessURLKey) as? URL }
+        set {
+            let url = readAccessURL.flatMap { $0.absoluteString.isEmpty ? nil : $0 }
+            objc_setAssociatedObject(self, &readAccessURLKey, url, .OBJC_ASSOCIATION_RETAIN)
+        }
+    }
+
+    @nonobjc private var baseURL: URL? {
+        get { return objc_getAssociatedObject(self, &baseURLKey) as? URL }
+        set {
+            let url = baseURL.flatMap { $0.absoluteString.isEmpty ? nil : $0 }
+            objc_setAssociatedObject(self, &baseURLKey, url, .OBJC_ASSOCIATION_RETAIN)
+        }
+    }
+
+    open override func setValue(_ value: Any, forExpression name: String) throws {
+        switch name {
+        case "baseURL":
+            baseURL = value as? URL
+        case "htmlString":
+            loadHTMLString(value as! String, baseURL: baseURL)
+        case "readAccessURL":
+            readAccessURL = value as? URL
+        case "fileURL":
+            let fileURL = value as! URL
+            if !fileURL.absoluteString.isEmpty, !fileURL.isFileURL {
+                throw LayoutError("fileURL must refer to a local file")
+            }
+            loadFileURL(fileURL, allowingReadAccessTo: readAccessURL ?? fileURL)
+        case "request":
+            let request = value as! URLRequest
+            if let url = request.url, url.isFileURL {
+                loadFileURL(url, allowingReadAccessTo: readAccessURL ?? url)
+            } else {
+                load(request)
+            }
+        case "customUserAgent":
+            let userAgent = value as! String
+            customUserAgent = userAgent.isEmpty ? nil : userAgent
+        case "uiDelegate":
+            uiDelegate = value as? WKUIDelegate
+        default:
+            try super.setValue(value, forExpression: name)
         }
     }
 }

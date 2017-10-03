@@ -21,6 +21,31 @@ func classFromString(_ name: String) -> AnyClass? {
     return NSClassFromString(name) ?? NSClassFromString("\(classPrefix).\(name)")
 }
 
+// Internal API for converting a path to a full URL
+func urlFromString(_ path: String) -> URL {
+    if let url = URL(string: path), url.scheme != nil {
+        return url
+    }
+
+    // Check for scheme
+    if path.contains(":") {
+        let path = path.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? path
+        if let url = URL(string: path) {
+            return url
+        }
+    }
+
+    // Assume local path
+    let path = path.removingPercentEncoding ?? path
+    if path.hasPrefix("~") {
+        return URL(fileURLWithPath: (path as NSString).expandingTildeInPath)
+    } else if (path as NSString).isAbsolutePath {
+        return URL(fileURLWithPath: path)
+    } else {
+        return Bundle.main.resourceURL!.appendingPathComponent(path)
+    }
+}
+
 private let precision: CGFloat = 0.001
 
 extension CGSize {
