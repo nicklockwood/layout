@@ -87,6 +87,7 @@ private extension Layout {
 
 // API for loading a layout XML file
 class LayoutLoader {
+    private var _originalURL: URL!
     private var _xmlURL: URL!
     private var _projectDirectory: URL?
     private var _dataTask: URLSessionDataTask?
@@ -155,7 +156,7 @@ class LayoutLoader {
 
     public func reloadLayoutNode(withCompletion completion: @escaping LayoutLoaderCallback) {
         queue.sync { cache.removeAll() }
-        guard let xmlURL = _xmlURL, _dataTask == nil else {
+        guard let xmlURL = _originalURL, _dataTask == nil else {
             completion(nil, nil)
             return
         }
@@ -205,6 +206,7 @@ class LayoutLoader {
     ) {
         _dataTask?.cancel()
         _dataTask = nil
+        _originalURL = xmlURL
         _xmlURL = xmlURL
         _strings = nil
 
