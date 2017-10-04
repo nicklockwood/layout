@@ -28,6 +28,7 @@
     - [Geometry](#geometry)
     - [Strings](#strings)
     - [Attributed Strings](#attributed-strings)
+    - [URLs](#urls)
     - [Fonts](#fonts)
     - [Colors](#colors)
     - [Images](#images)
@@ -112,13 +113,13 @@ Layout is provided as a standalone Swift framework that you can use in your app.
 To install Layout using CocoaPods, add the following to your Podfile:
 
 ```ruby
-pod 'Layout', '~> 0.5.0'
+pod 'Layout', '~> 0.5.2'
 ```
 
 To install using Carthage, add this to your Cartfile:
 
 ```
-github "schibsted/Layout" ~> 0.5.0
+github "schibsted/Layout" ~> 0.5.2
 ```
 
 ## Integration
@@ -811,9 +812,34 @@ As with regular text attributes, inline HTML can contain embedded expressions, w
 ```
 
 
+## URLs
+
+URL expressions are treated as a literal string, so dynamic logic (such as references to constants or variables) must be escaped with `{ ... }`:
+
+```xml
+<!-- literal url -->
+<MyView url="index.html"/>
+
+<!-- url constant or variable -->
+<MyView url="{someURL}"/>
+```
+
+URLs that do not contain a scheme are assumed to be local file path references. Paths without a leading `/` are assumed to be relative to the app resources bundle, and ones beginning with `~/` are relative to the user directory.
+
+```xml
+<!-- remote url -->
+<MyView url="http://example.com"/>
+
+<!-- app resource bundle url -->
+<MyView url="images/foo.jpg"/>
+
+<!-- user document url -->
+<MyView url="~/Documents/report.pdf"/>
+```
+
 ## Fonts
 
-Font property expressions are treated as a literal string, so expression logic (such as references to constants or variables) must be escaped with `{ ... }`. A font expression can encode several distinct pieces of data, delimited by spaces.
+Like String and URL expressions, font expressions are treated as literal strings, so references to constants or variables must be escaped with `{ ... }`. A font expression can encode several distinct pieces of data, delimited by spaces.
 
 The `UIFont` class encapsulates the font family, size, weight and style, so a font expression can contain any or all of the following space-delimited attributes, in any order:
 

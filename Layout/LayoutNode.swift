@@ -788,7 +788,7 @@ public class LayoutNode: NSObject {
                 if let viewControllerClass = self.viewControllerClass,
                     let viewController = try? viewControllerClass.create(with: self),
                     let _ = try? viewController.value(forSymbol: symbol) {
-                        throw SymbolError(fatal: "\(_class).\(symbol) is private or read-only", for: symbol)
+                    throw SymbolError(fatal: "\(_class).\(symbol) is private or read-only", for: symbol)
                 }
                 if let view = try? viewClass.create(with: self),
                     let _ = try? view.value(forSymbol: symbol) {

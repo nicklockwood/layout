@@ -52,6 +52,8 @@ open class LayoutViewController: UIViewController, LayoutLoading {
         }
     }
 
+    /// Called immediately after the layoutNode is set. Will not be called
+    /// in the event of an error, or if layoutNode is set to nil
     open func layoutDidLoad() {
         // Override in subclass
     }
@@ -225,7 +227,7 @@ open class LayoutViewController: UIViewController, LayoutLoading {
                         "touchDown": "_reloadLayout",
                     ],
                     children: children
-                )
+                ),
             ]
         )
         _errorNode!.view.alpha = 0
@@ -294,4 +296,3 @@ extension LayoutViewController: LayoutDelegate {
         }
     }
 }
-

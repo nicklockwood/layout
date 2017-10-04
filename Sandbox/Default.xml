@@ -1,11 +1,9 @@
 <UIScrollView
     backgroundColor="white"
+    contentInset.top="safeAreaInsets.top + 20"
     contentInsetAdjustmentBehavior="never"
-    contentInset.top=
-        "safeAreaInsets.top + 20"
     contentSize.height="auto + 20"
-    scrollIndicatorInsets.top=
-        "safeAreaInsets.top">
+    scrollIndicatorInsets.top="safeAreaInsets.top">
 
     <UIStackView
         axis="vertical"

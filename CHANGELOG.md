@@ -1,5 +1,18 @@
 # Change Log
 
+## [0.5.2](https://github.com/schibsted/layout/releases/tag/0.5.2) (2017-10-04)
+
+- Error messages for unknown properties and enum values now display suggestions for what you might have meant
+- Added enhanced support for several more standard controls, including UIActivityIndicatorView, UIWebView and WKWebView
+- Errors that occur during view creation are now displayed with a specific message instead of a generic one
+- Errors during UICollectionView creation no longer crash the application
+- Commented out expressions no longer produce an error if the expression name is not recognized
+- Fixed the tap-to-reload functionality in the Red Box error overlay
+- Force reloading using Cmd-Option-R now works immediately instead of requiring an app restart to take effect
+- Fixed the UIDesigner app, which was previously broken on Xcode 9
+- Fixed a bug where the Layout XML parser sometimes ignored significant whitespace inside inline HTML
+- Fixed issue where view sometimes failed to update correctly due to a bug in update suppression logic
+
 ## [0.5.1](https://github.com/schibsted/layout/releases/tag/0.5.1) (2017-10-02)
 
 - Fixed a retain cycle inside LayoutNode when referencing read-only view properties inside an expression
