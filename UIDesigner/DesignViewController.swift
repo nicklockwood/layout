@@ -123,7 +123,9 @@ class DesignViewController: UIViewController, UIToolbarDelegate, EditViewControl
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .darkGray
-        view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(selectNode)))
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(selectNode))
+        tapGesture.cancelsTouchesInView = false
+        view.addGestureRecognizer(tapGesture)
 
         // Container view
         containerView = UIView(frame: CGRect(origin: .zero, size: layoutSize))
@@ -174,6 +176,7 @@ class DesignViewController: UIViewController, UIToolbarDelegate, EditViewControl
             deleteButton,
             UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
             UIBarButtonItem(customView: orientationControl),
+            UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
             UIBarButtonItem(customView: deviceControl),
         ]
         toolbar.delegate = self

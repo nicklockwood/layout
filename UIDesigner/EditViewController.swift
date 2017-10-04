@@ -195,12 +195,16 @@ class EditViewController: UIViewController, UITextFieldDelegate {
         for view in view.subviews {
             view.removeFromSuperview()
         }
-        try! rootNode.mount(in: self)
+        do {
+            try rootNode.mount(in: self)
+        } catch {
+            print("\nError: \(error)\n")
+        }
 
         print("creation + mount:", round((CACurrentMediaTime() - start) * 1000))
     }
 
-    func didUpdateText() {
+    @objc func didUpdateText() {
         classField?.backgroundColor = .white
         guard let classField = classField,
             let textRange = classField.textRange(from: classField.beginningOfDocument, to: classField.selectedTextRange?.start ?? classField.endOfDocument),
@@ -229,7 +233,7 @@ class EditViewController: UIViewController, UITextFieldDelegate {
         classField.selectedTextRange = classField.textRange(from: textRange.end, to: textRange.end)
     }
 
-    func didUpdateClass() {
+    @objc func didUpdateClass() {
         guard let text = classField?.text else {
             classField?.text = "UIView"
             delegate?.didUpdateClass(UIView.self, for: node)
@@ -244,7 +248,7 @@ class EditViewController: UIViewController, UITextFieldDelegate {
         delegate?.didUpdateClass(cls, for: node)
     }
 
-    func didUpdateField(_ textField: UITextField) {
+    @objc func didUpdateField(_ textField: UITextField) {
         for (name, field) in expressionFields where field === textField {
             if (node.expressions[name] ?? "") != (field.text ?? "") {
                 delegate?.didUpdateExpression(field.text ?? "", for: name, in: node)
