@@ -171,7 +171,7 @@ public class LayoutNode: NSObject {
         change: [NSKeyValueChangeKey: Any]?,
         context _: UnsafeMutableRawPointer?
     ) {
-        guard _setupComplete, !_suppressUpdates, let new = change?[.newKey] else {
+        guard _setupComplete, _updateLock == 0, let new = change?[.newKey] else {
             return
         }
         switch new {
@@ -1523,8 +1523,8 @@ public class LayoutNode: NSObject {
         }
         // Try AutoLayout
         if _usesAutoLayout, let _widthConstraint = _widthConstraint, let _heightConstraint = _heightConstraint {
-            let wasSuppressingUpdates = _suppressUpdates
-            _suppressUpdates = true
+            defer { _updateLock -= 1 }
+            _updateLock += 1
             let transform = _view.layer.transform
             _view.layer.transform = CATransform3DIdentity
             let frame = _view.frame
@@ -1557,7 +1557,6 @@ public class LayoutNode: NSObject {
             _view.translatesAutoresizingMaskIntoConstraints = usesAutoresizing
             _view.frame = frame
             _view.layer.transform = transform
-            _suppressUpdates = wasSuppressingUpdates
             if size.width > 0 || size.height > 0 {
                 return size
             }
@@ -1622,13 +1621,18 @@ public class LayoutNode: NSObject {
     }
 
     // Prevent `update()` from being called when making changes to view properties, etc
-    var _suppressUpdates = false
+    private var _updateLock = 0
+    func performWithoutUpdate(_ block: () throws -> Void) rethrows {
+        defer { _updateLock -= 1 }
+        _updateLock += 1
+        try block()
+    }
 
     // Note: thrown error is always a LayoutError
     private func updateValues(animated: Bool) throws {
-        guard _suppressUpdates == false else { return }
-        defer { _suppressUpdates = false }
-        _suppressUpdates = true
+        guard _updateLock == 0 else { return }
+        defer { _updateLock -= 1 }
+        _updateLock += 1
         try LayoutError.wrap(setUpExpressions, for: self)
         clearCachedValues()
         try LayoutError.wrap({
@@ -1643,9 +1647,9 @@ public class LayoutNode: NSObject {
 
     // Note: thrown error is always a LayoutError
     private func updateFrame() throws {
-        guard _suppressUpdates == false, let _view = _view else { return }
-        defer { _suppressUpdates = false }
-        _suppressUpdates = true
+        guard _updateLock == 0, let _view = _view else { return }
+        defer { _updateLock -= 1 }
+        _updateLock += 1
         let frame = self.frame
         if frame != _view.frame {
             if _view.translatesAutoresizingMaskIntoConstraints {
@@ -1705,9 +1709,9 @@ public class LayoutNode: NSObject {
             viewController.addChildViewController(controller)
         }
         viewController.view.addSubview(view)
-        _suppressUpdates = true
-        _view?.frame = viewController.view.bounds
-        _suppressUpdates = false
+        performWithoutUpdate {
+            _view?.frame = viewController.view.bounds
+        }
         update()
     }
 

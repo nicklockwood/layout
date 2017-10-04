@@ -426,12 +426,12 @@ extension UITableView {
                 try node.bind(to: node.view) // TODO: find a better solution for binding
                 let cell = node.view
                 cell.setValue(identifier, forKey: "reuseIdentifier")
-                node._suppressUpdates = true
-                cell.frame.size = CGSize(
-                    width: bounds.width,
-                    height: estimatedRowHeight > 0 ? estimatedRowHeight : rowHeight
-                )
-                node._suppressUpdates = false
+                node.performWithoutUpdate {
+                    cell.frame.size = CGSize(
+                        width: bounds.width,
+                        height: estimatedRowHeight > 0 ? estimatedRowHeight : rowHeight
+                    )
+                }
                 return node
             case let .failure(error):
                 throw error
