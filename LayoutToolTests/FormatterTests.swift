@@ -154,6 +154,12 @@ class FormatterTests: XCTestCase {
         XCTAssertEqual(try format(input), output)
     }
 
+    func testNoRemoveSpaceAfterFirstHTMLTag() {
+        let input = "<UIView height=\"auto\">\n    <i>hello</i> cruel <b>world</b>\n</UIView>"
+        let output = "<UIView height=\"auto\">\n    <i>hello</i> cruel <b>world</b>\n</UIView>\n"
+        XCTAssertEqual(try format(input), output)
+    }
+
     // MARK: Comments
 
     func testLeadingComment() {

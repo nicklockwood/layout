@@ -174,10 +174,10 @@ class XMLParser: NSObject, XMLParserDelegate {
             attributes: attributes,
             children: []
         )
-        if top != nil {
+        if top != nil { // Can't use if let binding here because we mutate top
             if !node.isHTML {
                 text = text.trimmingCharacters(in: .whitespacesAndNewlines)
-            } else if !top!.isHTML {
+            } else if !top!.isHTML, top!.children.last?.isHTML != true {
                 text = text.ltrim()
             }
             appendText()
