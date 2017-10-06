@@ -471,34 +471,24 @@ extension UIButton {
     open override class var expressionTypes: [String: RuntimeType] {
         var types = super.expressionTypes
         types["title"] = RuntimeType(String.self)
+        types["attributedTitle"] = RuntimeType(NSAttributedString.self)
+        types["titleColor"] = RuntimeType(UIColor.self)
+        types["titleShadowColor"] = RuntimeType(UIColor.self)
+        types["image"] = RuntimeType(UIImage.self)
+        types["backgroundImage"] = RuntimeType(UIImage.self)
         for state in controlStates.keys {
             types["\(state)Title"] = RuntimeType(String.self)
-        }
-        types["attributedTitle"] = RuntimeType(NSAttributedString.self)
-        for state in controlStates.keys {
             types["\(state)AttributedTitle"] = RuntimeType(NSAttributedString.self)
-        }
-        types["titleColor"] = RuntimeType(UIColor.self)
-        for state in controlStates.keys {
             types["\(state)TitleColor"] = RuntimeType(UIColor.self)
-        }
-        types["titleShadowColor"] = RuntimeType(UIColor.self)
-        for state in controlStates.keys {
             types["\(state)TitleShadowColor"] = RuntimeType(UIColor.self)
+            types["\(state)Image"] = RuntimeType(UIImage.self)
+            types["\(state)BackgroundImage"] = RuntimeType(UIImage.self)
         }
         for (name, type) in UILabel.cachedExpressionTypes {
             types["titleLabel.\(name)"] = type
         }
-        types["image"] = RuntimeType(UIImage.self)
-        for state in controlStates.keys {
-            types["\(state)Image"] = RuntimeType(UIImage.self)
-        }
         for (name, type) in UIImageView.cachedExpressionTypes {
             types["imageView.\(name)"] = type
-        }
-        types["backgroundImage"] = RuntimeType(UIImage.self)
-        for state in controlStates.keys {
-            types["\(state)BackgroundImage"] = RuntimeType(UIImage.self)
         }
         // Setters used for embedded html
         types["text"] = RuntimeType(String.self)
@@ -974,20 +964,16 @@ extension UISegmentedControl: TitleTextAttributes {
     open override class var expressionTypes: [String: RuntimeType] {
         var types = super.expressionTypes
         types["items"] = RuntimeType(NSArray.self)
-        types["backgroundImage"] = RuntimeType(UIImage.self)
-        for state in controlStates.keys {
-            types["\(state)BackgroundImage"] = RuntimeType(UIImage.self)
-        }
-        types["dividerImage"] = RuntimeType(UIImage.self)
         // TODO: find a good naming scheme for left/right state variants
+        types["backgroundImage"] = RuntimeType(UIImage.self)
         types["titleColor"] = RuntimeType(UIColor.self)
-        for state in controlStates.keys {
-            types["\(state)TitleColor"] = RuntimeType(UIColor.self)
-        }
         types["titleFont"] = RuntimeType(UIFont.self)
         for state in controlStates.keys {
+            types["\(state)BackgroundImage"] = RuntimeType(UIImage.self)
+            types["\(state)TitleColor"] = RuntimeType(UIColor.self)
             types["\(state)TitleFont"] = RuntimeType(UIFont.self)
         }
+        types["dividerImage"] = RuntimeType(UIImage.self)
         types["contentPositionAdjustment"] = RuntimeType(UIOffset.self)
         types["contentPositionAdjustment.horizontal"] = RuntimeType(CGFloat.self)
         types["contentPositionAdjustment.vertical"] = RuntimeType(CGFloat.self)
@@ -1138,20 +1124,16 @@ extension UISegmentedControl: TitleTextAttributes {
 extension UIStepper {
     open override class var expressionTypes: [String: RuntimeType] {
         var types = super.expressionTypes
-        types["backgroundImage"] = RuntimeType(UIImage.self)
-        for state in controlStates.keys {
-            types["\(state)BackgroundImage"] = RuntimeType(UIImage.self)
-        }
-        types["dividerImage"] = RuntimeType(UIImage.self)
         // TODO: find a good naming scheme for left/right state variants
+        types["backgroundImage"] = RuntimeType(UIImage.self)
         types["incrementImage"] = RuntimeType(UIColor.self)
-        for state in controlStates.keys {
-            types["\(state)IncrementImage"] = RuntimeType(UIImage.self)
-        }
         types["decrementImage"] = RuntimeType(UIFont.self)
         for state in controlStates.keys {
+            types["\(state)BackgroundImage"] = RuntimeType(UIImage.self)
+            types["\(state)IncrementImage"] = RuntimeType(UIImage.self)
             types["\(state)DecrementImage"] = RuntimeType(UIImage.self)
         }
+        types["dividerImage"] = RuntimeType(UIImage.self)
         return types
     }
 
@@ -1235,6 +1217,71 @@ extension UIActivityIndicatorView {
 
     open override class var defaultExpressions: [String: String] {
         return ["isAnimating": "true"]
+    }
+}
+
+extension UISwitch {
+    open override class var expressionTypes: [String: RuntimeType] {
+        var types = super.expressionTypes
+
+        #if arch(i386) || arch(x86_64)
+            // Private
+            types["visualElement"] = nil
+        #endif
+        return types
+    }
+
+    open override func setAnimatedValue(_ value: Any, forExpression name: String) throws {
+        switch name {
+        case "isOn":
+            setOn(value as! Bool, animated: true)
+        default:
+            try super.setAnimatedValue(value, forExpression: name)
+        }
+    }
+}
+
+extension UISlider {
+    open override class var expressionTypes: [String: RuntimeType] {
+        var types = super.expressionTypes
+        types["thumbImage"] = RuntimeType(UIImage.self)
+        types["minimumTrackImage"] = RuntimeType(UIImage.self)
+        types["maximumTrackImage"] = RuntimeType(UIImage.self)
+        for state in controlStates.keys {
+            types["\(state)ThumbImage"] = RuntimeType(UIImage.self)
+            types["\(state)MinimumTrackImage"] = RuntimeType(UIImage.self)
+            types["\(state)MaximumTrackImage"] = RuntimeType(UIImage.self)
+        }
+        return types
+    }
+
+    open override func setValue(_ value: Any, forExpression name: String) throws {
+        switch name {
+        case "thumbImage": setThumbImage(value as? UIImage, for: .normal)
+        case "minimumTrackImage": setMinimumTrackImage(value as? UIImage, for: .normal)
+        case "maximumTrackImage": setMaximumTrackImage(value as? UIImage, for: .normal)
+        default:
+            if let (prefix, state) = controlStates.first(where: { name.hasPrefix($0.key) }) {
+                switch name[prefix.endIndex ..< name.endIndex] {
+                case "ThumbImage": setThumbImage(value as? UIImage, for: state)
+                case "MinimumTrackImage": setMinimumTrackImage(value as? UIImage, for: state)
+                case "MaximumTrackImage": setMaximumTrackImage(value as? UIImage, for: state)
+                default:
+                    try super.setValue(value, forExpression: name)
+                }
+                return
+            }
+            try super.setValue(value, forExpression: name)
+        }
+    }
+
+    open override func setAnimatedValue(_ value: Any, forExpression name: String) throws {
+        switch name {
+        case "value":
+            setValue(value as! Float, animated: true)
+        default:
+            try super.setAnimatedValue(value, forExpression: name)
+        }
     }
 }
 
