@@ -188,9 +188,9 @@ extension UICollectionView: LayoutDelegate {
         }
     }
 
-    func value(forVariableOrConstant name: String) -> Any? {
+    func value(forParameterOrVariableOrConstant name: String) -> Any? {
         guard let layoutNode = layoutNode,
-            let value = try? layoutNode.value(forVariableOrConstant: name) else {
+            let value = try? layoutNode.value(forParameterOrVariableOrConstant: name) else {
             return nil
         }
         return value

@@ -13,5 +13,5 @@ import Foundation
     @objc optional func layoutNode(_ layoutNode: LayoutNode, localizedStringForKey key: String) -> String?
 
     /// A variable or constant value inherited from delegate
-    @objc optional func value(forVariableOrConstant name: String) -> Any?
+    @objc optional func value(forParameterOrVariableOrConstant name: String) -> Any?
 }

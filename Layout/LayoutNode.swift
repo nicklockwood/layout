@@ -852,7 +852,7 @@ public class LayoutNode: NSObject {
                     // If an expression directly references itself it may be shadowing
                     // a constant or variable, so check for that first before throwing
                     if self._evaluating.last == symbol,
-                        let value = try self.value(forVariableOrConstant: symbol) {
+                        let value = try self.value(forVariableOrConstantOrParentParameter: symbol) {
                         return value
                     }
                     // TODO: allow expression to reference its previous value instead of treating this as an error
@@ -1015,17 +1015,16 @@ public class LayoutNode: NSObject {
         return nil
     }
 
-    func value(forVariableOrConstant name: String) throws -> Any? {
-        if let value = try value(forParameter: name) ??
-            value(forKeyPath: name, in: _variables) ??
+    // Doesn't look up params defined directly on the callee, only its parents
+    private func value(forVariableOrConstantOrParentParameter name: String) throws -> Any? {
+        return try value(forKeyPath: name, in: _variables) ??
             value(forKeyPath: name, in: constants) ??
-            parent?.value(forVariableOrConstant: name) {
-            return value
-        }
-        guard let delegate = _delegate else {
-            return nil
-        }
-        return delegate.value?(forVariableOrConstant: name)
+            parent?.value(forParameterOrVariableOrConstant: name) ??
+            _delegate?.value?(forParameterOrVariableOrConstant: name)
+    }
+
+    func value(forParameterOrVariableOrConstant name: String) throws -> Any? {
+        return try value(forParameter: name) ?? value(forVariableOrConstantOrParentParameter: name)
     }
 
     public lazy var viewExpressionTypes: [String: RuntimeType] = {
@@ -1223,7 +1222,7 @@ public class LayoutNode: NSObject {
                     }
                 }
                 return { [unowned self] in
-                    try self.value(forVariableOrConstant: symbol) ?? fallback()
+                    try self.value(forParameterOrVariableOrConstant: symbol) ?? fallback()
                 }
             }
             if let range = symbol.range(of: ".") {
@@ -1276,7 +1275,7 @@ public class LayoutNode: NSObject {
                     }
                 case "strings":
                     getter = { [unowned self] in
-                        try self.value(forVariableOrConstant: symbol) ?? self.localizedString(forKey: tail)
+                        try self.value(forParameterOrVariableOrConstant: symbol) ?? self.localizedString(forKey: tail)
                     }
                 default:
                     getter = getterFor(symbol)

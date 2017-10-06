@@ -143,7 +143,7 @@ class LayoutNodeTests: XCTestCase {
         XCTAssertEqual(node.view.frame.width, 5)
     }
 
-    // MARK: State/constant shadowing
+    // MARK: State/constant/parameter shadowing
 
     func testExpressionShadowsConstant() {
         let node = LayoutNode(constants: ["top": 10], expressions: ["top": "top"])
@@ -188,6 +188,14 @@ class LayoutNodeTests: XCTestCase {
         XCTAssertTrue(parent.validate().isEmpty)
         XCTAssertEqual(try child.doubleValue(forSymbol: "foo"), 10)
         XCTAssertEqual(try child.doubleValue(forSymbol: "top"), 10)
+    }
+
+    func testParameterNameShadowsState() {
+        let xmlData = "<UILabel text=\"{name}\" name=\"{name}\"><param name=\"name\" type=\"String\"/></UILabel>".data(using: .utf8)!
+        let node = try! LayoutNode.with(xmlData: xmlData)
+        node.setState(["name": "Foo"])
+        node.update()
+        XCTAssertEqual((node.view as! UILabel).text, "Foo")
     }
 
     // MARK: update(with:)
