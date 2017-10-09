@@ -253,41 +253,54 @@ func isStringType(_ name: String) -> Bool {
 
 // Returns the type name of an attribute in a node, or nil if uncertain
 func typeOfAttribute(_ key: String, inNode node: XMLNode) -> String? {
-    guard let name = node.name else {
-        preconditionFailure()
+    func typeForClass(_ className: String) -> String? {
+        switch key {
+        case "outlet":
+            return "String"
+        case "xml", "template":
+            return "URL"
+        case "left", "right", "width", "top", "bottom", "height":
+            return "CGFloat"
+        default:
+            // Look up the type
+            if let props = UIKitSymbols[className] {
+                if let type = props[key] {
+                    return type
+                } else if let superclass = props["superclass"], let type = typeForClass(superclass) {
+                    return type
+                }
+            }
+            if className.hasSuffix("Controller"), let type = UIKitSymbols["UIViewController"]![key] {
+                return type
+            }
+            if let type = UIKitSymbols["UIView"]![key] {
+                return type
+            }
+            // Guess the type from the name
+            switch key.components(separatedBy: ".").last! {
+            case "left", "right", "x", "width", "top", "bottom", "y", "height":
+                return "CGFloat"
+            case _ where key.hasPrefix("is") || key.hasPrefix("has"):
+                return "Bool"
+            case _ where key.hasSuffix("Color"), "color":
+                return "UIColor"
+            case _ where key.hasSuffix("Size"), "size":
+                return "CGSize"
+            case _ where key.hasSuffix("Delegate"), "delegate",
+                 _ where key.hasSuffix("DataSource"), "dataSource":
+                return "Protocol"
+            default:
+                return nil
+            }
+        }
     }
     if let type = node.parameters[key] {
         return type
-    } else if let props = UIKitSymbols[name], let type = props[key] {
-        return type
-    } else if name.hasSuffix("Controller"), let type = UIKitSymbols["UIViewController"]![key] {
-        return type
-    } else if let type = UIKitSymbols["UIView"]![key] {
-        return type
     }
-    switch key {
-    case "outlet":
-        return "String"
-    case "xml", "template":
-        return "URL"
-    default:
-        // Guess the type from the name
-        switch key.components(separatedBy: ".").last! {
-        case "left", "right", "x", "width", "top", "bottom", "y", "height":
-            return "CGFloat"
-        case _ where key.hasPrefix("is") || key.hasPrefix("has"):
-            return "Bool"
-        case _ where key.hasSuffix("Color"), "color":
-            return "UIColor"
-        case _ where key.hasSuffix("Size"), "size":
-            return "CGSize"
-        case _ where key.hasSuffix("Delegate"), "delegate",
-             _ where key.hasSuffix("DataSource"), "dataSource":
-            return "Protocol"
-        default:
-            return nil
-        }
+    guard let className = node.name else {
+        preconditionFailure()
     }
+    return typeForClass(className)
 }
 
 // Determines if given attribute should be treated as a string expression

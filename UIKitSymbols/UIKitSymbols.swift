@@ -168,22 +168,20 @@ class UIKitSymbols: XCTestCase {
             "UIWebView",
         ]
 
-        // Dedupe view and controller keys
-        let viewControllerKeys = UIViewController.cachedExpressionTypes
-        let viewKeys = UIView.cachedExpressionTypes
-
         // Get properties
         var result = [String: [String: RuntimeType]]()
         for name in names {
             var props: [String: RuntimeType]
-            let cls: AnyClass? = NSClassFromString(name)
+            guard let cls = NSClassFromString(name), let superclass = class_getSuperclass(cls) else {
+                continue
+            }
             switch cls {
             case let viewClass as UIView.Type:
                 props = viewClass.cachedExpressionTypes
                 if viewClass == UIView.self {
                     break
                 }
-                for (key, type) in viewKeys where props[key] == type {
+                for (key, type) in (superclass as! UIView.Type).cachedExpressionTypes where props[key] == type {
                     props.removeValue(forKey: key)
                 }
             case let controllerClass as UIViewController.Type:
@@ -191,7 +189,7 @@ class UIKitSymbols: XCTestCase {
                 if controllerClass == UIViewController.self {
                     break
                 }
-                for (key, type) in viewControllerKeys where props[key] == type {
+                for (key, type) in (superclass as! UIViewController.Type).cachedExpressionTypes where props[key] == type {
                     props.removeValue(forKey: key)
                 }
             default:
@@ -216,8 +214,16 @@ class UIKitSymbols: XCTestCase {
         let properties = getProperties()
         for name in properties.keys.sorted() {
             let props = properties[name]!
+            var superclassName: String?
+            if let cls = NSClassFromString(name), let superclass = class_getSuperclass(cls),
+                superclass is UIView.Type || superclass is UIViewController.Type {
+                superclassName = NSStringFromClass(superclass)
+            }
             output += "    symbols[\"\(name)\"] = ["
-            if props.isEmpty {
+            if let superclassName = superclassName {
+                output += "\n        \"superclass\": \"\(superclassName)\","
+            }
+            if props.isEmpty, superclassName == nil {
                 output += ":]\n"
             } else {
                 output += "\n"
@@ -278,7 +284,7 @@ class UIKitSymbols: XCTestCase {
 
         let output = "{\n" +
             "    \"scope\": \"text.xml\",\n" +
-            "    \"completions\": [\n        " + rows.joined(separator: ",\n        ") + "\n" +
+            "    \"completions\": [\n        " + rows.sorted().joined(separator: ",\n        ") + "\n" +
             "    ]\n" +
             "}\n"
 
