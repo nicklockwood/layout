@@ -1823,15 +1823,19 @@ public class LayoutNode: NSObject {
                 throw LayoutError("outlet \(outlet) of \(owner.classForCoder) is not a \(expectedType)", for: self)
             }
         }
-        if let type = viewExpressionTypes["delegate"], expressions["delegate"] == nil, type.matches(owner) {
-            try LayoutError.wrap({
-                try self._view?.setValue(owner, forExpression: "delegate")
-            }, for: self)
-        }
-        if let type = viewExpressionTypes["dataSource"], expressions["dataSource"] == nil, type.matches(owner) {
-            try LayoutError.wrap({
-                try _view?.setValue(owner, forExpression: "dataSource")
-            }, for: self)
+        for (name, type) in viewExpressionTypes where expressions[name] == nil {
+            guard case .protocol = type.type, type.matches(owner) else {
+                continue
+            }
+            if name == "delegate" || name.hasSuffix("Delegate") {
+                try LayoutError.wrap({
+                    try self._view?.setValue(owner, forExpression: name)
+                }, for: self)
+            } else if name == "dataSource" || name.hasSuffix("DataSource") {
+                try LayoutError.wrap({
+                    try _view?.setValue(owner, forExpression: name)
+                }, for: self)
+            }
         }
         try bindActions()
         for child in children {
