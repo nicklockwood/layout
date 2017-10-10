@@ -2,6 +2,20 @@
 
 import UIKit
 
+struct IntOptionSet: OptionSet {
+    let rawValue: Int
+    init(rawValue: Int) {
+        self.rawValue = rawValue
+    }
+}
+
+struct UIntOptionSet: OptionSet {
+    let rawValue: UInt
+    init(rawValue: UInt) {
+        self.rawValue = rawValue
+    }
+}
+
 // Flatten an array of dictionaries
 func merge(_ dictionaries: [[String: Any]]) -> [String: Any] {
     var result = [String: Any]()

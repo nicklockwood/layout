@@ -2,7 +2,7 @@
 
 import UIKit
 
-private let tableViewStyle = RuntimeType(UITableViewStyle.self, [
+private let tableViewStyle = RuntimeType([
     "plain": .plain,
     "grouped": .grouped,
 ] as [String: UITableViewStyle])
@@ -46,11 +46,23 @@ extension UITableView {
 
     open override class var expressionTypes: [String: RuntimeType] {
         var types = super.expressionTypes
-        types["separatorStyle"] = RuntimeType(UITableViewCellSeparatorStyle.self, [
+        types["separatorStyle"] = RuntimeType([
             "none": .none,
             "singleLine": .singleLine,
             "singleLineEtched": .singleLineEtched,
         ] as [String: UITableViewCellSeparatorStyle])
+        types["separatorInsetReference"] = RuntimeType([
+            "fromCellEdges": 0,
+            "fromAutomaticInsets": 1,
+        ] as [String: Int])
+        #if swift(>=3.2)
+            if #available(iOS 11.0, *) {
+                types["separatorInsetReference"] = RuntimeType([
+                    "fromCellEdges": .fromCellEdges,
+                    "fromAutomaticInsets": .fromAutomaticInsets,
+                ] as [String: UITableViewSeparatorInsetReference])
+            }
+        #endif
         for name in [
             "contentSize",
             "contentSize.height",
@@ -80,6 +92,18 @@ extension UITableView {
             }
         #endif
         return types
+    }
+
+    open override func setValue(_ value: Any, forExpression name: String) throws {
+        switch name {
+        case "separatorInsetReference":
+            if #available(iOS 11.0, *) {
+                fallthrough
+            }
+            // Does nothing on iOS 10
+        default:
+            try super.setValue(value, forExpression: name)
+        }
     }
 
     open override func setAnimatedValue(_ value: Any, forExpression name: String) throws {
@@ -454,7 +478,7 @@ extension UITableView {
     }
 }
 
-private let tableViewCellStyle = RuntimeType(UITableViewCellStyle.self, [
+private let tableViewCellStyle = RuntimeType([
     "default": .default,
     "value1": .value1,
     "value2": .value2,
@@ -586,17 +610,17 @@ extension UITableViewCell {
 
     open override class var expressionTypes: [String: RuntimeType] {
         var types = super.expressionTypes
-        types["selectionStyle"] = RuntimeType(UITableViewCellSelectionStyle.self, [
+        types["selectionStyle"] = RuntimeType([
             "none": .none,
             "blue": .blue,
             "gray": .gray,
             "default": .default,
         ] as [String: UITableViewCellSelectionStyle])
-        types["focusStyle"] = RuntimeType(UITableViewCellFocusStyle.self, [
+        types["focusStyle"] = RuntimeType([
             "default": .default,
             "custom": .custom,
         ] as [String: UITableViewCellFocusStyle])
-        types["accessoryType"] = RuntimeType(UITableViewCellAccessoryType.self, [
+        types["accessoryType"] = RuntimeType([
             "none": .none,
             "disclosureIndicator": .disclosureIndicator,
             "detailDisclosureButton": .detailDisclosureButton,
@@ -643,6 +667,7 @@ extension UITableViewCell {
                 "topShadowColor",
                 "wasSwiped",
             ] + [
+                "editingStyle",
                 "reuseIdentifier",
                 "showingDeleteConfirmation",
             ] {

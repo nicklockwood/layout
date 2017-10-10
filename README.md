@@ -32,6 +32,8 @@
     - [Fonts](#fonts)
     - [Colors](#colors)
     - [Images](#images)
+    - [Enums](#enums)
+    - [OptionSets](#optionsets)
     - [Optionals](#optionals)
     - [Comments](#comments)
 - [Standard Components](#standard-components)
@@ -65,6 +67,7 @@
     - [Installation](#installation-1)
     - [Formatting](#formatting)
 - [FAQ](#faq)
+
 
 # Introduction
 
@@ -1006,6 +1009,44 @@ As with color assets, image assets defined in a different bundle can be referenc
 ```
 
 
+## Enums
+
+To set a value for an enum-type expression, just use the name of the value. For example:
+
+```xml
+<UIImageView contentMode="scaleAspectFit"/>
+```
+
+Standard UIKit enum values are exposed as constants that may be used only in expressions of that type. There is no need to prefix the enum value name with a `.` as you would in Swift.
+
+You can use logic directly inside enum expressions - there is no need to escape the logic or use quotes around the names:
+
+```xml
+<UIImageView contentMode="isSmallImage ? center : scaleAspectFit"/>
+```
+
+**Note:** there is currently no way to access enum value names inside other expression types, so none of the following will work:
+
+```xml
+<UIImageView height="contentMode == scaleAspectFit ? 200 : 300"/>
+
+<UIImageView height="contentMode == .scaleAspectFit ? 200 : 300"/>
+
+<UIImageView height="contentMode == UIViewContentMode.scaleAspectFit ? 200 : 300"/>
+```
+
+
+## OptionSets
+
+OptionSet expressions work the same way as enums. If you want to set multiple values for an OptionSet, separate them with commas:
+
+```xml
+<UITextView dataDetectorTypes="phoneNumber, link"/>
+```
+
+There is no need to wrap multiple OptionSet values in square brackets, as you would in Swift. As with enums, OptionSet value names cannot be used outside of the expression that sets them.
+
+
 ## Optionals
 
 Layout currently has fairly limited support for optionals in expressions. There is no way to specify that an expression's return value is optional, and so returning `nil` from an expression is usually an error. There are a few exceptions to this:
@@ -1877,14 +1918,28 @@ RuntimeType(MyStructType.self)
 It can also be used to specify a set of enum values:
 
 ```swift
-RuntimeType(NSTextAlignment.self, [
+RuntimeType([
     "left": .left,
     "right": .right,
     "center": .center,
-])
+] as [String: NSTextAlignment])
 ```
 
 Swift enum values cannot be set automatically using the Objective-C runtime, but if the underlying type of the property matches the `rawValue` (as is the case for most Objective-C APIs) then it's typically not necessary to also provide a custom `setValue(forExpression:)` implementation. You'll have to determine this by testing it on a case-by-case basis.
+
+OptionSets can be specified in the same way as enums:
+
+```swift
+RuntimeType([
+    "phoneNumber": .phoneNumber,
+    "link": .link,
+    "address": .address,
+    "calendarEvent": .calendarEvent,
+    "all": .all,
+] as [String: UIDataDetectorTypes])
+```
+
+Again, for Objective-C APIs it is typically not necessary to provide a custom `setValue(forExpression:)` implementation for and OptionSet value, but if the type of the property is defined in Swift as the OptionSet type itself rather than the `rawValue` type, then you may need to do so.
 
 
 ## Custom Constructor Arguments

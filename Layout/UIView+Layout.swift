@@ -27,7 +27,7 @@ extension UIView {
         // TODO: support more properties
         types["alpha"] = RuntimeType(CGFloat.self)
         types["contentScaleFactor"] = RuntimeType(CGFloat.self)
-        types["contentMode"] = RuntimeType(UIViewContentMode.self, [
+        types["contentMode"] = RuntimeType([
             "scaleToFill": .scaleToFill,
             "scaleAspectFit": .scaleAspectFit,
             "scaleAspectFill": .scaleAspectFill,
@@ -42,21 +42,24 @@ extension UIView {
             "bottomLeft": .bottomLeft,
             "bottomRight": .bottomRight,
         ] as [String: UIViewContentMode])
-        types["tintAdjustmentMode"] = RuntimeType(UIViewTintAdjustmentMode.self, [
+        types["tintAdjustmentMode"] = RuntimeType([
             "automatic": .automatic,
             "normal": .normal,
             "dimmed": .dimmed,
         ] as [String: UIViewTintAdjustmentMode])
-        #if swift(>=3.2)
-            if #available(iOS 11.0, *) {} else {
-                types["directionalLayoutMargins"] = RuntimeType(UIEdgeInsets.self)
-            }
-        #else
+        if #available(iOS 11.0, *) {} else {
             types["directionalLayoutMargins"] = RuntimeType(UIEdgeInsets.self)
-        #endif
+        }
         for key in ["top", "leading", "bottom", "trailing"] {
             types["directionalLayoutMargins.\(key)"] = RuntimeType(CGFloat.self)
         }
+        types["semanticContentAttribute"] = RuntimeType([
+            "unspecified": .unspecified,
+            "playback": .playback,
+            "spatial": .spatial,
+            "forceLeftToRight": .forceLeftToRight,
+            "forceRightToLeft": .forceRightToLeft,
+        ] as [String: UISemanticContentAttribute])
         for (name, type) in (layerClass as! CALayer.Type).cachedExpressionTypes {
             types["layer.\(name)"] = type
         }
@@ -225,6 +228,8 @@ extension UIView {
                     layoutMargins.left = value as! CGFloat
                 }
                 return
+            case "layer.maskedCorners":
+                return // TODO: warn about unavailability
             default:
                 break
             }
@@ -373,13 +378,13 @@ private var layoutActionsKey: UInt8 = 0
 extension UIControl {
     open override class var expressionTypes: [String: RuntimeType] {
         var types = super.expressionTypes
-        types["contentVerticalAlignment"] = RuntimeType(UIControlContentVerticalAlignment.self, [
+        types["contentVerticalAlignment"] = RuntimeType([
             "center": .center,
             "top": .top,
             "bottom": .bottom,
             "fill": .fill,
         ] as [String: UIControlContentVerticalAlignment])
-        types["contentHorizontalAlignment"] = RuntimeType(UIControlContentHorizontalAlignment.self, [
+        types["contentHorizontalAlignment"] = RuntimeType([
             "center": .center,
             "left": .left,
             "right": .right,
@@ -447,7 +452,7 @@ extension UIControl {
     }
 }
 
-private let _buttonType = RuntimeType(UIButtonType.self, [
+private let _buttonType = RuntimeType([
     "custom": .custom,
     "system": .system,
     "detailDisclosure": .detailDisclosure,
@@ -558,29 +563,29 @@ private let textInputTraits: [String: RuntimeType] = {
         keyboardTypes["asciiCapableNumberPad"] = .asciiCapable
     }
     var traitTypes = [
-        "autocapitalizationType": RuntimeType(UITextAutocapitalizationType.self, [
+        "autocapitalizationType": RuntimeType([
             "none": .none,
             "words": .words,
             "sentences": .sentences,
             "allCharacters": .allCharacters,
         ] as [String: UITextAutocapitalizationType]),
-        "autocorrectionType": RuntimeType(UITextAutocorrectionType.self, [
+        "autocorrectionType": RuntimeType([
             "default": .default,
             "no": .no,
             "yes": .yes,
         ] as [String: UITextAutocorrectionType]),
-        "spellCheckingType": RuntimeType(UITextSpellCheckingType.self, [
+        "spellCheckingType": RuntimeType([
             "default": .default,
             "no": .no,
             "yes": .yes,
         ] as [String: UITextSpellCheckingType]),
-        "keyboardType": RuntimeType(UIKeyboardType.self, keyboardTypes),
-        "keyboardAppearance": RuntimeType(UIKeyboardAppearance.self, [
+        "keyboardType": RuntimeType(keyboardTypes),
+        "keyboardAppearance": RuntimeType([
             "default": .default,
             "dark": .dark,
             "light": .light,
         ] as [String: UIKeyboardAppearance]),
-        "returnKeyType": RuntimeType(UIReturnKeyType.self, [
+        "returnKeyType": RuntimeType([
             "default": .default,
             "go": .go,
             "google": .google,
@@ -599,7 +604,7 @@ private let textInputTraits: [String: RuntimeType] = {
     ]
 
     for key in ["smartQuotesType", "smartDashesType", "smartInsertDeleteType"] {
-        traitTypes[key] = RuntimeType(Int.self, [
+        traitTypes[key] = RuntimeType([
             "default": 0,
             "no": 1,
             "yes": 2,
@@ -607,17 +612,17 @@ private let textInputTraits: [String: RuntimeType] = {
     }
     #if swift(>=3.2)
         if #available(iOS 11.0, *) {
-            traitTypes["smartQuotesType"] = RuntimeType(UITextSmartQuotesType.self, [
+            traitTypes["smartQuotesType"] = RuntimeType([
                 "default": .default,
                 "no": .no,
                 "yes": .yes,
             ] as [String: UITextSmartQuotesType])
-            traitTypes["smartDashesType"] = RuntimeType(UITextSmartDashesType.self, [
+            traitTypes["smartDashesType"] = RuntimeType([
                 "default": .default,
                 "no": .no,
                 "yes": .yes,
             ] as [String: UITextSmartDashesType])
-            traitTypes["smartInsertDeleteType"] = RuntimeType(UITextSmartInsertDeleteType.self, [
+            traitTypes["smartInsertDeleteType"] = RuntimeType([
                 "default": .default,
                 "no": .no,
                 "yes": .yes,
@@ -628,13 +633,13 @@ private let textInputTraits: [String: RuntimeType] = {
     return traitTypes
 }()
 
-private let textAlignmentType = RuntimeType(NSTextAlignment.self, [
+private let textAlignmentType = RuntimeType([
     "left": .left,
     "right": .right,
     "center": .center,
 ] as [String: NSTextAlignment])
 
-private let lineBreakModeType = RuntimeType(NSLineBreakMode.self, [
+private let lineBreakModeType = RuntimeType([
     "byWordWrapping": .byWordWrapping,
     "byCharWrapping": .byCharWrapping,
     "byClipping": .byClipping,
@@ -648,7 +653,7 @@ extension UILabel {
         var types = super.expressionTypes
         types["textAlignment"] = textAlignmentType
         types["lineBreakMode"] = lineBreakModeType
-        types["baselineAdjustment"] = RuntimeType(UIBaselineAdjustment.self, [
+        types["baselineAdjustment"] = RuntimeType([
             "alignBaselines": .alignBaselines,
             "alignCenters": .alignCenters,
             "none": .none,
@@ -663,6 +668,7 @@ extension UILabel {
                 "color",
                 "drawsLetterpress",
                 "drawsUnderline",
+                "lineSpacing",
                 "marqueeEnabled",
                 "marqueeRunning",
                 "minimumFontSize",
@@ -678,12 +684,32 @@ extension UILabel {
     }
 }
 
-private let textFieldViewMode = RuntimeType(UITextFieldViewMode.self, [
+private let textFieldViewMode = RuntimeType([
     "never": .never,
     "whileEditing": .whileEditing,
     "unlessEditing": .unlessEditing,
     "always": .always,
 ] as [String: UITextFieldViewMode])
+
+private let dragAndDropOptions: [String: RuntimeType] = {
+    var types: [String: RuntimeType] = [
+        "textDragDelegate": RuntimeType(Any.self),
+        "textDropDelegate": RuntimeType(Any.self),
+        "textDragOptions": RuntimeType([
+            "stripTextColorFromPreviews": IntOptionSet(rawValue: 1),
+        ] as [String: IntOptionSet])
+    ]
+    #if swift(>=3.2)
+        if #available(iOS 11.0, *) {
+            types["textDragDelegate"] = RuntimeType(UITextDragDelegate.self)
+            types["textDropDelegate"] = RuntimeType(UITextDropDelegate.self)
+            types["textDragOptions"] = RuntimeType([
+                "stripTextColorFromPreviews": .stripTextColorFromPreviews,
+            ] as [String: UITextDragOptions])
+        }
+    #endif
+    return types
+}()
 
 extension UITextField {
     open override class var expressionTypes: [String: RuntimeType] {
@@ -692,7 +718,7 @@ extension UITextField {
             types[name] = type
         }
         types["textAlignment"] = textAlignmentType
-        types["borderStyle"] = RuntimeType(UITextBorderStyle.self, [
+        types["borderStyle"] = RuntimeType([
             "none": .none,
             "line": .line,
             "bezel": .bezel,
@@ -702,6 +728,9 @@ extension UITextField {
         types["leftViewMode"] = textFieldViewMode
         types["rightViewMode"] = textFieldViewMode
         types["minimumFontSize"] = RuntimeType(CGFloat.self)
+        for (name, type) in dragAndDropOptions {
+            types[name] = type
+        }
 
         #if arch(i386) || arch(x86_64)
             // Private properties
@@ -779,18 +808,48 @@ extension UITextField {
                 }
             #endif
             // TODO: warn about unavailability
+        case "textDragDelegate", "textDropDelegate", "textDragOptions":
+            if #available(iOS 11.0, *) {
+                fallthrough
+            }
+            // Does nothing on iOS 10
         default:
             try super.setValue(value, forExpression: name)
         }
     }
 }
 
+let dataDetectorTypesType: RuntimeType = {
+    var types = [
+        "phoneNumber": .phoneNumber,
+        "link": .link,
+        "address": .address,
+        "calendarEvent": .calendarEvent,
+        "shipmentTrackingNumber": [],
+        "flightNumber": [],
+        "lookupSuggestion": [],
+        "all": .all,
+    ] as [String: UIDataDetectorTypes]
+    #if swift(>=3.2)
+        if #available(iOS 11.0, *) {
+            types["shipmentTrackingNumber"] = .shipmentTrackingNumber
+            types["flightNumber"] = .flightNumber
+            types["lookupSuggestion"] = .lookupSuggestion
+        }
+    #endif
+    return RuntimeType(types)
+}()
+
 extension UITextView {
     open override class var expressionTypes: [String: RuntimeType] {
         var types = super.expressionTypes
         types["textAlignment"] = textAlignmentType
         types["lineBreakMode"] = lineBreakModeType
+        types["dataDetectorTypes"] = dataDetectorTypesType
         for (name, type) in textInputTraits {
+            types[name] = type
+        }
+        for (name, type) in dragAndDropOptions {
             types[name] = type
         }
 
@@ -802,6 +861,7 @@ extension UITextView {
                 "continuousSpellCheckingEnabled",
                 "forceDisableDictation",
                 "forceEnableDictation",
+                "marginTop",
                 "shouldAutoscrollAboveBottom",
                 "shouldPresentSheetsInAWindowLayeredAboveTheKeyboard",
                 "tiledViewsDrawAsynchronously",
@@ -847,23 +907,28 @@ extension UITextView {
                 }
             #endif
             // TODO: warn about unavailability
+        case "textDragDelegate", "textDropDelegate", "textDragOptions":
+            if #available(iOS 11.0, *) {
+                fallthrough
+            }
+            // Does nothing on iOS 10
         default:
             try super.setValue(value, forExpression: name)
         }
     }
 }
 
-let barStyleType = RuntimeType(UIBarStyle.self, [
+let barStyleType = RuntimeType([
     "default": .default,
     "black": .black,
-])
+] as [String: UIBarStyle])
 
-let barPositionType = RuntimeType(UIBarPosition.self, [
+let barPositionType = RuntimeType([
     "any": .any,
     "bottom": .bottom,
     "top": .top,
     "topAttached": .topAttached,
-])
+] as [String: UIBarPosition])
 
 extension UISearchBar {
     open override class var expressionTypes: [String: RuntimeType] {
@@ -871,7 +936,7 @@ extension UISearchBar {
         types["barPosition"] = barPositionType
         types["barStyle"] = barStyleType
         types["scopeButtonTitles"] = RuntimeType(Array<String>.self)
-        types["searchBarStyle"] = RuntimeType(UISearchBarStyle.self, [
+        types["searchBarStyle"] = RuntimeType([
             "default": .default,
             "prominent": .prominent,
             "minimal": .minimal,
@@ -1159,7 +1224,7 @@ extension UIStepper {
     }
 }
 
-private let activityIndicatorStyle = RuntimeType(UIActivityIndicatorViewStyle.self, [
+private let activityIndicatorStyle = RuntimeType([
     "whiteLarge": .whiteLarge,
     "white": .white,
     "gray": .gray,
@@ -1288,7 +1353,7 @@ extension UISlider {
 extension UIProgressView {
     open override class var expressionTypes: [String: RuntimeType] {
         var types = super.expressionTypes
-        types["progressViewStyle"] = RuntimeType(UIProgressViewStyle.self, [
+        types["progressViewStyle"] = RuntimeType([
             "default": .default,
             "bar": .bar,
         ] as [String: UIProgressViewStyle])
@@ -1310,6 +1375,108 @@ extension UIProgressView {
     }
 }
 
+extension UIInputView {
+    open override class func create(with node: LayoutNode) throws -> UIInputView {
+        let inputViewStyle = try node.value(forExpression: "inputViewStyle") as? UIInputViewStyle ?? .default
+        return self.init(frame: .zero, inputViewStyle: inputViewStyle)
+    }
+
+    open override class var parameterTypes: [String: RuntimeType] {
+        return [
+            "inputViewStyle": RuntimeType([
+                "default": .default,
+                "keyboard": .keyboard,
+            ] as [String: UIInputViewStyle])
+        ]
+    }
+
+    open override class var expressionTypes: [String: RuntimeType] {
+        var types = super.expressionTypes
+        #if arch(i386) || arch(x86_64)
+            // Private and read-only properties
+            for name in [
+                "contentRatio",
+                "leftContentViewSize",
+                "rightContentViewSize",
+            ] + [
+                "inputViewStyle",
+            ] {
+                types[name] = nil
+                for key in types.keys where key.hasPrefix(name) {
+                    types[key] = nil
+                }
+            }
+        #endif
+        return types
+    }
+}
+
+extension UIDatePicker {
+    open override class var expressionTypes: [String: RuntimeType] {
+        var types = super.expressionTypes
+        types["datePickerMode"] = RuntimeType([
+            "time": .time,
+            "date": .date,
+            "dateAndTime": .dateAndTime,
+            "countDownTimer": .countDownTimer,
+        ] as [String: UIDatePickerMode])
+
+        #if arch(i386) || arch(x86_64)
+            // Private properties
+            for name in [
+                "highlightsToday",
+                "timeInterval",
+                "staggerTimeIntervals",
+            ] {
+                types[name] = nil
+            }
+        #endif
+        return types
+    }
+
+    open override func setAnimatedValue(_ value: Any, forExpression name: String) throws {
+        switch name {
+        case "date":
+            setDate(value as! Date, animated: true)
+        default:
+            try super.setAnimatedValue(value, forExpression: name)
+        }
+    }
+}
+
+extension UIRefreshControl {
+    open override class var expressionTypes: [String: RuntimeType] {
+        var types = super.expressionTypes
+        types["isRefreshing"] = RuntimeType(Bool.self)
+
+        #if arch(i386) || arch(x86_64)
+            // Private property
+            types["refreshControlState"] = nil
+        #endif
+        return types
+    }
+
+    open override func setValue(_ value: Any, forExpression name: String) throws {
+        switch name {
+        case "isRefreshing":
+            switch (value as! Bool, isRefreshing) {
+            case (true, false):
+                beginRefreshing()
+            case (false, true):
+                endRefreshing()
+            case (true, true), (false, false):
+                break
+            }
+        default:
+            try super.setValue(value, forExpression: name)
+        }
+    }
+}
+
+extension UIPickerView {
+
+}
+
 private var baseURLKey = 1
 
 extension UIWebView {
@@ -1318,14 +1485,14 @@ extension UIWebView {
         types["baseURL"] = RuntimeType(URL.self)
         types["htmlString"] = RuntimeType(String.self)
         types["request"] = RuntimeType(URLRequest.self)
-        types["paginationMode"] = RuntimeType(UIWebPaginationMode.self, [
+        types["paginationMode"] = RuntimeType([
             "unpaginated": .unpaginated,
             "leftToRight": .leftToRight,
             "topToBottom": .topToBottom,
             "bottomToTop": .bottomToTop,
             "rightToLeft": .rightToLeft,
         ] as [String: UIWebPaginationMode])
-        types["paginationBreakingMode"] = RuntimeType(UIWebPaginationBreakingMode.self, [
+        types["paginationBreakingMode"] = RuntimeType([
             "page": .page,
             "column": .column,
         ] as [String: UIWebPaginationBreakingMode])
@@ -1393,13 +1560,47 @@ extension WKWebView {
         for (key, type) in WKWebViewConfiguration.allPropertyTypes() {
             types["configuration.\(key)"] = type
         }
-        types["configuration.selectionGranularity"] = RuntimeType(WKSelectionGranularity.self, [
+        if #available(iOS 10, *) {
+            types["configuration.mediaTypesRequiringUserActionForPlayback"] = RuntimeType([
+                "audio": .audio,
+                "video": .video,
+                "all": .all,
+            ] as [String: WKAudiovisualMediaTypes])
+            types["configuration.dataDetectorTypes"] = RuntimeType([
+                "phoneNumber": .phoneNumber,
+                "link": .link,
+                "address": .address,
+                "calendarEvent": .calendarEvent,
+                "trackingNumber": .trackingNumber,
+                "flightNumber": .flightNumber,
+                "lookupSuggestion": .lookupSuggestion,
+                "all": .all,
+            ] as [String: WKDataDetectorTypes])
+        } else {
+            types["configuration.mediaTypesRequiringUserActionForPlayback"] = RuntimeType([
+                "audio": IntOptionSet(rawValue: 1),
+                "video": IntOptionSet(rawValue: 2),
+                "all": IntOptionSet(rawValue: 3),
+            ] as [String: IntOptionSet])
+            types["configuration.dataDetectorTypes"] = RuntimeType([
+                "phoneNumber": IntOptionSet(rawValue: 1),
+                "link": IntOptionSet(rawValue: 2),
+                "address": IntOptionSet(rawValue: 4),
+                "calendarEvent": IntOptionSet(rawValue: 8),
+                "trackingNumber": IntOptionSet(rawValue: 16),
+                "flightNumber": IntOptionSet(rawValue: 32),
+                "lookupSuggestion": IntOptionSet(rawValue: 64),
+                "all": IntOptionSet(rawValue: 127),
+            ] as [String: IntOptionSet])
+        }
+        types["configuration.selectionGranularity"] = RuntimeType([
             "dynamic": .dynamic,
             "character": .character,
         ] as [String: WKSelectionGranularity])
         // TODO: support loading data
         // TODO: support inline html
         // TODO: support binding uiDelegate, navigationDelegate
+        // TODO: support configuration url scheme handlers
         return types
     }
 
@@ -1445,6 +1646,13 @@ extension WKWebView {
             customUserAgent = userAgent.isEmpty ? nil : userAgent
         case "uiDelegate":
             uiDelegate = value as? WKUIDelegate
+        case "configuration.dataDetectorTypes",
+             "configuration.mediaTypesRequiringUserActionForPlayback",
+             "configuration.ignoresViewportScaleLimits":
+            if #available(iOS 10, *) {
+                fallthrough
+            }
+            // Does nothing on iOS 10
         default:
             try super.setValue(value, forExpression: name)
         }

@@ -4,7 +4,7 @@ import UIKit
 
 private var _cachedExpressionTypes = [Int: [String: RuntimeType]]()
 
-private let barButtonSystemItemType = RuntimeType(UIBarButtonSystemItem.self, [
+private let barButtonSystemItemType = RuntimeType([
     "done": .done,
     "cancel": .cancel,
     "edit": .edit,
@@ -29,6 +29,11 @@ private let barButtonSystemItemType = RuntimeType(UIBarButtonSystemItem.self, [
     "redo": .redo,
     "pageCurl": .pageCurl,
 ] as [String: UIBarButtonSystemItem])
+
+private let barButtonItemStyleType = RuntimeType([
+    "plain": .plain,
+    "done": .done,
+] as [String: UIBarButtonItemStyle])
 
 extension UIBarButtonItem {
     func bindAction(for target: AnyObject) throws {
@@ -58,7 +63,7 @@ extension UIViewController {
         }
         types["tabBarItem.title"] = RuntimeType(String.self)
         types["tabBarItem.image"] = RuntimeType(UIImage.self)
-        types["tabBarItem.systemItem"] = RuntimeType(UITabBarSystemItem.self, [
+        types["tabBarItem.systemItem"] = RuntimeType([
             "more": .more,
             "favorites": .favorites,
             "featured": .featured,
@@ -72,15 +77,46 @@ extension UIViewController {
             "mostRecent": .mostRecent,
             "mostViewed": .mostViewed,
         ] as [String: UITabBarSystemItem])
+        types["edgesForExtendedLayout"] = RuntimeType([
+            "top": .top,
+            "left": .left,
+            "bottom": .bottom,
+            "right": .right,
+            "all": .all,
+        ] as [String: UIRectEdge])
+        types["modalPresentationStyle"] = RuntimeType([
+            "fullScreen": .fullScreen,
+            "pageSheet": .pageSheet,
+            "formSheet": .formSheet,
+            "currentContext": .currentContext,
+            "custom": .custom,
+            "overFullScreen": .overFullScreen,
+            "overCurrentContext": .overCurrentContext,
+            "popover": .popover,
+            "none": .none,
+        ] as [String: UIModalPresentationStyle])
+        types["modalTransitionStyle"] = RuntimeType([
+            "coverVertical": .coverVertical,
+            "flipHorizontal": .flipHorizontal,
+            "crossDissolve": .crossDissolve,
+            "partialCurl": .partialCurl,
+        ] as [String: UIModalTransitionStyle])
         // TODO: tabBarItem.badgeTextAttributes
         for (name, type) in UINavigationItem.allPropertyTypes() {
             types["navigationItem.\(name)"] = type
         }
+        types["navigationItem.largeTitleDisplayMode"] = RuntimeType([
+            "automatic": .automatic,
+            "always": .always,
+            "never": .never,
+        ] as [String: UINavigationItem.LargeTitleDisplayMode])
         for (name, type) in UIBarButtonItem.allPropertyTypes() {
             types["navigationItem.leftBarButtonItem.\(name)"] = type
             types["navigationItem.rightBarButtonItem.\(name)"] = type
         }
+        types["navigationItem.leftBarButtonItem.style"] = barButtonItemStyleType
         types["navigationItem.leftBarButtonItem.systemItem"] = barButtonSystemItemType
+        types["navigationItem.rightBarButtonItem.style"] = barButtonItemStyleType
         types["navigationItem.rightBarButtonItem.systemItem"] = barButtonSystemItemType
         // TODO: barButtonItem.backgroundImage, etc
 
@@ -134,6 +170,17 @@ extension UIViewController {
                 }
             }
         #endif
+
+        // Workaround for Swift availability selector limitations
+        if #available(iOS 10.0, *), self is UICloudSharingController.Type {
+            types["availablePermissions"] = RuntimeType([
+                "allowPublic": .allowPublic,
+                "allowPrivate": .allowPrivate,
+                "allowReadOnly": .allowReadOnly,
+                "allowReadWrite": .allowReadWrite,
+            ] as [String: UICloudSharingPermissionOptions])
+        }
+
         return types
     }
 
@@ -261,6 +308,12 @@ extension UIViewController {
             navigationItem.rightBarButtonItem = updatedBarItem(navigationItem.rightBarButtonItem, image: value as! UIImage)
         case "navigationItem.rightBarButtonItem.systemItem":
             navigationItem.rightBarButtonItem = updatedBarItem(navigationItem.rightBarButtonItem, systemItem: value as! UIBarButtonSystemItem)
+        case "navigationItem.largeTitleDisplayMode":
+            #if swift(>=3.2)
+                if #available(iOS 11.0, *) {
+                    navigationItem.largeTitleDisplayMode = value as! UINavigationItem.LargeTitleDisplayMode
+                }
+            #endif
         default:
             if name.hasPrefix("navigationItem.leftBarButtonItem."), navigationItem.leftBarButtonItem == nil {
                 navigationItem.leftBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
@@ -309,7 +362,7 @@ extension UITabBar {
     open override class var expressionTypes: [String: RuntimeType] {
         var types = super.expressionTypes
         types["selectedImageTintColor"] = .unavailable() // Deprecated
-        types["itemPositioning"] = RuntimeType(UITabBarItemPositioning.self, [
+        types["itemPositioning"] = RuntimeType([
             "automatic": .automatic,
             "fill": .fill,
             "centered": .centered,
@@ -592,6 +645,220 @@ extension UINavigationController {
             self.viewControllers = viewControllers
         } else {
             super.willRemoveChildNode(node, at: index)
+        }
+    }
+}
+
+// TODO: better support for alert actions and text fields
+extension UIAlertController {
+    open override class var expressionTypes: [String: RuntimeType] {
+        var types = super.expressionTypes
+        types["preferredStyle"] = RuntimeType([
+            "actionSheet": .actionSheet,
+            "alert": .alert,
+        ] as [String: UIAlertControllerStyle])
+        #if arch(i386) || arch(x86_64)
+            // Private properties
+            for name in [
+                "contentViewController",
+                "textFieldsCanBecomeFirstResponder",
+            ] {
+                types[name] = nil
+            }
+        #endif
+        return types
+    }
+}
+
+extension UIActivityViewController {
+    open override class func create(with node: LayoutNode) throws -> UIActivityViewController {
+        let activityItems: [Any] = try node.value(forExpression: "activityItems") as? [Any] ?? []
+        let applicationActivities = try node.value(forExpression: "applicationActivities") as? [UIActivity]
+        return self.init(activityItems: activityItems, applicationActivities: applicationActivities)
+    }
+
+    open override class var parameterTypes: [String: RuntimeType] {
+        return [
+            "activityItems": RuntimeType([Any].self), // TODO: validate activity item types
+            "applicationActivities": RuntimeType([UIActivity].self),
+        ]
+    }
+
+    open override class var expressionTypes: [String: RuntimeType] {
+        var types = super.expressionTypes
+        #if arch(i386) || arch(x86_64)
+            // Private properties
+            for name in [
+                "activitiesByUUID",
+                "activity",
+                "activityAlertCancelAction",
+                "activityAlertController",
+                "activityItemProviderOperationQueue",
+                "activityItemProviderOperations",
+                "activityItems",
+                "activityTypeOrder",
+                "activityTypesToCreateInShareService",
+                "activityViewController",
+                "activityViewControllerConfiguration",
+                "airDropDelegate",
+                "allowsEmbedding",
+                "applicationActivities",
+                "backgroundTaskIdentifier",
+                "completedProviderCount",
+                "dismissalDetectionOfViewControllerForSelectedActivityShouldAutoCancel",
+                "excludedActivityCategories",
+                "extensionRequestIdentifier",
+                "includedActivityTypes",
+                "originalPopoverBackgroundStyle",
+                "performActivityForStateRestoration",
+                "preferredContentSizeWithoutSafeInsets",
+                "preferredContentSizeWithoutSafeInsets.height",
+                "preferredContentSizeWithoutSafeInsets.width",
+                "shareExtension",
+                "shareServicePreferredContentSizeIsValid",
+                "shouldMatchOnlyUserElectedExtensions",
+                "showKeyboardAutomatically",
+                "sourceIsManaged",
+                "subject",
+                "totalProviderCount",
+                "waitingForInitialShareServicePreferredContentSize",
+                "willDismissActivityViewController",
+            ] {
+                types[name] = nil
+            }
+        #endif
+        return types
+    }
+}
+
+extension UIImagePickerController {
+    open override class var expressionTypes: [String: RuntimeType] {
+        var types = super.expressionTypes
+        types["cameraCaptureMode"] = RuntimeType([
+            "photo": .photo,
+            "video": .video,
+        ] as [String: UIImagePickerControllerCameraCaptureMode])
+        types["cameraDevice"] = RuntimeType([
+            "rear": .rear,
+            "front": .front,
+        ] as [String: UIImagePickerControllerCameraDevice])
+        types["cameraFlashMode"] = RuntimeType([
+            "off": .off,
+            "auto": .auto,
+            "on": .on,
+        ] as [String: UIImagePickerControllerCameraFlashMode])
+        types["imageExportPreset"] = RuntimeType([
+            "compatible": IntOptionSet(rawValue: 1),
+            "current": IntOptionSet(rawValue: 2),
+        ] as [String: IntOptionSet])
+        #if swift(>=3.2)
+            if #available(iOS 11.0, *) {
+                types["imageExportPreset"] = RuntimeType([
+                    "compatible": .compatible,
+                    "current": .current,
+                ] as [String: UIImagePickerControllerImageURLExportPreset])
+            }
+        #endif
+        types["sourceType"] = RuntimeType([
+            "photoLibrary": .photoLibrary,
+            "camera": .camera,
+            "savedPhotosAlbum": .savedPhotosAlbum,
+        ] as [String: UIImagePickerControllerSourceType])
+        types["videoQuality"] = RuntimeType([
+            "typeHigh": .typeHigh,
+            "typeMedium": .typeMedium,
+            "typeLow": .typeLow,
+            "type640x480": .type640x480,
+            "typeIFrame1280x720": .typeIFrame1280x720,
+            "typeIFrame960x540": .typeIFrame960x540,
+        ] as [String: UIImagePickerControllerQualityType])
+        // TODO: validate media types
+        // TODO: validate videoExportPreset
+        #if arch(i386) || arch(x86_64)
+            // Private properties
+            for name in [
+                "allowsImageEditing",
+                "initialViewControllerClassName",
+                "photosExtension",
+            ] {
+                types[name] = nil
+            }
+        #endif
+        return types
+    }
+
+    open override func setValue(_ value: Any, forExpression name: String) throws {
+        switch name {
+        case "imageExportPreset":
+            if #available(iOS 11.0, *) {
+                fallthrough
+            }
+            // Does nothing on iOS 10
+        default:
+            try super.setValue(value, forExpression: name)
+        }
+    }
+}
+
+extension UIInputViewController {
+    open override class var expressionTypes: [String: RuntimeType] {
+        var types = super.expressionTypes
+        #if arch(i386) || arch(x86_64)
+            // Private property
+            types["hasDictation"] = nil
+        #endif
+        return types
+    }
+}
+
+extension UISplitViewController {
+    open override class var expressionTypes: [String: RuntimeType] {
+        var types = super.expressionTypes
+        types["preferredDisplayMode"] = RuntimeType([
+            "automatic": .automatic,
+            "primaryHidden": .primaryHidden,
+            "allVisible": .allVisible,
+            "primaryOverlay": .primaryOverlay,
+        ] as [String: UISplitViewControllerDisplayMode])
+        types["primaryEdge"] = RuntimeType([
+            "leading": 0,
+            "trailing": 1,
+        ] as [String: Int])
+        #if swift(>=3.2)
+            if #available(iOS 11.0, *) {
+                types["primaryEdge"] = RuntimeType([
+                    "leading": .leading,
+                    "trailing": .trailing,
+                ] as [String: UISplitViewControllerPrimaryEdge])
+            }
+        #endif
+
+        #if arch(i386) || arch(x86_64)
+            // Private properties
+            for name in [
+                "gutterWidth",
+                "hidesMasterViewInPortrait",
+                "leadingViewController",
+                "mainViewController",
+                "masterColumnWidth",
+                "stateRequest",
+                "trailingViewController",
+            ] {
+                types[name] = nil
+            }
+        #endif
+        return types
+    }
+
+    open override func setValue(_ value: Any, forExpression name: String) throws {
+        switch name {
+        case "primaryEdge":
+            if #available(iOS 11.0, *) {
+                fallthrough
+            }
+            // Does nothing on iOS 10 and earlier
+        default:
+            try _setValue(value, ofType: type(of: self).cachedExpressionTypes[name], forKeyPath: name)
         }
     }
 }

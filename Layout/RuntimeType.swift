@@ -24,7 +24,8 @@ public class RuntimeType: NSObject {
         case `struct`(String)
         case pointer(String)
         case `protocol`(Protocol)
-        case `enum`(Any.Type, [String: Any])
+        case `enum`(Any.Type, [String: AnyHashable])
+        case options(Any.Type, [String: Any])
 
         public static func ==(lhs: Kind, rhs: Kind) -> Bool {
             return lhs.description == rhs.description
@@ -33,7 +34,8 @@ public class RuntimeType: NSObject {
         public var description: String {
             switch self {
             case let .any(type),
-                 let .enum(type, _):
+                 let .enum(type, _),
+                 let .options(type, _):
                 return "\(type)"
             case let .class(type):
                 return "\(type).Type"
@@ -67,11 +69,13 @@ public class RuntimeType: NSObject {
 
     public typealias Getter = (_ target: AnyObject, _ key: String) -> Any?
     public typealias Setter = (_ target: AnyObject, _ key: String, _ value: Any) throws -> Void
+    private typealias Caster = (_ value: Any) -> Any?
 
     public let type: Kind
     private(set) var availability = Availability.available
     private(set) var getter: Getter?
     private(set) var setter: Setter?
+    private var caster: Caster?
 
     static func unavailable(_ reason: String? = nil) -> RuntimeType? {
         #if arch(i386) || arch(x86_64)
@@ -202,7 +206,8 @@ public class RuntimeType: NSObject {
         }
     }
 
-    @nonobjc public init<T: RawRepresentable>(_ type: T.Type, _ values: [String: T]) {
+    @available(*, deprecated, message: "Use init(_:[String: T]) instead")
+    @nonobjc public init<T: RawRepresentable & Hashable>(_ type: T.Type, _ values: [String: T]) {
         self.type = .enum(type, values)
         getter = { target, key in
             (target.value(forKey: key) as? T.RawValue).flatMap { T(rawValue: $0) }
@@ -213,8 +218,48 @@ public class RuntimeType: NSObject {
         availability = .available
     }
 
-    @nonobjc public init<T: Any>(_ type: T.Type, _ values: [String: T]) {
-        self.type = .enum(type, values)
+    @available(*, deprecated, message: "Use init(_:[String: T]) instead")
+    @nonobjc public init<T: Hashable>(_ type: T.Type, _ values: [String: T]) {
+        self.type = .enum(type, values as [String: AnyHashable])
+        availability = .available
+    }
+
+    @nonobjc public init<T: RawRepresentable & OptionSet>(_ values: [String: T]) {
+        self.type = .options(T.self, values)
+        getter = { target, key in
+            (target.value(forKey: key) as? T.RawValue).flatMap { T(rawValue: $0) }
+        }
+        setter = { target, key, value in
+            target.setValue((value as? T)?.rawValue, forKey: key)
+        }
+        caster = { value in
+            if let values = value as? [T] {
+                return values.reduce([]) { (lhs: T, rhs: T) -> T in lhs.union(rhs) }
+            }
+            return value as? T
+        }
+        availability = .available
+    }
+
+    @nonobjc public init<T: RawRepresentable & Hashable>(_ values: [String: T]) {
+        self.type = .enum(T.self, values)
+        getter = { target, key in
+            (target.value(forKey: key) as? T.RawValue).flatMap { T(rawValue: $0) }
+        }
+        setter = { target, key, value in
+            target.setValue((value as? T)?.rawValue, forKey: key)
+        }
+        availability = .available
+    }
+
+    @nonobjc public init<T: Hashable>(_ values: [String: T]) {
+        self.type = .enum(T.self, values as [String: AnyHashable])
+        availability = .available
+    }
+
+    @nonobjc public init(_ values: Set<String>) {
+        // TODO: add a new, optimized internal type for this case
+        self.type = .enum(String.self, Dictionary.init(uniqueKeysWithValues: zip(values, values)))
         availability = .available
     }
 
@@ -251,6 +296,9 @@ public class RuntimeType: NSObject {
     public func cast(_ value: Any) -> Any? {
         guard let value = optionalValue(of: value) else {
             return nil
+        }
+        if let caster = caster {
+            return caster(value)
         }
         func cast(_ value: Any, as type: Any.Type) -> Any? {
             switch type {
@@ -297,7 +345,7 @@ public class RuntimeType: NSObject {
             }
         }
         switch type {
-        case let .any(subtype):
+        case let .any(subtype), let .options(subtype, _):
             return cast(value, as: subtype)
         case let .class(type):
             if let value = value as? AnyClass, value.isSubclass(of: type) {
@@ -329,16 +377,10 @@ public class RuntimeType: NSObject {
                 return value // No way to validate
             }
         case let .enum(type, enumValues):
-            if let key = value as? String, let value = enumValues[key] {
-                return value
+            if let value = (cast(value, as: type) as? AnyHashable) ?? (value as? AnyHashable) {
+                return enumValues.values.first { $0 == value }?.base
             }
-            if let value = cast(value, as: type) as? AnyHashable {
-                return enumValues.values.first { value == $0 as? AnyHashable }
-            }
-            if type != Swift.type(of: value) {
-                return nil
-            }
-            return value
+            return nil
         case let .protocol(type):
             return (value as AnyObject).conforms(to: type) ? value : nil
         }

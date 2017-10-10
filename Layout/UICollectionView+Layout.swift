@@ -4,7 +4,7 @@ import UIKit
 
 private let placeholderID = NSUUID().uuidString
 
-private let collectionViewScrollDirection = RuntimeType(UICollectionViewScrollDirection.self, [
+private let collectionViewScrollDirection = RuntimeType([
     "horizontal": .horizontal,
     "vertical": .vertical,
 ] as [String: UICollectionViewScrollDirection])
@@ -59,19 +59,28 @@ extension UICollectionView {
         }
         types["collectionViewLayout.scrollDirection"] = collectionViewScrollDirection
 
-        // TODO: fail gracefully on iOS 10
-        types["reorderingCadence"] = RuntimeType(Int.self, [
+        types["reorderingCadence"] = RuntimeType([
             "immediate": 0,
             "fast": 1,
             "slow": 2,
         ] as [String: Int])
+        types["collectionViewLayout.sectionInsetReference"] = RuntimeType([
+            "fromContentInset": 0,
+            "fromSafeArea": 1,
+            "fromLayoutMargins": 2,
+        ] as [String: Int])
         #if swift(>=3.2)
             if #available(iOS 11.0, *) {
-                types["reorderingCadence"] = RuntimeType(UICollectionViewReorderingCadence.self, [
+                types["reorderingCadence"] = RuntimeType([
                     "immediate": .immediate,
                     "fast": .fast,
                     "slow": .slow,
                 ] as [String: UICollectionViewReorderingCadence])
+                types["collectionViewLayout.sectionInsetReference"] = RuntimeType([
+                    "fromContentInset": .fromContentInset,
+                    "fromSafeArea": .fromSafeArea,
+                    "fromLayoutMargins": .fromLayoutMargins,
+                ] as [String: UICollectionViewFlowLayoutSectionInsetReference])
             }
         #endif
 
@@ -96,7 +105,7 @@ extension UICollectionView {
 
     open override func setValue(_ value: Any, forExpression name: String) throws {
         switch name {
-        case "reorderingCadence":
+        case "reorderingCadence", "collectionViewLayout.sectionInsetReference":
             if #available(iOS 11.0, *) {
                 fallthrough
             }

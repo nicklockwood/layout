@@ -113,6 +113,7 @@
 		01EAFD771F60613600B73E92 /* UIKitSymbols.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01EAFD761F60613600B73E92 /* UIKitSymbols.swift */; };
 		01EAFD791F60613600B73E92 /* Layout.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 011CE6991F053ABD0034771C /* Layout.framework */; };
 		01EAFD801F60649500B73E92 /* Symbols.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01EAFD7F1F60649500B73E92 /* Symbols.swift */; };
+		01F62CCD1F8CF2C60052B8E9 /* OptionSetExpressionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01F62CCC1F8CF2C60052B8E9 /* OptionSetExpressionTests.swift */; };
 		3583485A1F3F1EB000CFB6BB /* ReturnCodeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 358348591F3F1EB000CFB6BB /* ReturnCodeTests.swift */; };
 		3583485B1F3F217200CFB6BB /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0105F79C1F055C260067B313 /* main.swift */; };
 /* End PBXBuildFile section */
@@ -283,6 +284,7 @@
 		01EAFD761F60613600B73E92 /* UIKitSymbols.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIKitSymbols.swift; sourceTree = "<group>"; };
 		01EAFD781F60613600B73E92 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		01EAFD7F1F60649500B73E92 /* Symbols.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Symbols.swift; sourceTree = "<group>"; };
+		01F62CCC1F8CF2C60052B8E9 /* OptionSetExpressionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OptionSetExpressionTests.swift; sourceTree = "<group>"; };
 		05DA996CC29E3F6DB7194413 /* Pods_LayoutTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_LayoutTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		358348591F3F1EB000CFB6BB /* ReturnCodeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReturnCodeTests.swift; sourceTree = "<group>"; };
 		4118130BF7EC77593CF35CF1 /* Pods_Layout.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Layout.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -487,6 +489,7 @@
 				011CE6B91F053D530034771C /* AnyExpressionTests.swift */,
 				011CE6BA1F053D530034771C /* ColorExpressionTests.swift */,
 				011CE6BB1F053D530034771C /* EnumExpressionTests.swift */,
+				01F62CCC1F8CF2C60052B8E9 /* OptionSetExpressionTests.swift */,
 				011CE6BC1F053D530034771C /* FontExpressionTests.swift */,
 				017539861F290085005B7516 /* SelectorExpressionTests.swift */,
 				011CE6BD1F053D530034771C /* GeometryExpressionTests.swift */,
@@ -1060,6 +1063,7 @@
 				017539871F290085005B7516 /* SelectorExpressionTests.swift in Sources */,
 				011CE6C71F053D530034771C /* GeometryExpressionTests.swift in Sources */,
 				011CE6CC1F053D530034771C /* StateTests.swift in Sources */,
+				01F62CCD1F8CF2C60052B8E9 /* OptionSetExpressionTests.swift in Sources */,
 				01345C551F66B784002BDEC9 /* PropertiesTests.swift in Sources */,
 				017539891F2A2F2F005B7516 /* XMLTests.swift in Sources */,
 				011CE6CA1F053D530034771C /* LayoutNodeTests.swift in Sources */,

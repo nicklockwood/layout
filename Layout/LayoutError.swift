@@ -134,9 +134,17 @@ public enum LayoutError: Error, Hashable, CustomStringConvertible {
                     } else if let viewClass = viewOrControllerClass as? UIView.Type {
                         type = viewClass.expressionTypes[error.symbol]
                     }
-                    if let type = type, case let .enum(_, values) = type.type {
-                        // Suggest enum types
-                        suggestions = Array(values.keys)
+                    if let subtype = type?.type {
+                        switch subtype {
+                        case let .enum(_, values):
+                            // Suggest enum types
+                            suggestions = Array(values.keys)
+                        case let .options(_, values):
+                            // Suggest options types
+                            suggestions = Array(values.keys)
+                        default:
+                            break
+                        }
                     }
                 }
             default:

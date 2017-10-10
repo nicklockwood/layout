@@ -6,7 +6,7 @@ extension UIScrollView {
 
     open override class var expressionTypes: [String: RuntimeType] {
         var types = super.expressionTypes
-        types["contentInsetAdjustmentBehavior"] = RuntimeType(Int.self, [
+        types["contentInsetAdjustmentBehavior"] = RuntimeType([
             "automatic": 0,
             "scrollableAxes": 1,
             "never": 2,
@@ -14,7 +14,7 @@ extension UIScrollView {
         ] as [String: Int])
         #if swift(>=3.2)
             if #available(iOS 11.0, *) {
-                types["contentInsetAdjustmentBehavior"] = RuntimeType(UIScrollViewContentInsetAdjustmentBehavior.self, [
+                types["contentInsetAdjustmentBehavior"] = RuntimeType([
                     "automatic": .automatic,
                     "scrollableAxes": .scrollableAxes,
                     "never": .never,
@@ -22,16 +22,16 @@ extension UIScrollView {
                 ] as [String: UIScrollViewContentInsetAdjustmentBehavior])
             }
         #endif
-        types["indicatorStyle"] = RuntimeType(UIScrollViewIndicatorStyle.self, [
+        types["indicatorStyle"] = RuntimeType([
             "default": .default,
             "black": .black,
             "white": .white,
         ] as [String: UIScrollViewIndicatorStyle])
-        types["indexDisplayMode"] = RuntimeType(UIScrollViewIndexDisplayMode.self, [
+        types["indexDisplayMode"] = RuntimeType([
             "automatic": .automatic,
             "alwaysHidden": .alwaysHidden,
         ] as [String: UIScrollViewIndexDisplayMode])
-        types["keyboardDismissMode"] = RuntimeType(UIScrollViewKeyboardDismissMode.self, [
+        types["keyboardDismissMode"] = RuntimeType([
             "none": .none,
             "onDrag": .onDrag,
             "interactive": .interactive,

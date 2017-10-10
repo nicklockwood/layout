@@ -894,6 +894,21 @@ struct LayoutExpression {
         )
     }
 
+    init?(optionsExpression: String, type: RuntimeType, for node: LayoutNode) {
+        guard case let .options(_, values) = type.type else { preconditionFailure() }
+        self.init(
+            anyExpression: optionsExpression,
+            type: type,
+            symbols: [
+                .infix(","): { args in
+                    args.flatMap { $0 as? NSArray ?? [$0] }
+                }
+            ],
+            lookup: { name in values[name] },
+            for: node
+        )
+    }
+
     init?(selectorExpression: String, for node: LayoutNode) {
         guard let expression = LayoutExpression(stringExpression: selectorExpression, for: node) else {
             return nil
@@ -943,6 +958,8 @@ struct LayoutExpression {
             self.init(anyExpression: expression, type: type, nullable: false, for: node)
         case .enum:
             self.init(enumExpression: expression, type: type, for: node)
+        case .options:
+            self.init(optionsExpression: expression, type: type, for: node)
         case .pointer("CGColor"):
             self.init(colorExpression: expression, type: type, for: node)
         case .pointer("CGImage"):

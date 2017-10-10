@@ -5,18 +5,18 @@ import UIKit
 extension UIStackView {
     open override class var expressionTypes: [String: RuntimeType] {
         var types = super.expressionTypes
-        types["axis"] = RuntimeType(UILayoutConstraintAxis.self, [
+        types["axis"] = RuntimeType([
             "horizontal": .horizontal,
             "vertical": .vertical,
         ] as [String: UILayoutConstraintAxis])
-        types["distribution"] = RuntimeType(UIStackViewDistribution.self, [
+        types["distribution"] = RuntimeType([
             "fill": .fill,
             "fillEqually": .fillEqually,
             "fillProportionally": .fillProportionally,
             "equalSpacing": .equalSpacing,
             "equalCentering": .equalCentering,
         ] as [String: UIStackViewDistribution])
-        types["alignment"] = RuntimeType(UIStackViewAlignment.self, [
+        types["alignment"] = RuntimeType([
             "fill": .fill,
             "leading": .leading,
             "top": .top,

@@ -5,7 +5,6 @@ import QuartzCore
 private var _cachedExpressionTypes = [Int: [String: RuntimeType]]()
 
 extension CALayer {
-
     /// Expression names and types
     @objc class var expressionTypes: [String: RuntimeType] {
         var types = allPropertyTypes()
@@ -20,35 +19,56 @@ extension CALayer {
         ] {
             types[key] = RuntimeType(CGFloat.self)
         }
-        types["contentsGravity"] = RuntimeType(String.self, [
-            "center": "center",
-            "top": "top",
-            "bottom": "bottom",
-            "left": "left",
-            "right": "right",
-            "topLeft": "topLeft",
-            "topRight": "topRight",
-            "bottomLeft": "bottomLeft",
-            "bottomRight": "bottomRight",
-            "resize": "resize",
-            "resizeAspect": "resizeAspect",
-            "resizeAspectFill": "resizeAspectFill",
-        ] as [String: String])
-        types["fillMode"] = RuntimeType(String.self, [
-            "backwards": "backwards",
-            "forwards": "forwards",
-            "both": "both",
-            "removed": "removed",
-        ] as [String: String])
-        types["minificationFilter"] = RuntimeType(String.self, [
-            "nearest": "nearest",
-            "linear": "linear",
-        ] as [String: String])
-        types["magnificationFilter"] = RuntimeType(String.self, [
-            "nearest": "nearest",
-            "linear": "linear",
-        ] as [String: String])
-
+        types["contentsGravity"] = RuntimeType([
+            "center",
+            "top",
+            "bottom",
+            "left",
+            "right",
+            "topLeft",
+            "topRight",
+            "bottomLeft",
+            "bottomRight",
+            "resize",
+            "resizeAspect",
+            "resizeAspectFill",
+        ] as Set<String>)
+        types["edgeAntialiasingMask"] = RuntimeType([
+            "layerLeftEdge": .layerLeftEdge,
+            "layerRightEdge": .layerRightEdge,
+            "layerBottomEdge": .layerBottomEdge,
+            "layerTopEdge": .layerTopEdge,
+        ] as [String: CAEdgeAntialiasingMask])
+        types["fillMode"] = RuntimeType([
+            "backwards",
+            "forwards",
+            "both",
+            "removed",
+        ] as Set<String>)
+        types["minificationFilter"] = RuntimeType([
+            "nearest",
+            "linear",
+        ] as Set<String>)
+        types["magnificationFilter"] = RuntimeType([
+            "nearest",
+            "linear",
+        ] as Set<String>)
+        types["maskedCorners"] = RuntimeType([
+            "layerMinXMinYCorner": UIntOptionSet(rawValue: 1),
+            "layerMaxXMinYCorner": UIntOptionSet(rawValue: 2),
+            "layerMinXMaxYCorner": UIntOptionSet(rawValue: 4),
+            "layerMaxXMaxYCorner": UIntOptionSet(rawValue: 8),
+        ] as [String: UIntOptionSet])
+        #if swift(>=3.2)
+            if #available(iOS 11.0, *) {
+                types["maskedCorners"] = RuntimeType([
+                    "layerMinXMinYCorner": .layerMinXMinYCorner,
+                    "layerMaxXMinYCorner": .layerMaxXMinYCorner,
+                    "layerMinXMaxYCorner": .layerMinXMaxYCorner,
+                    "layerMaxXMaxYCorner": .layerMaxXMaxYCorner,
+                ] as [String: CACornerMask])
+            }
+        #endif
         // Explicitly disabled properties
         for name in [
             "bounds",
