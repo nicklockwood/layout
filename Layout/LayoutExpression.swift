@@ -899,11 +899,9 @@ struct LayoutExpression {
         self.init(
             anyExpression: optionsExpression,
             type: type,
-            symbols: [
-                .infix(","): { args in
-                    args.flatMap { $0 as? NSArray ?? [$0] }
-                }
-            ],
+            symbols: [.infix(","): { args in
+                args.flatMap { $0 as? NSArray ?? [$0] }
+            }],
             lookup: { name in values[name] },
             for: node
         )
@@ -929,6 +927,17 @@ struct LayoutExpression {
         )
     }
 
+    init?(arrayExpression: String, type: RuntimeType, for node: LayoutNode) {
+        self.init(
+            anyExpression: arrayExpression,
+            type: type,
+            symbols: [.infix(","): { args in
+                args.flatMap { $0 as? NSArray ?? [$0] }
+            }],
+            for: node
+        )
+    }
+
     init?(expression: String, type: RuntimeType, for node: LayoutNode) {
         switch type.type {
         case let .any(subtype):
@@ -949,6 +958,8 @@ struct LayoutExpression {
                 self.init(urlExpression: expression, for: node)
             case is URLRequest.Type, is NSURLRequest.Type:
                 self.init(urlRequestExpression: expression, for: node)
+            case is NSArray.Type:
+                self.init(arrayExpression: expression, type: type, for: node)
             default:
                 self.init(anyExpression: expression, type: type, nullable: false, for: node)
             }

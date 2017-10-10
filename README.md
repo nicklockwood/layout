@@ -34,6 +34,7 @@
     - [Images](#images)
     - [Enums](#enums)
     - [OptionSets](#optionsets)
+    - [Arrays](#arrays)
     - [Optionals](#optionals)
     - [Comments](#comments)
 - [Standard Components](#standard-components)
@@ -1047,6 +1048,38 @@ OptionSet expressions work the same way as enums. If you want to set multiple va
 There is no need to wrap multiple OptionSet values in square brackets, as you would in Swift. As with enums, OptionSet value names cannot be used outside of the expression that sets them.
 
 
+## Arrays
+
+There is no syntax for array literals inside expressions (yet), but for array-type expressions, you can use commas to pass multiple values:
+
+```xml
+<UISegmentedControl items="'Hello', 'World'"/>
+```
+
+If you return a single non-array value from an array expression, it will be "boxed" inside an array automatically:
+
+```xml
+<!-- 'Hello' becomes ["Hello"] -->
+<UISegmentedControl items="'Hello'"/>
+```
+
+The `,` operator automatically flattens nested array constants, so the following code will produce a single, flat array instead of an outer array with another array inside it:
+
+```xml
+<UISegmentedControl items="firstTwoItems, 'Third'"/>
+```
+
+```swift
+loadLayout(
+    named: "MyLayout.xml",
+    constants: [
+        "firstTwoItems": ["First", "Second"],
+    ]
+)
+
+**Note:** there is currently no validation of the element types inside an array, so if you (for example) attempt to pass an array of strings to a property expecting an array of view controllers, the app won't display a Red Box error overlay, it will simply crash.
+
+
 ## Optionals
 
 Layout currently has fairly limited support for optionals in expressions. There is no way to specify that an expression's return value is optional, and so returning `nil` from an expression is usually an error. There are a few exceptions to this:
@@ -1231,7 +1264,29 @@ To set for specific states, where `[state]` can be one of `normal`, `highlighted
 
 `UISegmentedControl` contains a number of segments, each of which can display either an image or title. This is set up using the `init(items:)` constructor, which accepts an array of String or UIImage elements.
 
-Layout exposes this using an `items` expression, however there is no way to specify an array literal in a Layout expression currently, so you will need to pass the array of items using a constant or state variable:
+Layout exposes this using an `items` expression. You can set this to an array of titles as follows:
+
+```xml
+<UISegmentedControl items="'First', 'Second', 'Third'"/>
+```
+
+This works for strings, however there is no way to specify image literals inside an array in a Layout expression currently, so to use images for your segement items you will need to create them programmatically in Swift and pass them to the layout as constants or state variables:
+
+```xml
+<UISegmentedControl items="hello, world"/>
+```
+
+```swift
+loadLayout(
+    named: "MyLayout.xml",
+    constants: [
+        "hello": UIImage(named: "HelloIcon"),
+        "world": UIImage(named: "WorldIcon"),
+    ]
+)
+```
+
+`UISegmentedControl` also has methods for inserting, removing or updating the segment titles and images, but this API is not suitable for use with Layout, so instead the `items` array is exposed as a pseudo property that can be updated at any time. In the example below, changing the `segmentItems` state in Swift updates the displayed segments: 
 
 ```xml
 <UISegmentedControl items="segmentItems"/>
@@ -1241,18 +1296,16 @@ Layout exposes this using an `items` expression, however there is no way to spec
 loadLayout(
     named: "MyLayout.xml",
     state: [
-        "segmentItems": ["Hello", UIImage(named: "Icon")]
+        "segmentItems": ["Hello", UIImage(named: "HelloIcon")],
     ]
 )
+
+...
+
+layoutNode?.setState(["segmentItems": ["Goodbye", UIImage(named: "GoodbyeIcon")]], animated: true)
 ```
 
-`UISegmentedControl` also has methods for inserting, removing or updating the segment titles and images, but again this API is not suitable for use with Layout, so instead the `items` array is exposed as a pseudo property that can be updated at any time. So if you were to change the `segmentItems` state in Swift, the component would update: 
-
-```swift
-layoutNode?.setState(["segmentItems": ["Goodbye", UIImage(named: "DifferentIcon")]], animated: true)
-```
-
-Like `UIButton`, `UISegmentedControl` also has style properties that can vary based on the `UIControlState`, and these are supported in the same way, using pseudo-properties.
+Like `UIButton`, `UISegmentedControl` has style properties that can vary based on the `UIControlState`, and these are supported in the same way, using pseudo-properties.
 
 To set for all states:
 

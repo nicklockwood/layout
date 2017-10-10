@@ -333,6 +333,8 @@ public class RuntimeType: NSObject {
                 return value as? String ?? "\(value)"
             case is NSAttributedString.Type:
                 return value as? NSAttributedString ?? NSAttributedString(string: "\(value)")
+            case is NSArray.Type:
+                return value as? NSArray ?? [value] // TODO: validate element types
             case let subtype as AnyClass:
                 return (value as AnyObject).isKind(of: subtype) ? value : nil
             case _ where type == Any.self:

@@ -139,6 +139,8 @@ struct AnyExpression: CustomStringConvertible {
                 return args[0].bitPattern != args[1].bitPattern ? 1 : 0
             case .infix("?:") where anyArgs[0] is Double:
                 return nil // Fall back to default implementation
+            case _ where symbols[symbol] == nil:
+                return nil // Fall back to default implementation
             default:
                 throw Error.message("\(symbol) cannot be used with arguments of type \(anyArgs.map { type(of: $0) })")
             }

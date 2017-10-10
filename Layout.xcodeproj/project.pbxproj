@@ -89,6 +89,7 @@
 		014F374A1F35A23000F63CCF /* Collection.xml in Resources */ = {isa = PBXBuildFile; fileRef = 014F37491F35A23000F63CCF /* Collection.xml */; };
 		015498871F4352620030A6A2 /* RuntimeType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 015498861F4352620030A6A2 /* RuntimeType.swift */; };
 		015681081F6BE7B20038B7BB /* CALayer+Layout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 015681071F6BE7B20038B7BB /* CALayer+Layout.swift */; };
+		016439C51F8D033B00497FD9 /* ArrayExpressionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 016439C41F8D033B00497FD9 /* ArrayExpressionTests.swift */; };
 		0164F9231F470A4400AFCDCA /* Files.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01146B111F4700AD008A9B24 /* Files.swift */; };
 		0164F9241F470A4500AFCDCA /* Files.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01146B111F4700AD008A9B24 /* Files.swift */; };
 		0164F9261F474B5E00AFCDCA /* Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0164F9251F474B5E00AFCDCA /* Utilities.swift */; };
@@ -264,6 +265,7 @@
 		014F37491F35A23000F63CCF /* Collection.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = Collection.xml; sourceTree = "<group>"; };
 		015498861F4352620030A6A2 /* RuntimeType.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RuntimeType.swift; sourceTree = "<group>"; };
 		015681071F6BE7B20038B7BB /* CALayer+Layout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CALayer+Layout.swift"; sourceTree = "<group>"; };
+		016439C41F8D033B00497FD9 /* ArrayExpressionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArrayExpressionTests.swift; sourceTree = "<group>"; };
 		0164F9251F474B5E00AFCDCA /* Utilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utilities.swift; sourceTree = "<group>"; };
 		017539811F28B623005B7516 /* Renamer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Renamer.swift; sourceTree = "<group>"; };
 		017539831F28D055005B7516 /* RenamerTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RenamerTests.swift; sourceTree = "<group>"; };
@@ -490,6 +492,7 @@
 				011CE6BA1F053D530034771C /* ColorExpressionTests.swift */,
 				011CE6BB1F053D530034771C /* EnumExpressionTests.swift */,
 				01F62CCC1F8CF2C60052B8E9 /* OptionSetExpressionTests.swift */,
+				016439C41F8D033B00497FD9 /* ArrayExpressionTests.swift */,
 				011CE6BC1F053D530034771C /* FontExpressionTests.swift */,
 				017539861F290085005B7516 /* SelectorExpressionTests.swift */,
 				011CE6BD1F053D530034771C /* GeometryExpressionTests.swift */,
@@ -1068,6 +1071,7 @@
 				017539891F2A2F2F005B7516 /* XMLTests.swift in Sources */,
 				011CE6CA1F053D530034771C /* LayoutNodeTests.swift in Sources */,
 				011CE6CB1F053D530034771C /* OptionalExpressionTests.swift in Sources */,
+				016439C51F8D033B00497FD9 /* ArrayExpressionTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
