@@ -3,7 +3,12 @@
 import XCTest
 import Layout
 
-private let nodeCount = 200
+private let xmlURL = Bundle(for: PerformanceTests.self).url(forResource: "Example", withExtension: "xml")!
+private let nodeCount: Int = {
+    let xmlData = try! Data(contentsOf: xmlURL)
+    let rootNode = try! LayoutNode.with(xmlData: xmlData)
+    return rootNode.children.count
+}()
 
 class PerformanceTests: XCTestCase {
 
@@ -73,7 +78,6 @@ class PerformanceTests: XCTestCase {
     // MARK: XML loading and parsing
 
     func testParseXML() {
-        let xmlURL = Bundle(for: type(of: self)).url(forResource: "Example", withExtension: "xml")!
         let xmlData = try! Data(contentsOf: xmlURL)
         measure {
             _ = try! LayoutNode.with(xmlData: xmlData)
@@ -81,10 +85,19 @@ class PerformanceTests: XCTestCase {
     }
 
     func testParseAndLoadXML() {
-        let xmlURL = Bundle(for: type(of: self)).url(forResource: "Example", withExtension: "xml")!
         measure {
             let xmlData = try! Data(contentsOf: xmlURL)
             _ = try! LayoutNode.with(xmlData: xmlData)
+        }
+    }
+
+    func testParseAndLoadAndMount() {
+        let view = UIView(frame: CGRect(x: 0, y: 0, width: 300, height: 400))
+        measure {
+            let xmlData = try! Data(contentsOf: xmlURL)
+            let rootNode = try! LayoutNode.with(xmlData: xmlData)
+            try! rootNode.mount(in: view)
+            rootNode.unmount()
         }
     }
 }
