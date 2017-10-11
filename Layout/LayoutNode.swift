@@ -1879,7 +1879,15 @@ public class LayoutNode: NSObject {
             }
             return
         }
-        try LayoutError.wrap({ try control.bindActions(for: owner) }, for: self)
+        do {
+            try control.bindActions(for: owner)
+        } catch {
+            if let delegate = delegate {
+                try LayoutError.wrap({ try control.bindActions(for: delegate) }, for: self)
+                return
+            }
+            throw LayoutError(error, for: self)
+        }
     }
 }
 

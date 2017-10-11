@@ -438,7 +438,11 @@ extension UIControl {
                 // Already bound
             } else {
                 if !target.responds(to: action) {
-                    throw LayoutError.message("\(target.classForCoder ?? type(of: target)) does not respond to \(action).\n\nIf the method exists, it must be prefixed with @objc or @IBAction to be used with Layout")
+                    guard let responder = target as? UIResponder, let next = responder.next else {
+                        throw LayoutError.message("Layout could find no suitable target for the `\(action)` action. If the method exists, it must be prefixed with @objc or @IBAction to be used with Layout")
+                    }
+                    try bindActions(for: next)
+                    return
                 }
                 addTarget(target, action: action, for: event)
             }
@@ -448,6 +452,9 @@ extension UIControl {
     func unbindActions(for target: AnyObject) {
         for action in actions(forTarget: target, forControlEvent: .allEvents) ?? [] {
             removeTarget(target, action: Selector(action), for: .allEvents)
+        }
+        if let responder = target as? UIResponder, let next = responder.next {
+            unbindActions(for: next)
         }
     }
 }
