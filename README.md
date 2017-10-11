@@ -117,13 +117,13 @@ Layout is provided as a standalone Swift framework that you can use in your app.
 To install Layout using CocoaPods, add the following to your Podfile:
 
 ```ruby
-pod 'Layout', '~> 0.5.2'
+pod 'Layout', '~> 0.5.3'
 ```
 
 To install using Carthage, add this to your Cartfile:
 
 ```
-github "schibsted/Layout" ~> 0.5.2
+github "schibsted/Layout" ~> 0.5.3
 ```
 
 ## Integration
@@ -488,7 +488,7 @@ class MyViewController: LayoutViewController, UITextFieldDelegate {
 
 There are a few caveats however:
 
-* This mechanism currently only works for properties called "delegate" or "dataSource". These are the standard names used by UIKit components, but if you have a custom control that uses a different name for its delegate, it won't work automatically, and you will need to bind it programmatically.
+* This mechanism currently only works for properties called "delegate" or "dataSource", or which are suffixed with "Delegate" or "DataSource" (e.g. "dragDelegate"). This is the standard convention used by UIKit components, but if you have custom controls that use a different naming convention for delegates, they won't be bound automatically and you will need to bind them programmatically.
 
 * The binding mechanism relies on Objective-C runtime protocol detection, so it won't work for Swift protocols that aren't `@objc`-compliant.
 
@@ -517,7 +517,7 @@ self.layoutNode = LayoutNode(
 )
 ```
 
-**Note:** there is currently no safe way to explicitly bind a delegate to the layoutNode's owner class. Attempting to pass `self` as a constant or state variable will result in a retain cycle (which is why owner-binding is done implicitly by default).
+**Note:** there is currently no safe way to explicitly bind a delegate to the layoutNode's owner class. Attempting to pass `self` as a constant or state variable will result in a retain cycle (which is why owner-binding is done implicitly rather than manually).
 
 ## Animation
 
@@ -1177,6 +1177,7 @@ The following views and view controllers have all been tested and are known to w
 * UIScrollView
 * UISearchBar
 * UISegmentedControl
+* UISlider
 * UIStackView
 * UIStepper
 * UISwitch
@@ -1189,6 +1190,8 @@ The following views and view controllers have all been tested and are known to w
 * UITextView
 * UIView
 * UIViewController
+* UIWebView
+* WKWebView
 
 If a view is not listed here, it will probably work to some extent, but may need to be partially configured using native Swift code. If you encounter such cases, please report them on [Github](https://github.com/schibsted/layout/) so we can add better support for them in future.
 
@@ -1264,7 +1267,7 @@ To set for specific states, where `[state]` can be one of `normal`, `highlighted
 
 `UISegmentedControl` contains a number of segments, each of which can display either an image or title. This is set up using the `init(items:)` constructor, which accepts an array of String or UIImage elements.
 
-Layout exposes this using an `items` expression. You can set this to an array of titles as follows:
+Layout exposes this using the `items` expression. You can set this to an array of titles as follows:
 
 ```xml
 <UISegmentedControl items="'First', 'Second', 'Third'"/>
@@ -2408,13 +2411,21 @@ Only class names and values inside expressions will be affected. Attributes (i.e
 
 > Yes, we have submitted apps using Layout to the App Store, and they have been approved without issue.
 
-*Q. Does Layout support macOS/AppKit?*
+*Q. Which platforms are supported?*
 
-> Not currently, but this would make sense in future given the shared language and similar frameworks.
+> Layout works on iOS 9.0 and above. There is currently no support for other Apple OSes (tvOS, watchOS, macOS), nor cometing platforms such as Android or Windows.
 
-*Q. Will Layout support Android/Windows?*
+*Q. Will Layout ever support watchOS/tvOS?*
 
-> No. There are no plans to port Layout to other platforms at the moment. Android and Windows in particular already use a human-readable XML format for their view templates, which eliminates some of the need for a Layout-like replacement.
+> There are no plans at the moment, but it should be fairly simple to add support for iOS-derivative platforms. If you need this, please create a pull request with whatever changes are required to make Layout build on those platforms.
+
+*Q. Will Layout ever support macOS/AppKit?*
+
+> There are no plans at the moment, but this would make sense in future given the shared language and similar frameworks. If you are interested in implementing such a feature, please create an issue on Guthub to discuss the approach.
+
+*Q. Will Layout ever support Android/Windows?*
+
+> There are no plans to port Layout to other platforms at the moment. Android and Windows in particular already use a human-readable XML format for their view templates, which eliminates some of the need for a Layout-like replacement.
 
 *Q. Why isn't Cmd-R reloading my XML file in the simulator?*
 
@@ -2432,6 +2443,6 @@ Only class names and values inside expressions will be affected. Attributes (i.e
 
 > No. See the [Manual Integration](#manual-integration) section above.
 
-*Q. When I launched my app, Layout asked me to select a source file and I chose the wrong one, now my app crashes on launch. What do I do?
+*Q. When I launched my app, Layout asked me to select a source file and I chose the wrong one, now my app isn't working correctly. What do I do?
 
-> If the app displays a Red Box, you can reset it with Cmd-Alt-R. If it's actually crashing, the best option is to delete the app from the Simulator then re-install it.
+> If the app runs OK, or displays a Red Box, you can reset it with Cmd-Alt-R. If it's actually crashing, the best option is to delete the app from the Simulator then re-install it.

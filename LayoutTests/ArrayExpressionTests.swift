@@ -4,7 +4,7 @@ import XCTest
 @testable import Layout
 
 class ArrayExpressionTests: XCTestCase {
-    
+
     func testSetSegmentedControlTitlesWithLiteral() {
         let node = LayoutNode(
             view: UISegmentedControl(),
@@ -32,7 +32,7 @@ class ArrayExpressionTests: XCTestCase {
         let node = LayoutNode(
             view: UISegmentedControl(),
             constants: [
-                "items": items
+                "items": items,
             ],
             expressions: [
                 "items": "items",
@@ -46,7 +46,7 @@ class ArrayExpressionTests: XCTestCase {
         let node = LayoutNode(
             view: UISegmentedControl(),
             constants: [
-                "items": items
+                "items": items,
             ],
             expressions: [
                 "items": "items, 'baz', 'quux'",

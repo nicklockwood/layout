@@ -114,7 +114,7 @@ class EditViewController: UIViewController, UITextFieldDelegate {
                 default:
                     return nil
                 }
-            case .enum, .class, .pointer("CGImage"), .pointer("CGColor"):
+            case .enum, .options, .class, .pointer("CGImage"), .pointer("CGColor"):
                 return key
             case .struct, .pointer, .protocol:
                 return nil

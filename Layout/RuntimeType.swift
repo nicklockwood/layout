@@ -206,9 +206,8 @@ public class RuntimeType: NSObject {
         }
     }
 
-    @available(*, deprecated, message: "Use init(_:[String: T]) instead")
-    @nonobjc public init<T: RawRepresentable & Hashable>(_ type: T.Type, _ values: [String: T]) {
-        self.type = .enum(type, values)
+    @nonobjc public init<T: RawRepresentable & Hashable>(_: T.Type, _ values: [String: T]) {
+        type = .enum(T.self, values)
         getter = { target, key in
             (target.value(forKey: key) as? T.RawValue).flatMap { T(rawValue: $0) }
         }
@@ -218,14 +217,37 @@ public class RuntimeType: NSObject {
         availability = .available
     }
 
-    @available(*, deprecated, message: "Use init(_:[String: T]) instead")
-    @nonobjc public init<T: Hashable>(_ type: T.Type, _ values: [String: T]) {
-        self.type = .enum(type, values as [String: AnyHashable])
+    @nonobjc public convenience init<T: RawRepresentable & Hashable>(_ values: [String: T]) {
+        self.init(T.self, values)
+    }
+
+    @nonobjc public init<T: RawRepresentable>(_: T.Type, _ values: [String: T]) {
+        type = .options(T.self, values) // Can't validate options, so we'll only validate type
+        getter = { target, key in
+            (target.value(forKey: key) as? T.RawValue).flatMap { T(rawValue: $0) }
+        }
+        setter = { target, key, value in
+            target.setValue((value as? T)?.rawValue, forKey: key)
+        }
         availability = .available
     }
 
-    @nonobjc public init<T: RawRepresentable & OptionSet>(_ values: [String: T]) {
-        self.type = .options(T.self, values)
+    @nonobjc public init<T: Hashable>(_: T.Type, _ values: [String: T]) {
+        type = .enum(T.self, values)
+        availability = .available
+    }
+
+    @nonobjc public convenience init<T: Hashable>(_ values: [String: T]) {
+        self.init(T.self, values)
+    }
+
+    @nonobjc public init<T>(_: T.Type, _ values: [String: T]) {
+        type = .options(T.self, values) // Can't validate options, so we'll just validate type
+        availability = .available
+    }
+
+    @nonobjc public init<T: RawRepresentable & OptionSet>(_: T.Type, _ values: [String: T]) {
+        type = .options(T.self, values)
         getter = { target, key in
             (target.value(forKey: key) as? T.RawValue).flatMap { T(rawValue: $0) }
         }
@@ -241,25 +263,17 @@ public class RuntimeType: NSObject {
         availability = .available
     }
 
-    @nonobjc public init<T: RawRepresentable & Hashable>(_ values: [String: T]) {
-        self.type = .enum(T.self, values)
-        getter = { target, key in
-            (target.value(forKey: key) as? T.RawValue).flatMap { T(rawValue: $0) }
-        }
-        setter = { target, key, value in
-            target.setValue((value as? T)?.rawValue, forKey: key)
-        }
-        availability = .available
-    }
-
-    @nonobjc public init<T: Hashable>(_ values: [String: T]) {
-        self.type = .enum(T.self, values as [String: AnyHashable])
-        availability = .available
+    @nonobjc public convenience init<T: RawRepresentable & OptionSet>(_ values: [String: T]) {
+        self.init(T.self, values)
     }
 
     @nonobjc public init(_ values: Set<String>) {
         // TODO: add a new, optimized internal type for this case
-        self.type = .enum(String.self, Dictionary.init(uniqueKeysWithValues: zip(values, values)))
+        var keysAndValues = [String: String]()
+        for string in values {
+            keysAndValues[string] = string
+        }
+        type = .enum(String.self, keysAndValues)
         availability = .available
     }
 

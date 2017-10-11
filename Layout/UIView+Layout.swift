@@ -92,6 +92,7 @@ extension UIView {
             "layer.delegate",
         ] {
             types[name] = .unavailable()
+            let name = "\(name)."
             for key in types.keys where key.hasPrefix(name) {
                 types[key] = .unavailable()
             }
@@ -137,6 +138,7 @@ extension UIView {
                 "safeAreaInsets",
             ] {
                 types[name] = nil
+                let name = "\(name)."
                 for key in types.keys where key.hasPrefix(name) {
                     types[key] = nil
                 }
@@ -704,7 +706,7 @@ private let dragAndDropOptions: [String: RuntimeType] = {
         "textDropDelegate": RuntimeType(Any.self),
         "textDragOptions": RuntimeType([
             "stripTextColorFromPreviews": IntOptionSet(rawValue: 1),
-        ] as [String: IntOptionSet])
+        ] as [String: IntOptionSet]),
     ]
     #if swift(>=3.2)
         if #available(iOS 11.0, *) {
@@ -776,6 +778,7 @@ extension UITextField {
                 "textSelectionBehavior",
             ] {
                 types[name] = nil
+                let name = "\(name)."
                 for key in types.keys where key.hasPrefix(name) {
                     types[key] = nil
                 }
@@ -875,6 +878,7 @@ extension UITextView {
                 "usesTiledViews",
             ] {
                 types[name] = nil
+                let name = "\(name)."
                 for key in types.keys where key.hasPrefix(name) {
                     types[key] = nil
                 }
@@ -966,6 +970,7 @@ extension UISearchBar {
                 "usesEmbeddedAppearance",
             ] {
                 types[name] = nil
+                let name = "\(name)."
                 for key in types.keys where key.hasPrefix(name) {
                     types[key] = nil
                 }
@@ -1071,6 +1076,7 @@ extension UISegmentedControl: TitleTextAttributes {
                 "transparentBackground",
             ] {
                 types[name] = nil
+                let name = "\(name)."
                 for key in types.keys where key.hasPrefix(name) {
                     types[key] = nil
                 }
@@ -1263,6 +1269,7 @@ extension UIActivityIndicatorView {
                 "width",
             ] {
                 types[name] = nil
+                let name = "\(name)."
                 for key in types.keys where key.hasPrefix(name) {
                     types[key] = nil
                 }
@@ -1393,7 +1400,7 @@ extension UIInputView {
             "inputViewStyle": RuntimeType([
                 "default": .default,
                 "keyboard": .keyboard,
-            ] as [String: UIInputViewStyle])
+            ] as [String: UIInputViewStyle]),
         ]
     }
 
@@ -1409,6 +1416,7 @@ extension UIInputView {
                 "inputViewStyle",
             ] {
                 types[name] = nil
+                let name = "\(name)."
                 for key in types.keys where key.hasPrefix(name) {
                     types[key] = nil
                 }
@@ -1481,7 +1489,6 @@ extension UIRefreshControl {
 }
 
 extension UIPickerView {
-
 }
 
 private var baseURLKey = 1

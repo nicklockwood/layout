@@ -1,5 +1,14 @@
 # Change Log
 
+## [0.5.3](https://github.com/schibsted/layout/releases/tag/0.5.3) (2017-10-10)
+
+- Added support for OptionSet properties
+- Added basic support for array literals in expressions
+- `UIControl` actions can now bind to any parent that implements the method, not just the Layout owner
+- Added correct type information for several built-in enum and OptionSet properties
+- Enhanced support for various standard controls including `UISwitch` and `UISlider`
+- Fixed crash when a parameter expression references a constant or state variable of the same name
+
 ## [0.5.2](https://github.com/schibsted/layout/releases/tag/0.5.2) (2017-10-04)
 
 - Error messages for unknown properties and enum values now display suggestions for what you might have meant

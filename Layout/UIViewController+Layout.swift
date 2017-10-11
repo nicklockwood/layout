@@ -105,11 +105,19 @@ extension UIViewController {
         for (name, type) in UINavigationItem.allPropertyTypes() {
             types["navigationItem.\(name)"] = type
         }
-        types["navigationItem.largeTitleDisplayMode"] = RuntimeType([
-            "automatic": .automatic,
-            "always": .always,
-            "never": .never,
-        ] as [String: UINavigationItem.LargeTitleDisplayMode])
+        #if swift(>=3.2)
+            types["navigationItem.largeTitleDisplayMode"] = RuntimeType([
+                "automatic": .automatic,
+                "always": .always,
+                "never": .never,
+            ] as [String: UINavigationItem.LargeTitleDisplayMode])
+        #else
+            types["navigationItem.largeTitleDisplayMode"] = RuntimeType([
+                "automatic": 0,
+                "always": 1,
+                "never": 2,
+            ] as [String: Int])
+        #endif
         for (name, type) in UIBarButtonItem.allPropertyTypes() {
             types["navigationItem.leftBarButtonItem.\(name)"] = type
             types["navigationItem.rightBarButtonItem.\(name)"] = type
