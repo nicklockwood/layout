@@ -186,6 +186,26 @@ class FormatterTests: XCTestCase {
         XCTAssertEqual(try format(input), output)
     }
 
+    // MARK: Parameters
+
+    func testViewWithParameterAndChildren() {
+        let input = "<Foo>\n\n    <Bar/>\n\n    <param name=\"baz\" type=\"String\"/>\n    <Baz/>\n\n</Foo>"
+        let output = "<Foo>\n    <param name=\"baz\" type=\"String\"/>\n\n    <Bar/>\n    <Baz/>\n</Foo>\n"
+        XCTAssertEqual(try format(input), output)
+    }
+
+    func testViewWithMultipleParametersAndChildren() {
+        let input = "<Foo>\n    <param name=\"bar\" type=\"String\"/>\n    <param name=\"baz\" type=\"String\"/>\n\n    <Bar/>\n    <Baz/>\n</Foo>"
+        let output = "<Foo>\n    <param name=\"bar\" type=\"String\"/>\n    <param name=\"baz\" type=\"String\"/>\n\n    <Bar/>\n    <Baz/>\n</Foo>\n"
+        XCTAssertEqual(try format(input), output)
+    }
+
+    func testViewWithMultipleParametersWithCommentsAndChildren() {
+        let input = "<Foo>\n    <param name=\"foo\" type=\"String\"/>\n\n    <!-- bar -->\n    <param name=\"bar\" type=\"String\"/>\n    <param name=\"baz\" type=\"String\"/>\n\n    <Bar/>\n</Foo>"
+        let output = "<Foo>\n    <param name=\"foo\" type=\"String\"/>\n\n    <!-- bar -->\n    <param name=\"bar\" type=\"String\"/>\n    <param name=\"baz\" type=\"String\"/>\n\n    <Bar/>\n</Foo>\n"
+        XCTAssertEqual(try format(input), output)
+    }
+
     // MARK: Encoding
 
     func testEncodeAmpersandInText() {
@@ -244,7 +264,7 @@ class FormatterTests: XCTestCase {
         XCTAssertEqual(try format(input), output)
     }
 
-    // MARK: Comments
+    // MARK: Expression comments
 
     func testExpressionWithComment() {
         let input = "<Foo top=\"10-5* 4//foo\"/>"

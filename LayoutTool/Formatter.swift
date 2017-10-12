@@ -56,19 +56,6 @@ extension Collection where Iterator.Element == XMLNode {
             if node.isLinebreak, previous?.isHTML != true {
                 continue
             }
-            if let previous = previous {
-                if previous.isParameter, !node.isParameter, !node.isComment {
-                    if !node.isHTML {
-                        output += "\n"
-                    }
-                    output += "\n"
-                } else if !(node.isText && previous.isHTML), !(node.isHTML && previous.isText) {
-                    output += "\n"
-                }
-            }
-            if output.hasSuffix("\n") {
-                indentNextLine = true
-            }
             switch node {
             case .text("\n"):
                 continue
@@ -79,6 +66,19 @@ extension Collection where Iterator.Element == XMLNode {
                 }
                 fallthrough
             default:
+                if let previous = previous {
+                    if previous.isParameter, !node.isParameter, !node.isComment {
+                        if !node.isHTML {
+                            output += "\n"
+                        }
+                        output += "\n"
+                    } else if !(node.isText && (previous.isHTML || previous.isText)), !(node.isHTML && previous.isText) {
+                        output += "\n"
+                    }
+                }
+                if output.hasSuffix("\n") {
+                    indentNextLine = true
+                }
                 output += try node.toString(withIndent: indent, indentFirstLine: indentNextLine)
             }
             previous = node
