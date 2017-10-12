@@ -91,7 +91,7 @@ func enumerateFiles(withInputURL inputURL: URL,
 
     let group = DispatchGroup()
     var completionBlocks = [() throws -> Void]()
-    let completionQueue = DispatchQueue(label: "swiftformat.enumeration")
+    let completionQueue = DispatchQueue(label: "layout.enumeration")
     func onComplete(_ block: @escaping () throws -> Void) {
         completionQueue.async(group: group) {
             completionBlocks.append(block)
@@ -143,7 +143,7 @@ func enumerateFiles(withInputURL inputURL: URL,
             for url in files {
                 queue.async(group: group) {
                     let outputURL = outputURL.map {
-                        URL(fileURLWithPath: $0.path + url.path.substring(from: inputURL.path.characters.endIndex))
+                        URL(fileURLWithPath: $0.path + String(url.path[inputURL.path.endIndex ..< url.path.endIndex]))
                     }
                     enumerate(inputURL: url,
                               excluding: excludedURLs,
@@ -228,7 +228,7 @@ func list(_ files: [String]) -> [FormatError] {
                     return {}
                 }
                 return {
-                    print(inputURL.path.substring(from: url.path.endIndex))
+                    print(inputURL.path[url.path.endIndex ..< inputURL.path.endIndex])
                 }
             } catch {
                 return { throw error }

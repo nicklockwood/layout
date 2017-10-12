@@ -184,7 +184,7 @@ extension XMLNode {
                 .xmlEncoded(forAttribute: false)
                 .replacingOccurrences(of: "\\s*\\n\\s*", with: "\n\(indent)", options: .regularExpression)
             if body.hasSuffix("\n\(indent)") {
-                body = body.substring(to: body.index(body.endIndex, offsetBy: -indent.characters.count))
+                body = String(body[body.startIndex ..< body.index(body.endIndex, offsetBy: -indent.characters.count)])
             }
             if indentFirstLine {
                 body = body.replacingOccurrences(of: "^\\s*", with: indent, options: .regularExpression)

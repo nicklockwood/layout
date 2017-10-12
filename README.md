@@ -67,6 +67,10 @@
 - [LayoutTool](#layouttool)
     - [Installation](#installation-1)
     - [Formatting](#formatting)
+    - [Renaming](#renaming)
+- [Xcode Extension](#xcodeextension)
+	- [Installation](#installation-2)
+    - [Formatting](#formatting-1)
 - [FAQ](#faq)
 
 
@@ -2334,7 +2338,7 @@ The Layout project includes the source code for a command-line app called Layout
 
 ## Installation
 
-The latest built binary of LayoutTool is included in the project, and you can just drag-and-drop it to install.
+The latest built binary of LayoutTool is included in the project inside the `LayoutTool` directory, and you can just drag-and-drop it to install.
 
 To ensure compatibility, always update LayoutTool at the same time as updating the Layout framework, because using an old version of LayoutTool to process XML files containing newer features may result in data loss or corruption.
 
@@ -2383,6 +2387,25 @@ LayoutTool also provides a function for renaming classes or expression variables
 Only class names and values inside expressions will be affected. Attributes (i.e. expression names) are ignored, along with HTML elements and literal string fragments.
 
 **Note:** performing a rename also applies standard formatting to the file. There is currently no way to disable this.
+
+
+# Xcode Extension
+
+If you are writing Layout XML inside Xcode, you may wish to install the Layout Xcode Editor Extension, which provides a subset of [LayoutTool]'s functionality directly inside the Xcode IDE.
+
+## Installation
+
+The latest built binary of Layout for Xcode is included in the project inside the `EditorExtension` directory, and you can just drag-and-drop it to your Applications folder to install.
+
+Once installed, run the Layout for Xcode app and follow the on-screen instructions.
+
+To ensure compatibility, always update the Layout for Xcode app at the same time as updating the Layout framework, because using an old version of Layout for Xcode to format XML files containing newer features may result in data loss or corruption.
+
+**Note:** The Layout for Xcode app is only updated when there are changes that affect its behavior, so don't worry if the version doesn't match exactly.
+
+## Formatting
+
+When you have a Layout XML file open in Xcode, select the `Editor > Layout > Format File` menu to reformat the file.
 
 
 # FAQ
