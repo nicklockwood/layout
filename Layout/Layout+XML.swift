@@ -126,6 +126,7 @@ extension Layout {
             }
         }
 
+        let id = try parseStringAttribute(for: "id")
         let outlet = try parseStringAttribute(for: "outlet")
         let xmlPath = try parseStringAttribute(for: "xml")
         let templatePath = try parseStringAttribute(for: "template")
@@ -140,6 +141,7 @@ extension Layout {
 
         self.init(
             className: className,
+            id: id,
             outlet: outlet,
             expressions: attributes,
             parameters: parameters,

@@ -611,7 +611,36 @@ a >= b ? a : b
 pi / 2
 ```
 
-Additionally, a node can reference properties of its parent node using `parent.someProperty`, or of its immediate sibling nodes using `previous.someProperty` and `next.someProperty`.
+Additionally, a node can reference properties of its parent node using `parent.someProperty`, or of its immediate sibling nodes using `previous.someProperty` and `next.someProperty`:
+
+```xml
+<UIView>
+    <UILabel text="Foo"/>
+    
+    <!-- this label will be 20pts below its previous sibling -->
+    <UILabel
+        top="previous.bottom + 20"
+        text="Bar"
+    />
+</UIView>
+```
+
+To reference a node that is not an immediate sibling, you can give the node an `id` attribute, and then reference that node using `#` followed by the id:
+
+```xml
+<UIView>
+    <UILabel id="first" left="20" text="Foo"/>
+    <UILabel right="20" text="Bar"/>
+    
+    <!-- this label will be aligned with the first label -->
+    <UILabel
+        left="#first.left"
+        top="previous.bottom + 20"
+        text="Bar"
+    />
+</UIView>
+```
+
 
 ## Layout Properties
 
@@ -2473,7 +2502,7 @@ When you have a Layout XML file open in Xcode, select the `Editor > Layout > For
 
 *Q. Which platforms are supported?*
 
-> Layout works on iOS 9.0 and above. There is currently no support for other Apple OSes (tvOS, watchOS, macOS), nor cometing platforms such as Android or Windows.
+> Layout works on iOS 9.0 and above. There is currently no support for other Apple OSes (tvOS, watchOS, macOS), nor competing platforms such as Android or Windows.
 
 *Q. Will Layout ever support watchOS/tvOS?*
 

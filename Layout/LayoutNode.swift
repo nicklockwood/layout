@@ -39,6 +39,9 @@ public class LayoutNode: NSObject {
     /// The name of an outlet belonging to the nodes' owner that the node should bind to
     public private(set) var outlet: String?
 
+    /// The node identifier, which can be used to refer to the node from within an expression
+    public private(set) var id: String?
+
     /// The expressions used to initialized the node
     public private(set) var expressions: [String: String]
 
@@ -216,6 +219,7 @@ public class LayoutNode: NSObject {
     // TODO: is there any reason not to make this public?
     init(
         class: AnyClass,
+        id: String? = nil,
         outlet: String? = nil,
         state: Any = (),
         constants: [String: Any]...,
@@ -227,6 +231,7 @@ public class LayoutNode: NSObject {
         }
         _class = `class`
         _state = try! unwrap(state)
+        self.id = id
         self.outlet = outlet
         self.constants = merge(constants)
         self.expressions = expressions
@@ -259,6 +264,7 @@ public class LayoutNode: NSObject {
     /// Create a node for managing a view controller instance
     public convenience init(
         viewController: UIViewController,
+        id: String? = nil,
         outlet: String? = nil,
         state: Any = (),
         constants: [String: Any]...,
@@ -269,6 +275,7 @@ public class LayoutNode: NSObject {
 
         try! self.init(
             class: viewController.classForCoder,
+            id: id,
             outlet: outlet,
             state: state,
             constants: merge(constants),
@@ -283,6 +290,7 @@ public class LayoutNode: NSObject {
     /// Create a node for managing a view instance
     public convenience init(
         view: UIView? = nil,
+        id: String? = nil,
         outlet: String? = nil,
         state: Any = (),
         constants: [String: Any]...,
@@ -293,6 +301,7 @@ public class LayoutNode: NSObject {
 
         try! self.init(
             class: view?.classForCoder ?? UIView.self,
+            id: id,
             outlet: outlet,
             state: state,
             constants: merge(constants),
@@ -518,6 +527,22 @@ public class LayoutNode: NSObject {
         if let siblings = parent?.children, let index = siblings.index(where: { $0 === self }),
             index < siblings.count - 1 {
             return siblings[index + 1]
+        }
+        return nil
+    }
+
+    // Find a node by id, starting with the children and then progressing to siblings and parents
+    private func node(forID id: String, excluding: LayoutNode? = nil) -> LayoutNode? {
+        if self.id == id {
+            return self
+        }
+        for child in children where child !== excluding {
+            if let match = child.node(forID: id, excluding: self) {
+                return match
+            }
+        }
+        if parent != excluding {
+            return parent?.node(forID: id, excluding: self)
         }
         return nil
     }
@@ -1294,6 +1319,17 @@ public class LayoutNode: NSObject {
                 case "strings":
                     getter = { [unowned self] in
                         try self.value(forParameterOrVariableOrConstant: symbol) ?? self.localizedString(forKey: tail)
+                    }
+                case let head where head.hasPrefix("#"):
+                    let id = String(head.characters.dropFirst())
+                    if let node = self.node(forID: id) {
+                        getter = { [unowned node] in
+                            try node.value(forSymbol: tail) as Any
+                        }
+                    } else {
+                        getter = {
+                            throw SymbolError("Could not find node with id `\(id)`", for: symbol)
+                        }
                     }
                 default:
                     getter = getterFor(symbol)
