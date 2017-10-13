@@ -8,6 +8,8 @@
         scrollIndicatorInsets.bottom="safeAreaInsets.bottom"
         scrollIndicatorInsets.top="safeAreaInsets.top">
 
+        <macro name="SPACING" value="previous.bottom + 20"/>
+
         <UILabel
             backgroundColor="#0001"
             font="bold"
@@ -18,7 +20,7 @@
             font="italic"
             text="Center-aligned italic text"
             textAlignment="center"
-            top="previous.bottom + 20"
+            top="SPACING"
             width="100%"
         />
         <UILabel
@@ -26,7 +28,7 @@
             font="bold italic"
             text="Right-aligned bold italic text"
             textAlignment="right"
-            top="previous.bottom + 20"
+            top="SPACING"
             width="100%"
         />
         <UILabel
@@ -35,20 +37,20 @@
             left="50% - (width / 2)"
             numberOfLines="0"
             text="This text is left-aligned, but the paragraph itself is centered. It also uses a custom font"
-            top="previous.bottom + 20"
+            top="SPACING"
             width="50%"
         />
         <UILabel
             backgroundColor="#0001"
             text="This text is colored"
             textColor="#09f"
-            top="previous.bottom + 20"
+            top="SPACING"
         />
         <UILabel
             backgroundColor="#0001"
             lineBreakMode="byWordWrapping"
             numberOfLines="0"
-            top="previous.bottom + 20"
+            top="SPACING"
             width="100%">
 
             <p>
@@ -69,7 +71,7 @@
             font="body"
             numberOfLines="0"
             text="This text is using the 'body' UIFontTextStyle, and respects the user's dynamic font size setting"
-            top="previous.bottom + 20"
+            top="SPACING"
             width="100%"
         />
     </UIScrollView>

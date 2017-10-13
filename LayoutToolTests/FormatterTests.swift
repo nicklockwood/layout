@@ -186,7 +186,7 @@ class FormatterTests: XCTestCase {
         XCTAssertEqual(try format(input), output)
     }
 
-    // MARK: Parameters
+    // MARK: Parameters and macros
 
     func testViewWithParameterAndChildren() {
         let input = "<Foo>\n\n    <Bar/>\n\n    <param name=\"baz\" type=\"String\"/>\n    <Baz/>\n\n</Foo>"
@@ -203,6 +203,12 @@ class FormatterTests: XCTestCase {
     func testViewWithMultipleParametersWithCommentsAndChildren() {
         let input = "<Foo>\n    <param name=\"foo\" type=\"String\"/>\n\n    <!-- bar -->\n    <param name=\"bar\" type=\"String\"/>\n    <param name=\"baz\" type=\"String\"/>\n\n    <Bar/>\n</Foo>"
         let output = "<Foo>\n    <param name=\"foo\" type=\"String\"/>\n\n    <!-- bar -->\n    <param name=\"bar\" type=\"String\"/>\n    <param name=\"baz\" type=\"String\"/>\n\n    <Bar/>\n</Foo>\n"
+        XCTAssertEqual(try format(input), output)
+    }
+
+    func testViewWithMacroAndChildren() {
+        let input = "<Foo>\n\n    <Bar/>\n\n    <macro name=\"baz\" value=\"5\"/>\n    <Baz/>\n\n</Foo>"
+        let output = "<Foo>\n    <macro name=\"baz\" value=\"5\"/>\n\n    <Bar/>\n    <Baz/>\n</Foo>\n"
         XCTAssertEqual(try format(input), output)
     }
 
