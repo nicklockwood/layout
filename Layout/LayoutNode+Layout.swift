@@ -16,6 +16,7 @@ extension LayoutNode {
         }
         try self.init(
             class: layout.getClass(),
+            id: layout.id,
             outlet: outlet ?? layout.outlet,
             state: state,
             constants: merge(constants),
@@ -57,6 +58,7 @@ extension Layout {
     init(_ node: LayoutNode) {
         self.init(
             className: NSStringFromClass(node._class),
+            id: node.id,
             outlet: node.outlet,
             expressions: node._originalExpressions,
             parameters: node._parameters,

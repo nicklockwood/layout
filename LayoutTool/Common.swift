@@ -255,7 +255,7 @@ func isStringType(_ name: String) -> Bool {
 func typeOfAttribute(_ key: String, inNode node: XMLNode) -> String? {
     func typeForClass(_ className: String) -> String? {
         switch key {
-        case "outlet":
+        case "outlet", "id":
             return "String"
         case "xml", "template":
             return "URL"

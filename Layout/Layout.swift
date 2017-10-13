@@ -6,6 +6,7 @@ import Foundation
 // serialized layouts
 struct Layout {
     var className: String
+    var id: String?
     var outlet: String?
     var expressions: [String: String]
     var parameters: [String: RuntimeType]
