@@ -73,6 +73,14 @@ public class LayoutNode: NSObject {
     private(set) var _viewController: UIViewController?
     private(set) var _originalExpressions: [String: String]
     var _parameters: [String: RuntimeType]
+    var _macros: [String: String]
+
+    func expression(forMacro name: String) -> String? {
+        if let macro = parent?._macros[name] {
+            return macro
+        }
+        return parent?.expression(forMacro: name)
+    }
 
     // Note: Thrown error is always a LayoutError
     private var _setupComplete = false
@@ -225,6 +233,7 @@ public class LayoutNode: NSObject {
         self.children = children
 
         _parameters = [:]
+        _macros = [:]
         _originalExpressions = expressions
 
         super.init()
@@ -629,6 +638,10 @@ public class LayoutNode: NSObject {
             _parameters[name] = type
         }
 
+        for (name, value) in layout.macros where _macros[name] == nil { // TODO: should macro shadowing be allowed?
+            _macros[name] = value
+        }
+
         for (name, expression) in layout.expressions where _originalExpressions[name] == nil {
             _originalExpressions[name] = expression
         }
@@ -851,12 +864,17 @@ public class LayoutNode: NSObject {
                 guard !self._evaluating.contains(symbol) else {
                     // If an expression directly references itself it may be shadowing
                     // a constant or variable, so check for that first before throwing
-                    if self._evaluating.last == symbol,
-                        let value = try self.value(forVariableOrConstantOrParentParameter: symbol) {
-                        return value
+                    if self._evaluating.last == symbol {
+                        if let value = try self.value(forVariableOrConstantOrParentParameter: symbol) {
+                            return value
+                        }
+                        if let macro = self.expression(forMacro: symbol) {
+                            // TODO: allow this
+                            throw SymbolError("Expression for `\(symbol)` references a macro of the same name (which is not currently supported)", for: symbol)
+                        }
                     }
                     // TODO: allow expression to reference its previous value instead of treating this as an error
-                    throw SymbolError("Expression for \(symbol) references a nonexistent symbol of the same name (expressions cannot reference themselves)", for: symbol)
+                    throw SymbolError("Expression for `\(symbol)` references a nonexistent symbol of the same name (expressions cannot reference themselves)", for: symbol)
                 }
                 self._evaluating.append(symbol)
                 defer {
@@ -1205,7 +1223,7 @@ public class LayoutNode: NSObject {
                 } else if viewControllerClass != nil, viewExpressionTypes[symbol] == nil {
                     fallback = { [unowned self] in
                         if let viewController = self._viewController,
-                            let value = try? viewController.value(forSymbol: symbol) {
+                            let value = try? viewController.value(forSymbol: symbol) { // TODO: find a non-throwing solution for this
                             return value
                         }
                         guard let view = self._view else {

@@ -26,14 +26,19 @@ private extension Layout {
             expressions[key] = value
         }
         var parameters = self.parameters
-        for (key, value) in layout.parameters {
+        for (key, value) in layout.parameters { // TODO: what about collisions?
             parameters[key] = value
+        }
+        var macros = self.macros
+        for (key, value) in layout.macros { // TODO: what about collisions?
+            macros[key] = value
         }
         return Layout(
             className: layout.className,
             outlet: layout.outlet ?? outlet,
             expressions: expressions,
             parameters: parameters,
+            macros: macros,
             children: children + layout.children,
             xmlPath: layout.xmlPath,
             templatePath: templatePath,

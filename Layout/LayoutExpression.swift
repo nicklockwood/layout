@@ -300,6 +300,7 @@ struct LayoutExpression {
                   symbols: [AnyExpression.Symbol: AnyExpression.SymbolEvaluator] = [:],
                   numericSymbols: [AnyExpression.Symbol: Expression.Symbol.Evaluator] = [:],
                   lookup: @escaping (String) -> Any? = { _ in nil },
+                  allowMacros: Bool = true,
                   for node: LayoutNode) {
 
         if parsedExpression.isEmpty {
@@ -307,6 +308,7 @@ struct LayoutExpression {
         }
         var constants = [String: Any]()
         var symbols = symbols
+        var macroSymbols = [String: Set<String>]()
         for symbol in parsedExpression.symbols where symbols[symbol] == nil &&
             numericSymbols[symbol] == nil && !ignoredSymbols.contains(symbol) {
             if case let .variable(name) = symbol {
@@ -317,6 +319,30 @@ struct LayoutExpression {
                 }
                 if let value = lookup(key) ?? node.value(forConstant: key) {
                     constants[name] = value
+                } else if allowMacros,
+                    node.expressions[key] == nil, // TODO: allow an expression to reference a macro of the same name
+                    let macro = node.expression(forMacro: key) {
+                    do {
+                        guard let macroExpression = LayoutExpression(
+                            anyExpression: try parseExpression(macro),
+                            type: type,
+                            nullable: nullable,
+                            symbols: symbols,
+                            numericSymbols: numericSymbols,
+                            lookup: lookup,
+                            allowMacros: false,
+                            for: node
+                        ) else {
+                            symbols[symbol] = { _ in throw
+                                SymbolError("Empty expression for `\(key)` macro", for: key)
+                            }
+                            continue
+                        }
+                        macroSymbols[key] = macroExpression.symbols
+                        symbols[symbol] = { _ in try SymbolError.wrap(macroExpression.evaluate, for: key) }
+                    } catch {
+                        symbols[symbol] = { _ in throw error }
+                    }
                 } else {
                     symbols[symbol] = { [unowned node] _ in
                         try node.value(forSymbol: key)
@@ -355,14 +381,19 @@ struct LayoutExpression {
                 }
                 return try cast(anyValue, as: type)
             },
-            symbols: Set(expression.symbols.flatMap {
-                switch $0 {
-                case _ where ignoredSymbols.contains($0):
-                    return nil
-                case let .variable(string), let .postfix(string):
-                    return string
+            symbols: Set(expression.symbols.flatMap { symbol -> [String] in
+                switch symbol {
+                case _ where ignoredSymbols.contains(symbol):
+                    return []
+                case let .variable(string):
+                    if let symbols = macroSymbols[string] {
+                        return Array(symbols)
+                    }
+                    return [string]
+                case let .postfix(string):
+                    return [string]
                 default:
-                    return nil
+                    return []
                 }
             })
         )

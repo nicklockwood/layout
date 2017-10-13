@@ -9,6 +9,7 @@ struct Layout {
     var outlet: String?
     var expressions: [String: String]
     var parameters: [String: RuntimeType]
+    var macros: [String: String]
     var children: [Layout]
     var xmlPath: String?
     var templatePath: String?

@@ -198,6 +198,14 @@ class LayoutNodeTests: XCTestCase {
         XCTAssertEqual((node.view as! UILabel).text, "Foo")
     }
 
+    func testMacroNameShadowsState() {
+        let xmlData = "<UIView name=\"{foo}\"><macro name=\"name\" value=\"name\"/><UILabel text=\"{name}\"/></UIView>".data(using: .utf8)!
+        let node = try! LayoutNode.with(xmlData: xmlData)
+        node.setState(["name": "Foo"])
+        node.update()
+        XCTAssertEqual((node.view.subviews[0] as! UILabel).text, "Foo")
+    }
+
     // MARK: update(with:)
 
     func testUpdateViewWithSameClass() {

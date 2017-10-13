@@ -60,6 +60,7 @@
     - [Composition](#composition)
     - [Templates](#templates)
     - [Parameters](#parameters)
+    - [Macros](#macros)
     - [Ignore File](#ignore-file)
 - [Example Projects](#example-projects)
     - [SampleApp](#sampleapp)
@@ -69,7 +70,7 @@
     - [Formatting](#formatting)
     - [Renaming](#renaming)
 - [Xcode Extension](#xcodeextension)
-	- [Installation](#installation-2)
+    - [Installation](#installation-2)
     - [Formatting](#formatting-1)
 - [FAQ](#faq)
 
@@ -197,8 +198,8 @@ class MyViewController: LayoutViewController {
 
         // Option 3 - load a layout asynchronously from an XML file URL
         self.loadLayout(withContentsOfURL: ... ) { error in
-	    	...   
-	    }
+            ...   
+        }
     }
 }
 ```
@@ -1649,7 +1650,7 @@ The `UIWebView.loadHTMLString()` method also accepts a `baseURL` parameter for r
 
 ```xml
 <UIWebView
-	baseURL="http://example.com"
+    baseURL="http://example.com"
     htmlString="&lt;img href=&quot;/someImage.jpg&quot;&gt;"
 />
 ```
@@ -1658,7 +1659,7 @@ If you need to adjust the content insets for the web view, you can do this via t
 
 ```xml
 <UIWebView
-	scrollView.contentInsetAdjustmentBehavior="never"
+    scrollView.contentInsetAdjustmentBehavior="never"
     scrollView.contentInset.bottom="safeAreaInsets.bottom"
     scrollView.scrollIndicatorInsets="scrollView.contentInset"
     request="..."
@@ -1671,7 +1672,7 @@ Layout supports `WKWebView` in the same way as `UIWebView`, by converting the va
 
 ```xml
 <WKWebView
-	readAccessURL="~/Documents"
+    readAccessURL="~/Documents"
     fileURL="~/Documents/homepage.html"
 />
 ```
@@ -2071,8 +2072,8 @@ extension MyView {
 
     open override class var intrinsicContentSize: CGSize {
         return CGSize(
-        	width: UIViewNoIntrinsicMetric,
-        	height: 40
+            width: UIViewNoIntrinsicMetric,
+            height: 40
         )
     }
 }
@@ -2115,9 +2116,9 @@ class MyView: UIView, LayoutLoading {
 
 ```xml
 <MyView>
-	<MyView>
-	    ...
-	</MyView>
+    <MyView>
+        ...
+    </MyView>
 </MyView>
 ``` 
 
@@ -2274,6 +2275,42 @@ You can set default values for parameters by defining a matching expression on t
     ...
 </UIView>
 ```
+
+
+## Macros
+
+Sometimes you will find yourself repeating the same expression multiple times in a given layout. For example, all the views may have the same width or height, or the same spacing relative to their siblings. For example:
+
+```xml
+<UIView>
+    <UILabel left="20" right="100% - 20" top="20" text="Foo"/>
+    <UILabel left="20" right="100% - 20" top="previous.bottom + 20" text="Bar"/>
+    <UILabel left="20" right="100% - 20" top="previous.bottom + 20" text="Baz"/>
+</UIView>
+```
+
+Although you can pass numeric values into your layout as constants, this doesn't work for expressions like "100%" or "previous.bottom", where the symbols being referenced are relative to the position of the node in the hierarchy, so the actual value will vary in each instance.
+
+Layout has a solution for this, in the form of *macros*. A macro is a reusable expression that you define inside your Layout template. Like parameters, macros can be referenced by any child of the node where they are defined, but *unlike* parameters they cannot be set or overridden externally, and their value is determined at the point of use, rather than relative to the node where they are defined.
+
+Using macros, we can change the example above to:
+
+ ```xml
+<UIView>
+    <macro name="SPACING" value="20"/>
+    <macro name="LEFT" value="SPACING"/>
+    <macro name="RIGHT" value="100% - SPACING"/>
+    <macro name="TOP" value="previous.bottom + SPACING"/>
+    
+    <UILabel left="LEFT" right="RIGHT" top="TOP" text="Foo"/>
+    <UILabel left="LEFT" right="RIGHT" top="TOP" text="Bar"/>
+    <UILabel left="LEFT" right="RIGHT" top="TOP" text="Baz"/>
+</UIView>
+```
+
+This eliminates the repetition, making the layout more DRY, and easier to refactor.
+
+Note the use of UPPERCASE names for the macros - this isn't required, but it's a good way to visually distinguish between macros and ordinary constants, parameters or state variables. It also avoids namespace collisions with existing view properties.
 
 
 ## Ignore File

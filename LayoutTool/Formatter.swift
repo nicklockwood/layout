@@ -41,6 +41,7 @@ extension Collection where Iterator.Element == XMLNode {
         var previous: XMLNode?
         var indentNextLine = indentFirstLine
         var params = [XMLNode]()
+        var macros = [XMLNode]()
         var nodes = Array(self)
         for (index, node) in nodes.enumerated().reversed() {
             if node.isParameter {
@@ -50,9 +51,16 @@ extension Collection where Iterator.Element == XMLNode {
                 }
                 params = nodes[i ... index] + params
                 nodes[i ... index] = []
+            } else if node.isMacro {
+                var i = index
+                while i > 0, nodes[i - 1].isComment {
+                    i -= 1
+                }
+                macros = nodes[i ... index] + macros
+                nodes[i ... index] = []
             }
         }
-        for node in params + nodes {
+        for node in params + macros + nodes {
             if node.isLinebreak, previous?.isHTML != true {
                 continue
             }
@@ -67,7 +75,7 @@ extension Collection where Iterator.Element == XMLNode {
                 fallthrough
             default:
                 if let previous = previous {
-                    if previous.isParameter, !node.isParameter, !node.isComment {
+                    if previous.isParameterOrMacro, !node.isParameterOrMacro, !node.isComment {
                         if !node.isHTML {
                             output += "\n"
                         }
@@ -131,7 +139,7 @@ extension XMLNode {
                 let attributes = attributes.sorted(by: { a, b in
                     a.key < b.key // sort alphabetically
                 })
-                if attributes.count < attributeWrap || isParameter || isHTML {
+                if attributes.count < attributeWrap || isParameterOrMacro || isHTML {
                     for (key, value) in attributes {
                         xml += try " \(formatAttribute(key: key, value: value))"
                     }
@@ -140,7 +148,7 @@ extension XMLNode {
                         xml += try "\n\(indent)    \(formatAttribute(key: key, value: value))"
                     }
                 }
-                if isParameter {
+                if isParameterOrMacro {
                     xml += "/>"
                 } else if isEmpty {
                     if attributes.count >= attributeWrap {

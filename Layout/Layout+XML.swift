@@ -31,12 +31,19 @@ extension Layout {
         var isHTML = false
         var children = [Layout]()
         var parameters = [String: RuntimeType]()
+        var macros = [String: String]()
         for node in childNodes {
             switch node {
             case let .node(_, attributes, childNodes):
                 if node.isParameter {
                     guard childNodes.isEmpty else {
                         throw LayoutError("<param> node should not contain children", for: NSClassFromString(className))
+                    }
+                    for key in ["name", "type"] {
+                        guard let value = attributes[key], !value.isEmpty else {
+                            throw LayoutError("<param> \(key) is a required attribute", for: NSClassFromString(className))
+
+                        }
                     }
                     var name = ""
                     var type: RuntimeType?
@@ -54,13 +61,30 @@ extension Layout {
                             throw LayoutError("Unexpected attribute \(key) in <param>", for: NSClassFromString(className))
                         }
                     }
-                    guard !name.isEmpty else {
-                        throw LayoutError("<param> name is a required attribute", for: NSClassFromString(className))
-                    }
-                    guard type != nil else {
-                        throw LayoutError("<param> type is a required attribute", for: NSClassFromString(className))
-                    }
                     parameters[name] = type
+                } else if node.isMacro {
+                    guard childNodes.isEmpty else {
+                        throw LayoutError("<macro> node should not contain children", for: NSClassFromString(className))
+                    }
+                    for key in ["name", "value"] {
+                        guard let value = attributes[key], !value.isEmpty else {
+                            throw LayoutError("<macro> \(key) is a required attribute", for: NSClassFromString(className))
+
+                        }
+                    }
+                    var name = ""
+                    var expression: String?
+                    for (key, value) in attributes {
+                        switch key {
+                        case "name":
+                            name = value
+                        case "value":
+                            expression = value
+                        default:
+                            throw LayoutError("Unexpected attribute \(key) in <macro>", for: NSClassFromString(className))
+                        }
+                    }
+                    macros[name] = expression
                 } else if isHTML {
                     text += try node.toHTML()
                 } else if node.isHTML {
@@ -119,6 +143,7 @@ extension Layout {
             outlet: outlet,
             expressions: attributes,
             parameters: parameters,
+            macros: macros,
             children: children,
             xmlPath: xmlPath,
             templatePath: templatePath,
