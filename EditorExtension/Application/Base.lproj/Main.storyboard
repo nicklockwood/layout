@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="12121" systemVersion="16G29" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" initialViewController="B8D-0N-5wS">
+<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="13196" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" initialViewController="B8D-0N-5wS">
     <dependencies>
         <deployment identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="12121"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="13196"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
@@ -688,7 +688,7 @@
                         <rect key="frame" x="0.0" y="0.0" width="385" height="392"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
-                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="aNJ-6N-CED">
+                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="aNJ-6N-CED">
                                 <rect key="frame" x="18" y="355" width="349" height="17"/>
                                 <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="What is Layout for Xcode?" id="DWG-95-tUK">
                                     <font key="font" metaFont="systemBold"/>
@@ -696,7 +696,7 @@
                                     <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                             </textField>
-                            <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Zkf-d0-hNG">
+                            <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="Zkf-d0-hNG">
                                 <rect key="frame" x="18" y="279" width="349" height="68"/>
                                 <textFieldCell key="cell" sendsActionOnEndEditing="YES" id="xVj-5Y-11n">
                                     <font key="font" metaFont="system"/>
@@ -705,7 +705,7 @@
                                     <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                             </textField>
-                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="qnt-Gk-VpH">
+                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="qnt-Gk-VpH">
                                 <rect key="frame" x="18" y="246" width="349" height="17"/>
                                 <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="How do I install it?" id="NmP-Dn-biY">
                                     <font key="font" metaFont="systemBold"/>
@@ -713,7 +713,7 @@
                                     <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                             </textField>
-                            <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="VVr-7o-9zD">
+                            <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="VVr-7o-9zD">
                                 <rect key="frame" x="18" y="153" width="349" height="85"/>
                                 <textFieldCell key="cell" sendsActionOnEndEditing="YES" id="9no-dM-Qlu">
                                     <font key="font" metaFont="system"/>
@@ -726,7 +726,7 @@
                                     <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                             </textField>
-                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="BT8-iH-xPF">
+                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="BT8-iH-xPF">
                                 <rect key="frame" x="18" y="120" width="349" height="17"/>
                                 <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Using the Layout Extension in Xcode" id="oXO-Zs-OzH">
                                     <font key="font" metaFont="systemBold"/>
@@ -734,9 +734,9 @@
                                     <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                             </textField>
-                            <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="8zw-Wj-eDm">
+                            <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="8zw-Wj-eDm">
                                 <rect key="frame" x="18" y="61" width="349" height="51"/>
-                                <textFieldCell key="cell" sendsActionOnEndEditing="YES" title="Open any Swift source code in Xcode — under the &quot;Editor&quot; menu, you will find &quot;Layout&quot; which contains the &quot;Format File&quot; option." allowsEditingTextAttributes="YES" id="hXB-Qi-ovD">
+                                <textFieldCell key="cell" sendsActionOnEndEditing="YES" title="Open any Swift source code in Xcode — under the &quot;Editor&quot; menu, you will find &quot;Layout&quot; which contains the &quot;Format XML&quot; option." allowsEditingTextAttributes="YES" id="hXB-Qi-ovD">
                                     <font key="font" metaFont="system"/>
                                     <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>

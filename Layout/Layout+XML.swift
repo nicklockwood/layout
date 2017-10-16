@@ -44,7 +44,6 @@ extension Layout {
                     for key in ["name", "type"] {
                         guard let value = attributes[key], !value.isEmpty else {
                             throw LayoutError("<param> \(key) is a required attribute", for: NSClassFromString(className))
-
                         }
                     }
                     var name = ""
@@ -71,7 +70,6 @@ extension Layout {
                     for key in ["name", "value"] {
                         guard let value = attributes[key], !value.isEmpty else {
                             throw LayoutError("<macro> \(key) is a required attribute", for: NSClassFromString(className))
-
                         }
                     }
                     var name = ""
@@ -155,7 +153,7 @@ extension Layout {
 private let emptyHTMLTags: Set<String> = [
     "area", "base", "br", "col", "embed", "hr",
     "img", "input", "link", "meta", "param",
-    "source", "track", "wbr"
+    "source", "track", "wbr",
 ]
 
 private extension XMLNode {

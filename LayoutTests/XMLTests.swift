@@ -51,7 +51,7 @@ class XMLTests: XCTestCase {
         let input = "<UILabel>\n    Foo\n</UILabel>"
         let xmlData = input.data(using: .utf8)!
         let layout = try! Layout(xmlData: xmlData)
-        XCTAssertEqual(layout.expressions["text"], "Foo")
+        XCTAssertEqual(layout.body, "Foo")
     }
 
     func testPreserveWhitespaceInsideHTML() {
@@ -59,7 +59,7 @@ class XMLTests: XCTestCase {
         let input = "<UILabel>\n    \(html)\n</UILabel>"
         let xmlData = input.data(using: .utf8)!
         let layout = try! Layout(xmlData: xmlData)
-        XCTAssertEqual(layout.expressions["attributedText"], html)
+        XCTAssertEqual(layout.body, html)
     }
 
     // MARK: Entity encoding
@@ -75,7 +75,7 @@ class XMLTests: XCTestCase {
         let input = "<UILabel>\(text.xmlEncoded())</UILabel>"
         let xmlData = input.data(using: .utf8)!
         let layout = try! Layout(xmlData: xmlData)
-        XCTAssertEqual(layout.expressions["text"], text)
+        XCTAssertEqual(layout.body, text)
     }
 
     func testEncodeHTMLEntitiesInHTML() {
@@ -83,7 +83,7 @@ class XMLTests: XCTestCase {
         let input = "<UILabel>\(html)</UILabel>"
         let xmlData = input.data(using: .utf8)!
         let layout = try! Layout(xmlData: xmlData)
-        XCTAssertEqual(layout.expressions["attributedText"], html)
+        XCTAssertEqual(layout.body, html)
     }
 
     func testEncodeHTMLEntitiesInHTML2() {
@@ -91,7 +91,7 @@ class XMLTests: XCTestCase {
         let input = "<UILabel>\(html)</UILabel>"
         let xmlData = input.data(using: .utf8)!
         let layout = try! Layout(xmlData: xmlData)
-        XCTAssertEqual(layout.expressions["attributedText"], html)
+        XCTAssertEqual(layout.body, html)
     }
 
     func testEncodeHTMLEntitiesInHTML3() {
@@ -99,6 +99,6 @@ class XMLTests: XCTestCase {
         let input = "<UILabel>\(html)</UILabel>"
         let xmlData = input.data(using: .utf8)!
         let layout = try! Layout(xmlData: xmlData)
-        XCTAssertEqual(layout.expressions["attributedText"], html)
+        XCTAssertEqual(layout.body, html)
     }
 }

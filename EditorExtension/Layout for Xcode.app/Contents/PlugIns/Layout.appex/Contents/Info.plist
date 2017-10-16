@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>BuildMachineOSBuild</key>
+	<string>16G29</string>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>en</string>
+	<key>CFBundleExecutable</key>
+	<string>Layout</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.schibsted.Layout-for-Xcode.SourceEditorExtension</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>Layout</string>
+	<key>CFBundlePackageType</key>
+	<string>XPC!</string>
+	<key>CFBundleShortVersionString</key>
+	<string>0.5.4</string>
+	<key>CFBundleSupportedPlatforms</key>
+	<array>
+		<string>MacOSX</string>
+	</array>
+	<key>CFBundleVersion</key>
+	<string>1</string>
+	<key>DTCompiler</key>
+	<string>com.apple.compilers.llvm.clang.1_0</string>
+	<key>DTPlatformBuild</key>
+	<string>9A235</string>
+	<key>DTPlatformVersion</key>
+	<string>GM</string>
+	<key>DTSDKBuild</key>
+	<string>17A360</string>
+	<key>DTSDKName</key>
+	<string>macosx10.13</string>
+	<key>DTXcode</key>
+	<string>0900</string>
+	<key>DTXcodeBuild</key>
+	<string>9A235</string>
+	<key>LSMinimumSystemVersion</key>
+	<string>10.11</string>
+	<key>NSExtension</key>
+	<dict>
+		<key>NSExtensionAttributes</key>
+		<dict>
+			<key>XCSourceEditorCommandDefinitions</key>
+			<array>
+				<dict>
+					<key>XCSourceEditorCommandClassName</key>
+					<string>Layout.FormatXMLCommand</string>
+					<key>XCSourceEditorCommandIdentifier</key>
+					<string>com.schibsted.Layout-for-Xcode.SourceEditorExtension.FormatXMLCommand</string>
+					<key>XCSourceEditorCommandName</key>
+					<string>Format XML</string>
+				</dict>
+			</array>
+			<key>XCSourceEditorExtensionPrincipalClass</key>
+			<string>Layout.SourceEditorExtension</string>
+		</dict>
+		<key>NSExtensionPointIdentifier</key>
+		<string>com.apple.dt.Xcode.extension.source-editor</string>
+	</dict>
+	<key>NSHumanReadableCopyright</key>
+	<string>Copyright © 2017 Schibsted. All rights reserved.</string>
+	<key>UIDeviceFamily</key>
+	<array>
+		<integer>1</integer>
+		<integer>2</integer>
+	</array>
+</dict>
+</plist>

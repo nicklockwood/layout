@@ -1,6 +1,8 @@
 [![Travis](https://img.shields.io/travis/schibsted/layout.svg)](https://travis-ci.org/schibsted/layout)
 [![Platform](https://img.shields.io/cocoapods/p/Layout.svg?style=flat)](http://cocoadocs.org/docsets/Layout)
-[![Swift](https://img.shields.io/badge/swift-3.1-orange.svg?style=flat)](https://developer.apple.com/swift)
+[![Swift](https://img.shields.io/badge/swift-3.1-yellow.svg?style=flat)](https://developer.apple.com/swift)
+[![Swift](https://img.shields.io/badge/swift-3.2-orange.svg?style=flat)](https://developer.apple.com/swift)
+[![Swift](https://img.shields.io/badge/swift-4.0-red.svg?style=flat)](https://developer.apple.com/swift)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](https://opensource.org/licenses/MIT)
 [![CocoaPods Compatible](https://img.shields.io/cocoapods/v/Layout.svg)](https://img.shields.io/cocoapods/v/Layout.svg)
 [![Carthage Compatible](https://img.shields.io/badge/Carthage-compatible-4BC51D.svg?style=flat)](https://github.com/Carthage/Carthage)
@@ -123,13 +125,13 @@ Layout is provided as a standalone Swift framework that you can use in your app.
 To install Layout using CocoaPods, add the following to your Podfile:
 
 ```ruby
-pod 'Layout', '~> 0.5.3'
+pod 'Layout', '~> 0.5.4'
 ```
 
 To install using Carthage, add this to your Cartfile:
 
 ```
-github "schibsted/Layout" ~> 0.5.3
+github "schibsted/Layout" ~> 0.5.4
 ```
 
 ## Integration
@@ -2508,16 +2510,16 @@ To ensure compatibility, always update the Layout for Xcode app at the same time
 
 ## Formatting
 
-When you have a Layout XML file open in Xcode, select the `Editor > Layout > Format File` menu to reformat the file.
+When you have a Layout XML file open in Xcode, select the `Editor > Layout > Format XML` menu to reformat the file.
 
 
 # FAQ
 
-*Q. How is this different from frameworks like [React Native](https://facebook.github.io/react-native/)?
+*Q. How is this different from frameworks like [React Native](https://facebook.github.io/react-native/)?*
 
 > React Native is a complete x-platform replacement for native iOS and Android development, whereas Layout is a way to build ordinary iOS UIKit apps more easily. In particular, Layout has much tighter integration with native UIKit controls, requires less boilerplate to use custom controls, and works directly with your existing native Swift code.
 
-*Q. How is this different from frameworks like [Render](https://github.com/alexdrone/Render)?
+*Q. How is this different from frameworks like [Render](https://github.com/alexdrone/Render)?*
 
 > The programming model is very similar, but Layout's runtime expression language means that you can do a larger proportion of your UI development without needing to restart the Simulator.
 
@@ -2569,6 +2571,6 @@ When you have a Layout XML file open in Xcode, select the `Editor > Layout > For
 
 > No. See the [Manual Integration](#manual-integration) section above.
 
-*Q. When I launched my app, Layout asked me to select a source file and I chose the wrong one, now my app isn't working correctly. What do I do?
+*Q. When I launched my app, Layout asked me to select a source file and I chose the wrong one, now my app isn't working correctly. What do I do?*
 
 > If the app runs OK, or displays a Red Box, you can reset it with Cmd-Alt-R. If it's actually crashing, the best option is to delete the app from the Simulator then re-install it.

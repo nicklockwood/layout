@@ -1,5 +1,13 @@
 # Change Log
 
+## [0.5.4](https://github.com/schibsted/layout/releases/tag/0.5.4) (2017-10-16)
+
+- Added macros feature for reusable expressions and sub-expressions. See README.md for details
+- Added node references, allowing expressions to reference arbitrary nodes in the layout hierarchy
+- Added the Layout Xcode Extension, making Layout XML formatting available from within Xcode
+- Improved support for inline HTML in templates, including support for inline HTML inside webviews
+- Fixed some bugs in the LayoutTool format function
+
 ## [0.5.3](https://github.com/schibsted/layout/releases/tag/0.5.3) (2017-10-10)
 
 - Added support for OptionSet properties

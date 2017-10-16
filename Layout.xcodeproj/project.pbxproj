@@ -88,7 +88,7 @@
 		014F37481F352B2600F63CCF /* CollectionCell.xml in Resources */ = {isa = PBXBuildFile; fileRef = 014F37471F352B2600F63CCF /* CollectionCell.xml */; };
 		014F374A1F35A23000F63CCF /* Collection.xml in Resources */ = {isa = PBXBuildFile; fileRef = 014F37491F35A23000F63CCF /* Collection.xml */; };
 		015256131F8F591000BDD15D /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 015256121F8F591000BDD15D /* Cocoa.framework */; };
-		015256301F8F5C5C00BDD15D /* FormatFileCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 015256291F8F5A8600BDD15D /* FormatFileCommand.swift */; };
+		015256301F8F5C5C00BDD15D /* FormatXMLCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 015256291F8F5A8600BDD15D /* FormatXMLCommand.swift */; };
 		015256311F8F5C5C00BDD15D /* SourceEditorExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0152562C1F8F5A8600BDD15D /* SourceEditorExtension.swift */; };
 		015256321F8F5C7900BDD15D /* Formatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0105F7B61F0AA7D70067B313 /* Formatter.swift */; };
 		015256331F8F5C7D00BDD15D /* Common.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0105F7A11F055F9D0067B313 /* Common.swift */; };
@@ -304,7 +304,7 @@
 		015256241F8F5A8600BDD15D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		015256251F8F5A8600BDD15D /* Application.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Application.entitlements; sourceTree = "<group>"; };
 		015256261F8F5A8600BDD15D /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
-		015256291F8F5A8600BDD15D /* FormatFileCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormatFileCommand.swift; sourceTree = "<group>"; };
+		015256291F8F5A8600BDD15D /* FormatXMLCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormatXMLCommand.swift; sourceTree = "<group>"; };
 		0152562B1F8F5A8600BDD15D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		0152562C1F8F5A8600BDD15D /* SourceEditorExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceEditorExtension.swift; sourceTree = "<group>"; };
 		0152562D1F8F5A8600BDD15D /* Extension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Extension.entitlements; sourceTree = "<group>"; };
@@ -603,7 +603,7 @@
 		015256271F8F5A8600BDD15D /* Extension */ = {
 			isa = PBXGroup;
 			children = (
-				015256291F8F5A8600BDD15D /* FormatFileCommand.swift */,
+				015256291F8F5A8600BDD15D /* FormatXMLCommand.swift */,
 				0152562B1F8F5A8600BDD15D /* Info.plist */,
 				0152562C1F8F5A8600BDD15D /* SourceEditorExtension.swift */,
 				0152562D1F8F5A8600BDD15D /* Extension.entitlements */,
@@ -1269,7 +1269,7 @@
 				015256341F8F5C7F00BDD15D /* Symbols.swift in Sources */,
 				015256331F8F5C7D00BDD15D /* Common.swift in Sources */,
 				015256321F8F5C7900BDD15D /* Formatter.swift in Sources */,
-				015256301F8F5C5C00BDD15D /* FormatFileCommand.swift in Sources */,
+				015256301F8F5C5C00BDD15D /* FormatXMLCommand.swift in Sources */,
 				015256311F8F5C5C00BDD15D /* SourceEditorExtension.swift in Sources */,
 				0152563A1F8F5E3100BDD15D /* Files.swift in Sources */,
 				015256351F8F5DF000BDD15D /* Expression.swift in Sources */,

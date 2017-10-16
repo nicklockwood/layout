@@ -15,7 +15,7 @@
 	<key>CFBundlePackageType</key>
 	<string>XPC!</string>
 	<key>CFBundleShortVersionString</key>
-	<string>0.5.3</string>
+	<string>0.5.4</string>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSMinimumSystemVersion</key>
@@ -28,11 +28,11 @@
 			<array>
 				<dict>
 					<key>XCSourceEditorCommandClassName</key>
-					<string>$(PRODUCT_MODULE_NAME).FormatFileCommand</string>
+					<string>$(PRODUCT_MODULE_NAME).FormatXMLCommand</string>
 					<key>XCSourceEditorCommandIdentifier</key>
-					<string>$(PRODUCT_BUNDLE_IDENTIFIER).FormatFileCommand</string>
+					<string>$(PRODUCT_BUNDLE_IDENTIFIER).FormatXMLCommand</string>
 					<key>XCSourceEditorCommandName</key>
-					<string>Format File</string>
+					<string>Format XML</string>
 				</dict>
 			</array>
 			<key>XCSourceEditorExtensionPrincipalClass</key>
