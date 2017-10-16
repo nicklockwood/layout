@@ -12,6 +12,7 @@ struct Layout {
     var parameters: [String: RuntimeType]
     var macros: [String: String]
     var children: [Layout]
+    var body: String?
     var xmlPath: String?
     var templatePath: String?
     var relativePath: String?

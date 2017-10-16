@@ -109,6 +109,7 @@ open class LayoutViewController: UIViewController, LayoutLoading {
         setNeedsStatusBarAppearanceUpdate()
         let background: String
         var children: [LayoutNode]
+        var message = "\(error)."
         switch error {
         case let .multipleMatches(matches, _):
             background = "#555"
@@ -118,7 +119,7 @@ open class LayoutViewController: UIViewController, LayoutLoading {
                     expressions: [
                         "width": "min(auto, 100% - 40)",
                         "left": "(100% - width) / 2",
-                        "text": "{error}. Please select the correct one.\n\nYour selection will be remembered for subsequent launches. Reset it with ⌥⌘R.",
+                        "text": "{error} Please select the correct one.\n\nYour selection will be remembered for subsequent launches. Reset it with ⌥⌘R.",
                         "textColor": "white",
                         "numberOfLines": "0",
                     ]
@@ -148,7 +149,6 @@ open class LayoutViewController: UIViewController, LayoutLoading {
             }
         default:
             background = "red"
-            var message = "\(error)."
             let suggestions = error.suggestions
             if suggestions.count == 1 {
                 message += " Did you mean \(suggestions[0])?"
@@ -161,7 +161,7 @@ open class LayoutViewController: UIViewController, LayoutLoading {
                     expressions: [
                         "width": "min(auto, 100% - 40)",
                         "left": "(100% - width) / 2",
-                        "text": message,
+                        "text": "{error}",
                         "textColor": "white",
                         "numberOfLines": "0",
                     ]
@@ -219,7 +219,7 @@ open class LayoutViewController: UIViewController, LayoutLoading {
                 LayoutNode(
                     view: UIControl(),
                     constants: [
-                        "error": error,
+                        "error": message,
                     ],
                     expressions: [
                         "width": "100%",

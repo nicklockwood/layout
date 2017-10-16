@@ -161,6 +161,19 @@ extension UIView {
         return [:]
     }
 
+    /// The name of the String or NSAttributedString property to use for body text
+    /// Return nil to indicate that the view doesn't allow body text
+    @objc open class var bodyExpression: String? {
+        let types = cachedExpressionTypes
+        for key in ["attributedText", "attributedTitle", "text", "title"] {
+            if let type = types[key], case let .any(kind) = type.type,
+                kind is String.Type || kind is NSAttributedString.Type {
+                return key
+            }
+        }
+        return nil
+    }
+
     /// Called to construct the view
     @objc open class func create(with _: LayoutNode) throws -> UIView {
         return self.init()
@@ -504,9 +517,6 @@ extension UIButton {
         for (name, type) in UIImageView.cachedExpressionTypes {
             types["imageView.\(name)"] = type
         }
-        // Setters used for embedded html
-        types["text"] = RuntimeType(String.self)
-        types["attributedText"] = RuntimeType(NSAttributedString.self)
 
         #if arch(i386) || arch(x86_64)
             // Private properties
@@ -529,8 +539,6 @@ extension UIButton {
         case "image": setImage(value as? UIImage, for: .normal)
         case "backgroundImage": setBackgroundImage(value as? UIImage, for: .normal)
         case "attributedTitle": setAttributedTitle(value as? NSAttributedString, for: .normal)
-        case "text": setTitle(value as? String, for: .normal)
-        case "attributedText": setAttributedTitle(value as? NSAttributedString, for: .normal)
         default:
             if let (prefix, state) = controlStates.first(where: { name.hasPrefix($0.key) }) {
                 switch name[prefix.endIndex ..< name.endIndex] {
@@ -1523,6 +1531,10 @@ extension UIWebView {
         return types
     }
 
+    open override class var bodyExpression: String? {
+        return "htmlString"
+    }
+
     @nonobjc private var baseURL: URL? {
         get { return objc_getAssociatedObject(self, &baseURLKey) as? URL }
         set {
@@ -1616,6 +1628,10 @@ extension WKWebView {
         // TODO: support binding uiDelegate, navigationDelegate
         // TODO: support configuration url scheme handlers
         return types
+    }
+
+    open override class var bodyExpression: String? {
+        return "htmlString"
     }
 
     @nonobjc private var readAccessURL: URL? {

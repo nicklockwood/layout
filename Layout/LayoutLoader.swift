@@ -41,6 +41,7 @@ private extension Layout {
             parameters: parameters,
             macros: macros,
             children: children + layout.children,
+            body: layout.body ?? body,
             xmlPath: layout.xmlPath,
             templatePath: templatePath,
             relativePath: layout.relativePath // TODO: is this correct?

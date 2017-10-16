@@ -27,7 +27,7 @@ class XMLTests: XCTestCase {
     }
 
     func testInvalidHTML() {
-        let input = "<UILabel>Some <bold>bold</bold> text</UILabel>"
+        let input = "<UILabel>Some <b>bold</bold> text</UILabel>"
         let xmlData = input.data(using: .utf8)!
         XCTAssertThrowsError(try Layout(xmlData: xmlData)) { error in
             XCTAssert("\(error)".contains("bold"))

@@ -31,7 +31,7 @@ enum XMLNode {
         guard case .text = self else {
             return false
         }
-        return true
+        return !isLinebreak
     }
 
     public var isHTML: Bool {

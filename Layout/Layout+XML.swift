@@ -27,7 +27,7 @@ extension Layout {
         guard case .node(let className, var attributes, let childNodes) = xmlNode else {
             preconditionFailure()
         }
-        var text = ""
+        var body = ""
         var isHTML = false
         var children = [Layout]()
         var parameters = [String: RuntimeType]()
@@ -35,7 +35,9 @@ extension Layout {
         for node in childNodes {
             switch node {
             case let .node(_, attributes, childNodes):
-                if node.isParameter {
+                if isHTML { // <param> is a valid html tag, so check if we're in an HTML context first
+                    body += try node.toHTML()
+                } else if node.isParameter {
                     guard childNodes.isEmpty else {
                         throw LayoutError("<param> node should not contain children", for: NSClassFromString(className))
                     }
@@ -85,17 +87,15 @@ extension Layout {
                         }
                     }
                     macros[name] = expression
-                } else if isHTML {
-                    text += try node.toHTML()
                 } else if node.isHTML {
-                    text = try text.xmlEncoded() + node.toHTML()
+                    body = try body.xmlEncoded() + node.toHTML()
                     isHTML = true
                 } else {
-                    text = ""
+                    body = ""
                     try children.append(Layout(xmlNode: node, relativeTo: relativeTo))
                 }
             case let .text(string):
-                text += isHTML ? string.xmlEncoded() : string
+                body += isHTML ? string.xmlEncoded() : string
             case .comment:
                 preconditionFailure()
             }
@@ -131,13 +131,9 @@ extension Layout {
         let xmlPath = try parseStringAttribute(for: "xml")
         let templatePath = try parseStringAttribute(for: "template")
 
-        text = text
+        body = body
             .trimmingCharacters(in: .whitespacesAndNewlines)
             .replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
-        if !text.isEmpty {
-            attributes[isHTML ? "attributedText" : "text"] = text
-            text = ""
-        }
 
         self.init(
             className: className,
@@ -147,6 +143,7 @@ extension Layout {
             parameters: parameters,
             macros: macros,
             children: children,
+            body: body.isEmpty ? nil : body,
             xmlPath: xmlPath,
             templatePath: templatePath,
             relativePath: relativeTo
@@ -154,11 +151,11 @@ extension Layout {
     }
 }
 
-private let supportedHTMLTags: Set<String> = [
-    "b", "i", "u", "strong", "em", "strike",
-    "h1", "h2", "h3", "h4", "h5", "h6",
-    "p", "br", "sub", "sup", "center",
-    "ul", "ol", "li",
+// http://w3c.github.io/html/syntax.html#void-elements
+private let emptyHTMLTags: Set<String> = [
+    "area", "base", "br", "col", "embed", "hr",
+    "img", "input", "link", "meta", "param",
+    "source", "track", "wbr"
 ]
 
 private extension XMLNode {
@@ -166,17 +163,21 @@ private extension XMLNode {
         var text = ""
         switch self {
         case let .node(name, attributes, children):
-            guard attributes.isEmpty else {
-                throw LayoutError("Unsupported attribute \(attributes.keys.first!) for element <\(name)>.")
-            }
-            guard supportedHTMLTags.contains(name) else {
+            guard isHTML else {
                 throw LayoutError("Unsupported HTML element <\(name)>.")
             }
-            guard name != "br" else {
-                text += "<br/>"
+            text += "<\(name)"
+            for (key, value) in attributes {
+                text += " \(key)=\"\(value.xmlEncoded(forAttribute: true))\""
+            }
+            if emptyHTMLTags.contains(name) {
+                guard attributes.isEmpty else {
+                    throw LayoutError("Unsupported attribute \(attributes.keys.first!) for element <\(name)>.")
+                }
+                text += "/>" // TODO: should we remove the closing slash here?
                 break
             }
-            text += "<\(name)>"
+            text += ">"
             for node in children {
                 text += try node.toHTML()
             }

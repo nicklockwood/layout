@@ -12,15 +12,23 @@ extension LayoutNode {
         constants: [String: Any]...
     ) throws {
         if let path = layout.templatePath {
-            throw LayoutError("Cannot initialize \(layout.className) node until content for \(path) has been loaded.")
+            throw LayoutError("Cannot initialize \(layout.className) node until content for \(path) has been loaded")
+        }
+        let _class: AnyClass = try layout.getClass()
+        var expressions = layout.expressions
+        if let body = layout.body {
+            guard let viewClass = _class as? UIView.Type, let bodyExpression = viewClass.bodyExpression else {
+                throw LayoutError("\(layout.className) does not support inline (X)HTML content")
+            }
+            expressions[bodyExpression] = body
         }
         try self.init(
-            class: layout.getClass(),
+            class: _class,
             id: layout.id,
             outlet: outlet ?? layout.outlet,
             state: state,
             constants: merge(constants),
-            expressions: layout.expressions,
+            expressions: expressions,
             children: layout.children.map {
                 try LayoutNode(layout: $0)
             }
@@ -55,7 +63,7 @@ extension LayoutNode {
 extension Layout {
 
     // Experimental - extracts a layout template from an existing node
-    // TODO: this isn't a loss-free conversion - find a better approach
+    // TODO: this isn't a lossless conversion - find a better approach
     init(_ node: LayoutNode) {
         self.init(
             className: NSStringFromClass(node._class),
@@ -65,6 +73,7 @@ extension Layout {
             parameters: node._parameters,
             macros: node._macros,
             children: node.children.map(Layout.init(_:)),
+            body: nil,
             xmlPath: nil, // TODO: what if the layout is currently loading this? Race condition!
             templatePath: nil,
             relativePath: nil

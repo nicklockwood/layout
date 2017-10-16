@@ -53,6 +53,7 @@
     - [Namespacing](#namespacing)
     - [Custom Property Types](#custom-property-types)
     - [Custom Constructor Arguments](#custom-constructor-arguments)
+    - [Body Text](#body-text)
     - [Default Expressions](#default-expressions)
 - [Advanced Topics](#advanced-topics)
     - [Layout-based Components](#layout-based-components)
@@ -769,6 +770,12 @@ If you need to use a string literal *inside* an expression block, then you can u
 <UILabel text="Hello {hasName ? name : 'World'}"/>
 ```
 
+If you want to display the literal `{` or `}` brace characters, you can escape them as follows:
+
+```xml
+<UILabel text="Open brace: {'{'}. Close brace: {'}'}."/>
+```
+
 If your app is localized, you will need to use constants instead of literal strings for virtually all of the strings in your template. Localizing all of these strings and passing them as individual constants would be tedious, so Layout offers some alternatives:
 
 Constants prefixed with `strings.` are assumed to be localized strings, and will be looked up in the application's `Localizable.strings` file. So for example, if your `Localizable.strings` file contains the following entry:
@@ -809,7 +816,7 @@ loadLayout(
 <UILabel text="This is some {styledText} embedded in unstyled text" />
 ```
 
-A neat extra feature built in to attributed string expressions is support for inline HTML markup:
+A neat extra feature built in to attributed string expressions is support for inline (X)HTML markup:
 
 ```swift
 LayoutNode(
@@ -820,13 +827,13 @@ LayoutNode(
 )
 ```
 
-Using this feature inside an XML attribute is awkward because the tags have to be escaped using `&gt;` and `&lt;`, so Layout lets you use HTML *inside* a view node, and it will be automatically assigned to the `attributedText` property of the view:
+Using this feature inside an XML attribute is awkward because the tags have to be escaped using `&gt;` and `&lt;`, so Layout lets you use HTML *inside* a view node, and it will be automatically assigned to the appropriate attributed text property of the view (see the [Body Text](#body-text) section for details):
 
 ```xml
 <UILabel>This is a pretty <b>bold</b> solution</UILabel>
 ```
 
-HTML support relies on the  built-in `NSMutableAttributedString` HTML parser, which only supports a minimal subset of HTML, however the following tags are supported:
+HTML support relies on the built-in `NSMutableAttributedString` HTML parser, which does not recognize inline CSS styles or scripts, and only supports a minimal subset of HTML. The following tags have been verified to work, but others may or may not, depending on the iOS version:
 
 ```xml
 <p>, // paragraph
@@ -1673,7 +1680,15 @@ To load a literal HTML string you can use the `htmlString` property:
 <UIWebView htmlString="{htmlConstant}"/>
 ```
 
-**Note:** if you specify a literal HTML string in your Layout XML then you will have to encode the tags using `&lt;`, `&gt;` and `&quot;`.
+**Note:** if you specify a literal `htmlString` attribute in your Layout XML then you will have to encode the tags using `&lt;`, `&gt;` and `&quot;`. A better alternative is to use Layout's inline HTML feature (as described in the [Attributed Strings](#attributed-strings) section):
+
+```xml
+<UIWebView>
+    <p>Hello World</p>
+</UIWebView>
+```
+
+Unlike labels, webviews can display arbitrary HTML including CSS styles and JavaScript. Defining CSS or JavaScript blocks inline in your XML is likely to be awkward however due to the need to escape `<`, `&` and `{` characters. It is probably easier to put complex scripts or stylesheets in a separate local file (although currently Layout does not support live reloading for such files).
 
 The `UIWebView.loadHTMLString()` method also accepts a `baseURL` parameter for relative URLs inside the HTML. Layout exposes this as a separate `baseURL` property:
 
@@ -2071,6 +2086,28 @@ open override class func create(with node: LayoutNode) throws -> MyView {
     self.init(myArgument: myArgument)
 }
 ```
+
+
+## Body Text
+
+Layout supports the use of inline (X)HTML within an XML file as a convenient way to specify attributed string values (see the [Attributed Strings](#attributed-strings) section for details). In order to enable this feature for a custom view, you will need to tell Layout which property the HTML should be used to set.
+
+This is done using the `bodyExpression` class property:
+
+```swift
+extension MyView {
+
+    open override class var bodyExpression: String? {
+        return "heading"
+    }
+}
+```
+
+The value of this property must be the name of an existing property defined in the `expressionTypes` or `parameterTypes` dictionaries. The type of the property must be either `String` or `NSAttributedString`.
+
+For convenience, Layout will detect if the view has a property called "text", "attributedText", "title" or "attributedTitle", and automatically map the body text to that. If your view has a text property matching one of those names, there is no need to override `bodyExpression`.
+
+Returning `nil` from the `bodyExpression` property will disable the inline HTML feature for that view.
 
 
 ## Default Expressions

@@ -36,28 +36,32 @@ func format(_ xml: [XMLNode]) throws -> String {
 }
 
 extension Collection where Iterator.Element == XMLNode {
-    func toString(withIndent indent: String, indentFirstLine: Bool = true) throws -> String {
+    func toString(withIndent indent: String, indentFirstLine: Bool = true, isHTML: Bool = false) throws -> String {
         var output = ""
         var previous: XMLNode?
         var indentNextLine = indentFirstLine
         var params = [XMLNode]()
         var macros = [XMLNode]()
         var nodes = Array(self)
-        for (index, node) in nodes.enumerated().reversed() {
-            if node.isParameter {
-                var i = index
-                while i > 0, nodes[i - 1].isComment {
-                    i -= 1
+        if !isHTML {
+            for (index, node) in nodes.enumerated().reversed() {
+                if node.isParameter {
+                    var i = index
+                    while i > 0, nodes[i - 1].isComment {
+                        i -= 1
+                    }
+                    params = nodes[i ... index] + params
+                    nodes[i ... index] = []
+                } else if node.isMacro {
+                    var i = index
+                    while i > 0, nodes[i - 1].isComment {
+                        i -= 1
+                    }
+                    macros = nodes[i ... index] + macros
+                    nodes[i ... index] = []
+                } else if node.isHTML || node.isText {
+                    break
                 }
-                params = nodes[i ... index] + params
-                nodes[i ... index] = []
-            } else if node.isMacro {
-                var i = index
-                while i > 0, nodes[i - 1].isComment {
-                    i -= 1
-                }
-                macros = nodes[i ... index] + macros
-                nodes[i ... index] = []
             }
         }
         for node in params + macros + nodes {
@@ -177,7 +181,7 @@ extension XMLNode {
                         children.first(where: { !$0.isLinebreak })?.isComment == true {
                         xml += "\n"
                     }
-                    let body = try children.toString(withIndent: indent + "    ")
+                    let body = try children.toString(withIndent: indent + "    ", isHTML: isHTML)
                     xml += "\(body)\(indent)</\(name)>"
                 }
                 return xml
