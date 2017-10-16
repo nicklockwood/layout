@@ -160,6 +160,18 @@ class FormatterTests: XCTestCase {
         XCTAssertEqual(try format(input), output)
     }
 
+    func testNoRemoveIndentForClosingHTMLTag() {
+        let input = "<UILabel>\n    <p>\n        hello world\n    </p>\n</UILabel>"
+        let output = "<UILabel>\n    <p>\n        hello world\n    </p>\n</UILabel>\n"
+        XCTAssertEqual(try format(input), output)
+    }
+
+    func testNoInsertBlankLineInHTMLTagWithAttributes() {
+        let input = "<UILabel>\n    <p bar=\"bar\" baz=\"baz\">\n        hello <b>world</b>\n    </p>\n</UILabel>"
+        let output = "<UILabel>\n    <p bar=\"bar\" baz=\"baz\">\n        hello <b>world</b>\n    </p>\n</UILabel>\n"
+        XCTAssertEqual(try format(input), output)
+    }
+
     // MARK: Comments
 
     func testLeadingComment() {

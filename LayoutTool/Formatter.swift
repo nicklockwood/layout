@@ -155,7 +155,7 @@ extension XMLNode {
                 if isParameterOrMacro {
                     xml += "/>"
                 } else if isEmpty {
-                    if attributes.count >= attributeWrap {
+                    if !isHTML, attributes.count >= attributeWrap {
                         xml += "\n\(indent)"
                     }
                     if !isHTML || name == "br" {
@@ -165,23 +165,36 @@ extension XMLNode {
                     }
                 } else if children.count == 1, children[0].isComment || children[0].isText {
                     xml += ">"
-                    if attributes.count >= attributeWrap {
-                        xml += try "\n\(children[0].toString(withIndent: indent + "    "))\n\(indent)"
-                    } else {
-                        var body = try children[0].toString(withIndent: indent, indentFirstLine: false)
-                        if !isHTML {
-                            body = body.trimmingCharacters(in: .whitespacesAndNewlines)
+                    var body = try children[0].toString(withIndent: indent + "    ", indentFirstLine: false)
+                    if isHTML {
+                        if !body.hasPrefix("\n") {
+                            body = body.replacingOccurrences(of: "\\s*\\n\\s*", with: "\n\(indent)", options: .regularExpression)
                         }
-                        xml += body
+                        if body.hasSuffix("\n") {
+                            body = "\(body)\(indent)"
+                        }
+                    } else if attributes.count >= attributeWrap {
+                        if !body.hasPrefix("\n") {
+                            body = "\n\(indent)\(body)"
+                        } else {
+                            body = "\(indent)\(body)"
+                        }
+                        if !body.hasSuffix("\n") {
+                            body = "\(body)\n\(indent)"
+                        } else {
+                            body = "\(body)\(indent)"
+                        }
+                    } else {
+                        body = body.trimmingCharacters(in: .whitespacesAndNewlines)
                     }
-                    xml += "</\(name)>"
+                    xml += "\(body)</\(name)>"
                 } else {
                     xml += ">\n"
-                    if attributes.count >= attributeWrap ||
+                    let body = try children.toString(withIndent: indent + "    ", isHTML: isHTML)
+                    if (!isHTML && attributes.count >= attributeWrap) ||
                         children.first(where: { !$0.isLinebreak })?.isComment == true {
                         xml += "\n"
                     }
-                    let body = try children.toString(withIndent: indent + "    ", isHTML: isHTML)
                     xml += "\(body)\(indent)</\(name)>"
                 }
                 return xml
