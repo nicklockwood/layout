@@ -1027,7 +1027,7 @@ public class LayoutNode: NSObject {
         return try getter()
     }
 
-    private func value(forKeyPath keyPath: String, in dictionary: [String: Any]) -> Any? {
+    private func value(forKeyPath keyPath: String, in dictionary: [String: Any]) throws -> Any? {
         if let value = dictionary[keyPath] {
             return value
         }
@@ -1037,17 +1037,21 @@ public class LayoutNode: NSObject {
         let key: String = String(keyPath[keyPath.startIndex ..< range.lowerBound])
         // TODO: if not a dictionary, should we use a mirror?
         if let dictionary = dictionary[key] as? [String: Any] {
-            return value(forKeyPath: String(keyPath[range.upperBound ..< keyPath.endIndex]), in: dictionary)
+            let subKeyPath: String = String(keyPath[range.upperBound ..< keyPath.endIndex])
+            guard let value = try value(forKeyPath: subKeyPath, in: dictionary) else {
+                throw SymbolError("Unknown property `\(subKeyPath)` in `\(key)`", for: keyPath)
+            }
+            return value
         }
         return nil
     }
 
     // Used by LayoutExpression
-    func value(forConstant name: String) -> Any? {
-        guard value(forKeyPath: name, in: _variables) == nil else {
+    func value(forConstant name: String) throws -> Any? {
+        guard try value(forKeyPath: name, in: _variables) == nil else {
             return nil
         }
-        if let value = value(forKeyPath: name, in: constants) ?? parent?.value(forConstant: name) {
+        if let value = try value(forKeyPath: name, in: constants) ?? parent?.value(forConstant: name) {
             return value
         }
         if name.hasPrefix("strings.") {

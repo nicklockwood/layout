@@ -317,12 +317,12 @@ struct LayoutExpression {
                 if chars.count >= 2, chars.first == "`", chars.last == "`" {
                     key = String(chars.dropFirst().dropLast())
                 }
-                if let value = lookup(key) ?? node.value(forConstant: key) {
-                    constants[name] = value
-                } else if allowMacros,
-                    node.expressions[key] == nil, // TODO: allow an expression to reference a macro of the same name
-                    let macro = node.expression(forMacro: key) {
-                    do {
+                do {
+                    if let value = try lookup(key) ?? node.value(forConstant: key) {
+                        constants[name] = value
+                    } else if allowMacros,
+                        node.expressions[key] == nil, // TODO: allow an expression to reference a macro of the same name
+                        let macro = node.expression(forMacro: key) {
                         guard let macroExpression = LayoutExpression(
                             anyExpression: try parseExpression(macro),
                             type: type,
@@ -340,13 +340,13 @@ struct LayoutExpression {
                         }
                         macroSymbols[key] = macroExpression.symbols
                         symbols[symbol] = { _ in try SymbolError.wrap(macroExpression.evaluate, for: key) }
-                    } catch {
-                        symbols[symbol] = { _ in throw error }
+                    } else {
+                        symbols[symbol] = { [unowned node] _ in
+                            try node.value(forSymbol: key)
+                        }
                     }
-                } else {
-                    symbols[symbol] = { [unowned node] _ in
-                        try node.value(forSymbol: key)
-                    }
+                } catch {
+                    symbols[symbol] = { _ in throw error }
                 }
             }
         }
