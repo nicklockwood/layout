@@ -924,15 +924,16 @@ public class LayoutNode: NSObject {
         }
     }
 
-    private func expressionsContainNonConstantSuperExpression(for key: String) -> Bool {
+    private func superExpressions(for key: String) -> [String] {
+        var keys = [String]()
         var key = key
         while let range = key.range(of: ".", options: .backwards) {
             key = String(key[key.startIndex ..< range.lowerBound])
             if expressions[key] != nil { // TODO: check if constant
-                return true
+                keys.append(key)
             }
         }
-        return false
+        return keys
     }
 
     // Note: thrown error is always a LayoutError
@@ -954,13 +955,14 @@ public class LayoutNode: NSObject {
         try LayoutError.wrap({
             for key in _viewControllerExpressions.keys.sorted() {
                 let expression = _viewControllerExpressions[key]!
-                if expression.isConstant, !expressionsContainNonConstantSuperExpression(for: key) {
+                let keys = [key] + superExpressions(for: key)
+                if !keys.contains(where: { !_viewControllerExpressions[$0]!.isConstant }) {
                     try _viewController?.setValue(expression.evaluate(), forExpression: key)
                     continue
                 }
                 blocks.append { [unowned self] animated in
                     let value = try expression.evaluate()
-                    if self._valueHasChanged[key]!() {
+                    if keys.contains(where: { self._valueHasChanged[$0]!() }) {
                         if animated {
                             try self._viewController?.setAnimatedValue(value, forExpression: key)
                         } else {
@@ -971,13 +973,14 @@ public class LayoutNode: NSObject {
             }
             for key in _viewExpressions.keys.sorted() {
                 let expression = _viewExpressions[key]!
-                if expression.isConstant, !expressionsContainNonConstantSuperExpression(for: key) {
+                let keys = [key] + superExpressions(for: key)
+                if !keys.contains(where: { !_viewExpressions[$0]!.isConstant }) {
                     try _view?.setValue(expression.evaluate(), forExpression: key)
                     continue
                 }
                 blocks.append { [unowned self] animated in
                     let value = try expression.evaluate()
-                    if self._valueHasChanged[key]!() {
+                    if keys.contains(where: { self._valueHasChanged[$0]!() }) {
                         if animated {
                             try self._view?.setAnimatedValue(value, forExpression: key)
                         } else {
@@ -1411,9 +1414,22 @@ public class LayoutNode: NSObject {
 
     private func inferContentSize() throws -> CGSize {
         // Check for explicit size
-        // TODO: what if contentSize.width and contentSize.height have been set individually?
+        // TODO: find a less hacky way to do this
         if expressions["contentSize"] != nil, !_evaluating.contains("contentSize") {
-            return try value(forSymbol: "contentSize") as? CGSize ?? .zero
+            var size = try value(forSymbol: "contentSize") as! CGSize
+            if expressions["contentSize.width"] != nil, !_evaluating.contains("contentSize.width") {
+                size.width = try cgFloatValue(forSymbol: "contentSize.width")
+            }
+            if expressions["contentSize.height"] != nil, !_evaluating.contains("contentSize.height") {
+                size.height = try cgFloatValue(forSymbol: "contentSize.height")
+            }
+            return size
+        } else if expressions["contentSize.width"] != nil, !_evaluating.contains("contentSize.width"),
+            expressions["contentSize.height"] != nil, !_evaluating.contains("contentSize.height") {
+            return CGSize(
+                width: try cgFloatValue(forSymbol: "contentSize.width"),
+                height: try cgFloatValue(forSymbol: "contentSize.height")
+            )
         }
         // TODO: remove special cases
         if _view is UIStackView {
@@ -1496,7 +1512,19 @@ public class LayoutNode: NSObject {
         guard viewClass is UIScrollView.Type else {
             return .zero
         }
-        let contentInset = try value(forSymbol: "contentInset") as! UIEdgeInsets
+        var contentInset = try value(forSymbol: "contentInset") as! UIEdgeInsets
+        if expressions["contentInset.top"] != nil, !_evaluating.contains("contentInset.top") {
+            contentInset.top = try cgFloatValue(forSymbol: "contentInset.top")
+        }
+        if expressions["contentInset.left"] != nil, !_evaluating.contains("contentInset.left") {
+            contentInset.left = try cgFloatValue(forSymbol: "contentInset.left")
+        }
+        if expressions["contentInset.bottom"] != nil, !_evaluating.contains("contentInset.bottom") {
+            contentInset.bottom = try cgFloatValue(forSymbol: "contentInset.bottom")
+        }
+        if expressions["contentInset.right"] != nil, !_evaluating.contains("contentInset.right") {
+            contentInset.right = try cgFloatValue(forSymbol: "contentInset.right")
+        }
         #if swift(>=3.2)
             if #available(iOS 11.0, *) {
                 let contentInsetAdjustmentBehavior = try value(forSymbol: "contentInsetAdjustmentBehavior") as!
@@ -1505,6 +1533,9 @@ public class LayoutNode: NSObject {
                 case .automatic, .scrollableAxes:
                     var contentInset = contentInset
                     var contentSize: CGSize = .zero
+                    if expressions["contentSize"] != nil, !_evaluating.contains("contentSize") {
+                        contentSize = try value(forSymbol: "contentSize.width") as! CGSize
+                    }
                     if expressions["contentSize.width"] != nil, !_evaluating.contains("contentSize.width") {
                         contentSize.width = try cgFloatValue(forSymbol: "contentSize.width")
                     }
@@ -1556,6 +1587,11 @@ public class LayoutNode: NSObject {
             let contentInset = try computeContentInset()
             return try cgFloatValue(forSymbol: "contentSize.width") + contentInset.left + contentInset.right
         }
+        if expressions["contentSize"] != nil, !_evaluating.contains("contentSize") {
+            let contentInset = try computeContentInset()
+            let contentSize = try value(forSymbol: "contentSize") as! CGSize
+            return contentSize.width + contentInset.left + contentInset.right
+        }
         return nil
     }
 
@@ -1567,6 +1603,11 @@ public class LayoutNode: NSObject {
         if expressions["contentSize.height"] != nil, !_evaluating.contains("contentSize.height") {
             let contentInset = try computeContentInset()
             return try cgFloatValue(forSymbol: "contentSize.height") + contentInset.top + contentInset.bottom
+        }
+        if expressions["contentSize"] != nil, !_evaluating.contains("contentSize") {
+            let contentInset = try computeContentInset()
+            let contentSize = try value(forSymbol: "contentSize") as! CGSize
+            return contentSize.height + contentInset.top + contentInset.left
         }
         return nil
     }
@@ -1725,7 +1766,13 @@ public class LayoutNode: NSObject {
         if viewClass == UIScrollView.self, // Skip this behavior for subclasses like UITableView
             let scrollView = _view as? UIScrollView {
             let oldContentSize = scrollView.contentSize
-            let contentSize = try value(forSymbol: "contentSize") as! CGSize
+            var contentSize = try value(forSymbol: "contentSize") as! CGSize
+            if expressions["contentSize.width"] != nil {
+                contentSize.width = try cgFloatValue(forSymbol: "contentSize.width")
+            }
+            if expressions["contentSize.height"] != nil {
+                contentSize.height = try cgFloatValue(forSymbol: "contentSize.height")
+            }
             if !contentSize.isNearlyEqual(to: oldContentSize) {
                 scrollView.contentSize = contentSize
             }
