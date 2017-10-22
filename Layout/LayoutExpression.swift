@@ -300,7 +300,7 @@ struct LayoutExpression {
                   symbols: [AnyExpression.Symbol: AnyExpression.SymbolEvaluator] = [:],
                   numericSymbols: [AnyExpression.Symbol: Expression.Symbol.Evaluator] = [:],
                   lookup: @escaping (String) -> Any? = { _ in nil },
-                  allowMacros: Bool = true,
+                  macroReferences: [String] = [],
                   for node: LayoutNode) {
 
         if parsedExpression.isEmpty {
@@ -317,12 +317,10 @@ struct LayoutExpression {
                 if chars.count >= 2, chars.first == "`", chars.last == "`" {
                     key = String(chars.dropFirst().dropLast())
                 }
+                let macro = node.expression(forMacro: key)
+                let circular = (macro != nil) ? macroReferences.contains(key) : false
                 do {
-                    if let value = try lookup(key) ?? node.value(forConstant: key) {
-                        constants[name] = value
-                    } else if allowMacros,
-                        node.expressions[key] == nil, // TODO: allow an expression to reference a macro of the same name
-                        let macro = node.expression(forMacro: key) {
+                    if let macro = macro, !circular {
                         guard let macroExpression = LayoutExpression(
                             anyExpression: try parseExpression(macro),
                             type: type,
@@ -330,16 +328,26 @@ struct LayoutExpression {
                             symbols: symbols,
                             numericSymbols: numericSymbols,
                             lookup: lookup,
-                            allowMacros: false,
+                            macroReferences: macroReferences + [key],
                             for: node
                         ) else {
-                            symbols[symbol] = { _ in throw
-                                SymbolError("Empty expression for `\(key)` macro", for: key)
+                            symbols[symbol] = { _ in
+                                throw SymbolError("Empty expression for `\(key)` macro", for: key)
                             }
                             continue
                         }
                         macroSymbols[key] = macroExpression.symbols
                         symbols[symbol] = { _ in try SymbolError.wrap(macroExpression.evaluate, for: key) }
+                    } else if let value = try lookup(key) ?? node.value(forConstant: key) {
+                        constants[name] = value
+                    } else if circular {
+                        symbols[symbol] = { [unowned node] _ in
+                            do {
+                                return try node.value(forSymbol: key)
+                            } catch {
+                                throw SymbolError("Macro `\(key)` references a nonexistent symbol of the same name (macros cannot reference themselves)", for: key)
+                            }
+                        }
                     } else {
                         symbols[symbol] = { [unowned node] _ in
                             try node.value(forSymbol: key)

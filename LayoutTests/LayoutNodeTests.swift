@@ -32,7 +32,7 @@ class LayoutNodeTests: XCTestCase {
         XCTAssertTrue(errors.first?.description.contains("safeAreaInsets.top") == true)
     }
 
-    func testCircularReference1() {
+    func testCircularReference() {
         let node = LayoutNode(expressions: ["top": "top"])
         let errors = node.validate()
         XCTAssertEqual(errors.count, 1)
@@ -40,7 +40,7 @@ class LayoutNodeTests: XCTestCase {
         XCTAssertTrue(errors.first?.description.contains("top") == true)
     }
 
-    func testCircularReference2() {
+    func testMutualReferences() {
         let node = LayoutNode(expressions: ["top": "bottom", "bottom": "top"])
         let errors = node.validate()
         XCTAssertGreaterThanOrEqual(errors.count, 2)
@@ -48,6 +48,30 @@ class LayoutNodeTests: XCTestCase {
             let description = error.description
             XCTAssertTrue(description.contains("reference"))
             XCTAssertTrue(description.contains("top") || description.contains("bottom"))
+        }
+    }
+
+    func testCircularMacroReference() {
+        let xmlData = "<UIView><macro name=\"foo\" value=\"foo\"/><UILabel text=\"{foo}\"/></UIView>".data(using: .utf8)!
+        let node = try! LayoutNode.with(xmlData: xmlData)
+        let errors = node.validate()
+        XCTAssertGreaterThanOrEqual(errors.count, 1)
+        for error in errors {
+            let description = error.description
+            XCTAssertTrue(description.contains("reference"))
+            XCTAssertTrue(description.contains("foo"))
+        }
+    }
+
+    func testMutualMacroReferences() {
+        let xmlData = "<UIView><macro name=\"foo\" value=\"bar\"/><macro name=\"bar\" value=\"foo\"/><UILabel text=\"{foo}\"/></UIView>".data(using: .utf8)!
+        let node = try! LayoutNode.with(xmlData: xmlData)
+        let errors = node.validate()
+        XCTAssertGreaterThanOrEqual(errors.count, 1)
+        for error in errors {
+            let description = error.description
+            XCTAssertTrue(description.contains("reference"))
+            XCTAssertTrue(description.contains("foo") || description.contains("bar"))
         }
     }
 
