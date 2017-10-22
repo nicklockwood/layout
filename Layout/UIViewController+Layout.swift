@@ -345,6 +345,12 @@ extension UIViewController {
         return try _value(ofType: type(of: self).cachedExpressionTypes[name], forKeyPath: name) as Any
     }
 
+    /// Called immediately before a child node is added
+    /// Returning false will cancel insertion of the node
+    @objc open func shouldInsertChildNode(_ node: LayoutNode, at _: Int) -> Bool {
+        return true
+    }
+
     /// Called immediately after a child node is added
     @objc open func didInsertChildNode(_ node: LayoutNode, at _: Int) {
         for controller in node.viewControllers {
@@ -362,7 +368,7 @@ extension UIViewController {
         node.view.removeFromSuperview()
     }
 
-    /// Called immediately after layout has been performed
+    /// Called immediately after layout has been updated
     @objc open func didUpdateLayout(for _: LayoutNode) {}
 }
 

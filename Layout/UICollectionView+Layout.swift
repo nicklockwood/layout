@@ -115,13 +115,8 @@ extension UICollectionView {
         }
     }
 
-    open override func didInsertChildNode(_ node: LayoutNode, at index: Int) {
-        let hadView = (node._view != nil)
-        switch node.viewClass {
-        case is UICollectionViewCell.Type:
-            // TODO: it would be better if we never added cell template nodes to
-            // the hierarchy, rather than having to remove them afterwards
-            node.removeFromParent()
+    open override func shouldInsertChildNode(_ node: LayoutNode, at _: Int) -> Bool {
+        if node.viewClass is UICollectionViewCell.Type {
             do {
                 if let reuseIdentifier = try node.value(forExpression: "reuseIdentifier") as? String {
                     registerLayout(Layout(node), forCellReuseIdentifier: reuseIdentifier)
@@ -131,17 +126,17 @@ extension UICollectionView {
             } catch {
                 layoutError(LayoutError(error))
             }
-        default:
-            if backgroundView == nil {
-                backgroundView = node.view
-            } else {
-                super.didInsertChildNode(node, at: index)
-            }
-            return
+            return false
         }
-        // Check we didn't accidentally instantiate the view
-        // TODO: it would be better to do this in a unit test
-        assert(hadView || node._view == nil)
+        return true
+    }
+
+    open override func didInsertChildNode(_ node: LayoutNode, at index: Int) {
+        if backgroundView == nil {
+            backgroundView = node.view // TODO: this is a bit inconsistent with UITableView - reconsider?
+        } else {
+            super.didInsertChildNode(node, at: index)
+        }
     }
 
     open override func willRemoveChildNode(_ node: LayoutNode, at index: Int) {
@@ -245,6 +240,15 @@ extension UICollectionViewController {
             try collectionView?.setValue(value, forExpression: String(name["collectionView.".endIndex ..< name.endIndex]))
         default:
             try super.setValue(value, forExpression: name)
+        }
+    }
+
+    open override func shouldInsertChildNode(_ node: LayoutNode, at index: Int) -> Bool {
+        switch node.viewClass {
+        case is UICollectionViewCell.Type:
+            return collectionView?.shouldInsertChildNode(node, at: index) ?? false
+        default:
+            return true
         }
     }
 

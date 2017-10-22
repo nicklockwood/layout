@@ -115,44 +115,38 @@ extension UITableView {
         }
     }
 
-    open override func didInsertChildNode(_ node: LayoutNode, at index: Int) {
-        let hadView = (node._view != nil)
-        var isCell = false
-        switch node.viewClass {
-        case is UITableViewCell.Type:
-            isCell = true
-            fallthrough
-        case is UITableViewHeaderFooterView.Type:
-            // TODO: it would be better if we never added cell template nodes to
-            // the hierarchy, rather than having to remove them afterwards
-            node.removeFromParent()
-            do {
+    open override func shouldInsertChildNode(_ node: LayoutNode, at _: Int) -> Bool {
+        do {
+            switch node.viewClass {
+            case is UITableViewCell.Type:
                 if let reuseIdentifier = try node.value(forExpression: "reuseIdentifier") as? String {
-                    if isCell {
-                        registerLayout(Layout(node), forReuseIdentifier: reuseIdentifier, key: &cellDataKey)
-                    } else {
-                        registerLayout(Layout(node), forReuseIdentifier: reuseIdentifier, key: &headerDataKey)
-                    }
+                    registerLayout(Layout(node), forReuseIdentifier: reuseIdentifier, key: &cellDataKey)
                 } else {
-                    let viewType = isCell ? "UITableViewCell" : "UITableViewHeaderFooterView"
-                    layoutError(.message("\(viewType) template missing reuseIdentifier"))
+                    layoutError(.message("UITableViewCell template missing reuseIdentifier"))
                 }
-            } catch {
-                layoutError(LayoutError(error))
+            case is UITableViewHeaderFooterView.Type:
+                if let reuseIdentifier = try node.value(forExpression: "reuseIdentifier") as? String {
+                    registerLayout(Layout(node), forReuseIdentifier: reuseIdentifier, key: &headerDataKey)
+                } else {
+                    layoutError(.message("UITableViewHeaderFooterView template missing reuseIdentifier"))
+                }
+            default:
+                return true
             }
-        default:
-            if tableHeaderView == nil {
-                tableHeaderView = node.view
-            } else if tableFooterView == nil {
-                tableFooterView = node.view
-            } else {
-                super.didInsertChildNode(node, at: index)
-            }
-            return
+        } catch {
+            layoutError(LayoutError(error))
         }
-        // Check we didn't accidentally instantiate the view
-        // TODO: it would be better to do this in a unit test
-        assert(hadView || node._view == nil)
+        return false
+    }
+
+    open override func didInsertChildNode(_ node: LayoutNode, at index: Int) {
+        if tableHeaderView == nil {
+            tableHeaderView = node.view
+        } else if tableFooterView == nil {
+            tableFooterView = node.view
+        } else {
+            super.didInsertChildNode(node, at: index)
+        }
     }
 
     open override func willRemoveChildNode(_ node: LayoutNode, at index: Int) {
@@ -231,6 +225,15 @@ extension UITableViewController {
             try tableView.setValue(value, forExpression: String(name["tableView.".endIndex ..< name.endIndex]))
         default:
             try super.setValue(value, forExpression: name)
+        }
+    }
+
+    open override func shouldInsertChildNode(_ node: LayoutNode, at index: Int) -> Bool {
+        switch node.viewClass {
+        case is UITableViewCell.Type, is UITableViewHeaderFooterView.Type:
+            return tableView?.shouldInsertChildNode(node, at: index) ?? false
+        default:
+            return true
         }
     }
 

@@ -91,6 +91,9 @@ public class LayoutNode: NSObject {
         guard !_setupComplete else { return }
         _setupComplete = true
 
+        defer { _updateLock -= 1 }
+        _updateLock += 1
+
         if _view == nil {
             if let controllerClass = viewControllerClass {
                 _viewController = try LayoutError.wrap({
@@ -110,12 +113,22 @@ public class LayoutNode: NSObject {
         _ = updateVariables()
         updateObservers()
 
-        for (index, child) in children.enumerated() {
-            child.parent = self
+        var index = 0
+        for child in children {
             if let viewController = _view?.viewController {
-                viewController.didInsertChildNode(child, at: index)
-            } else {
+                if viewController.shouldInsertChildNode(child, at: index) {
+                    child.parent = self
+                    viewController.didInsertChildNode(child, at: index)
+                    index += 1
+                } else {
+                    children.remove(at: index)
+                }
+            } else if _view?.shouldInsertChildNode(child, at: index) == true {
+                child.parent = self
                 _view?.didInsertChildNode(child, at: index)
+                index += 1
+            } else {
+                children.remove(at: index)
             }
         }
     }
