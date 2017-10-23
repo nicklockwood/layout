@@ -1,0 +1,82 @@
+<UIScrollView
+    backgroundColor="white"
+    contentInset="safeAreaInsets"
+    contentInset.left="safeAreaInsets.left + 20"
+    contentInset.right="safeAreaInsets.right + 20"
+    contentInset.top="safeAreaInsets.top + 20"
+    scrollIndicatorInsets="safeAreaInsets">
+
+    <!-- Layout -->
+    <UILabel
+        font="bold"
+        text="Layout Results:"
+    />
+    <UIView
+        compare="autoLayoutResults.create"
+        template="Template.xml"
+        title="Create"
+        top="previous.bottom + 5"
+        value="layoutResults.create"
+    />
+    <UIView
+        compare="autoLayoutResults.mount"
+        template="Template.xml"
+        title="Mount"
+        value="layoutResults.mount"
+    />
+    <UIView
+        compare="autoLayoutResults.update"
+        template="Template.xml"
+        title="Update"
+        value="layoutResults.update"
+    />
+    <UIView
+        compare="autoLayoutResults.create + autoLayoutResults.mount + autoLayoutResults.update"
+        template="Template.xml"
+        title="Total"
+        value="layoutResults.create + layoutResults.mount + layoutResults.update"
+    />
+
+    <!-- AutoLayout -->
+    <UILabel
+        font="bold"
+        text="AutoLayout Results:"
+        top="previous.bottom + 20"
+    />
+    <UIView
+        compare="layoutResults.create"
+        template="Template.xml"
+        title="Create"
+        top="previous.bottom + 5"
+        value="autoLayoutResults.create"
+    />
+    <UIView
+        compare="layoutResults.mount"
+        template="Template.xml"
+        title="Mount"
+        value="autoLayoutResults.mount"
+    />
+    <UIView
+        compare="layoutResults.update"
+        template="Template.xml"
+        title="Update"
+        value="autoLayoutResults.update"
+    />
+    <UIView
+        compare="layoutResults.create + layoutResults.mount + layoutResults.update"
+        template="Template.xml"
+        title="Total"
+        value="autoLayoutResults.create + autoLayoutResults.mount + autoLayoutResults.update"
+    />
+
+    <!-- UI -->
+    <UIButton
+        backgroundColor="#9cf"
+        layer.cornerRadius="5"
+        left="50% - (width / 2)"
+        title="Refresh"
+        top="previous.bottom + 30"
+        touchUpInside="refresh"
+        width="80%"
+    />
+</UIScrollView>

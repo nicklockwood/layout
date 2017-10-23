@@ -1,0 +1,18 @@
+<UIView
+    height="auto"
+    top="previous.bottom">
+
+    <param name="title" type="String"/>
+    <param name="value" type="Double"/>
+    <param name="compare" type="Double"/>
+    <macro name="BETTER" value="#0a0"/>
+    <macro name="WORSE" value="#c00"/>
+
+    <UILabel text="{title}:"/>
+    <UILabel
+        right="100%"
+        text="{floor(value * 1000)}ms"
+        textColor="value > compare ? WORSE : BETTER"
+        top="previous.top"
+    />
+</UIView>
