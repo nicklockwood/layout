@@ -1,5 +1,14 @@
 # Change Log
 
+## [0.5.5](https://github.com/schibsted/layout/releases/tag/0.5.5) (2017-10-23)
+
+- Fixed nested macro references
+- Fixed spurious error when using `grouped` style for table views
+- Fixed bugs when using overlapping property expressions such as `contentSize` and `contentSize.width`
+- Improved error messages for nonexistent sub-properties of constants
+- Added AutoLayout performance tests for comparison purposes
+- Child index is now respected when inserting subviews
+
 ## [0.5.4](https://github.com/schibsted/layout/releases/tag/0.5.4) (2017-10-16)
 
 - Added macros feature for reusable expressions and sub-expressions. See README.md for details

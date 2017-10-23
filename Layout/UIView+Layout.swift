@@ -816,26 +816,26 @@ extension UITextField {
         case "enablesReturnKeyAutomatically": enablesReturnKeyAutomatically = value as! Bool
         case "isSecureTextEntry": isSecureTextEntry = value as! Bool
         case "smartQuotesType":
+            // TODO: warn about unavailability
             #if swift(>=3.2)
                 if #available(iOS 11.0, *) {
                     smartQuotesType = value as! UITextSmartQuotesType
                 }
             #endif
-            // TODO: warn about unavailability
         case "smartDashesType":
+            // TODO: warn about unavailability
             #if swift(>=3.2)
                 if #available(iOS 11.0, *) {
                     smartDashesType = value as! UITextSmartDashesType
                 }
             #endif
-            // TODO: warn about unavailability
         case "smartInsertDeleteType":
+            // TODO: warn about unavailability
             #if swift(>=3.2)
                 if #available(iOS 11.0, *) {
                     smartInsertDeleteType = value as! UITextSmartInsertDeleteType
                 }
             #endif
-            // TODO: warn about unavailability
         case "textDragDelegate", "textDropDelegate", "textDragOptions":
             if #available(iOS 11.0, *) {
                 fallthrough
@@ -916,26 +916,26 @@ extension UITextView {
         case "enablesReturnKeyAutomatically": enablesReturnKeyAutomatically = value as! Bool
         case "isSecureTextEntry": isSecureTextEntry = value as! Bool
         case "smartQuotesType":
+            // TODO: warn about unavailability
             #if swift(>=3.2)
                 if #available(iOS 11.0, *) {
                     smartQuotesType = value as! UITextSmartQuotesType
                 }
             #endif
-            // TODO: warn about unavailability
         case "smartDashesType":
+            // TODO: warn about unavailability
             #if swift(>=3.2)
                 if #available(iOS 11.0, *) {
                     smartDashesType = value as! UITextSmartDashesType
                 }
             #endif
-            // TODO: warn about unavailability
         case "smartInsertDeleteType":
+            // TODO: warn about unavailability
             #if swift(>=3.2)
                 if #available(iOS 11.0, *) {
                     smartInsertDeleteType = value as! UITextSmartInsertDeleteType
                 }
             #endif
-            // TODO: warn about unavailability
         case "textDragDelegate", "textDropDelegate", "textDragOptions":
             if #available(iOS 11.0, *) {
                 fallthrough
@@ -1008,26 +1008,26 @@ extension UISearchBar {
         case "enablesReturnKeyAutomatically": enablesReturnKeyAutomatically = value as! Bool
         case "isSecureTextEntry": isSecureTextEntry = value as! Bool
         case "smartQuotesType":
+            // TODO: warn about unavailability
             #if swift(>=3.2)
                 if #available(iOS 11.0, *) {
                     smartQuotesType = value as! UITextSmartQuotesType
                 }
             #endif
-            // TODO: warn about unavailability
         case "smartDashesType":
+            // TODO: warn about unavailability
             #if swift(>=3.2)
                 if #available(iOS 11.0, *) {
                     smartDashesType = value as! UITextSmartDashesType
                 }
             #endif
-            // TODO: warn about unavailability
         case "smartInsertDeleteType":
+            // TODO: warn about unavailability
             #if swift(>=3.2)
                 if #available(iOS 11.0, *) {
                     smartInsertDeleteType = value as! UITextSmartInsertDeleteType
                 }
             #endif
-            // TODO: warn about unavailability
         default:
             try super.setValue(value, forExpression: name)
         }
@@ -1161,7 +1161,7 @@ extension UISegmentedControl: TitleTextAttributes {
     open override func setValue(_ value: Any, forExpression name: String) throws {
         switch name {
         case "items": try setItems(value as? NSArray, animated: false)
-            // TODO: find a good naming scheme for barMetrics variants
+        // TODO: find a good naming scheme for barMetrics variants
         case "backgroundImage": setBackgroundImage(value as? UIImage, for: .normal, barMetrics: .default)
         case "dividerImage": setDividerImage(value as? UIImage, forLeftSegmentState: .normal, rightSegmentState: .normal, barMetrics: .default)
         case "titleColor": setTitleColor(value as? UIColor, for: .normal)
