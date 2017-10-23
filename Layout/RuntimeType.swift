@@ -52,9 +52,6 @@ public class RuntimeType: NSObject {
         case available
         case unavailable(reason: String?)
 
-        @available(*, deprecated, message: "Use readWrite instead")
-        static var isAvailable = Availability.available
-
         public static func ==(lhs: Availability, rhs: Availability) -> Bool {
             switch (lhs, rhs) {
             case (.available, .available):
