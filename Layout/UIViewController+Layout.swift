@@ -352,12 +352,16 @@ extension UIViewController {
     }
 
     /// Called immediately after a child node is added
-    @objc open func didInsertChildNode(_ node: LayoutNode, at _: Int) {
+    @objc open func didInsertChildNode(_ node: LayoutNode, at index: Int) {
         for controller in node.viewControllers {
             addChildViewController(controller)
         }
         node.view.frame = view.bounds
-        view.addSubview(node.view)
+        if index > 0, let previous = node.parent?.children[index - 1].view {
+            view.insertSubview(node.view, aboveSubview: previous)
+        } else {
+            view.addSubview(node.view)
+        }
     }
 
     /// Called immediately before a child node is removed

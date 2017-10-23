@@ -546,14 +546,9 @@ extension UITableViewHeaderFooterView {
         return types
     }
 
-    open override func didInsertChildNode(_ node: LayoutNode, at _: Int) {
-        if let viewController = self.viewController {
-            for controller in node.viewControllers {
-                viewController.addChildViewController(controller)
-            }
-        }
+    open override func didInsertChildNode(_ node: LayoutNode, at index: Int) {
         // Insert child views into `contentView` instead of directly
-        contentView.addSubview(node.view) // Ignore index
+        contentView.didInsertChildNode(node, at: index)
     }
 
     open override var intrinsicContentSize: CGSize {
@@ -693,14 +688,9 @@ extension UITableViewCell {
         }
     }
 
-    open override func didInsertChildNode(_ node: LayoutNode, at _: Int) {
-        if let viewController = self.viewController {
-            for controller in node.viewControllers {
-                viewController.addChildViewController(controller)
-            }
-        }
+    open override func didInsertChildNode(_ node: LayoutNode, at index: Int) {
         // Insert child views into `contentView` instead of directly
-        contentView.addSubview(node.view) // Ignore index
+        contentView.didInsertChildNode(node, at: index)
     }
 
     open override func sizeThatFits(_ size: CGSize) -> CGSize {

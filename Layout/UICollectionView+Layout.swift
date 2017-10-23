@@ -420,13 +420,8 @@ extension UICollectionViewCell {
     }
 
     open override func didInsertChildNode(_ node: LayoutNode, at index: Int) {
-        if let viewController = self.viewController {
-            for controller in node.viewControllers {
-                viewController.addChildViewController(controller)
-            }
-        }
         // Insert child views into `contentView` instead of directly
-        contentView.insertSubview(node.view, at: index)
+        contentView.didInsertChildNode(node, at: index)
     }
 
     open override var intrinsicContentSize: CGSize {
