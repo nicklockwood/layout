@@ -6,40 +6,14 @@ extension UIScrollView {
 
     open override class var expressionTypes: [String: RuntimeType] {
         var types = super.expressionTypes
-        types["contentInsetAdjustmentBehavior"] = RuntimeType([
-            "automatic": 0,
-            "scrollableAxes": 1,
-            "never": 2,
-            "always": 3,
-        ] as [String: Int])
-        #if swift(>=3.2)
-            if #available(iOS 11.0, *) {
-                types["contentInsetAdjustmentBehavior"] = RuntimeType([
-                    "automatic": .automatic,
-                    "scrollableAxes": .scrollableAxes,
-                    "never": .never,
-                    "always": .always,
-                ] as [String: UIScrollViewContentInsetAdjustmentBehavior])
-            }
-        #endif
-        types["indicatorStyle"] = RuntimeType([
-            "default": .default,
-            "black": .black,
-            "white": .white,
-        ] as [String: UIScrollViewIndicatorStyle])
-        types["indexDisplayMode"] = RuntimeType([
-            "automatic": .automatic,
-            "alwaysHidden": .alwaysHidden,
-        ] as [String: UIScrollViewIndexDisplayMode])
-        types["keyboardDismissMode"] = RuntimeType([
-            "none": .none,
-            "onDrag": .onDrag,
-            "interactive": .interactive,
-        ] as [String: UIScrollViewKeyboardDismissMode])
-        types["zoomScale"] = RuntimeType(CGFloat.self)
-        types["maximumZoomScale"] = RuntimeType(CGFloat.self)
-        types["minimumZoomScale"] = RuntimeType(CGFloat.self)
-        types["decelerationRate"] = RuntimeType(CGFloat.self)
+        types["contentInsetAdjustmentBehavior"] = .uiScrollViewContentInsetAdjustmentBehavior
+        types["indicatorStyle"] = .uiScrollViewIndicatorStyle
+        types["indexDisplayMode"] = .uiScrollViewIndexDisplayMode
+        types["keyboardDismissMode"] = .uiScrollViewKeyboardDismissMode
+        types["zoomScale"] = .cgFloat
+        types["maximumZoomScale"] = .cgFloat
+        types["minimumZoomScale"] = .cgFloat
+        types["decelerationRate"] = .cgFloat
 
         #if arch(i386) || arch(x86_64)
             // Private properties

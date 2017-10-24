@@ -4,37 +4,6 @@ import UIKit
 
 private var _cachedExpressionTypes = [Int: [String: RuntimeType]]()
 
-private let barButtonSystemItemType = RuntimeType([
-    "done": .done,
-    "cancel": .cancel,
-    "edit": .edit,
-    "save": .add,
-    "flexibleSpace": .flexibleSpace,
-    "fixedSpace": .fixedSpace,
-    "compose": .compose,
-    "reply": .reply,
-    "action": .action,
-    "organize": .organize,
-    "bookmarks": .bookmarks,
-    "search": .search,
-    "refresh": .refresh,
-    "stop": .stop,
-    "camera": .camera,
-    "trash": .trash,
-    "play": .play,
-    "pause": .pause,
-    "rewind": .rewind,
-    "fastForward": .fastForward,
-    "undo": .undo,
-    "redo": .redo,
-    "pageCurl": .pageCurl,
-] as [String: UIBarButtonSystemItem])
-
-private let barButtonItemStyleType = RuntimeType([
-    "plain": .plain,
-    "done": .done,
-] as [String: UIBarButtonItemStyle])
-
 extension UIBarButtonItem {
     func bindAction(for target: AnyObject) throws {
         guard self.target !== target, let action = action else {
@@ -61,71 +30,25 @@ extension UIViewController {
         for (name, type) in UITabBarItem.allPropertyTypes() {
             types["tabBarItem.\(name)"] = type
         }
-        types["tabBarItem.title"] = RuntimeType(String.self)
-        types["tabBarItem.image"] = RuntimeType(UIImage.self)
-        types["tabBarItem.systemItem"] = RuntimeType([
-            "more": .more,
-            "favorites": .favorites,
-            "featured": .featured,
-            "topRated": .topRated,
-            "recents": .recents,
-            "contacts": .contacts,
-            "history": .history,
-            "bookmarks": .bookmarks,
-            "search": .search,
-            "downloads": .downloads,
-            "mostRecent": .mostRecent,
-            "mostViewed": .mostViewed,
-        ] as [String: UITabBarSystemItem])
-        types["edgesForExtendedLayout"] = RuntimeType([
-            "top": .top,
-            "left": .left,
-            "bottom": .bottom,
-            "right": .right,
-            "all": .all,
-        ] as [String: UIRectEdge])
-        types["modalPresentationStyle"] = RuntimeType([
-            "fullScreen": .fullScreen,
-            "pageSheet": .pageSheet,
-            "formSheet": .formSheet,
-            "currentContext": .currentContext,
-            "custom": .custom,
-            "overFullScreen": .overFullScreen,
-            "overCurrentContext": .overCurrentContext,
-            "popover": .popover,
-            "none": .none,
-        ] as [String: UIModalPresentationStyle])
-        types["modalTransitionStyle"] = RuntimeType([
-            "coverVertical": .coverVertical,
-            "flipHorizontal": .flipHorizontal,
-            "crossDissolve": .crossDissolve,
-            "partialCurl": .partialCurl,
-        ] as [String: UIModalTransitionStyle])
+        types["tabBarItem.title"] = .string
+        types["tabBarItem.image"] = .uiImage
+        types["tabBarItem.systemItem"] = .uiTabBarSystemItem
+        types["edgesForExtendedLayout"] = .uiRectEdge
+        types["modalPresentationStyle"] = .uiModalPresentationStyle
+        types["modalTransitionStyle"] = .uiModalTransitionStyle
         // TODO: tabBarItem.badgeTextAttributes
         for (name, type) in UINavigationItem.allPropertyTypes() {
             types["navigationItem.\(name)"] = type
         }
-        #if swift(>=3.2)
-            types["navigationItem.largeTitleDisplayMode"] = RuntimeType([
-                "automatic": .automatic,
-                "always": .always,
-                "never": .never,
-            ] as [String: UINavigationItem.LargeTitleDisplayMode])
-        #else
-            types["navigationItem.largeTitleDisplayMode"] = RuntimeType([
-                "automatic": 0,
-                "always": 1,
-                "never": 2,
-            ] as [String: Int])
-        #endif
+        types["navigationItem.largeTitleDisplayMode"] = .uiNavigationItem_LargeTitleDisplayMode
         for (name, type) in UIBarButtonItem.allPropertyTypes() {
             types["navigationItem.leftBarButtonItem.\(name)"] = type
             types["navigationItem.rightBarButtonItem.\(name)"] = type
         }
-        types["navigationItem.leftBarButtonItem.style"] = barButtonItemStyleType
-        types["navigationItem.leftBarButtonItem.systemItem"] = barButtonSystemItemType
-        types["navigationItem.rightBarButtonItem.style"] = barButtonItemStyleType
-        types["navigationItem.rightBarButtonItem.systemItem"] = barButtonSystemItemType
+        types["navigationItem.leftBarButtonItem.style"] = .uiBarButtonItemStyle
+        types["navigationItem.leftBarButtonItem.systemItem"] = .uiBarButtonSystemItem
+        types["navigationItem.rightBarButtonItem.style"] = .uiBarButtonItemStyle
+        types["navigationItem.rightBarButtonItem.systemItem"] = .uiBarButtonSystemItem
         // TODO: barButtonItem.backgroundImage, etc
 
         #if arch(i386) || arch(x86_64)
@@ -181,12 +104,7 @@ extension UIViewController {
 
         // Workaround for Swift availability selector limitations
         if #available(iOS 10.0, *), self is UICloudSharingController.Type {
-            types["availablePermissions"] = RuntimeType([
-                "allowPublic": .allowPublic,
-                "allowPrivate": .allowPrivate,
-                "allowReadOnly": .allowReadOnly,
-                "allowReadWrite": .allowReadWrite,
-            ] as [String: UICloudSharingPermissionOptions])
+            types["availablePermissions"] = .uiCloudSharingPermissionOptions
         }
 
         return types
@@ -385,9 +303,9 @@ extension UITabBar {
             "fill": .fill,
             "centered": .centered,
         ] as [String: UITabBarItemPositioning])
-        types["barStyle"] = barStyleType
-        types["itemSpacing"] = RuntimeType(CGFloat.self)
-        types["itemWidth"] = RuntimeType(CGFloat.self)
+        types["barStyle"] = .uiBarStyle
+        types["itemSpacing"] = .cgFloat
+        types["itemWidth"] = .cgFloat
 
         #if arch(i386) || arch(x86_64)
             // Private properties
@@ -430,7 +348,7 @@ extension UITabBarController {
 
     open override class var expressionTypes: [String: RuntimeType] {
         var types = super.expressionTypes
-        types["selectedIndex"] = RuntimeType(Int.self)
+        types["selectedIndex"] = .int
 
         #if arch(i386) || arch(x86_64)
             // Private and read-only properties
@@ -474,11 +392,11 @@ extension UITabBarController {
 extension UINavigationBar: TitleTextAttributes {
     open override class var expressionTypes: [String: RuntimeType] {
         var types = super.expressionTypes
-        types["backgroundImage"] = RuntimeType(UIImage.self)
-        types["titleVerticalPositionAdjustment"] = RuntimeType(CGFloat.self)
-        types["barStyle"] = barStyleType
-        types["barPosition"] = barPositionType
-        types["prefersLargeTitles"] = RuntimeType(Bool.self)
+        types["backgroundImage"] = .uiImage
+        types["titleVerticalPositionAdjustment"] = .cgFloat
+        types["barStyle"] = .uiBarStyle
+        types["barPosition"] = .uiBarPosition
+        types["prefersLargeTitles"] = .bool
 
         #if arch(i386) || arch(x86_64)
             // Private properties
@@ -541,10 +459,10 @@ extension UIToolbar {
     open override class var expressionTypes: [String: RuntimeType] {
         var types = super.expressionTypes
         types["items"] = RuntimeType(Array<UIBarButtonItem>.self)
-        types["backgroundImage"] = RuntimeType(UIImage.self)
-        types["shadowImage"] = RuntimeType(UIImage.self)
-        types["barStyle"] = barStyleType
-        types["barPosition"] = barPositionType
+        types["backgroundImage"] = .uiImage
+        types["shadowImage"] = .uiImage
+        types["barStyle"] = .uiBarStyle
+        types["barPosition"] = .uiBarPosition
 
         #if arch(i386) || arch(x86_64)
             // Private properties
@@ -752,44 +670,12 @@ extension UIActivityViewController {
 extension UIImagePickerController {
     open override class var expressionTypes: [String: RuntimeType] {
         var types = super.expressionTypes
-        types["cameraCaptureMode"] = RuntimeType([
-            "photo": .photo,
-            "video": .video,
-        ] as [String: UIImagePickerControllerCameraCaptureMode])
-        types["cameraDevice"] = RuntimeType([
-            "rear": .rear,
-            "front": .front,
-        ] as [String: UIImagePickerControllerCameraDevice])
-        types["cameraFlashMode"] = RuntimeType([
-            "off": .off,
-            "auto": .auto,
-            "on": .on,
-        ] as [String: UIImagePickerControllerCameraFlashMode])
-        types["imageExportPreset"] = RuntimeType([
-            "compatible": IntOptionSet(rawValue: 1),
-            "current": IntOptionSet(rawValue: 2),
-        ] as [String: IntOptionSet])
-        #if swift(>=3.2)
-            if #available(iOS 11.0, *) {
-                types["imageExportPreset"] = RuntimeType([
-                    "compatible": .compatible,
-                    "current": .current,
-                ] as [String: UIImagePickerControllerImageURLExportPreset])
-            }
-        #endif
-        types["sourceType"] = RuntimeType([
-            "photoLibrary": .photoLibrary,
-            "camera": .camera,
-            "savedPhotosAlbum": .savedPhotosAlbum,
-        ] as [String: UIImagePickerControllerSourceType])
-        types["videoQuality"] = RuntimeType([
-            "typeHigh": .typeHigh,
-            "typeMedium": .typeMedium,
-            "typeLow": .typeLow,
-            "type640x480": .type640x480,
-            "typeIFrame1280x720": .typeIFrame1280x720,
-            "typeIFrame960x540": .typeIFrame960x540,
-        ] as [String: UIImagePickerControllerQualityType])
+        types["cameraCaptureMode"] = .uiImagePickerControllerCameraCaptureMode
+        types["cameraDevice"] = .uiImagePickerControllerCameraDevice
+        types["cameraFlashMode"] = .uiImagePickerControllerCameraFlashMode
+        types["imageExportPreset"] = .uiImagePickerControllerImageURLExportPreset
+        types["sourceType"] = .uiImagePickerControllerSourceType
+        types["videoQuality"] = .uiImagePickerControllerQualityType
         // TODO: validate media types
         // TODO: validate videoExportPreset
         #if arch(i386) || arch(x86_64)
@@ -832,24 +718,8 @@ extension UIInputViewController {
 extension UISplitViewController {
     open override class var expressionTypes: [String: RuntimeType] {
         var types = super.expressionTypes
-        types["preferredDisplayMode"] = RuntimeType([
-            "automatic": .automatic,
-            "primaryHidden": .primaryHidden,
-            "allVisible": .allVisible,
-            "primaryOverlay": .primaryOverlay,
-        ] as [String: UISplitViewControllerDisplayMode])
-        types["primaryEdge"] = RuntimeType([
-            "leading": 0,
-            "trailing": 1,
-        ] as [String: Int])
-        #if swift(>=3.2)
-            if #available(iOS 11.0, *) {
-                types["primaryEdge"] = RuntimeType([
-                    "leading": .leading,
-                    "trailing": .trailing,
-                ] as [String: UISplitViewControllerPrimaryEdge])
-            }
-        #endif
+        types["preferredDisplayMode"] = .uiSplitViewControllerDisplayMode
+        types["primaryEdge"] = .uiSplitViewControllerPrimaryEdge
 
         #if arch(i386) || arch(x86_64)
             // Private properties

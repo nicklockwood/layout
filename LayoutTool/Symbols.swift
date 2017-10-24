@@ -1399,7 +1399,7 @@ let UIKitSymbols: [String: [String: String]] = {
         "collectionViewLayout.sectionInset.left": "CGFloat",
         "collectionViewLayout.sectionInset.right": "CGFloat",
         "collectionViewLayout.sectionInset.top": "CGFloat",
-        "collectionViewLayout.sectionInsetReference": "Int",
+        "collectionViewLayout.sectionInsetReference": "UICollectionViewFlowLayoutSectionInsetReference",
         "installsStandardGestureForInteractiveMovement": "Bool",
         "useLayoutToLayoutNavigationTransitions": "Bool",
     ]

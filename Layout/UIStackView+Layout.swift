@@ -5,28 +5,10 @@ import UIKit
 extension UIStackView {
     open override class var expressionTypes: [String: RuntimeType] {
         var types = super.expressionTypes
-        types["axis"] = RuntimeType([
-            "horizontal": .horizontal,
-            "vertical": .vertical,
-        ] as [String: UILayoutConstraintAxis])
-        types["distribution"] = RuntimeType([
-            "fill": .fill,
-            "fillEqually": .fillEqually,
-            "fillProportionally": .fillProportionally,
-            "equalSpacing": .equalSpacing,
-            "equalCentering": .equalCentering,
-        ] as [String: UIStackViewDistribution])
-        types["alignment"] = RuntimeType([
-            "fill": .fill,
-            "leading": .leading,
-            "top": .top,
-            "firstBaseline": .firstBaseline,
-            "center": .center,
-            "trailing": .trailing,
-            "bottom": .bottom,
-            "lastBaseline": .lastBaseline, // Valid for horizontal axis only
-        ] as [String: UIStackViewAlignment])
-        types["spacing"] = RuntimeType(CGFloat.self)
+        types["axis"] = .uiLayoutConstraintAxis
+        types["distribution"] = .uiStackViewDistribution
+        types["alignment"] = .uiStackViewAlignment
+        types["spacing"] = .cgFloat
         types["arrangedSubviews"] = .unavailable()
         // UIStackView is a non-drawing view, so none of these properties are available
         for name in [

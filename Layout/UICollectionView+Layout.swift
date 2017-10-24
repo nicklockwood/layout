@@ -3,12 +3,6 @@
 import UIKit
 
 private let placeholderID = NSUUID().uuidString
-
-private let collectionViewScrollDirection = RuntimeType([
-    "horizontal": .horizontal,
-    "vertical": .vertical,
-] as [String: UICollectionViewScrollDirection])
-
 private var layoutNodeKey = 0
 
 private class Box {
@@ -57,32 +51,9 @@ extension UICollectionView {
         for (key, type) in UICollectionViewFlowLayout.allPropertyTypes() {
             types["collectionViewLayout.\(key)"] = type
         }
-        types["collectionViewLayout.scrollDirection"] = collectionViewScrollDirection
-
-        types["reorderingCadence"] = RuntimeType([
-            "immediate": 0,
-            "fast": 1,
-            "slow": 2,
-        ] as [String: Int])
-        types["collectionViewLayout.sectionInsetReference"] = RuntimeType([
-            "fromContentInset": 0,
-            "fromSafeArea": 1,
-            "fromLayoutMargins": 2,
-        ] as [String: Int])
-        #if swift(>=3.2)
-            if #available(iOS 11.0, *) {
-                types["reorderingCadence"] = RuntimeType([
-                    "immediate": .immediate,
-                    "fast": .fast,
-                    "slow": .slow,
-                ] as [String: UICollectionViewReorderingCadence])
-                types["collectionViewLayout.sectionInsetReference"] = RuntimeType([
-                    "fromContentInset": .fromContentInset,
-                    "fromSafeArea": .fromSafeArea,
-                    "fromLayoutMargins": .fromLayoutMargins,
-                ] as [String: UICollectionViewFlowLayoutSectionInsetReference])
-            }
-        #endif
+        types["collectionViewLayout.sectionInsetReference"] = .uiCollectionViewFlowLayoutSectionInsetReference
+        types["collectionViewLayout.scrollDirection"] = .uiCollectionViewScrollDirection
+        types["reorderingCadence"] = .uiCollectionViewReorderingCadence
 
         for name in [
             "contentSize",
@@ -223,7 +194,8 @@ extension UICollectionViewController {
         for (key, type) in UICollectionViewFlowLayout.allPropertyTypes() {
             types["collectionViewLayout.\(key)"] = type
         }
-        types["collectionViewLayout.scrollDirection"] = collectionViewScrollDirection
+        types["collectionViewLayout.sectionInsetReference"] = .uiCollectionViewFlowLayoutSectionInsetReference
+        types["collectionViewLayout.scrollDirection"] = .uiCollectionViewScrollDirection
         for (key, type) in UICollectionView.cachedExpressionTypes {
             types["collectionView.\(key)"] = type
         }
@@ -395,7 +367,7 @@ extension UICollectionViewCell {
     }
 
     open override class var parameterTypes: [String: RuntimeType] {
-        return ["reuseIdentifier": RuntimeType(String.self)]
+        return ["reuseIdentifier": .string]
     }
 
     open override class var expressionTypes: [String: RuntimeType] {

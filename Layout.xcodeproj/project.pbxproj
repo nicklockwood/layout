@@ -115,6 +115,7 @@
 		017539891F2A2F2F005B7516 /* XMLTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 017539881F2A2F2F005B7516 /* XMLTests.swift */; };
 		0176B8F91F0D153700431A11 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 0176B8F81F0D153700431A11 /* Localizable.strings */; };
 		018879ED1F2B456A00A64B6B /* PageTemplate.xml in Resources */ = {isa = PBXBuildFile; fileRef = 018879EC1F2B456A00A64B6B /* PageTemplate.xml */; };
+		018E49711F9F3AD100ABADBC /* RuntimeTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 018E49701F9F3AD100ABADBC /* RuntimeTypes.swift */; };
 		01B131641F617E6600B426BB /* Symbols.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01EAFD7F1F60649500B73E92 /* Symbols.swift */; };
 		01B1316C1F627E0700B426BB /* ValidationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01B1316B1F627E0700B426BB /* ValidationTests.swift */; };
 		01B1316E1F629F0700B426BB /* XMLNode+Layout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01B1316D1F629F0700B426BB /* XMLNode+Layout.swift */; };
@@ -319,6 +320,7 @@
 		017539881F2A2F2F005B7516 /* XMLTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = XMLTests.swift; sourceTree = "<group>"; };
 		0176B8F81F0D153700431A11 /* Localizable.strings */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; path = Localizable.strings; sourceTree = "<group>"; };
 		018879EC1F2B456A00A64B6B /* PageTemplate.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = PageTemplate.xml; sourceTree = "<group>"; };
+		018E49701F9F3AD100ABADBC /* RuntimeTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuntimeTypes.swift; sourceTree = "<group>"; };
 		01B1316B1F627E0700B426BB /* ValidationTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ValidationTests.swift; sourceTree = "<group>"; };
 		01B1316D1F629F0700B426BB /* XMLNode+Layout.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "XMLNode+Layout.swift"; sourceTree = "<group>"; };
 		01CB3DF91F47559500343286 /* LayoutDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayoutDelegate.swift; sourceTree = "<group>"; };
@@ -529,6 +531,7 @@
 				0105F7841F0547910067B313 /* Optional+Layout.swift */,
 				0105F7851F0547910067B313 /* Properties.swift */,
 				015498861F4352620030A6A2 /* RuntimeType.swift */,
+				018E49701F9F3AD100ABADBC /* RuntimeTypes.swift */,
 				0105F7861F0547910067B313 /* UITableView+Layout.swift */,
 				01185CCF1F34E04600D34EA7 /* UICollectionView+Layout.swift */,
 				01185CCD1F334B0B00D34EA7 /* UIStackView+Layout.swift */,
@@ -1226,6 +1229,7 @@
 				01B1316E1F629F0700B426BB /* XMLNode+Layout.swift in Sources */,
 				01146B121F4700AD008A9B24 /* Files.swift in Sources */,
 				0105F78E1F0547910067B313 /* LayoutNode.swift in Sources */,
+				018E49711F9F3AD100ABADBC /* RuntimeTypes.swift in Sources */,
 				01181E091F0F7E430011C4DE /* Expression.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -96,4 +96,26 @@ class PropertiesTests: XCTestCase {
         let result = TestView.expressionTypes["frame.origin.x"]
         XCTAssertEqual(result?.isAvailable, false)
     }
+
+    // MARK: Sanitized type names
+
+    func testSanitizeURLName() {
+        XCTAssertEqual(sanitizedTypeName("URL"), "url")
+    }
+
+    func testSanitizeURLRequestName() {
+        XCTAssertEqual(sanitizedTypeName("URLRequest"), "urlRequest")
+    }
+
+    func testSanitizeStringName() {
+        XCTAssertEqual(sanitizedTypeName("String"), "string")
+    }
+
+    func testSanitizeAttributedStringName() {
+        XCTAssertEqual(sanitizedTypeName("NSAttributedString"), "nsAttributedString")
+    }
+
+    func testSanitizeUINavigationItem_LargeTitleDisplayModeName() {
+        XCTAssertEqual(sanitizedTypeName("UINavigationItem.LargeTitleDisplayMode"), "uiNavigationItem_LargeTitleDisplayMode")
+    }
 }

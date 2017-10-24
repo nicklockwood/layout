@@ -568,7 +568,6 @@
         { "trigger": "collectionViewLayout.sectionInset.left	CGFloat", "contents": "collectionViewLayout.sectionInset.left" },
         { "trigger": "collectionViewLayout.sectionInset.right	CGFloat", "contents": "collectionViewLayout.sectionInset.right" },
         { "trigger": "collectionViewLayout.sectionInset.top	CGFloat", "contents": "collectionViewLayout.sectionInset.top" },
-        { "trigger": "collectionViewLayout.sectionInsetReference	Int", "contents": "collectionViewLayout.sectionInsetReference" },
         { "trigger": "collectionViewLayout.sectionInsetReference	UICollectionViewFlowLayoutSectionInsetReference", "contents": "collectionViewLayout.sectionInsetReference" },
         { "trigger": "color	UIColor", "contents": "color" },
         { "trigger": "configuration	UISlidingBarConfiguration", "contents": "configuration" },

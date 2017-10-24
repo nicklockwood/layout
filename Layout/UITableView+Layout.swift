@@ -2,11 +2,6 @@
 
 import UIKit
 
-private let tableViewStyle = RuntimeType([
-    "plain": .plain,
-    "grouped": .grouped,
-] as [String: UITableViewStyle])
-
 private var layoutNodeKey = 0
 
 private class Box {
@@ -40,29 +35,14 @@ extension UITableView {
 
     open override class var parameterTypes: [String: RuntimeType] {
         return [
-            "style": tableViewStyle,
+            "style": .uiTableViewStyle,
         ]
     }
 
     open override class var expressionTypes: [String: RuntimeType] {
         var types = super.expressionTypes
-        types["separatorStyle"] = RuntimeType([
-            "none": .none,
-            "singleLine": .singleLine,
-            "singleLineEtched": .singleLineEtched,
-        ] as [String: UITableViewCellSeparatorStyle])
-        types["separatorInsetReference"] = RuntimeType([
-            "fromCellEdges": 0,
-            "fromAutomaticInsets": 1,
-        ] as [String: Int])
-        #if swift(>=3.2)
-            if #available(iOS 11.0, *) {
-                types["separatorInsetReference"] = RuntimeType([
-                    "fromCellEdges": .fromCellEdges,
-                    "fromAutomaticInsets": .fromAutomaticInsets,
-                ] as [String: UITableViewSeparatorInsetReference])
-            }
-        #endif
+        types["separatorStyle"] = .uiTableViewCellSeparatorStyle
+        types["separatorInsetReference"] = .uiTableViewSeparatorInsetReference
         for name in [
             "contentSize",
             "contentSize.height",
@@ -207,7 +187,7 @@ extension UITableViewController {
 
     open override class var parameterTypes: [String: RuntimeType] {
         return [
-            "style": tableViewStyle,
+            "style": .uiTableViewStyle,
         ]
     }
 
@@ -481,13 +461,6 @@ extension UITableView {
     }
 }
 
-private let tableViewCellStyle = RuntimeType([
-    "default": .default,
-    "value1": .value1,
-    "value2": .value2,
-    "subtitle": .subtitle,
-] as [String: UITableViewCellStyle])
-
 extension UITableViewHeaderFooterView {
     weak var layoutNode: LayoutNode? {
         return (objc_getAssociatedObject(self, &layoutNodeKey) as? Box)?.node
@@ -508,7 +481,7 @@ extension UITableViewHeaderFooterView {
 
     open override class var parameterTypes: [String: RuntimeType] {
         return [
-            "reuseIdentifier": RuntimeType(String.self),
+            "reuseIdentifier": .string,
         ]
     }
 
@@ -601,30 +574,16 @@ extension UITableViewCell {
 
     open override class var parameterTypes: [String: RuntimeType] {
         return [
-            "style": tableViewCellStyle,
-            "reuseIdentifier": RuntimeType(String.self),
+            "style": .uiTableViewCellStyle,
+            "reuseIdentifier": .string,
         ]
     }
 
     open override class var expressionTypes: [String: RuntimeType] {
         var types = super.expressionTypes
-        types["selectionStyle"] = RuntimeType([
-            "none": .none,
-            "blue": .blue,
-            "gray": .gray,
-            "default": .default,
-        ] as [String: UITableViewCellSelectionStyle])
-        types["focusStyle"] = RuntimeType([
-            "default": .default,
-            "custom": .custom,
-        ] as [String: UITableViewCellFocusStyle])
-        types["accessoryType"] = RuntimeType([
-            "none": .none,
-            "disclosureIndicator": .disclosureIndicator,
-            "detailDisclosureButton": .detailDisclosureButton,
-            "checkmark": .checkmark,
-            "detailButton": .detailButton,
-        ] as [String: UITableViewCellAccessoryType])
+        types["selectionStyle"] = .uiTableViewCellSelectionStyle
+        types["focusStyle"] = .uiTableViewCellFocusStyle
+        types["accessoryType"] = .uiTableViewCellAccessoryType
         types["editingAccessoryType"] = types["accessoryType"]
         for (key, type) in UIView.cachedExpressionTypes {
             types["contentView.\(key)"] = type

@@ -175,7 +175,7 @@ struct LayoutExpression {
     init?(doubleExpression: String, for node: LayoutNode) {
         self.init(
             anyExpression: doubleExpression,
-            type: RuntimeType(Double.self),
+            type: .double,
             for: node
         )
     }
@@ -183,7 +183,7 @@ struct LayoutExpression {
     init?(boolExpression: String, for node: LayoutNode) {
         self.init(
             anyExpression: boolExpression,
-            type: RuntimeType(Bool.self),
+            type: .bool,
             for: node
         )
     }
@@ -198,7 +198,7 @@ struct LayoutExpression {
         }
         guard let expression = LayoutExpression(
             anyExpression: percentageExpression,
-            type: RuntimeType(CGFloat.self),
+            type: .cgFloat,
             numericSymbols: symbols,
             for: node
         ) else {
@@ -425,7 +425,7 @@ struct LayoutExpression {
                 case let .expression(parsedExpression):
                     guard let expression = LayoutExpression(
                         anyExpression: parsedExpression,
-                        type: RuntimeType(Any.self),
+                        type: .any,
                         nullable: true,
                         symbols: symbols,
                         numericSymbols: numericSymbols,
@@ -734,7 +734,7 @@ struct LayoutExpression {
         )
     }
 
-    init?(colorExpression: String, type: RuntimeType = RuntimeType(UIColor.self), for node: LayoutNode) {
+    init?(colorExpression: String, type: RuntimeType = .uiColor, for node: LayoutNode) {
         func nameToColorAsset(_ name: String) throws -> Any {
             guard let color = try stringToColorAsset(name) else {
                 throw Expression.Error.message("Invalid color name `\(name)`")
@@ -764,7 +764,7 @@ struct LayoutExpression {
                 }
                 guard let expression = LayoutExpression(
                     anyExpression: parsedExpression,
-                    type: RuntimeType(Any.self),
+                    type: .any,
                     nullable: false,
                     symbols: colorSymbols,
                     lookup: colorLookup,
@@ -799,7 +799,7 @@ struct LayoutExpression {
         }
     }
 
-    init?(imageExpression: String, type: RuntimeType = RuntimeType(UIImage.self), for node: LayoutNode) {
+    init?(imageExpression: String, type: RuntimeType = .uiImage, for node: LayoutNode) {
         func nameToImageAsset(_ name: String) throws -> Any {
             guard let image = try stringToImageAsset(name) else {
                 throw Expression.Error.message("Invalid image name `\(name)`")
@@ -829,7 +829,7 @@ struct LayoutExpression {
                 }
                 guard let expression = LayoutExpression(
                     anyExpression: parsedExpression,
-                    type: RuntimeType(Any.self),
+                    type: .any,
                     nullable: true,
                     for: node
                 ) else {
@@ -884,7 +884,7 @@ struct LayoutExpression {
                         if isNil(parts[0]) {
                             return urlFromString("")
                         }
-                        return try cast(parts[0], as: RuntimeType(URL.self))
+                        return try cast(parts[0], as: .url)
                     }
                 }
                 return try urlFromString(parts.map(stringify).joined())
@@ -913,7 +913,7 @@ struct LayoutExpression {
                         if isNil(parts[0]) {
                             return URLRequest(url: urlFromString(""))
                         }
-                        return try cast(parts[0], as: RuntimeType(URLRequest.self))
+                        return try cast(parts[0], as: .urlRequest)
                     }
                 }
                 return try URLRequest(url: urlFromString(parts.map(stringify).joined()))

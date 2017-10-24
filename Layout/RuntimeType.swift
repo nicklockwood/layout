@@ -2,20 +2,6 @@
 
 import UIKit
 
-func sanitizedStructName(_ objCType: String) -> String {
-    guard let equalRange = objCType.range(of: "="),
-        let braceRange = objCType.range(of: "{") else {
-        return objCType
-    }
-    let name: String = String(objCType[braceRange.upperBound ..< equalRange.lowerBound])
-    switch name {
-    case "_NSRange":
-        return "NSRange" // Yay! special cases
-    default:
-        return name
-    }
-}
-
 public class RuntimeType: NSObject {
 
     public enum Kind: Equatable, CustomStringConvertible {
@@ -76,7 +62,7 @@ public class RuntimeType: NSObject {
 
     static func unavailable(_ reason: String? = nil) -> RuntimeType? {
         #if arch(i386) || arch(x86_64)
-            return RuntimeType(.any(String.self), .unavailable(reason: reason))
+            return RuntimeType(String.self, .unavailable(reason: reason))
         #else
             return nil
         #endif
@@ -117,9 +103,15 @@ public class RuntimeType: NSObject {
     }
 
     @nonobjc public convenience init?(_ typeName: String, _ availability: Availability = .available) {
-        guard let type = typesByName[typeName] ?? NSClassFromString(typeName) else {
+        guard let type = NSClassFromString(typeName) else {
             guard let proto = NSProtocolFromString(typeName) else {
-                return nil
+                let instanceName = sanitizedTypeName(typeName)
+                guard RuntimeType.responds(to: Selector(instanceName)),
+                    let type = RuntimeType.value(forKey: instanceName) as? RuntimeType else {
+                    return nil
+                }
+                self.init(type.type, availability) // TODO: This copying isn't ideal
+                return
             }
             self.init(proto, availability)
             return
@@ -416,25 +408,36 @@ public class RuntimeType: NSObject {
     }
 }
 
-private let typesByName: [String: Any.Type] = [
-    "Any": Any.self,
-    "String": String.self,
-    "Bool": Bool.self,
-    "Int": Int.self,
-    "UInt": UInt.self,
-    "Float": Float.self,
-    "Double": Double.self,
-    "CGFloat": CGFloat.self,
-    "CGPoint": CGPoint.self,
-    "CGSize": CGSize.self,
-    "CGRect": CGRect.self,
-    "CGVector": CGVector.self,
-    "CGAffineTransform": CGAffineTransform.self,
-    "CATransform3D": CATransform3D.self,
-    "UIEdgeInsets": UIEdgeInsets.self,
-    "UIOffset": UIOffset.self,
-    "CGColor": CGColor.self,
-    "CGImage": CGImage.self,
-    "CGPath": CGPath.self,
-    "Selector": Selector.self,
-]
+private func sanitizedStructName(_ objCType: String) -> String {
+    guard let equalRange = objCType.range(of: "="),
+        let braceRange = objCType.range(of: "{") else {
+            return objCType
+    }
+    let name: String = String(objCType[braceRange.upperBound ..< equalRange.lowerBound])
+    switch name {
+    case "_NSRange":
+        return "NSRange" // Yay! special cases
+    default:
+        return name
+    }
+}
+
+func sanitizedTypeName(_ typeName: String) -> String {
+    var tail = String.CharacterView.SubSequence(typeName.characters)
+    var head = String(tail.popFirst()!).lowercased().characters
+    while let char = tail.popFirst() {
+        if let first = tail.first {
+            let lowercased = String(first).lowercased().first!
+            if lowercased == first {
+                head.append(char)
+                break
+            }
+        }
+        let lowercased = String(char).lowercased().first!
+        head.append(lowercased)
+        if lowercased == char {
+            break
+        }
+    }
+    return String(head + tail).replacingOccurrences(of: ".", with: "_")
+}

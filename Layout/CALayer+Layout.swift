@@ -8,7 +8,7 @@ extension CALayer {
     /// Expression names and types
     @objc class var expressionTypes: [String: RuntimeType] {
         var types = allPropertyTypes()
-        types["contents"] = RuntimeType(CGImage.self)
+        types["contents"] = .cgImage
         for key in [
             "borderWidth",
             "contentsScale",
@@ -17,7 +17,7 @@ extension CALayer {
             "rasterizationScale",
             "zPosition",
         ] {
-            types[key] = RuntimeType(CGFloat.self)
+            types[key] = .cgFloat
         }
         types["contentsGravity"] = RuntimeType([
             "center",
@@ -33,12 +33,7 @@ extension CALayer {
             "resizeAspect",
             "resizeAspectFill",
         ] as Set<String>)
-        types["edgeAntialiasingMask"] = RuntimeType([
-            "layerLeftEdge": .layerLeftEdge,
-            "layerRightEdge": .layerRightEdge,
-            "layerBottomEdge": .layerBottomEdge,
-            "layerTopEdge": .layerTopEdge,
-        ] as [String: CAEdgeAntialiasingMask])
+        types["edgeAntialiasingMask"] = .caEdgeAntialiasingMask
         types["fillMode"] = RuntimeType([
             "backwards",
             "forwards",
@@ -53,22 +48,7 @@ extension CALayer {
             "nearest",
             "linear",
         ] as Set<String>)
-        types["maskedCorners"] = RuntimeType([
-            "layerMinXMinYCorner": UIntOptionSet(rawValue: 1),
-            "layerMaxXMinYCorner": UIntOptionSet(rawValue: 2),
-            "layerMinXMaxYCorner": UIntOptionSet(rawValue: 4),
-            "layerMaxXMaxYCorner": UIntOptionSet(rawValue: 8),
-        ] as [String: UIntOptionSet])
-        #if swift(>=3.2)
-            if #available(iOS 11.0, *) {
-                types["maskedCorners"] = RuntimeType([
-                    "layerMinXMinYCorner": .layerMinXMinYCorner,
-                    "layerMaxXMinYCorner": .layerMaxXMinYCorner,
-                    "layerMinXMaxYCorner": .layerMinXMaxYCorner,
-                    "layerMaxXMaxYCorner": .layerMaxXMaxYCorner,
-                ] as [String: CACornerMask])
-            }
-        #endif
+        types["maskedCorners"] = .caCornerMask
         // Explicitly disabled properties
         for name in [
             "bounds",
