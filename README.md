@@ -68,6 +68,7 @@
 - [Example Projects](#example-projects)
     - [SampleApp](#sampleapp)
     - [UIDesigner](#uidesigner)
+    - [Sandbox](#sandbox)
 - [LayoutTool](#layouttool)
     - [Installation](#installation-1)
     - [Formatting](#formatting)
@@ -125,13 +126,13 @@ Layout is provided as a standalone Swift framework that you can use in your app.
 To install Layout using CocoaPods, add the following to your Podfile:
 
 ```ruby
-pod 'Layout', '~> 0.5.4'
+pod 'Layout', '~> 0.5'
 ```
 
 To install using Carthage, add this to your Cartfile:
 
 ```
-github "schibsted/Layout" ~> 0.5.4
+github "schibsted/Layout" ~> 0.5
 ```
 
 ## Integration
@@ -285,7 +286,7 @@ And how you might reference them in the XML:
 </UIView>
 ```
 
-(You may have noticed that the `title` and `titleFont` constants are surrounded by `{...}` braces, but the `titleColor` constant isn't. This is explained in the [Strings](##strings) and [Fonts](##fonts) subsections below.)
+You may have noticed that the `title` and `titleFont` constants are surrounded by `{...}` braces, but the `titleColor` constant isn't. This is explained in the [Strings](##strings) and [Fonts](##fonts) subsections below.
 
 You will probably find that some constants are common to every layout in your application, for example if you have constants representing standard spacing metrics, fonts or colors. It would be annoying to have to repeat these everywhere, but the lack of a convenient way to merge dictionaries in Swift (as of version 3.0) makes it painful to use a static dictionary of common constants as well.
 
@@ -315,6 +316,7 @@ loadLayout(
     named: "MyLayout.xml",
     state: [
         "isSelected": false,
+        ...
     ],
     constants: [
         "title": ...
@@ -322,7 +324,9 @@ loadLayout(
 )
 
 func setSelected() {
-    self.layoutNode?.setState(["isSelected": true])
+    self.layoutNode?.setState([
+        "isSelected": true
+    ])
 }
 ```
 
@@ -390,7 +394,7 @@ func wasPressed() {
 }
 ```
 
-The actions's method name follows the Objective-C selector syntax conventions, so if you wish to pass the button itself as a sender, use a trailing colon in the method name:
+The action's method name follows the Objective-C selector syntax conventions, so if you wish to pass the button itself as a sender, use a trailing colon in the method name:
 
 ```xml
 <UIButton touchUpInside="wasPressed:"/>
@@ -1007,12 +1011,14 @@ extension UIColor {
 }
 ```
 
-Colors defined in this way can be referenced by name from inside any color expression, either with or without the `Color` suffix, but are not available inside other expression types:
+Colors defined in this way can be referenced by name from inside any color expression, either with or without the `Color` suffix, but are not available inside other expression types unless prefixed with `UIColor.`:
 
 ```xml
 <UIView backgroundColor="headerColor"/>
 
 <UIView backgroundColor="header"/>
+
+<UIView isHidden="backgroundColor == UIColor.header"/>
 ```
 
 Finally, in iOS 11 and above, you can define named colors as XCAssets and then reference the color by name in your expressions:
@@ -1025,10 +1031,12 @@ Finally, in iOS 11 and above, you can define named colors as XCAssets and then r
 <UIView backgroundColor="color-number-{level}"/>
 ```
 
-For color assets defined in a different bundle, you can prefix the color name with the bundle identifier followed by a colon. For example:
+For color assets defined in a different bundle, you can prefix the color name with the bundle name (or fully-qualified bundle identifier) followed by a colon. For example:
 
 ```xml
 <UIView backgroundColor="com.example.MyBundle:MyColor"/>
+
+<UIView backgroundColor="MyBundle:MyColor"/>
 ```
 
 **Note:** There is no need to use quotes around the color asset name, even if it contains spaces or other punctuation. Layout will interpret invalid color asset names as expressions. You can use `{ ... }` braces to disambiguate between asset names and constant or variable names if necessary.
@@ -1046,10 +1054,12 @@ Static images can be specified by name or via a constant or state variable. As w
 <UIImageView image="image_{index}.png"/>
 ``` 
 
-As with color assets, image assets defined in a different bundle can be referenced by prefixing the bundle identifier with a colon:
+As with color assets, image assets defined in a different bundle can be referenced by prefixing with the bundle name or identifier followed by a colon:
 
 ```xml
 <UIImageView image="com.example.MyBundle:MyImage.png"/>
+
+<UIImageView image="MyBundle:MyImage.png"/>
 ```
 
 
@@ -1061,22 +1071,21 @@ To set a value for an enum-type expression, just use the name of the value. For 
 <UIImageView contentMode="scaleAspectFit"/>
 ```
 
-Standard UIKit enum values are exposed as constants that may be used only in expressions of that type. There is no need to prefix the enum value name with a `.` as you would in Swift.
-
 You can use logic directly inside enum expressions - there is no need to escape the logic or use quotes around the names:
 
 ```xml
 <UIImageView contentMode="isSmallImage ? center : scaleAspectFit"/>
 ```
 
-**Note:** there is currently no way to access enum value names inside other expression types, so none of the following will work:
+Standard UIKit enum values are exposed as constants that may be used only in expressions of that type. There is no need to prefix the enum value name with a `.` as you would in Swift, but you *must* prefix with the type to use the enum value inside other expression types:
 
 ```xml
-<UIImageView height="contentMode == scaleAspectFit ? 200 : 300"/>
-
-<UIImageView height="contentMode == .scaleAspectFit ? 200 : 300"/>
-
+<!-- will work -->
 <UIImageView height="contentMode == UIViewContentMode.scaleAspectFit ? 200 : 300"/>
+
+<!-- won't work -->
+<UIImageView height="contentMode == scaleAspectFit ? 200 : 300"/>
+<UIImageView height="contentMode == .scaleAspectFit ? 200 : 300"/>
 ```
 
 
@@ -1088,7 +1097,7 @@ OptionSet expressions work the same way as enums. If you want to set multiple va
 <UITextView dataDetectorTypes="phoneNumber, link"/>
 ```
 
-There is no need to wrap multiple OptionSet values in square brackets, as you would in Swift. As with enums, OptionSet value names cannot be used outside of the expression that sets them.
+There is no need to wrap multiple OptionSet values in square brackets, as you would in Swift. As with enums, OptionSet value names cannot be used outside of the expression that sets them unless they are prefixed with the type name.
 
 
 ## Arrays
@@ -1217,6 +1226,7 @@ The following views and view controllers have all been tested and are known to w
 * UIImageView
 * UILabel
 * UINavigationController
+* UIProgressView
 * UIScrollView
 * UISearchBar
 * UISegmentedControl
@@ -2022,14 +2032,43 @@ The `RuntimeType` class shown in the example is a type wrapper used by Layout to
 RuntimeType(MyStructType.self)
 ```
 
-It can also be used to specify a set of enum values:
+The preferred way to define custom runtime types is as static vars on the `RuntimeType` class, added via an extension:
 
 ```swift
-RuntimeType([
-    "left": .left,
-    "right": .right,
-    "center": .center,
-] as [String: NSTextAlignment])
+extension RuntimeType {
+
+    @objc static var myStructType: RuntimeType {
+        return RuntimeType(MyStructType.self)
+    }
+}
+
+extension MyView {
+
+    open override class var expressionTypes: [String: RuntimeType] {
+        var types = super.expressionTypes
+        types["myProperty"] = .myStructType
+        return types
+    }
+    
+    ...
+}
+```
+
+Exposing your runtime type in this way makes it available for use in parameters, and for enum types it makes the cases available for use in any expression via the type's namespace. Note the name of the `myStructType` property matches the type name, but with a lowercase prefix - this is required, as is the `@objc` attribute.
+
+Layout's `RuntimeType` wrapper can also be used to specify a set of enum values:
+
+```swift
+extension RuntimeType {
+
+    @objc static var nsTextAlignment: RuntimeType {
+        return RuntimeType([
+            "left": .left,
+            "right": .right,
+            "center": .center,
+        ] as [String: NSTextAlignment])
+    }
+}
 ```
 
 Swift enum values cannot be set automatically using the Objective-C runtime, but if the underlying type of the property matches the `rawValue` (as is the case for most Objective-C APIs) then it's typically not necessary to also provide a custom `setValue(forExpression:)` implementation. You'll have to determine this by testing it on a case-by-case basis.
@@ -2037,13 +2076,18 @@ Swift enum values cannot be set automatically using the Objective-C runtime, but
 OptionSets can be specified in the same way as enums:
 
 ```swift
-RuntimeType([
-    "phoneNumber": .phoneNumber,
-    "link": .link,
-    "address": .address,
-    "calendarEvent": .calendarEvent,
-    "all": .all,
-] as [String: UIDataDetectorTypes])
+extension RuntimeType {
+
+    @objc static var uiDataDetectorTypes: RuntimeType {
+        return RuntimeType([
+            "phoneNumber": .phoneNumber,
+            "link": .link,
+            "address": .address,
+            "calendarEvent": .calendarEvent,
+            "all": .all,
+        ] as [String: UIDataDetectorTypes])
+    }
+}
 ```
 
 Again, for Objective-C APIs it is typically not necessary to provide a custom `setValue(forExpression:)` implementation for and OptionSet value, but if the type of the property is defined in Swift as the OptionSet type itself rather than the `rawValue` type, then you may need to do so.

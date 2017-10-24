@@ -1,5 +1,12 @@
 # Change Log
 
+## [0.5.6](https://github.com/schibsted/layout/releases/tag/0.5.6) (2017-10-24)
+
+- Static class properties and enum cases can now be accessed via their namespace inside expressions
+- Fixed an issue where errors were sometimes silently swallowed during layout initialization
+- Fixed bug where `UIBarButtonItem.title` could not be set using expressions
+- Added benchmark app for comparing Layout and AutoLayout performance
+
 ## [0.5.5](https://github.com/schibsted/layout/releases/tag/0.5.5) (2017-10-23)
 
 - Fixed nested macro references

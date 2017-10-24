@@ -67,7 +67,7 @@ func urlFromString(_ path: String) -> URL {
 
 extension Character {
     var isUppercase: Bool {
-        return String(self).uppercased().first == self
+        return String(self).uppercased().characters.first == self
     }
 }
 

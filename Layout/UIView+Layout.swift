@@ -1284,9 +1284,6 @@ extension UIRefreshControl {
     }
 }
 
-extension UIPickerView {
-}
-
 private var baseURLKey = 1
 
 extension UIWebView {

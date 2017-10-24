@@ -411,7 +411,7 @@ public class RuntimeType: NSObject {
 private func sanitizedStructName(_ objCType: String) -> String {
     guard let equalRange = objCType.range(of: "="),
         let braceRange = objCType.range(of: "{") else {
-            return objCType
+        return objCType
     }
     let name: String = String(objCType[braceRange.upperBound ..< equalRange.lowerBound])
     switch name {
@@ -427,13 +427,13 @@ func sanitizedTypeName(_ typeName: String) -> String {
     var head = (tail.popFirst().map { String($0).lowercased() } ?? "").characters
     while let char = tail.popFirst() {
         if let first = tail.first {
-            let lowercased = String(first).lowercased().first!
+            let lowercased = String(first).lowercased().characters.first!
             if lowercased == first {
                 head.append(char)
                 break
             }
         }
-        let lowercased = String(char).lowercased().first!
+        let lowercased = String(char).lowercased().characters.first!
         head.append(lowercased)
         if lowercased == char {
             break

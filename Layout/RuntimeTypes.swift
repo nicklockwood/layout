@@ -6,7 +6,7 @@ import QuartzCore
 import UIKit
 import WebKit
 
-extension RuntimeType {
+public extension RuntimeType {
 
     // MARK: Swift
     @objc class var any: RuntimeType { return RuntimeType(Any.self) }
@@ -108,7 +108,7 @@ extension RuntimeType {
         ] as [String: UIBaselineAdjustment])
     }
     @objc class var uiDataDetectorTypes: RuntimeType {
-        var types = [
+        let types = [
             "phoneNumber": .phoneNumber,
             "link": .link,
             "address": .address,
@@ -120,9 +120,11 @@ extension RuntimeType {
         ] as [String: UIDataDetectorTypes]
         #if swift(>=3.2)
             if #available(iOS 11.0, *) {
+                var types = types
                 types["shipmentTrackingNumber"] = .shipmentTrackingNumber
                 types["flightNumber"] = .flightNumber
                 types["lookupSuggestion"] = .lookupSuggestion
+                return RuntimeType(types)
             }
         #endif
         return RuntimeType(types)

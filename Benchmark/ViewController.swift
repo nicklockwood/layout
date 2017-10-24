@@ -16,7 +16,7 @@ class ViewController: LayoutViewController {
     func getState() -> [String: [String: TimeInterval]] {
         return [
             "layoutResults": getLayoutTimings(),
-            "autoLayoutResults": getAutoLayoutTimings()
+            "autoLayoutResults": getAutoLayoutTimings(),
         ]
     }
 
