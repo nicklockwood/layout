@@ -5,6 +5,15 @@ import UIKit
 private var _cachedExpressionTypes = [Int: [String: RuntimeType]]()
 
 extension UIBarButtonItem {
+    /// Expression names and types
+    @objc class var expressionTypes: [String: RuntimeType] {
+        var types = allPropertyTypes()
+        types["title"] = .string
+        types["style"] = .uiBarButtonItemStyle
+        types["systemItem"] = .uiBarButtonSystemItem
+        return types
+    }
+
     func bindAction(for target: AnyObject) throws {
         guard self.target !== target, let action = action else {
             return
@@ -23,7 +32,6 @@ extension UIBarButtonItem {
 }
 
 extension UIViewController {
-
     /// Expression names and types
     @objc open class var expressionTypes: [String: RuntimeType] {
         var types = allPropertyTypes()
@@ -41,14 +49,10 @@ extension UIViewController {
             types["navigationItem.\(name)"] = type
         }
         types["navigationItem.largeTitleDisplayMode"] = .uiNavigationItem_LargeTitleDisplayMode
-        for (name, type) in UIBarButtonItem.allPropertyTypes() {
+        for (name, type) in UIBarButtonItem.expressionTypes {
             types["navigationItem.leftBarButtonItem.\(name)"] = type
             types["navigationItem.rightBarButtonItem.\(name)"] = type
         }
-        types["navigationItem.leftBarButtonItem.style"] = .uiBarButtonItemStyle
-        types["navigationItem.leftBarButtonItem.systemItem"] = .uiBarButtonSystemItem
-        types["navigationItem.rightBarButtonItem.style"] = .uiBarButtonItemStyle
-        types["navigationItem.rightBarButtonItem.systemItem"] = .uiBarButtonSystemItem
         // TODO: barButtonItem.backgroundImage, etc
 
         #if arch(i386) || arch(x86_64)
