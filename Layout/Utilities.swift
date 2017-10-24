@@ -35,6 +35,11 @@ func classFromString(_ name: String) -> AnyClass? {
     return NSClassFromString(name) ?? NSClassFromString("\(classPrefix).\(name)")
 }
 
+// Get a protocol by name
+func protocolFromString(_ name: String) -> Protocol? {
+    return NSProtocolFromString(name) ?? NSProtocolFromString("\(classPrefix).\(name)")
+}
+
 // Internal API for converting a path to a full URL
 func urlFromString(_ path: String) -> URL {
     if let url = URL(string: path), url.scheme != nil {
@@ -57,6 +62,12 @@ func urlFromString(_ path: String) -> URL {
         return URL(fileURLWithPath: path)
     } else {
         return Bundle.main.resourceURL!.appendingPathComponent(path)
+    }
+}
+
+extension Character {
+    var isUppercase: Bool {
+        return String(self).uppercased().first == self
     }
 }
 

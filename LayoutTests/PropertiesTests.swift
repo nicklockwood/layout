@@ -118,4 +118,8 @@ class PropertiesTests: XCTestCase {
     func testSanitizeUINavigationItem_LargeTitleDisplayModeName() {
         XCTAssertEqual(sanitizedTypeName("UINavigationItem.LargeTitleDisplayMode"), "uiNavigationItem_LargeTitleDisplayMode")
     }
+
+    func testSanitizeEmptyName() {
+        XCTAssertEqual(sanitizedTypeName(""), "")
+    }
 }

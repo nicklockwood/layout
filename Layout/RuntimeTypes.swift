@@ -363,6 +363,16 @@ extension RuntimeType {
     }
 
     // MARK: UIView
+    @objc class var uiViewAutoresizing: RuntimeType {
+        return RuntimeType([
+            "flexibleLeftMargin": .flexibleLeftMargin,
+            "flexibleWidth": .flexibleWidth,
+            "flexibleRightMargin": .flexibleRightMargin,
+            "flexibleTopMargin": .flexibleTopMargin,
+            "flexibleHeight": .flexibleHeight,
+            "flexibleBottomMargin": .flexibleBottomMargin,
+        ] as [String: UIViewAutoresizing])
+    }
     @objc class var uiSemanticContentAttribute: RuntimeType {
         return RuntimeType([
             "unspecified": .unspecified,

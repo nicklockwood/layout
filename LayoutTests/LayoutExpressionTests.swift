@@ -3,6 +3,12 @@
 import XCTest
 @testable import Layout
 
+class TestClass: NSObject {
+    @objc static var foo: Double {
+        return 5
+    }
+}
+
 class LayoutExpressionTests: XCTestCase {
 
     // MARK: Expression parsing
@@ -298,6 +304,33 @@ class LayoutExpressionTests: XCTestCase {
         }
         XCTAssertEqual(comment, "hello {'world'}")
         XCTAssertEqual(parts[0].description, "// hello {'world'}")
+    }
+
+    // MARK: Class properties
+
+    func testClassPropertyInDoubleExpression() {
+        let node = LayoutNode()
+        let className = NSStringFromClass(TestClass.self)
+        let expression = LayoutExpression(doubleExpression: "\(className).foo", for: node)
+        XCTAssertEqual(try expression?.evaluate() as? Double, 5)
+    }
+
+    func testUIColorPropertyInColorExpression() {
+        let node = LayoutNode()
+        let expression = LayoutExpression(colorExpression: "UIColor.red", for: node)
+        XCTAssertEqual(try expression?.evaluate() as? UIColor, .red)
+    }
+
+    func testEnumPropertyInEnumExpression() {
+        let node = LayoutNode()
+        let expression = LayoutExpression(enumExpression: "UIViewContentMode.center", type: .uiViewContentMode, for: node)
+        XCTAssertEqual(try expression?.evaluate() as? UIViewContentMode, .center)
+    }
+
+    func testOptionSetPropertyInEnumExpression() {
+        let node = LayoutNode()
+        let expression = LayoutExpression(optionsExpression: "UIViewAutoresizing.flexibleWidth, UIViewAutoresizing.flexibleHeight", type: .uiViewAutoresizing, for: node)
+        XCTAssertEqual(try expression?.evaluate() as? UIViewAutoresizing, [.flexibleWidth, .flexibleHeight])
     }
 
     // MARK: Integration tests

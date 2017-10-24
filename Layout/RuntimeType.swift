@@ -103,8 +103,8 @@ public class RuntimeType: NSObject {
     }
 
     @nonobjc public convenience init?(_ typeName: String, _ availability: Availability = .available) {
-        guard let type = NSClassFromString(typeName) else {
-            guard let proto = NSProtocolFromString(typeName) else {
+        guard let type = classFromString(typeName) else {
+            guard let proto = protocolFromString(typeName) else {
                 let instanceName = sanitizedTypeName(typeName)
                 guard RuntimeType.responds(to: Selector(instanceName)),
                     let type = RuntimeType.value(forKey: instanceName) as? RuntimeType else {
@@ -424,7 +424,7 @@ private func sanitizedStructName(_ objCType: String) -> String {
 
 func sanitizedTypeName(_ typeName: String) -> String {
     var tail = String.CharacterView.SubSequence(typeName.characters)
-    var head = String(tail.popFirst()!).lowercased().characters
+    var head = (tail.popFirst().map { String($0).lowercased() } ?? "").characters
     while let char = tail.popFirst() {
         if let first = tail.first {
             let lowercased = String(first).lowercased().first!

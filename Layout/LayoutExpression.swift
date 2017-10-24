@@ -303,6 +303,60 @@ struct LayoutExpression {
                   macroReferences: [String] = [],
                   for node: LayoutNode) {
 
+        func staticConstant(for key: String) throws -> Any? {
+            guard key.characters.first?.isUppercase == true else {
+                return nil
+            }
+            var tail = key
+            var head = ""
+            while let range = tail.range(of: ".") {
+                guard tail.characters[range.lowerBound].isUppercase else {
+                    break
+                }
+                if !head.isEmpty {
+                    head += "."
+                }
+                head += String(tail.characters[tail.startIndex ..< range.lowerBound])
+                tail = String(tail.characters[range.upperBound ..< tail.endIndex])
+            }
+            guard let type = RuntimeType(head) else {
+                return nil
+            }
+            switch type.type {
+            case let .enum(_, values):
+                return values[tail]
+            case let .options(_, values):
+                return values[tail]
+            case let .any(type):
+                guard let cls = type as? NSObject.Type else {
+                    fallthrough
+                }
+                if !tail.isEmpty {
+                    guard cls.responds(to: Selector(tail)) else {
+                        var suffix = head.components(separatedBy: ".").last!
+                        for prefix in ["UI", "NS"] {
+                            if suffix.hasPrefix(prefix) {
+                                suffix = String(suffix[prefix.endIndex ..< suffix.endIndex])
+                                break
+                            }
+                        }
+                        let newTail = tail + suffix
+                        guard cls.responds(to: Selector(newTail)) else {
+                            throw SymbolError("Cannot access static property `\(tail)` of class \(head)", for: key)
+                        }
+                        return cls.value(forKeyPath: newTail)
+                    }
+                    return cls.value(forKeyPath: tail)
+                }
+                return cls
+            default:
+                break
+            }
+            if !tail.isEmpty {
+                throw SymbolError("Cannot access static property `\(tail)` of type \(head)", for: key)
+            }
+            throw SymbolError("Unsupported type \(type)", for: key)
+        }
         if parsedExpression.isEmpty {
             return nil
         }
@@ -338,7 +392,8 @@ struct LayoutExpression {
                         }
                         macroSymbols[key] = macroExpression.symbols
                         symbols[symbol] = { _ in try SymbolError.wrap(macroExpression.evaluate, for: key) }
-                    } else if let value = try lookup(key) ?? node.value(forConstant: key) {
+                    } else if let value = try lookup(key) ?? node.value(forConstant: key) ??
+                        staticConstant(for: key) {
                         constants[name] = value
                     } else if circular {
                         symbols[symbol] = { [unowned node] _ in
