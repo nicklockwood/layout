@@ -1,0 +1,7 @@
+coverage_service: coveralls
+xcodeproj: Layout.xcodeproj
+scheme: Layout
+source_directory: Layout/*
+ignore:
+  - Layout/Expression.swift
+  - LayoutTests/*

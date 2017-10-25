@@ -1,10 +1,17 @@
-language: objective-c
-osx_image: xcode8.3
+language: swift
+osx_image: xcode9
 
-script: xcodebuild test -project Layout.xcodeproj -scheme Layout -destination 'platform=iOS Simulator,name=iPhone 7 Plus,OS=10.3.1'
-script: xcodebuild test -project Layout.xcodeproj -scheme LayoutTool -sdk macosx
-
-script: xcodebuild -project Layout.xcodeproj -scheme SampleApp -sdk iphonesimulator
-script: xcodebuild -project Layout.xcodeproj -scheme Sandbox -sdk iphonesimulator
-script: xcodebuild -project Layout.xcodeproj -scheme UIDesigner -sdk iphonesimulator
-
+env:
+  - LC_CTYPE=en_US.UTF-8 LANG=en_US.UTF-8
+before_install:
+  - rvm install ruby-2.4.2
+install:
+  - bundle install --without=documentation
+script:
+  - set -o pipefail
+  - xcodebuild -project Layout.xcodeproj -scheme LayoutTool -sdk macosx test
+  - xcodebuild -project Layout.xcodeproj -scheme SampleApp -sdk iphonesimulator
+  - xcodebuild -project Layout.xcodeproj -scheme Sandbox -sdk iphonesimulator
+  - xcodebuild -project Layout.xcodeproj -scheme UIDesigner -sdk iphonesimulator
+  - xcodebuild -project Layout.xcodeproj -scheme Layout -destination 'platform=iOS Simulator,name=iPhone 8 Plus,OS=11.0' clean build test | bundle exec xcpretty
+after_success: bundle exec slather

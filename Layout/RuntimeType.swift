@@ -124,9 +124,15 @@ public class RuntimeType: NSObject {
             assertionFailure("Empty objCType")
             return nil
         }
+        print(OBJC_BOOL_IS_BOOL)
         self.availability = availability
         switch first {
-        case "c" where OBJC_BOOL_IS_BOOL == 0, "B":
+        case "B":
+            type = .any(Bool.self)
+        case "c":
+            if OBJC_BOOL_IS_BOOL == 1 {
+                fallthrough
+            }
             type = .any(Bool.self)
         case "c", "i", "s", "l", "q":
             type = .any(Int.self)
