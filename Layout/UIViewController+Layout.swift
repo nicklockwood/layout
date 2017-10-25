@@ -9,6 +9,7 @@ extension UIBarButtonItem {
     @objc class var expressionTypes: [String: RuntimeType] {
         var types = allPropertyTypes()
         types["title"] = .string
+        types["image"] = .uiImage
         types["style"] = .uiBarButtonItemStyle
         types["systemItem"] = .uiBarButtonSystemItem
         return types
