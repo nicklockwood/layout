@@ -62,6 +62,14 @@ class XMLTests: XCTestCase {
         XCTAssertEqual(layout.body, html)
     }
 
+    func testPreserveHTMLAttributes() {
+        let html = "An <img src=\"foo.jpg\" alt=\"foo\"/> tag"
+        let input = "<UILabel>\n    \(html)\n</UILabel>"
+        let xmlData = input.data(using: .utf8)!
+        let layout = try! Layout(xmlData: xmlData)
+        XCTAssertEqual(layout.body, html)
+    }
+
     // MARK: Entity encoding
 
     func testEncodeXMLEntities() {

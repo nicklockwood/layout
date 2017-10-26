@@ -169,9 +169,7 @@ private extension XMLNode {
                 text += " \(key)=\"\(value.xmlEncoded(forAttribute: true))\""
             }
             if emptyHTMLTags.contains(name) {
-                guard attributes.isEmpty else {
-                    throw LayoutError("Unsupported attribute \(attributes.keys.first!) for element <\(name)>.")
-                }
+                // TODO: if there are children, should this be an error
                 text += "/>" // TODO: should we remove the closing slash here?
                 break
             }
