@@ -126,7 +126,6 @@ public class RuntimeType: NSObject {
             assertionFailure("Empty objCType")
             return nil
         }
-        print(OBJC_BOOL_IS_BOOL)
         self.availability = availability
         switch first {
         case "c" where objCBoolIsChar, "B":

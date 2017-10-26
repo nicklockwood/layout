@@ -1,5 +1,14 @@
 # Change Log
 
+## [0.5.7](https://github.com/schibsted/layout/releases/tag/0.5.7) (2017-10-26)
+
+- Fixed bug where `UIBarButtonItem.image` could not be set using expressions
+- Fixed spurious error when using inline HTML containing attributes
+- Fixed missing file select options in filename conflict screen
+- Added test coverage statistics using Slather and Coveralls
+- Fixed a bug with handling of NaN values in expressions
+- Fixed spurious warning in Xcode 9
+
 ## [0.5.6](https://github.com/schibsted/layout/releases/tag/0.5.6) (2017-10-24)
 
 - Static class properties and enum cases can now be accessed via their namespace inside expressions
