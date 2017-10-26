@@ -102,7 +102,23 @@ class LayoutNodeTests: XCTestCase {
         }
     }
 
-    // Animated setter
+    // MARK: Invalid node errors
+
+    func testUnknownClass() {
+        let layout = try! Layout(xmlData: "<Foo/>".data(using: .utf8)!)
+        XCTAssertThrowsError(try LayoutNode(layout: layout)) { error in
+            XCTAssert("\(error)".contains("Unknown class Foo"))
+        }
+    }
+
+    func testInvalidClass() {
+        let layout = try! Layout(xmlData: "<NSObject/>".data(using: .utf8)!)
+        XCTAssertThrowsError(try LayoutNode(layout: layout)) { error in
+            XCTAssert("\(error)".contains("NSObject is not a subclass of UIView"))
+        }
+    }
+
+    // MARK: Animated setter
 
     func testSetSwitchStateAnimated() {
         let view = UISwitch()

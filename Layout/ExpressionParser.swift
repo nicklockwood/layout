@@ -131,36 +131,6 @@ func parseStringExpression(_ expression: String) throws -> [ParsedExpressionPart
     return parts
 }
 
-// Check that the expression symbols are valid (or at least plausible)
-func validateLayoutExpression(_ parsedExpression: ParsedLayoutExpression) throws {
-    if let error = parsedExpression.error, error != .unexpectedToken("") {
-        throw error
-    }
-    let keys = Set(Expression.mathSymbols.keys).union(Expression.boolSymbols.keys).union([
-        .postfix("%"),
-        .function("rgb", arity: 3),
-        .function("rgba", arity: 4),
-    ])
-    for symbol in parsedExpression.symbols {
-        switch symbol {
-        case .variable:
-            break
-        case .prefix, .infix, .postfix:
-            guard keys.contains(symbol) else {
-                throw Expression.Error.undefinedSymbol(symbol)
-            }
-        case let .function(called, arity):
-            guard keys.contains(symbol) else {
-                for case let .function(name, requiredArity) in keys
-                    where name == called && arity != requiredArity {
-                    throw Expression.Error.arityMismatch(.function(called, arity: requiredArity))
-                }
-                throw Expression.Error.undefinedSymbol(symbol)
-            }
-        }
-    }
-}
-
 private let whitespaceChars = CharacterSet.whitespacesAndNewlines
 
 private extension String.UnicodeScalarView.SubSequence {

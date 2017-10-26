@@ -7,10 +7,24 @@ class XMLTests: XCTestCase {
 
     // MARK: Malformed XML
 
-    func testViewInsideHTML() {
-        let input = "<p><UIView/></p>"
+    func testEmptyXML() {
+        let input = ""
         XCTAssertThrowsError(try Layout(xmlData: input.data(using: .utf8)!)) { error in
-            XCTAssert("\(error)".contains("p"))
+            XCTAssert("\(error)".contains("Empty"))
+        }
+    }
+
+    func testHTMLAtRoot() {
+        let input = "<html></html>"
+        XCTAssertThrowsError(try Layout(xmlData: input.data(using: .utf8)!)) { error in
+            XCTAssert("\(error)".contains("Invalid root"))
+        }
+    }
+
+    func testViewInsideHTML() {
+        let input = "<UIView><p><UIView/></p></UIView>"
+        XCTAssertThrowsError(try Layout(xmlData: input.data(using: .utf8)!)) { error in
+            XCTAssert("\(error)".contains("Unsupported HTML"))
         }
     }
 
@@ -26,11 +40,75 @@ class XMLTests: XCTestCase {
         }
     }
 
-    func testInvalidHTML() {
+    func testMismatchedHTML() {
         let input = "<UILabel>Some <b>bold</bold> text</UILabel>"
         let xmlData = input.data(using: .utf8)!
         XCTAssertThrowsError(try Layout(xmlData: xmlData)) { error in
             XCTAssert("\(error)".contains("bold"))
+        }
+    }
+
+    func testMissingParameterAttribute() {
+        let input = "<UILabel><param name=\"text\" value=\"foo\"/></UILabel>"
+        let xmlData = input.data(using: .utf8)!
+        XCTAssertThrowsError(try Layout(xmlData: xmlData)) { error in
+            XCTAssert("\(error)".contains("type is a required attribute"))
+        }
+    }
+
+    func testExtraParameterAttribute() {
+        let input = "<UILabel><param name=\"text\" type=\"String\" value=\"foo\"/></UILabel>"
+        let xmlData = input.data(using: .utf8)!
+        XCTAssertThrowsError(try Layout(xmlData: xmlData)) { error in
+            XCTAssert("\(error)".contains("Unexpected attribute `value`"))
+        }
+    }
+
+    func testChildNodeInParameter() {
+        let input = "<UILabel><param name=\"text\">foo</param></UILabel>"
+        let xmlData = input.data(using: .utf8)!
+        XCTAssertThrowsError(try Layout(xmlData: xmlData)) { error in
+            XCTAssert("\(error)".contains("should not contain children"))
+        }
+    }
+
+    func testMissingMacroAttribute() {
+        let input = "<UILabel><macro key=\"text\" value=\"foo\"/></UILabel>"
+        let xmlData = input.data(using: .utf8)!
+        XCTAssertThrowsError(try Layout(xmlData: xmlData)) { error in
+            XCTAssert("\(error)".contains("name is a required attribute"))
+        }
+    }
+
+    func testExtraMacroAttribute() {
+        let input = "<UILabel><macro name=\"text\" type=\"String\" value=\"foo\"/></UILabel>"
+        let xmlData = input.data(using: .utf8)!
+        XCTAssertThrowsError(try Layout(xmlData: xmlData)) { error in
+            XCTAssert("\(error)".contains("Unexpected attribute `type`"))
+        }
+    }
+
+    func testChildNodeInMacro() {
+        let input = "<UILabel><macro name=\"text\">foo</macro></UILabel>"
+        let xmlData = input.data(using: .utf8)!
+        XCTAssertThrowsError(try Layout(xmlData: xmlData)) { error in
+            XCTAssert("\(error)".contains("should not contain children"))
+        }
+    }
+
+    func testExpressionInOutletAttribute() {
+        let input = "<UILabel outlet=\"{foo}\"/>"
+        let xmlData = input.data(using: .utf8)!
+        XCTAssertThrowsError(try Layout(xmlData: xmlData)) { error in
+            XCTAssert("\(error)".contains("outlet must be a literal value"))
+        }
+    }
+
+    func testExpressionInTemplateAttribute() {
+        let input = "<UILabel template=\"{foo}.xml\"/>"
+        let xmlData = input.data(using: .utf8)!
+        XCTAssertThrowsError(try Layout(xmlData: xmlData)) { error in
+            XCTAssert("\(error)".contains("template must be a literal value"))
         }
     }
 

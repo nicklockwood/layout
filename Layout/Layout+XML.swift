@@ -59,7 +59,7 @@ extension Layout {
                             }
                             type = runtimeType
                         default:
-                            throw LayoutError("Unexpected attribute \(key) in <param>", for: NSClassFromString(className))
+                            throw LayoutError("Unexpected attribute `\(key)` in <param>", for: NSClassFromString(className))
                         }
                     }
                     parameters[name] = type
@@ -81,7 +81,7 @@ extension Layout {
                         case "value":
                             expression = value
                         default:
-                            throw LayoutError("Unexpected attribute \(key) in <macro>", for: NSClassFromString(className))
+                            throw LayoutError("Unexpected attribute `\(key)` in <macro>", for: NSClassFromString(className))
                         }
                     }
                     macros[name] = expression
