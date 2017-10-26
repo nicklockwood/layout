@@ -2,6 +2,8 @@
 
 import UIKit
 
+private let objCBoolIsChar = (OBJC_BOOL_IS_BOOL == 0)
+
 public class RuntimeType: NSObject {
 
     public enum Kind: Equatable, CustomStringConvertible {
@@ -127,12 +129,7 @@ public class RuntimeType: NSObject {
         print(OBJC_BOOL_IS_BOOL)
         self.availability = availability
         switch first {
-        case "B":
-            type = .any(Bool.self)
-        case "c":
-            if OBJC_BOOL_IS_BOOL == 1 {
-                fallthrough
-            }
+        case "c" where objCBoolIsChar, "B":
             type = .any(Bool.self)
         case "c", "i", "s", "l", "q":
             type = .any(Int.self)
