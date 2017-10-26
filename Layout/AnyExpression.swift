@@ -2,7 +2,7 @@
 
 import Foundation
 
-private let mask: UInt64 = 0b11111111_11111000_00000000_00000000_00000000_00000000_00000000_00000000
+private let mask = (-Double.nan).bitPattern
 
 // Version of Expression that works with any value type
 struct AnyExpression: CustomStringConvertible {
@@ -42,10 +42,6 @@ struct AnyExpression: CustomStringConvertible {
         var values = [Any]()
         func store(_ value: Any) throws -> Double {
             if let value = (value as? NSNumber).map({ Double(truncating: $0) }) {
-                if value.bitPattern & mask == mask {
-                    // Value is NaN
-                    return Double(bitPattern: mask)
-                }
                 return value
             }
             if isNil(value), let index = values.index(where: { isNil($0) }) {
@@ -127,7 +123,9 @@ struct AnyExpression: CustomStringConvertible {
                 }
                 return isNil(anyArgs[0]) ? args[1] : args[0]
             }
-            if let doubleArgs = anyArgs as? [Double], doubleArgs == args {
+            if let doubleArgs = anyArgs as? [Double], !zip(doubleArgs, args).contains(where: {
+                $0.0.bitPattern != $0.1.bitPattern // NaN-safe equality check
+            }) {
                 return nil // Fall back to default implementation
             }
             switch symbol {

@@ -20,6 +20,21 @@ class AnyExpressionTests: XCTestCase {
         XCTAssertEqual(try expression.evaluate() as? Double, 9)
     }
 
+    func testNaN() {
+        let expression = AnyExpression("NaN + 5", constants: ["NaN": Double.nan])
+        XCTAssertEqual((try expression.evaluate() as? Double)?.isNaN, true)
+    }
+
+    func testFloatNaN() {
+        let expression = AnyExpression("NaN + 5", constants: ["NaN": Float.nan])
+        XCTAssertEqual((try expression.evaluate() as? Double)?.isNaN, true)
+    }
+
+    func testInfinity() {
+        let expression = AnyExpression("1/0")
+        XCTAssertEqual((try expression.evaluate() as? Double)?.isInfinite, true)
+    }
+
     func testAddStringConstants() {
         let expression = AnyExpression("a + b", constants: [
             "a": "foo",
