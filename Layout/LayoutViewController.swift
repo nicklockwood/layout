@@ -140,7 +140,7 @@ open class LayoutViewController: UIViewController, LayoutLoading {
                             "top": "previous.bottom + 20",
                             "width": "100% - 40",
                             "left": "20",
-                            "text": "\(i + 1). \(match.path[commonPrefix.endIndex ..< match.path.endIndex])",
+                            "title": "\(i + 1). \(match.path[commonPrefix.endIndex ..< match.path.endIndex])",
                             "contentHorizontalAlignment": "left",
                             "titleColor": "rgba(255,255,255,0.7)",
                             "touchUpInside": "_selectMatch:",
