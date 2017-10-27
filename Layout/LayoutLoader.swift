@@ -370,25 +370,24 @@ class LayoutLoader {
         if let projectDirectory = _projectDirectory, path.hasPrefix(projectDirectory.path) {
             return projectDirectory
         }
-        var url = URL(fileURLWithPath: path)
-        if !url.pathExtension.isEmpty {
-            url = url.deletingLastPathComponent()
+        
+        var url = URL(fileURLWithPath: path).standardizedFileURL
+        if !url.hasDirectoryPath {
+            url.deleteLastPathComponent()
         }
-        if ["..", "/", ""].contains(url.lastPathComponent) {
-            return nil
-        }
-        guard let files = try? FileManager.default.contentsOfDirectory(atPath: url.path) else {
-            return nil
-        }
-        let parent = url.deletingLastPathComponent()
-        for file in files {
-            let pathExtension = URL(fileURLWithPath: file).pathExtension
-            if pathExtension == "xcodeproj" || pathExtension == "xcworkspace" {
-                _projectDirectory = url
-                return url
-            }
-        }
-        return findProjectDirectory(at: parent.path)
+        
+        let xcodePathExtensions = ["xcodeproj", "xcworkspace"]
+        return sequence(first: url, next: { url in
+            let url = url.deletingLastPathComponent()
+            return !url.absoluteString.isEmpty ? url : nil
+        }).first(where: { directoryURL in
+            let files = try? FileManager.default.contentsOfDirectory(
+                at: directoryURL,
+                includingPropertiesForKeys: nil,
+                options: []
+            )
+            return files?.contains(where: { xcodePathExtensions.contains($0.pathExtension) }) ?? false
+        })
     }
 
     private func findSourceURL(
