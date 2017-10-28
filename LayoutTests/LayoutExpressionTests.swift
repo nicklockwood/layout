@@ -303,7 +303,6 @@ class LayoutExpressionTests: XCTestCase {
             return
         }
         XCTAssertEqual(comment, "hello {'world'}")
-        XCTAssertEqual(parts[0].description, "// hello {'world'}")
     }
 
     // MARK: Class properties

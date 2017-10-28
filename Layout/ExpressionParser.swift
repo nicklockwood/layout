@@ -27,21 +27,10 @@ struct ParsedLayoutExpression: CustomStringConvertible {
     var error: Expression.Error? { return expression.error }
 }
 
-enum ParsedExpressionPart: CustomStringConvertible {
+enum ParsedExpressionPart {
     case string(String)
     case comment(String)
     case expression(ParsedLayoutExpression)
-
-    var description: String {
-        switch self {
-        case let .string(string):
-            return string
-        case let .comment(comment):
-            return "// \(comment)"
-        case let .expression(expression):
-            return "{\(expression)}"
-        }
-    }
 }
 
 // Prevent cache from distorting performance test results

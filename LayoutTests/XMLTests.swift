@@ -64,6 +64,14 @@ class XMLTests: XCTestCase {
         }
     }
 
+    func testUnknownParameterType() {
+        let input = "<UILabel><param name=\"text\" type=\"Foo\"/></UILabel>"
+        let xmlData = input.data(using: .utf8)!
+        XCTAssertThrowsError(try Layout(xmlData: xmlData)) { error in
+            XCTAssert("\(error)".contains("Unknown or unsupported type"))
+        }
+    }
+
     func testChildNodeInParameter() {
         let input = "<UILabel><param name=\"text\">foo</param></UILabel>"
         let xmlData = input.data(using: .utf8)!
@@ -94,6 +102,24 @@ class XMLTests: XCTestCase {
         XCTAssertThrowsError(try Layout(xmlData: xmlData)) { error in
             XCTAssert("\(error)".contains("should not contain children"))
         }
+    }
+
+    func testStringInOutletAttribute() {
+        let input = "<UILabel outlet=\"foo\"/>"
+        let xmlData = input.data(using: .utf8)!
+        XCTAssertNoThrow(try Layout(xmlData: xmlData))
+    }
+
+    func testCommentedOutOutletAttribute() {
+        let input = "<UILabel outlet=\"//foo\"/>"
+        let xmlData = input.data(using: .utf8)!
+        XCTAssertNoThrow(try Layout(xmlData: xmlData))
+    }
+
+    func testEmptyOutletAttribute() {
+        let input = "<UILabel outlet=\"\"/>"
+        let xmlData = input.data(using: .utf8)!
+        XCTAssertNoThrow(try Layout(xmlData: xmlData))
     }
 
     func testExpressionInOutletAttribute() {

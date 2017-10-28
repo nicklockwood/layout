@@ -350,3 +350,17 @@ func validateLayoutExpression(_ parsedExpression: ParsedLayoutExpression) throws
         }
     }
 }
+
+// Print parsed expression
+extension ParsedExpressionPart: CustomStringConvertible {
+    var description: String {
+        switch self {
+        case let .string(string):
+            return string
+        case let .comment(comment):
+            return "// \(comment)"
+        case let .expression(expression):
+            return "{\(expression)}"
+        }
+    }
+}
