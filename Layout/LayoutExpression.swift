@@ -3,20 +3,6 @@
 import UIKit
 import Foundation
 
-private func stringify(_ value: Any) throws -> String {
-    switch try unwrap(value) {
-    case let number as NSNumber:
-        guard let int = Int64(exactly: number) else {
-            return "\(number)"
-        }
-        return "\(int)"
-    case let value as NSAttributedString:
-        return value.string
-    case let value:
-        return "\(value)"
-    }
-}
-
 private let ignoredSymbols: Set<Expression.Symbol> = [
     .variable("pi"),
     .variable("true"),

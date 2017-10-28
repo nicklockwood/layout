@@ -13,16 +13,45 @@ class AnyExpressionTests: XCTestCase {
 
     func testAddNumericConstants() {
         let expression = AnyExpression("a + b", constants: [
-            "a": 4,
+            "a": UInt64(4),
             "b": 5,
         ])
         XCTAssertEqual(expression.symbols, [.infix("+")])
         XCTAssertEqual(try expression.evaluate() as? Double, 9)
     }
 
+    func testPreserveNumericPrecision() {
+        let expression = AnyExpression("true ? a : b", constants: [
+            "a": UInt64.max,
+            "b": Int64.min,
+        ])
+        XCTAssertEqual(try expression.evaluate() as? UInt64, .max)
+    }
+
+    func testAddVeryLargeNumericConstants() {
+        let expression = AnyExpression("a + b", constants: [
+            "a": Int64.max,
+            "b": Int64.max,
+        ])
+        XCTAssertEqual(expression.symbols, [.infix("+")])
+        XCTAssertEqual(try expression.evaluate() as? Double, Double(Int64.max) + Double(Int64.max))
+    }
+
     func testNaN() {
         let expression = AnyExpression("NaN + 5", constants: ["NaN": Double.nan])
         XCTAssertEqual((try expression.evaluate() as? Double)?.isNaN, true)
+    }
+
+    func testEvilEdgeCase() {
+        let evilValue = (-Double.nan) // exactly matches mask
+        let expression = AnyExpression("evil + 5", constants: ["evil": evilValue])
+        XCTAssertEqual((try expression.evaluate() as? Double)?.bitPattern, evilValue.bitPattern)
+    }
+
+    func testEvilEdgeCase2() {
+        let evilValue = Double(bitPattern: (-Double.nan).bitPattern + 2) // outside range of stored variables
+        let expression = AnyExpression("evil + 5", constants: ["evil": evilValue])
+        XCTAssertEqual((try expression.evaluate() as? Double)?.bitPattern, evilValue.bitPattern)
     }
 
     func testFloatNaN() {
@@ -52,6 +81,18 @@ class AnyExpressionTests: XCTestCase {
         ])
         XCTAssertEqual(expression.symbols, [.infix("+"), .infix("=="), .infix("?:")])
         XCTAssertEqual(try expression.evaluate() as? String, "foo")
+    }
+
+    func testAddNumberToString() {
+        let expression = AnyExpression("5 + 'foo'")
+        XCTAssertEqual(expression.symbols, [.infix("+")])
+        XCTAssertEqual(try expression.evaluate() as? String, "5foo")
+    }
+
+    func testAddStringToNumber() {
+        let expression = AnyExpression("'foo' + 5")
+        XCTAssertEqual(expression.symbols, [.infix("+")])
+        XCTAssertEqual(try expression.evaluate() as? String, "foo5")
     }
 
     func testAddStringVariables() {
@@ -174,5 +215,19 @@ class AnyExpressionTests: XCTestCase {
         let null: String? = nil
         let expression = AnyExpression("foo ?? 'bar'", constants: ["foo": null as Any])
         XCTAssertEqual(try expression.evaluate() as? String, "bar")
+    }
+
+    func testUnknownOperator() {
+        let expression = AnyExpression("'foo' %% 'bar'")
+        XCTAssertThrowsError(try expression.evaluate()) { error in
+            XCTAssert("\(error)".contains("Undefined infix operator %%"))
+        }
+    }
+
+    func testTypeMismatch() {
+        let expression = AnyExpression("5 / 'foo'")
+        XCTAssertThrowsError(try expression.evaluate()) { error in
+            XCTAssert("\(error)".contains("cannot be used with arguments of type (Double, String)"))
+        }
     }
 }

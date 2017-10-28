@@ -16,6 +16,26 @@ struct UIntOptionSet: OptionSet {
     }
 }
 
+// Convert any object to a string
+func stringify(_ value: Any) throws -> String {
+    switch try unwrap(value) {
+    case let bool as Bool:
+        return bool ? "true" : "false"
+    case let number as NSNumber:
+        if let int = Int64(exactly: number) {
+            return "\(int)"
+        }
+        if let uint = UInt64(exactly: number) {
+            return "\(uint)"
+        }
+        return "\(number)"
+    case let value as NSAttributedString:
+        return value.string
+    case let value:
+        return "\(value)"
+    }
+}
+
 // Flatten an array of dictionaries
 func merge(_ dictionaries: [[String: Any]]) -> [String: Any] {
     var result = [String: Any]()

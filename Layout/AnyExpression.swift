@@ -40,9 +40,25 @@ struct AnyExpression: CustomStringConvertible {
         evaluator: Evaluator? = nil
     ) {
         var values = [Any]()
-        func store(_ value: Any) throws -> Double {
-            if let value = (value as? NSNumber).map({ Double(truncating: $0) }) {
-                return value
+        func store(_ value: Any) -> Double {
+            switch value {
+            case let doubleValue as Double:
+                return doubleValue
+            case let floatValue as Float:
+                return Double(floatValue)
+            case let uintValue as UInt64:
+                if uintValue <= 9007199254740992 {
+                    return Double(uintValue)
+                }
+            case let intValue as Int64:
+                if intValue <= 9007199254740992, intValue >= -9223372036854775808 {
+                    return Double(intValue)
+                }
+            case let numberValue as NSNumber:
+                // TODO: implement strict bool handling instead of treating as a number
+                return Double(truncating: numberValue)
+            default:
+                break
             }
             if isNil(value), let index = values.index(where: { isNil($0) }) {
                 return Double(bitPattern: UInt64(index + 1) | mask)
@@ -58,7 +74,7 @@ struct AnyExpression: CustomStringConvertible {
             let bits = arg.bitPattern
             if bits & mask == mask {
                 let index = Int(bits ^ mask) - 1
-                if index < values.count {
+                if index >= 0, index < values.count {
                     return values[index]
                 }
             }
@@ -67,32 +83,25 @@ struct AnyExpression: CustomStringConvertible {
 
         // Handle string literals and constants
         var numericConstants = [String: Double]()
-        do {
-            for symbol in expression.symbols {
-                if case let .variable(name) = symbol {
-                    if let value = constants[name] {
-                        numericConstants[name] = try store(value)
-                        continue
-                    }
-                    if name == "nil" {
-                        let null: Any? = nil
-                        numericConstants["nil"] = try store(null as Any)
-                        continue
-                    }
-                    var chars = name.characters
-                    if chars.count >= 2, let first = chars.first, let last = chars.last,
-                        "'\"".characters.contains(first), last == first {
-                        chars.removeFirst()
-                        chars.removeLast()
-                        numericConstants[name] = try store(String(chars))
-                    }
+        for symbol in expression.symbols {
+            if case let .variable(name) = symbol {
+                if let value = constants[name] {
+                    numericConstants[name] = store(value)
+                    continue
+                }
+                if name == "nil" {
+                    let null: Any? = nil
+                    numericConstants["nil"] = store(null as Any)
+                    continue
+                }
+                var chars = name.characters
+                if chars.count >= 2, let first = chars.first, let last = chars.last,
+                    "'\"".characters.contains(first), last == first {
+                    chars.removeFirst()
+                    chars.removeLast()
+                    numericConstants[name] = store(String(chars))
                 }
             }
-        } catch {
-            evaluate = { throw error }
-            self.symbols = []
-            description = expression.description
-            return
         }
 
         // These are constant values that won't change between evaluations
@@ -105,7 +114,7 @@ struct AnyExpression: CustomStringConvertible {
             numericSymbols[symbol] = { args in
                 let anyArgs = args.map(load)
                 let value = try closure(anyArgs)
-                return try store(value)
+                return store(value)
             }
         }
 
@@ -115,7 +124,7 @@ struct AnyExpression: CustomStringConvertible {
                                     symbols: numericSymbols) { symbol, args in
             let anyArgs = args.map(load)
             if let value = try evaluator?(symbol, anyArgs) {
-                return try store(value)
+                return store(value)
             }
             if case .infix("??") = symbol {
                 guard isOptional(anyArgs[0]) else {
@@ -129,19 +138,42 @@ struct AnyExpression: CustomStringConvertible {
                 return nil // Fall back to default implementation
             }
             switch symbol {
-            case .infix("+"):
-                return try store("\(unwrap(anyArgs[0]))\(unwrap(anyArgs[1]))")
             case .infix("=="):
                 return args[0].bitPattern == args[1].bitPattern ? 1 : 0
             case .infix("!="):
                 return args[0].bitPattern != args[1].bitPattern ? 1 : 0
             case .infix("?:") where anyArgs[0] is Double:
                 return nil // Fall back to default implementation
-            case _ where symbols[symbol] == nil:
-                return nil // Fall back to default implementation
+            case .infix("+"):
+                switch try (unwrap(anyArgs[0]), unwrap(anyArgs[1])) {
+                case let (lhs as String, rhs):
+                    return try store("\(lhs)\(stringify(rhs))")
+                case let (lhs, rhs as String):
+                    return try store("\(stringify(lhs))\(rhs)")
+                default:
+                    break
+                }
+                fallthrough
             default:
-                throw Error.message("\(symbol) cannot be used with arguments of type \(anyArgs.map { type(of: $0) })")
+                if let fn = Expression.mathSymbols[symbol] {
+                    var doubleArgs = [Double]()
+                    for arg in anyArgs {
+                        guard let doubleValue = (arg as? NSNumber).map({ Double(truncating: $0) }) else {
+                            break
+                        }
+                        doubleArgs.append(doubleValue)
+                    }
+                    if doubleArgs.count == anyArgs.count {
+                        // If we got here, the arguments are all numbers, but we're going to
+                        // lose precision by converting them to doubles
+                        // TODO: find alternative approach that doesn't lose precision
+                        return try fn(doubleArgs)
+                    }
+                } else if !options.contains(.boolSymbols) || Expression.boolSymbols[symbol] == nil {
+                    return nil
+                }
             }
+            throw Error.message("\(symbol) cannot be used with arguments of type (\(anyArgs.map { "\(type(of: $0))" }.joined(separator: ", ")))")
         }
         evaluate = {
             defer { values = literals }
