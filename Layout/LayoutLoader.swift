@@ -333,6 +333,27 @@ class LayoutLoader {
     func clearSourceURLs() {
         _clearSourceURLs()
     }
+
+    // MARK: Internal APIs exposed for testing
+
+    func findProjectDirectory(at path: String) -> URL? {
+        return _findProjectDirectory(at: path)
+    }
+
+    func findSourceURL(
+        forRelativePath path: String,
+        in directory: URL,
+        ignoring: [URL] = [],
+        usingCache: Bool = true
+    ) throws -> URL? {
+        return try _findSourceURL(
+            forRelativePath: path,
+            in: directory,
+            ignoring: ignoring,
+            usingCache: usingCache
+        )
+    }
+
 }
 
 #if arch(i386) || arch(x86_64)
@@ -366,7 +387,7 @@ class LayoutLoader {
         }
     }
 
-    private func findProjectDirectory(at path: String) -> URL? {
+    private func _findProjectDirectory(at path: String) -> URL? {
         if let projectDirectory = _projectDirectory, path.hasPrefix(projectDirectory.path) {
             return projectDirectory
         }
@@ -375,22 +396,20 @@ class LayoutLoader {
         if !url.hasDirectoryPath {
             url.deleteLastPathComponent()
         }
-        
-        let xcodePathExtensions = ["xcodeproj", "xcworkspace"]
-        return sequence(first: url, next: { url in
-            let url = url.deletingLastPathComponent()
-            return !url.absoluteString.isEmpty ? url : nil
-        }).first(where: { directoryURL in
-            let files = try? FileManager.default.contentsOfDirectory(
-                at: directoryURL,
+        while !url.absoluteString.isEmpty {
+            if let files = try? FileManager.default.contentsOfDirectory(
+                at: url,
                 includingPropertiesForKeys: nil,
                 options: []
-            )
-            return files?.contains(where: { xcodePathExtensions.contains($0.pathExtension) }) ?? false
-        })
+            ), files.contains(where: { ["xcodeproj", "xcworkspace"].contains($0.pathExtension) }) {
+                return url
+            }
+            url.deleteLastPathComponent()
+        }
+        return nil
     }
 
-    private func findSourceURL(
+    private func _findSourceURL(
         forRelativePath path: String,
         in directory: URL,
         ignoring: [URL] = [],
@@ -408,8 +427,8 @@ class LayoutLoader {
                 try parseIgnoreFile(directory.appendingPathComponent(layoutIgnoreFile))
             }
         }
-        var parts = URL(fileURLWithPath: path).pathComponents
-        if parts[0] == "/" {
+        var parts = path.components(separatedBy: "/")
+        if parts[0] == "" {
             parts.removeFirst()
         }
         var results = [URL]()
@@ -426,7 +445,7 @@ class LayoutLoader {
                     results.append(directory) // Not actually a directory
                     continue
                 }
-                try findSourceURL(
+                try _findSourceURL(
                     forRelativePath: parts.dropFirst().joined(separator: "/"),
                     in: directory,
                     usingCache: false
@@ -434,7 +453,7 @@ class LayoutLoader {
                     results.append($0)
                 }
             }
-            try findSourceURL(
+            try _findSourceURL(
                 forRelativePath: path,
                 in: directory,
                 usingCache: false
@@ -467,8 +486,8 @@ class LayoutLoader {
 
 #else
 
-    private func findProjectDirectory(at _: String) -> URL? { return nil }
-    private func findSourceURL(forRelativePath _: String, in _: URL) throws -> URL? { return nil }
+    private func _findProjectDirectory(at _: String) -> URL? { return nil }
+    private func _findSourceURL(forRelativePath _: String, in _: URL) throws -> URL? { return nil }
     private func _setSourceURL(_: URL, for _: String) {}
     private func _clearSourceURLs() {}
 

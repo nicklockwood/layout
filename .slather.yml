@@ -3,5 +3,5 @@ xcodeproj: Layout.xcodeproj
 scheme: Layout
 source_directory: Layout/*
 ignore:
-  - Layout/Expression.swift
+  - Layout/Shared/Expression.swift
   - LayoutTests/*

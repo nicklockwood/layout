@@ -42,15 +42,19 @@ let layoutIgnoreFile = ".layout-ignore"
 func parseIgnoreFile(_ file: URL) throws -> [URL] {
     let data = try FileError.wrap({ try Data(contentsOf: file) }, for: file)
     guard let string = String(data: data, encoding: .utf8) else {
-        throw FileError("Unable to read .layout-ignore file", for: file)
+        throw FileError("Unable to read \(file.lastPathComponent) file", for: file)
     }
+    return parseIgnoreFile(string, baseURL: file.deletingLastPathComponent())
+}
+
+func parseIgnoreFile(_ contents: String, baseURL: URL) -> [URL] {
     var paths = [URL]()
-    for line in string.components(separatedBy: .newlines) {
+    for line in contents.components(separatedBy: .newlines) {
         let line = line
             .replacingOccurrences(of: "\\s*#.*", with: "", options: .regularExpression)
             .replacingOccurrences(of: "^\\s*", with: "", options: .regularExpression)
         if !line.isEmpty {
-            let path = file.deletingLastPathComponent().appendingPathComponent(line)
+            let path = baseURL.appendingPathComponent(line)
             paths.append(path)
         }
     }
