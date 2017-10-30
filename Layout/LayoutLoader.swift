@@ -247,9 +247,7 @@ class LayoutLoader {
                     }
                     let path = parts.joined(separator: "/")
                     do {
-                        if let url = try findSourceURL(forRelativePath: path, in: projectDirectory) {
-                            _xmlURL = url
-                        }
+                        _xmlURL = try findSourceURL(forRelativePath: path, in: projectDirectory)
                     } catch {
                         completion(nil, LayoutError(error))
                         return
@@ -312,8 +310,8 @@ class LayoutLoader {
         if let resourcePath = Bundle.main.resourcePath, let localizedPath = localizedPath {
             path = String(localizedPath[resourcePath.endIndex ..< localizedPath.endIndex])
         }
-        if let projectDirectory = _projectDirectory,
-            let url = try findSourceURL(forRelativePath: path, in: projectDirectory) {
+        if let projectDirectory = _projectDirectory {
+            let url = try findSourceURL(forRelativePath: path, in: projectDirectory)
             _strings = NSDictionary(contentsOf: url) as? [String: String] ?? [:]
             return _strings!
         }
@@ -345,13 +343,16 @@ class LayoutLoader {
         in directory: URL,
         ignoring: [URL] = [],
         usingCache: Bool = true
-    ) throws -> URL? {
-        return try _findSourceURL(
+    ) throws -> URL {
+        guard let url = try _findSourceURL(
             forRelativePath: path,
             in: directory,
             ignoring: ignoring,
             usingCache: usingCache
-        )
+        ) else {
+            throw LayoutError.message("Unable to locate source file for \(path)")
+        }
+        return url
     }
 
 }
@@ -412,8 +413,8 @@ class LayoutLoader {
     private func _findSourceURL(
         forRelativePath path: String,
         in directory: URL,
-        ignoring: [URL] = [],
-        usingCache: Bool = true
+        ignoring: [URL],
+        usingCache: Bool
     ) throws -> URL? {
         if let filePath = sourcePaths[path], FileManager.default.fileExists(atPath: filePath) {
             return URL(fileURLWithPath: filePath)
@@ -448,6 +449,7 @@ class LayoutLoader {
                 try _findSourceURL(
                     forRelativePath: parts.dropFirst().joined(separator: "/"),
                     in: directory,
+                    ignoring: ignoring,
                     usingCache: false
                 ).map {
                     results.append($0)
@@ -456,6 +458,7 @@ class LayoutLoader {
             try _findSourceURL(
                 forRelativePath: path,
                 in: directory,
+                ignoring: ignoring,
                 usingCache: false
             ).map {
                 results.append($0)
@@ -464,10 +467,7 @@ class LayoutLoader {
         guard results.count <= 1 else {
             throw LayoutError.multipleMatches(results, for: path)
         }
-        if usingCache {
-            guard let url = results.first else {
-                throw LayoutError.message("Unable to locate source file for \(path)")
-            }
+        if usingCache, let url = results.first {
             _setSourceURL(url, for: path)
         }
         return results.first
@@ -487,7 +487,7 @@ class LayoutLoader {
 #else
 
     private func _findProjectDirectory(at _: String) -> URL? { return nil }
-    private func _findSourceURL(forRelativePath _: String, in _: URL) throws -> URL? { return nil }
+    private func _findSourceURL(forRelativePath _: String, in _: URL, ignoring _: [URL], usingCache _: Bool) throws -> URL? { return nil }
     private func _setSourceURL(_: URL, for _: String) {}
     private func _clearSourceURLs() {}
 

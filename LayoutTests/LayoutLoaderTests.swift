@@ -47,6 +47,38 @@ class LayoutLoaderTests: XCTestCase {
             let sourceURL = try loader.findSourceURL(
                 forRelativePath: "Examples.xml",
                 in: projectDirectory,
+                usingCache: true
+            )
+            let expected = URL(fileURLWithPath: file)
+                .deletingLastPathComponent()
+                .deletingLastPathComponent()
+                .appendingPathComponent("SampleApp/Examples.xml")
+            XCTAssertEqual(sourceURL, expected)
+            // Load again, this time from cache
+            let cachedSourceURL = try loader.findSourceURL(
+                forRelativePath: "Examples.xml",
+                in: projectDirectory,
+                usingCache: true
+            )
+            XCTAssertEqual(sourceURL, cachedSourceURL)
+            loader.clearSourceURLs()
+        } catch {
+            XCTFail("\(error)")
+        }
+    }
+
+    func testFindXMLSourceFileWithPath() {
+        let loader = LayoutLoader()
+        let file = #file
+        guard let projectDirectory = loader.findProjectDirectory(at: file) else {
+            XCTFail()
+            return
+        }
+        do {
+            loader.clearSourceURLs()
+            let sourceURL = try loader.findSourceURL(
+                forRelativePath: "SampleApp/Examples.xml",
+                in: projectDirectory,
                 usingCache: false
             )
             let expected = URL(fileURLWithPath: file)
@@ -56,6 +88,31 @@ class LayoutLoaderTests: XCTestCase {
             XCTAssertEqual(sourceURL, expected)
         } catch {
             XCTFail("\(error)")
+        }
+    }
+
+    func testFindNonexistentSourceFileThrowsError() {
+        let loader = LayoutLoader()
+        let file = #file
+        guard let projectDirectory = loader.findProjectDirectory(at: file) else {
+            XCTFail()
+            return
+        }
+        // With cache
+        XCTAssertThrowsError(try loader.findSourceURL(
+            forRelativePath: "DoesntExist.xml",
+            in: projectDirectory,
+            usingCache: true
+        )) { error in
+            XCTAssertTrue("\(error)".contains("Unable to locate"))
+        }
+        // Without cache
+        XCTAssertThrowsError(try loader.findSourceURL(
+            forRelativePath: "DoesntExist.xml",
+            in: projectDirectory,
+            usingCache: false
+        )) { error in
+            XCTAssertTrue("\(error)".contains("Unable to locate"))
         }
     }
 }
