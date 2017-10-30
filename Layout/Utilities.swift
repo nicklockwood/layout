@@ -132,6 +132,7 @@ extension UIEdgeInsets {
 
         struct DocumentReadingOptionKey {
             static let documentType = NSDocumentTypeDocumentAttribute
+            static let characterEncoding = NSCharacterEncodingDocumentAttribute
         }
     }
 

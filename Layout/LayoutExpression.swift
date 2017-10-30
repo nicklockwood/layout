@@ -530,6 +530,9 @@ struct LayoutExpression {
                 symbols.insert(symbol)
             }
         }
+        func makeToken(_ index: Int) -> String {
+            return "$(\(index))"
+        }
         self.init(
             evaluate: {
                 var substrings = [NSAttributedString]()
@@ -537,15 +540,26 @@ struct LayoutExpression {
                 for part in try expression.evaluate() as! [Any] {
                     switch part {
                     case let part as NSAttributedString:
-                        htmlString += "$\(substrings.count)"
-                        substrings.append(part)
+                        while true {
+                            let token = makeToken(substrings.count)
+                            if htmlString.contains(token) {
+                                substrings.append(NSAttributedString(string: token))
+                            } else {
+                                htmlString += token
+                                substrings.append(part)
+                                break
+                            }
+                        }
                     default:
                         htmlString += try stringify(part)
                     }
                 }
                 let result = try NSMutableAttributedString(
                     data: htmlString.data(using: .utf8, allowLossyConversion: true) ?? Data(),
-                    options: [NSAttributedString.DocumentReadingOptionKey.documentType: NSAttributedString.DocumentType.html],
+                    options: [
+                        NSAttributedString.DocumentReadingOptionKey.documentType: NSAttributedString.DocumentType.html,
+                        NSAttributedString.DocumentReadingOptionKey.characterEncoding: String.Encoding.utf8.rawValue,
+                    ],
                     documentAttributes: nil
                 )
                 let correctFont: UIFont
@@ -587,7 +601,7 @@ struct LayoutExpression {
 
                 // Substitutions
                 for (i, substring) in substrings.enumerated().reversed() {
-                    let range = (result.string as NSString).range(of: "$\(i)")
+                    let range = (result.string as NSString).range(of: makeToken(i))
                     if range.location != NSNotFound {
                         result.replaceCharacters(in: range, with: substring)
                     }
