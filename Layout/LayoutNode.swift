@@ -1686,7 +1686,7 @@ public class LayoutNode: NSObject {
             if let explicitHeight = explicitHeight {
                 size.height = explicitHeight
             }
-            let fittingSize = _view.systemLayoutSizeFitting(size)
+            let fittingSize = _view.sizeThatFits(size)
             if explicitWidth == nil, fittingSize.width > intrinsicSize.width {
                 size.width = fittingSize.width
             }
