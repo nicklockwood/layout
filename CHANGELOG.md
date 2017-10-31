@@ -1,5 +1,16 @@
 # Change Log
 
+## [0.5.8](https://github.com/schibsted/layout/releases/tag/0.5.8) (2017-10-31)
+
+- Fixed layout glitch after live reloading `UIStackView`-based layouts
+- Font expressions now support additional weights such as `black` and `ultralight`
+- Minor breaking change when creating bold system fonts in font expressions. See README.md for details
+- Unicode characters in attributedString expressions or inline HTML are no longer mangled
+- Fixed bug where source file loading errors were sometimes not reported
+- Fixed bug where `.layout-ignore` file paths could sometimes be ignored
+- Improved AnyExpression implementation and test coverage
+- Fixed bug with loading files in paths containing a period
+
 ## [0.5.7](https://github.com/schibsted/layout/releases/tag/0.5.7) (2017-10-26)
 
 - Fixed bug where `UIBarButtonItem.image` could not be set using expressions
