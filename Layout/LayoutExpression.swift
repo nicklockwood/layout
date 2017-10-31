@@ -612,37 +612,28 @@ struct LayoutExpression {
         )
     }
 
-    // This is the actual default font size on iOS
-    // which is not the same as reported by `UIFont.systemFontSize`
-    static let defaultFontSize: CGFloat = 17
-
-    // Needed because the Swift names don't match the rawValue constants
-    static let fontTextStyles: [String: UIFontTextStyle] = [
-        "title1": .title1,
-        "title2": .title2,
-        "title3": .title3,
-        "headline": .headline,
-        "subheadline": .subheadline,
-        "body": .body,
-        "callout": .callout,
-        "footnote": .footnote,
-        "caption1": .caption1,
-        "caption2": .caption2,
-    ]
-
     init?(fontExpression: String, for node: LayoutNode) {
         guard let expression = LayoutExpression(interpolatedStringExpression: fontExpression, for: node) else {
             return nil
         }
-        struct RelativeFontSize {
-            let factor: CGFloat
+
+        func font(named name: String) -> UIFont? {
+            if let font = UIFont(name: name, size: UIFont.defaultSize) {
+                return font
+            }
+            let name = name.lowercased()
+            if let familyName = UIFont.familyNames.first(where: {
+                $0.lowercased() == name
+            }), let fontName = UIFont.fontNames(forFamilyName: familyName).first,
+                let font = UIFont(name: fontName, size: UIFont.defaultSize) {
+                return font
+            }
+            return nil
         }
 
         // Parse a stringified font part
         func fontPart(for string: String) -> Any? {
-            switch string {
-            case "bold":
-                return UIFontDescriptorSymbolicTraits.traitBold
+            switch string.lowercased() {
             case "italic":
                 return UIFontDescriptorSymbolicTraits.traitItalic
             case "condensed":
@@ -652,26 +643,29 @@ struct LayoutExpression {
             case "monospace", "monospaced":
                 return UIFontDescriptorSymbolicTraits.traitMonoSpace
             case "system":
-                return UIFont.systemFont(ofSize: LayoutExpression.defaultFontSize)
+                return UIFont.systemFont(ofSize: UIFont.defaultSize)
+            case "systembold", "system-bold":
+                return UIFont.boldSystemFont(ofSize: UIFont.defaultSize)
+            case "systemitalic", "system-italic":
+                return UIFont.italicSystemFont(ofSize: UIFont.defaultSize)
+            case "ultralight":
+                return UIFont.Weight.ultraLight
             default:
                 if let size = Double(string) {
                     return size
                 }
                 if string.hasSuffix("%"),
                     let size = Double(String(string.unicodeScalars.dropLast())) {
-                    return RelativeFontSize(factor: CGFloat(size / 100))
+                    return UIFont.RelativeSize(factor: CGFloat(size / 100))
                 }
-                if let font = UIFont(name: string, size: LayoutExpression.defaultFontSize) {
+                if let font = font(named: string) {
                     return font
                 }
-                if let fontStyle = LayoutExpression.fontTextStyles[string] {
+                if let fontStyle = RuntimeType.uiFontTextStyle.values[string] {
                     return fontStyle
                 }
-                if let familyName = UIFont.familyNames.first(where: {
-                    $0.lowercased() == string
-                }), let fontName = UIFont.fontNames(forFamilyName: familyName).first,
-                    let font = UIFont(name: fontName, size: LayoutExpression.defaultFontSize) {
-                    return font
+                if let fontWeight = RuntimeType.uiFont_Weight.values[string] {
+                    return fontWeight
                 }
                 return nil
             }
@@ -696,10 +690,10 @@ struct LayoutExpression {
                                     if !result.isEmpty {
                                         let string = String(result)
                                         result.removeAll()
-                                        guard let part = fontPart(for: string) else {
+                                        guard let part = font(named: string) else {
                                             throw Expression.Error.message("Invalid font specifier `\(string)`")
                                         }
-                                        fontName = part is UIFont ? string : nil
+                                        fontName = string
                                         parts.append(part)
                                     }
                                     delimiter = nil
@@ -719,7 +713,7 @@ struct LayoutExpression {
                                     } else if let prevName = fontName {
                                         // Might form a longer font name with the previous part
                                         fontName = "\(prevName) \(string)"
-                                        if let part = fontPart(for: fontName!) {
+                                        if let part = font(named: fontName!) {
                                             fontName = nil
                                             parts.removeLast()
                                             parts.append(part)
@@ -745,45 +739,15 @@ struct LayoutExpression {
                 for part in try expression.evaluate() as! [Any] {
                     let part = try unwrap(part)
                     switch part {
-                    case is UIFont,
-                         is UIFontTextStyle,
-                         is UIFontDescriptorSymbolicTraits,
-                         is RelativeFontSize,
-                         is NSNumber:
+                    case let part as String:
+                        string += part
+                    default:
                         try processString()
                         parts.append(part)
-                    case let part:
-                        string += "\(part)"
                     }
                 }
                 try processString()
-
-                // Build the font
-                var font: UIFont!
-                var fontSize: CGFloat!
-                var traits = UIFontDescriptorSymbolicTraits()
-                for part in parts {
-                    switch part {
-                    case let part as UIFont:
-                        font = part
-                    case let trait as UIFontDescriptorSymbolicTraits:
-                        traits.insert(trait)
-                    case let size as NSNumber:
-                        fontSize = CGFloat(truncating: size)
-                    case let size as RelativeFontSize:
-                        fontSize = (fontSize ?? LayoutExpression.defaultFontSize) * size.factor
-                    case let style as UIFontTextStyle:
-                        let preferredFont = UIFont.preferredFont(forTextStyle: style)
-                        fontSize = preferredFont.pointSize
-                        font = font ?? preferredFont
-                    default:
-                        throw Expression.Error.message("Invalid font specifier `\(part)`")
-                    }
-                }
-                fontSize = fontSize ?? font?.pointSize ?? LayoutExpression.defaultFontSize
-                font = font ?? UIFont.systemFont(ofSize: fontSize)
-                let descriptor = font.fontDescriptor.withSymbolicTraits(traits) ?? font.fontDescriptor
-                return UIFont(descriptor: descriptor, size: fontSize)
+                return try UIFont.font(with: parts)
             },
             symbols: expression.symbols
         )

@@ -66,7 +66,6 @@ public extension RuntimeType {
 
     // MARK: UIKit
     @objc class var uiColor: RuntimeType { return RuntimeType(UIColor.self) }
-    @objc class var uiFont: RuntimeType { return RuntimeType(UIFont.self) }
     @objc class var uiImage: RuntimeType { return RuntimeType(UIImage.self) }
 
     // MARK: Geometry
@@ -128,6 +127,49 @@ public extension RuntimeType {
             }
         #endif
         return RuntimeType(types)
+    }
+    @objc class var uiFont: RuntimeType {
+        return RuntimeType(UIFont.self)
+    }
+    @objc class var uiFontDescriptorSymbolicTraits: RuntimeType {
+        return RuntimeType([
+            "traitItalic": .traitItalic,
+            "traitBold": .traitBold,
+            "traitExpanded": .traitExpanded,
+            "traitCondensed": .traitCondensed,
+            "traitMonoSpace": .traitMonoSpace,
+            "traitVertical": .traitVertical,
+            "traitUIOptimized": .traitUIOptimized,
+            "traitTightLeading": .traitTightLeading,
+            "traitLooseLeading": .traitLooseLeading,
+        ] as [String: UIFontDescriptorSymbolicTraits])
+    }
+    @objc class var uiFontTextStyle: RuntimeType {
+        return RuntimeType([
+            "title1": .title1,
+            "title2": .title2,
+            "title3": .title3,
+            "headline": .headline,
+            "subheadline": .subheadline,
+            "body": .body,
+            "callout": .callout,
+            "footnote": .footnote,
+            "caption1": .caption1,
+            "caption2": .caption2,
+        ] as [String: UIFontTextStyle])
+    }
+    @objc class var uiFont_Weight: RuntimeType {
+        return RuntimeType([
+            "ultraLight": .ultraLight,
+            "thin": .thin,
+            "light": .light,
+            "regular": .regular,
+            "medium": .medium,
+            "semibold": .semibold,
+            "bold": .bold,
+            "heavy": .heavy,
+            "black": .black,
+        ] as [String: UIFont.Weight])
     }
 
     // MARK: TextInput
@@ -582,6 +624,7 @@ public extension RuntimeType {
             "lastBaseline": .lastBaseline, // Valid for horizontal axis only
         ] as [String: UIStackViewAlignment])
     }
+
 
     // MARK: UITableView
     @objc class var uiTableViewCellAccessoryType: RuntimeType {

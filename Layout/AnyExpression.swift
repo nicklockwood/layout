@@ -46,15 +46,20 @@ struct AnyExpression: CustomStringConvertible {
                 return doubleValue
             case let floatValue as Float:
                 return Double(floatValue)
+            case is Bool, is CGFloat, is Int, is UInt, is Int32, is UInt32:
+                return Double(truncating: value as! NSNumber)
             case let uintValue as UInt64:
-                if uintValue <= 9007199254740992 {
+                if uintValue <= 9007199254740992 as UInt64 {
                     return Double(uintValue)
                 }
             case let intValue as Int64:
-                if intValue <= 9007199254740992, intValue >= -9223372036854775808 {
+                if intValue <= 9007199254740992 as Int64, intValue >= -9223372036854775808 as Int64 {
                     return Double(intValue)
                 }
             case let numberValue as NSNumber:
+                if "\(value)".contains("rawValue") { // Hack to avoid losing type info for UIFont.Weight, etc
+                    break
+                }
                 // TODO: implement strict bool handling instead of treating as a number
                 return Double(truncating: numberValue)
             default:

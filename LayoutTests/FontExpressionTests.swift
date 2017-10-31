@@ -8,16 +8,85 @@ class FontExpressionTests: XCTestCase {
     func testBold() {
         let node = LayoutNode()
         let expression = LayoutExpression(fontExpression: "bold", for: node)
-        let expected = UIFont.boldSystemFont(ofSize: LayoutExpression.defaultFontSize)
+        let expected = UIFont.systemFont(ofSize: UIFont.defaultSize, weight: .bold)
+        XCTAssertEqual(try expression?.evaluate() as? UIFont, expected)
+    }
+
+    #if swift(>=4)
+
+        // Only works in Swift 4+ where UIFont.Weight is a distinct type, not CGFloat
+
+        func testBoldWeight() {
+            let node = LayoutNode()
+            let expression = LayoutExpression(fontExpression: "{UIFont.Weight.bold}", for: node)
+            let expected = UIFont.systemFont(ofSize: UIFont.defaultSize, weight: .bold)
+            XCTAssertEqual(try expression?.evaluate() as? UIFont, expected)
+        }
+
+    #endif
+
+    func testBoldTrait() {
+        let node = LayoutNode()
+        let expression = LayoutExpression(fontExpression: "{UIFontDescriptorSymbolicTraits.traitBold}", for: node)
+        let descriptor = UIFont.systemFont(ofSize: UIFont.defaultSize).fontDescriptor
+        let expected = UIFont(descriptor: descriptor.withSymbolicTraits([.traitBold])!, size: UIFont.defaultSize)
+        XCTAssertEqual(try expression?.evaluate() as? UIFont, expected)
+    }
+
+    func testSystemBold() {
+        let node = LayoutNode()
+        let expression = LayoutExpression(fontExpression: "systemBold", for: node)
+        let expected = UIFont.boldSystemFont(ofSize: UIFont.defaultSize)
+        XCTAssertEqual(try expression?.evaluate() as? UIFont, expected)
+    }
+
+    func testSystemItalic() {
+        let node = LayoutNode()
+        let expression = LayoutExpression(fontExpression: "system italic", for: node)
+        let expected = UIFont.italicSystemFont(ofSize: UIFont.defaultSize)
+        XCTAssertEqual(try expression?.evaluate() as? UIFont, expected)
+    }
+
+    func testBlack() {
+        let node = LayoutNode()
+        let expression = LayoutExpression(fontExpression: "black", for: node)
+        let expected = UIFont.systemFont(ofSize: UIFont.defaultSize, weight: .black)
         XCTAssertEqual(try expression?.evaluate() as? UIFont, expected)
     }
 
     func testBoldItalic() {
         let node = LayoutNode()
         let expression = LayoutExpression(fontExpression: "bold italic", for: node)
-        let descriptor = UIFont.systemFont(ofSize: 17).fontDescriptor
+        let descriptor = UIFont.systemFont(ofSize: UIFont.defaultSize, weight: .bold).fontDescriptor
         let traits = descriptor.symbolicTraits.union([.traitBold, .traitItalic])
-        let expected = UIFont(descriptor: descriptor.withSymbolicTraits(traits)!, size: LayoutExpression.defaultFontSize)
+        let expected = UIFont(descriptor: descriptor.withSymbolicTraits(traits)!, size: UIFont.defaultSize)
+        XCTAssertEqual(try expression?.evaluate() as? UIFont, expected)
+    }
+
+    func testCondensed() {
+        let node = LayoutNode()
+        let expression = LayoutExpression(fontExpression: "condensed", for: node)
+        let descriptor = UIFont.systemFont(ofSize: UIFont.defaultSize).fontDescriptor
+        let traits = descriptor.symbolicTraits.union([.traitCondensed])
+        let expected = UIFont(descriptor: descriptor.withSymbolicTraits(traits)!, size: UIFont.defaultSize)
+        XCTAssertEqual(try expression?.evaluate() as? UIFont, expected)
+    }
+
+    func testBlackCondensed() {
+        let node = LayoutNode()
+        let expression = LayoutExpression(fontExpression: "black condensed", for: node)
+        let descriptor = UIFont.systemFont(ofSize: UIFont.defaultSize, weight: .black).fontDescriptor
+        let traits = descriptor.symbolicTraits.union([.traitCondensed])
+        let expected = UIFont(descriptor: descriptor.withSymbolicTraits(traits)!, size: UIFont.defaultSize)
+        XCTAssertEqual(try expression?.evaluate() as? UIFont, expected)
+    }
+
+    func testMonospace() {
+        let node = LayoutNode()
+        let expression = LayoutExpression(fontExpression: "monospace", for: node)
+        let descriptor = UIFont(name: "Courier", size: UIFont.defaultSize)!.fontDescriptor
+        let traits = descriptor.symbolicTraits.union([.traitMonoSpace])
+        let expected = UIFont(descriptor: descriptor.withSymbolicTraits(traits)!, size: UIFont.defaultSize)
         XCTAssertEqual(try expression?.evaluate() as? UIFont, expected)
     }
 
@@ -25,7 +94,7 @@ class FontExpressionTests: XCTestCase {
         let node = LayoutNode()
         let name = "helvetica"
         let expression = LayoutExpression(fontExpression: name, for: node)
-        let expected = UIFont(name: name, size: LayoutExpression.defaultFontSize)
+        let expected = UIFont(name: name, size: UIFont.defaultSize)
         XCTAssertEqual(try expression?.evaluate() as? UIFont, expected)
     }
 
@@ -33,7 +102,7 @@ class FontExpressionTests: XCTestCase {
         let node = LayoutNode()
         let name = "helvetica neue"
         let expression = LayoutExpression(fontExpression: "'\(name)'", for: node)
-        let expected = UIFont(name: name, size: LayoutExpression.defaultFontSize)
+        let expected = UIFont(name: name, size: UIFont.defaultSize)
         XCTAssertEqual(try expression?.evaluate() as? UIFont, expected)
     }
 
@@ -41,9 +110,9 @@ class FontExpressionTests: XCTestCase {
         let node = LayoutNode()
         let name = "helvetica neue"
         let expression = LayoutExpression(fontExpression: "'\(name)' bold", for: node)
-        let descriptor = UIFont(name: name, size: LayoutExpression.defaultFontSize)!.fontDescriptor
+        let descriptor = UIFont(name: name, size: UIFont.defaultSize)!.fontDescriptor
         let traits = descriptor.symbolicTraits.union([.traitBold])
-        let expected = UIFont(descriptor: descriptor.withSymbolicTraits(traits)!, size: LayoutExpression.defaultFontSize)
+        let expected = UIFont(descriptor: descriptor.withSymbolicTraits(traits)!, size: UIFont.defaultSize)
         XCTAssertEqual(try expression?.evaluate() as? UIFont, expected)
     }
 
@@ -51,10 +120,24 @@ class FontExpressionTests: XCTestCase {
         let node = LayoutNode()
         let name = "helvetica neue"
         let expression = LayoutExpression(fontExpression: "\(name) bold", for: node)
-        let descriptor = UIFont(name: name, size: LayoutExpression.defaultFontSize)!.fontDescriptor
+        let descriptor = UIFont(name: name, size: UIFont.defaultSize)!.fontDescriptor
         let traits = descriptor.symbolicTraits.union([.traitBold])
-        let expected = UIFont(descriptor: descriptor.withSymbolicTraits(traits)!, size: LayoutExpression.defaultFontSize)
+        let expected = UIFont(descriptor: descriptor.withSymbolicTraits(traits)!, size: UIFont.defaultSize)
         XCTAssertEqual(try expression?.evaluate() as? UIFont, expected)
+    }
+
+    func testExplicitFontWithBlackAttribute() {
+        let font = UIFont(name: "HelveticaNeue-CondensedBlack", size: 15)!
+        let node = LayoutNode(constants: ["font": font])
+        let expression = LayoutExpression(fontExpression: "{font} black", for: node)
+        XCTAssertEqual(try expression?.evaluate() as? UIFont, font)
+    }
+
+    func testExplicitFontWithUltralightAttribute() {
+        let font = UIFont(name: "HelveticaNeue-UltraLight", size: 15)!
+        let node = LayoutNode(constants: ["font": font])
+        let expression = LayoutExpression(fontExpression: "{font} ultraLight", for: node)
+        XCTAssertEqual(try expression?.evaluate() as? UIFont, font)
     }
 
     func testExplicitFontWithBoldAttributes() {
@@ -102,7 +185,7 @@ class FontExpressionTests: XCTestCase {
     func testRelativeFontSize() {
         let node = LayoutNode()
         let expression = LayoutExpression(fontExpression: "150%", for: node)
-        let expected = UIFont.systemFont(ofSize: LayoutExpression.defaultFontSize * 1.5)
+        let expected = UIFont.systemFont(ofSize: UIFont.defaultSize * 1.5)
         XCTAssertEqual(try expression?.evaluate() as? UIFont, expected)
     }
 
@@ -111,5 +194,13 @@ class FontExpressionTests: XCTestCase {
         let expression = LayoutExpression(fontExpression: "body 150%", for: node)
         let expectedSize = UIFont.preferredFont(forTextStyle: .body).pointSize * 1.5
         XCTAssertEqual((try expression?.evaluate() as? UIFont)?.pointSize, expectedSize)
+    }
+
+    func testInvalidSpecifier() {
+        let node = LayoutNode()
+        let expression = LayoutExpression(fontExpression: "bold 10 foo", for: node)
+        XCTAssertThrowsError(try expression?.evaluate()) { error in
+            XCTAssertTrue("\(error)".contains("Invalid font specifier"))
+        }
     }
 }

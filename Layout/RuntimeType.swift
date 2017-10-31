@@ -79,6 +79,17 @@ public class RuntimeType: NSObject {
         }
     }
 
+    public var values: [String: Any] {
+        switch self.type {
+        case let .enum(_, values):
+            return values as [String: Any]
+        case let .options(_, values):
+            return values
+        case .any, .class, .struct, .pointer, .protocol:
+            return [:]
+        }
+    }
+
     @nonobjc private init(_ type: Kind, _ availability: Availability = .available) {
         self.type = type
         self.availability = availability

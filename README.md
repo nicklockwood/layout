@@ -387,7 +387,7 @@ You can define actions on any `UIControl` subclass using `actionName="methodName
 
 There is no need to specify a target - the action will be automatically bound to the first matching method encountered in the responder chain. If no matching method is found, Layout will display an error.
 
-**Note:** the error will be shown *when the node is mounted*, not deferred until the button is pressed, as it would be for actions bound using Interface Builder.
+**Note:** The error will be shown *when the node is mounted*, not deferred until the button is pressed, as it would be for actions bound using Interface Builder.
 
 ```swift
 func wasPressed() {
@@ -530,7 +530,7 @@ self.layoutNode = LayoutNode(
 )
 ```
 
-**Note:** there is currently no safe way to explicitly bind a delegate to the layoutNode's owner class. Attempting to pass `self` as a constant or state variable will result in a retain cycle (which is why owner-binding is done implicitly rather than manually).
+**Note:** There is currently no safe way to explicitly bind a delegate to the layoutNode's owner class. Attempting to pass `self` as a constant or state variable will result in a retain cycle (which is why owner-binding is done implicitly rather than manually).
 
 ## Animation
 
@@ -896,19 +896,19 @@ Like String and URL expressions, font expressions are treated as literal strings
 The `UIFont` class encapsulates the font family, size, weight and style, so a font expression can contain any or all of the following space-delimited attributes, in any order:
 
 ```
-bold
 italic
 condensed
 expanded
 monospace
 <font-name>
+<font-weight>
 <font-style>
 <font-size>
 ```
 
 Any font attribute that isn't specified will be set to the system default - currently San Francisco 17 point as of iOS 11.
 
-The `<font-name>` is a string. It is case-insensitive, and can represent either an exact font name, or a font family. The font name may contain spaces, and can optionally be enclosed in single or double quotes. Use "system" as the font name if you want to use the system font (although this is the default anyway if no name is specified). Here are some examples:
+The `<font-name>` is a string. It is case-insensitive, and can represent either an exact font name, or a font family. The font name may contain spaces, and can optionally be enclosed in single or double quotes. Use "System" as the font name if you want to use the system font (although this is the default anyway if no name is specified). You can also use "SystemBold" and "SystemItalic". Here are some examples:
 
 ```xml
 <UILabel font="Courier"/>
@@ -916,9 +916,38 @@ The `<font-name>` is a string. It is case-insensitive, and can represent either 
 <UILabel font="helvetica neue"/>
 
 <UILabel font="'times new roman'"/>
+
+<UILabel font="SystemBold"/>
 ```
 
-The `<font-style>` is a UIFontTextStyle constant, from the following list:
+The `<font-weight>` is a `UIFont.Weight` constant, from the following list:
+
+```swift
+ultraLight
+thin
+light
+regular
+medium
+semibold
+bold
+heavy
+black
+```
+
+Examples:
+
+```xml
+<UILabel font="Courier bold"/>
+
+<UILabel font="System black"/>
+
+<UILabel font="helvetica neue ultralight"/>
+```
+
+**Note:** Writing "SystemBold" is not the same as "System bold". The former is equivalent to `UIFont.boldSystemFont(ofSize: 17)` in Swift, and the latter is equivalent to `UIFont.systemFont(ofSize: 17, weight: .bold)`, which produces a different result (on iOS 11, anyway).
+
+
+The `<font-style>` is a `UIFontTextStyle` constant, from the following list:
 
 ```swift
 title1
@@ -1130,7 +1159,7 @@ loadLayout(
     ]
 )
 
-**Note:** there is currently no validation of the element types inside an array, so if you (for example) attempt to pass an array of strings to a property expecting an array of view controllers, the app won't display a Red Box error overlay, it will simply crash.
+**Note:** There is currently no validation of the element types inside an array, so if you (for example) attempt to pass an array of strings to a property expecting an array of view controllers, the app won't display a Red Box error overlay, it will simply crash.
 
 
 ## Optionals
@@ -1541,11 +1570,11 @@ class TableViewController: UIViewController, UITableViewDataSource, UITableViewD
 
 Layout supports dynamic table cell height calculation. To enable this, just set a height expression for your cell. Dynamic table cell sizing also requires that the table view's `rowHeight` is set to `UITableViewAutomaticDimension` and a nonzero value is provided for `estimatedRowHeight`, but Layout sets these for you by default.
 
-**Note:** if your cells all have the same height, it is significantly more efficient to set an explicit `rowHeight` property on the `UITableView` instead of setting the height for each cell.
+**Note:** If your cells all have the same height, it is significantly more efficient to set an explicit `rowHeight` property on the `UITableView` instead of setting the height for each cell.
 
 Layout also supports using XML layouts for `UITableViewHeaderFooterView`, and there are equivalent methods for registering and dequeuing `UITableViewHeaderFooterView` layout nodes.
 
-**Note:** to use a custom section header or footer you will need to set the `estimatedSectionHeaderHeight` or `estimatedSectionFooterHeight` to a nonzero value in your XML:
+**Note:** To use a custom section header or footer you will need to set the `estimatedSectionHeaderHeight` or `estimatedSectionFooterHeight` to a nonzero value in your XML:
 
 ```xml
 <UITableView estimatedSectionHeaderHeight="20">
@@ -1693,7 +1722,7 @@ To load a literal HTML string you can use the `htmlString` property:
 <UIWebView htmlString="{htmlConstant}"/>
 ```
 
-**Note:** if you specify a literal `htmlString` attribute in your Layout XML then you will have to encode the tags using `&lt;`, `&gt;` and `&quot;`. A better alternative is to use Layout's inline HTML feature (as described in the [Attributed Strings](#attributed-strings) section):
+**Note:** If you specify a literal `htmlString` attribute in your Layout XML then you will have to encode the tags using `&lt;`, `&gt;` and `&quot;`. A better alternative is to use Layout's inline HTML feature (as described in the [Attributed Strings](#attributed-strings) section):
 
 ```xml
 <UIWebView>
@@ -2023,7 +2052,7 @@ extension MyView {
 
 These overrides add "myProperty" to the list of known expressions for that view, and provide static setter and getter methods for the property.
 
-**Note:** the setter uses `setValue(_:forExpression:)` but the getter uses `value(_:forSymbol:)`. That's because not every symbol that can be read inside an expression can be set using an expression - for example, you might have read-only properties such as `safeAreaInsets` that are read-only, and therefore do not require a setter. Read-only properties should not be included in the `expressionTypes` dictionary.
+**Note:** The setter uses `setValue(_:forExpression:)` but the getter uses `value(_:forSymbol:)`. That's because not every symbol that can be read inside an expression can be set using an expression - for example, you might have read-only properties such as `safeAreaInsets` that are read-only, and therefore do not require a setter. Read-only properties should not be included in the `expressionTypes` dictionary.
 
 The `RuntimeType` class shown in the example is a type wrapper used by Layout to work around the limitations of the Swift type system. It can encapsulate information such as the list of possible values for a given enum, which it is not possible to determine automatically at runtime.
 
@@ -2119,7 +2148,7 @@ extension MyView {
 }
 ```
 
-**Note:** we are overriding the `parameterTypes` variable here instead of the `expressionTypes` variable we used earlier for implementing custom properties. The difference is that `parameterTypes` are for expressions that are only used for constructing the view, and can't be changed later. Parameter expressions will not be re-evaluated when `state` is updated.
+**Note:** We are overriding the `parameterTypes` variable here instead of the `expressionTypes` variable we used earlier for implementing custom properties. The difference is that `parameterTypes` are for expressions that are only used for constructing the view, and can't be changed later. Parameter expressions will not be re-evaluated when `state` is updated.
 
 The `create(with:)` method calls `value(forExpression:)` to get the value for the expression. This will return nil if the expression has not been set, so there is no need to check that separately.
 
@@ -2178,7 +2207,7 @@ extension MyView {
 }
 ```
 
-**Note:** the defaults for "width" and "height" should almost always be set to either "100%" or "auto". For views that have a fixed size, you might be tempted to set a specific numerical default width or height, but it's generally better to do that by overriding the `intrinsicContentSize` property instead, so that the view also works when used with regular AutoLayout instead of Layout:
+**Note:** The defaults for "width" and "height" should almost always be set to either "100%" or "auto". For views that have a fixed size, you might be tempted to set a specific numerical default width or height, but it's generally better to do that by overriding the `intrinsicContentSize` property instead, so that the view also works when used with regular AutoLayout instead of Layout:
 
 ```swift
 extension MyView {
@@ -2225,7 +2254,7 @@ class MyView: UIView, LayoutLoading {
 }
 ```
 
-**Note:** in the above example, the root view defined in the xml will be loaded as a *subview* of MyView, and will be automatically set to the same size. It would therefore probably not make sense for the root view in the xml to also be an instance of `MyView`, unless you want your view structure to be:
+**Note:** In the above example, the root view defined in the xml will be loaded as a *subview* of MyView, and will be automatically set to the same size. It would therefore probably not make sense for the root view in the xml to also be an instance of `MyView`, unless you want your view structure to be:
 
 ```xml
 <MyView>
@@ -2536,7 +2565,7 @@ LayoutTool also provides a function for renaming classes or expression variables
 
 Only class names and values inside expressions will be affected. Attributes (i.e. expression names) are ignored, along with HTML elements and literal string fragments.
 
-**Note:** performing a rename also applies standard formatting to the file. There is currently no way to disable this.
+**Note:** Performing a rename also applies standard formatting to the file. There is currently no way to disable this.
 
 
 # Xcode Extension

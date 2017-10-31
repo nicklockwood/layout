@@ -117,6 +117,7 @@
 		0192A6CF1FA73BA300A30FDA /* FileTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0192A6CE1FA73BA300A30FDA /* FileTests.swift */; };
 		0192A6D31FA77ED000A30FDA /* LayoutLoaderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0192A6D21FA77ED000A30FDA /* LayoutLoaderTests.swift */; };
 		0192A6D51FA7A7D400A30FDA /* AttributedStringExpressionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0192A6D41FA7A7D400A30FDA /* AttributedStringExpressionTests.swift */; };
+		0192A6D71FA86D5C00A30FDA /* UIFont+Layout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0192A6D61FA86D5C00A30FDA /* UIFont+Layout.swift */; };
 		01B131641F617E6600B426BB /* Symbols.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01EAFD7F1F60649500B73E92 /* Symbols.swift */; };
 		01B1316C1F627E0700B426BB /* ValidationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01B1316B1F627E0700B426BB /* ValidationTests.swift */; };
 		01B1316E1F629F0700B426BB /* XMLNode+Layout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01B1316D1F629F0700B426BB /* XMLNode+Layout.swift */; };
@@ -353,6 +354,7 @@
 		0192A6CE1FA73BA300A30FDA /* FileTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileTests.swift; sourceTree = "<group>"; };
 		0192A6D21FA77ED000A30FDA /* LayoutLoaderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayoutLoaderTests.swift; sourceTree = "<group>"; };
 		0192A6D41FA7A7D400A30FDA /* AttributedStringExpressionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttributedStringExpressionTests.swift; sourceTree = "<group>"; };
+		0192A6D61FA86D5C00A30FDA /* UIFont+Layout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIFont+Layout.swift"; sourceTree = "<group>"; };
 		01B1316B1F627E0700B426BB /* ValidationTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ValidationTests.swift; sourceTree = "<group>"; };
 		01B1316D1F629F0700B426BB /* XMLNode+Layout.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "XMLNode+Layout.swift"; sourceTree = "<group>"; };
 		01BD7E2F1F9DED54007BB03B /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -577,6 +579,7 @@
 				0105F7851F0547910067B313 /* Properties.swift */,
 				015498861F4352620030A6A2 /* RuntimeType.swift */,
 				018E49701F9F3AD100ABADBC /* RuntimeTypes.swift */,
+				0192A6D61FA86D5C00A30FDA /* UIFont+Layout.swift */,
 				0105F7861F0547910067B313 /* UITableView+Layout.swift */,
 				01185CCF1F34E04600D34EA7 /* UICollectionView+Layout.swift */,
 				01185CCD1F334B0B00D34EA7 /* UIStackView+Layout.swift */,
@@ -1321,6 +1324,7 @@
 				011EC5921F40A2E200BFA229 /* XMLParser.swift in Sources */,
 				0105F7911F0547910067B313 /* Optional+Layout.swift in Sources */,
 				0105F78A1F0547910067B313 /* LayoutError.swift in Sources */,
+				0192A6D71FA86D5C00A30FDA /* UIFont+Layout.swift in Sources */,
 				01185CCE1F334B0B00D34EA7 /* UIStackView+Layout.swift in Sources */,
 				0105F7901F0547910067B313 /* LayoutViewController.swift in Sources */,
 				01E7E0491F1A96F600B7F9DB /* Layout.swift in Sources */,

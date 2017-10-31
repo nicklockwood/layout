@@ -142,6 +142,34 @@ extension UIEdgeInsets {
         static let paragraphStyle = NSParagraphStyleAttributeName
     }
 
+    extension UIFont {
+        typealias Weight = UIFontWeight
+    }
+
+    extension UIFont.Weight {
+        static let ultraLight = UIFontWeightUltraLight
+        static let thin = UIFontWeightThin
+        static let light = UIFontWeightLight
+        static let regular = UIFontWeightRegular
+        static let medium = UIFontWeightMedium
+        static let semibold = UIFontWeightSemibold
+        static let bold = UIFontWeightBold
+        static let heavy = UIFontWeightHeavy
+        static let black = UIFontWeightBlack
+    }
+
+    extension UIFontDescriptor {
+        struct AttributeName {
+            static let traits = UIFontDescriptorTraitsAttribute
+        }
+
+        typealias TraitKey = String
+    }
+
+    extension UIFontDescriptor.TraitKey {
+        static let weight = UIFontWeightTrait
+    }
+
     extension UILayoutPriority {
         var rawValue: Float { return self }
         init(rawValue: Float) { self = rawValue }
