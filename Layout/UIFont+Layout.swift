@@ -59,8 +59,12 @@ extension UIFont {
             if traits.contains(.traitMonoSpace), let font = UIFont(name: "Courier", size: fontSize) {
                 return font
             }
+            if traits.contains(.traitBold) {
+                return boldSystemFont(ofSize: fontSize)
+            }
             return systemFont(ofSize: fontSize, weight: weight ?? .regular)
         }()
+        let weight = weight ?? font.fontWeight
         let fontNames = UIFont.fontNames(forFamilyName: font.familyName)
         if fontNames.isEmpty {
             let fontTraits = font.fontDescriptor.symbolicTraits.union(traits)
@@ -69,11 +73,11 @@ extension UIFont {
             }
         }
         var bestMatch = UIFont(descriptor: font.fontDescriptor, size: fontSize)
-        var bestMatchQuality = 0
+        var bestMatchQuality = -Double.infinity
         for name in fontNames {
             let font = UIFont(name: name, size: fontSize)!
             let fontTraits = font.fontDescriptor.symbolicTraits
-            var matchQuality = 0
+            var matchQuality = 0.0
             for trait in [
                 // NOTE: traitBold is handled using weight argument
                 .traitCondensed,
@@ -86,9 +90,7 @@ extension UIFont {
             if fontTraits.contains(.traitItalic), !traits.contains(.traitItalic) {
                 matchQuality -= 1
             }
-            if font.fontWeight == weight {
-                matchQuality += 1
-            }
+            matchQuality -= abs(Double(truncating: font.fontWeight as NSNumber) - Double(truncating: weight as NSNumber))
             if matchQuality > bestMatchQuality {
                 bestMatchQuality = matchQuality
                 bestMatch = font

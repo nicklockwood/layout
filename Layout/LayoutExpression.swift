@@ -621,12 +621,8 @@ struct LayoutExpression {
             if let font = UIFont(name: name, size: UIFont.defaultSize) {
                 return font
             }
-            let name = name.lowercased()
-            if let familyName = UIFont.familyNames.first(where: {
-                $0.lowercased() == name
-            }), let fontName = UIFont.fontNames(forFamilyName: familyName).first,
-                let font = UIFont(name: fontName, size: UIFont.defaultSize) {
-                return font
+            if let fontName = UIFont.fontNames(forFamilyName: name).first {
+                return UIFont(name: fontName, size: UIFont.defaultSize)
             }
             return nil
         }
@@ -648,7 +644,7 @@ struct LayoutExpression {
                 return UIFont.boldSystemFont(ofSize: UIFont.defaultSize)
             case "systemitalic", "system-italic":
                 return UIFont.italicSystemFont(ofSize: UIFont.defaultSize)
-            case "ultralight":
+            case "ultralight": // Helper, since the real attribute is mixed case
                 return UIFont.Weight.ultraLight
             default:
                 if let size = Double(string) {
@@ -691,7 +687,7 @@ struct LayoutExpression {
                                         let string = String(result)
                                         result.removeAll()
                                         guard let part = font(named: string) else {
-                                            throw Expression.Error.message("Invalid font specifier `\(string)`")
+                                            throw Expression.Error.message("Invalid font name or specifier `\(string)`")
                                         }
                                         fontName = string
                                         parts.append(part)
@@ -729,7 +725,7 @@ struct LayoutExpression {
                         if !result.isEmpty {
                             let string = String(result)
                             guard let part = fontPart(for: string) else {
-                                throw Expression.Error.message("Invalid font specifier `\(string)`")
+                                throw Expression.Error.message("Invalid font name or specifier `\(string)`")
                             }
                             parts.append(part)
                         }

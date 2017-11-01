@@ -116,6 +116,20 @@ class FontExpressionTests: XCTestCase {
         XCTAssertEqual(try expression?.evaluate() as? UIFont, expected)
     }
 
+    func testBlackEscapedFontNameWithSpaces() {
+        let node = LayoutNode()
+        let expression = LayoutExpression(fontExpression: "'helvetica neue' black", for: node)
+        let expected = UIFont(name: "HelveticaNeue-CondensedBlack", size: UIFont.defaultSize)!
+        XCTAssertEqual(try expression?.evaluate() as? UIFont, expected)
+    }
+
+    func testUltralightEscapedFontNameWithSpaces() {
+        let node = LayoutNode()
+        let expression = LayoutExpression(fontExpression: "'helvetica neue' ultralight", for: node)
+        let expected = UIFont(name: "HelveticaNeue-UltraLight", size: UIFont.defaultSize)!
+        XCTAssertEqual(try expression?.evaluate() as? UIFont, expected)
+    }
+
     func testBoldUnescapedFontNameWithSpaces() {
         let node = LayoutNode()
         let name = "helvetica neue"
@@ -126,18 +140,18 @@ class FontExpressionTests: XCTestCase {
         XCTAssertEqual(try expression?.evaluate() as? UIFont, expected)
     }
 
-    func testExplicitFontWithBlackAttribute() {
-        let font = UIFont(name: "HelveticaNeue-CondensedBlack", size: 15)!
-        let node = LayoutNode(constants: ["font": font])
-        let expression = LayoutExpression(fontExpression: "{font} black", for: node)
-        XCTAssertEqual(try expression?.evaluate() as? UIFont, font)
+    func testBlackUnescapedFontNameWithSpaces() {
+        let node = LayoutNode()
+        let expression = LayoutExpression(fontExpression: "helvetica neue black", for: node)
+        let expected = UIFont(name: "HelveticaNeue-CondensedBlack", size: UIFont.defaultSize)!
+        XCTAssertEqual(try expression?.evaluate() as? UIFont, expected)
     }
 
-    func testExplicitFontWithUltralightAttribute() {
-        let font = UIFont(name: "HelveticaNeue-UltraLight", size: 15)!
-        let node = LayoutNode(constants: ["font": font])
-        let expression = LayoutExpression(fontExpression: "{font} ultraLight", for: node)
-        XCTAssertEqual(try expression?.evaluate() as? UIFont, font)
+    func testUltralightUnescapedFontNameWithSpaces() {
+        let node = LayoutNode()
+        let expression = LayoutExpression(fontExpression: "helvetica neue ultralight", for: node)
+        let expected = UIFont(name: "HelveticaNeue-UltraLight", size: UIFont.defaultSize)!
+        XCTAssertEqual(try expression?.evaluate() as? UIFont, expected)
     }
 
     func testExplicitFontWithBoldAttributes() {
@@ -200,7 +214,7 @@ class FontExpressionTests: XCTestCase {
         let node = LayoutNode()
         let expression = LayoutExpression(fontExpression: "bold 10 foo", for: node)
         XCTAssertThrowsError(try expression?.evaluate()) { error in
-            XCTAssertTrue("\(error)".contains("Invalid font specifier"))
+            XCTAssertTrue("\(error)".contains("Invalid font name or specifier"))
         }
     }
 }
