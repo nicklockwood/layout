@@ -260,7 +260,7 @@ class LayoutLoader {
         var layout: Layout?
         queue.sync { layout = cache[_xmlURL] }
         if let layout = layout {
-            completion(layout, nil)
+            layout.processTemplates(completion: completion)
             return
         }
 
