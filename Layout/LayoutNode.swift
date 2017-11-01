@@ -195,7 +195,7 @@ public class LayoutNode: NSObject {
         change: [NSKeyValueChangeKey: Any]?,
         context _: UnsafeMutableRawPointer?
     ) {
-        guard _setupComplete, _updateLock == 0, let new = change?[.newKey] else {
+        guard _setupComplete, _updateLock == 0, _evaluating.isEmpty, let new = change?[.newKey] else {
             return
         }
         switch new {
@@ -205,7 +205,8 @@ public class LayoutNode: NSObject {
                 while let parent = root.parent {
                     root = parent
                 }
-                if root._view?.superview != nil {
+                if root._view?.superview != nil, root._setupComplete,
+                    root._updateLock == 0, root._evaluating.isEmpty {
                     root.update()
                 }
             }
