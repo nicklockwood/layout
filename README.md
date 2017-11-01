@@ -896,11 +896,8 @@ Like String and URL expressions, font expressions are treated as literal strings
 The `UIFont` class encapsulates the font family, size, weight and style, so a font expression can contain any or all of the following space-delimited attributes, in any order:
 
 ```
-italic
-condensed
-expanded
-monospace
 <font-name>
+<font-traits>
 <font-weight>
 <font-style>
 <font-size>
@@ -908,7 +905,7 @@ monospace
 
 Any font attribute that isn't specified will be set to the system default - currently San Francisco 17 point as of iOS 11.
 
-The `<font-name>` is a string. It is case-insensitive, and can represent either an exact font name, or a font family. The font name may contain spaces, and can optionally be enclosed in single or double quotes. Use "System" as the font name if you want to use the system font (although this is the default anyway if no name is specified). You can also use "SystemBold" and "SystemItalic". Here are some examples:
+The `<font-name>` is a string. It is case-insensitive and can represent either an exact font name, or a font family name. The font name is permitted to contain spaces, and can optionally be enclosed in single quotes. Use "System" as the font name if you want to use the system font (although this is the default anyway if no name is specified). You can also use "SystemBold" and "SystemItalic". Here are some examples:
 
 ```xml
 <UILabel font="Courier"/>
@@ -918,6 +915,23 @@ The `<font-name>` is a string. It is case-insensitive, and can represent either 
 <UILabel font="'times new roman'"/>
 
 <UILabel font="SystemBold"/>
+```
+
+The `<font-traits>` are values of type `UIFontDescriptorSymbolicTraits`. The following traits are supported:
+
+```swift
+italic
+condensed
+expanded
+monospace
+```
+
+A given font expression may include multiple traits. Note that the `bold` trait is not supported, because `bold` is treated as a `<font-weight>` value instead. If, for some reason, you wish to specify the bold trait instead of the bold weight, you can do so by using the fully-qualified trait name inside braces:
+
+```xml
+<UILabel text="Font with bold trait" font="{UIFontDescriptorSymbolicTraits.traitBold}"/>
+
+<UILabel text="Font with bold weight" font="bold"/>
 ```
 
 The `<font-weight>` is a `UIFont.Weight` constant, from the following list:
@@ -941,11 +955,10 @@ Examples:
 
 <UILabel font="System black"/>
 
-<UILabel font="helvetica neue ultralight"/>
+<UILabel font="helvetica neue ultraLight"/>
 ```
 
-**Note:** Writing "SystemBold" is not the same as "System bold". The former is equivalent to `UIFont.boldSystemFont(ofSize: 17)` in Swift, and the latter is equivalent to `UIFont.systemFont(ofSize: 17, weight: .bold)`, which produces a different result (on iOS 11, anyway).
-
+**Note:** Writing "SystemBold" is not the same as "System bold". The former is equivalent to `UIFont.boldSystemFont(ofSize: 17)` in Swift, and uses the bold *trait* (see above), the latter is equivalent to `UIFont.systemFont(ofSize: 17, weight: .bold)` and uses the bold *weight* which produces a different result.
 
 The `<font-style>` is a `UIFontTextStyle` constant, from the following list:
 
