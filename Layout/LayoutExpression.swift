@@ -618,11 +618,14 @@ struct LayoutExpression {
         }
 
         func font(named name: String) -> UIFont? {
-            if let font = UIFont(name: name, size: UIFont.defaultSize) {
+            if let font = UIFont(name: name, size: UIFont.defaultSize),
+                font.fontName.lowercased() == name.lowercased() {
                 return font
             }
-            if let fontName = UIFont.fontNames(forFamilyName: name).first {
-                return UIFont(name: fontName, size: UIFont.defaultSize)
+            if let fontName = UIFont.fontNames(forFamilyName: name).first,
+                let font = UIFont(name: fontName, size: UIFont.defaultSize) {
+                let descriptor = UIFontDescriptor().withFamily(font.familyName)
+                return UIFont(descriptor: descriptor, size: UIFont.defaultSize)
             }
             return nil
         }
@@ -679,9 +682,39 @@ struct LayoutExpression {
                         var result = String.UnicodeScalarView()
                         var delimiter: UnicodeScalar?
                         var fontName: String?
+                        func processResult() -> Bool {
+                            if !result.isEmpty {
+                                let resultString = String(result)
+                                result.removeAll()
+                                if let prevName = fontName {
+                                    // Might form a longer font name with the previous part
+                                    fontName = "\(prevName) \(resultString)"
+                                    if let part = font(named: fontName!) {
+                                        if parts.last is UIFont {
+                                            parts.removeLast()
+                                        }
+                                        parts.append(part)
+                                        return true
+                                    } else if fontPart(for: resultString) != nil, fontPart(for: prevName) == nil {
+                                        // Error: prevName was not a valid specifier
+                                        string = prevName
+                                        return false
+                                    }
+                                } else {
+                                    fontName = resultString
+                                }
+                                if let part = fontPart(for: resultString) {
+                                    fontName = part is UIFont ? resultString : nil
+                                    parts.append(part)
+                                    return true
+                                }
+                                return false
+                            }
+                            return true
+                        }
                         while let char = characters.popFirst() {
                             switch char {
-                            case "'", "\"":
+                            case "'", "\"", "`":
                                 if char == delimiter {
                                     if !result.isEmpty {
                                         let string = String(result)
@@ -700,34 +733,13 @@ struct LayoutExpression {
                                 if delimiter != nil {
                                     fallthrough
                                 }
-                                if !result.isEmpty {
-                                    let string = String(result)
-                                    result.removeAll()
-                                    if let part = fontPart(for: string) {
-                                        fontName = part is UIFont ? string : nil
-                                        parts.append(part)
-                                    } else if let prevName = fontName {
-                                        // Might form a longer font name with the previous part
-                                        fontName = "\(prevName) \(string)"
-                                        if let part = font(named: fontName!) {
-                                            fontName = nil
-                                            parts.removeLast()
-                                            parts.append(part)
-                                        }
-                                    } else {
-                                        fontName = string
-                                    }
-                                }
+                                _ = processResult()
                             default:
                                 result.append(char)
                             }
                         }
-                        if !result.isEmpty {
-                            let string = String(result)
-                            guard let part = fontPart(for: string) else {
-                                throw Expression.Error.message("Invalid font name or specifier `\(string)`")
-                            }
-                            parts.append(part)
+                        if !processResult() {
+                            throw Expression.Error.message("Invalid font name or specifier `\(string)`")
                         }
                         string = ""
                     }

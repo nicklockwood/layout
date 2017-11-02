@@ -147,6 +147,13 @@ class FontExpressionTests: XCTestCase {
         XCTAssertEqual(try expression?.evaluate() as? UIFont, expected)
     }
 
+    func testBlackUnescapedFontNameWithSpaces2() {
+        let node = LayoutNode()
+        let expression = LayoutExpression(fontExpression: "Apple SD Gothic Neo light", for: node)
+        let expected = UIFont(name: "AppleSDGothicNeo-Light", size: UIFont.defaultSize)!
+        XCTAssertEqual(try expression?.evaluate() as? UIFont, expected)
+    }
+
     func testUltralightUnescapedFontNameWithSpaces() {
         let node = LayoutNode()
         let expression = LayoutExpression(fontExpression: "helvetica neue ultralight", for: node)
@@ -215,6 +222,65 @@ class FontExpressionTests: XCTestCase {
         let expression = LayoutExpression(fontExpression: "bold 10 foo", for: node)
         XCTAssertThrowsError(try expression?.evaluate()) { error in
             XCTAssertTrue("\(error)".contains("Invalid font name or specifier"))
+        }
+    }
+
+    func testInvalidSpecifier2() {
+        let node = LayoutNode()
+        let expression = LayoutExpression(fontExpression: "Heiti SC weight", for: node)
+        XCTAssertThrowsError(try expression?.evaluate()) { error in
+            XCTAssertTrue("\(error)".contains("Invalid font name or specifier"))
+        }
+    }
+
+    func testInvalidFont() {
+        let node = LayoutNode()
+        let expression = LayoutExpression(fontExpression: "foobar", for: node)
+        XCTAssertThrowsError(try expression?.evaluate()) { error in
+            XCTAssertTrue("\(error)".contains("Invalid font name or specifier"))
+        }
+    }
+
+    func testInvalidFont2() {
+        let node = LayoutNode()
+        let expression = LayoutExpression(fontExpression: "foobar 20", for: node)
+        XCTAssertThrowsError(try expression?.evaluate()) { error in
+            XCTAssertTrue("\(error)".contains("Invalid font name or specifier"))
+        }
+    }
+
+    func testAmbiguousFamilyName() {
+        let node = LayoutNode()
+        let familyName = "Avenir Next Condensed"
+        let expression = LayoutExpression(fontExpression: "\(familyName) bold", for: node)
+        XCTAssertEqual((try expression?.evaluate() as? UIFont)?.familyName, familyName)
+        XCTAssertEqual((try expression?.evaluate() as? UIFont)?.fontWeight, .bold)
+    }
+
+    func testAmbiguousFamilyName2() {
+        let node = LayoutNode()
+        let familyName = "Avenir Next Condensed"
+        let expression = LayoutExpression(fontExpression: "\(familyName) heavy", for: node)
+        XCTAssertEqual((try expression?.evaluate() as? UIFont)?.familyName, familyName)
+        XCTAssertEqual((try expression?.evaluate() as? UIFont)?.fontWeight, .heavy)
+    }
+
+    func testBuiltInFontWeights() {
+        let node = LayoutNode()
+        for familyName in UIFont.familyNames {
+            for weightKey in RuntimeType.uiFont_Weight.values.keys {
+                let expression = LayoutExpression(fontExpression: "\(familyName) \(weightKey)", for: node)
+                let expected = UIFont.fontNames(forFamilyName: familyName).filter({
+                    $0.lowercased().contains("-\(weightKey.lowercased())")
+                })
+                if !expected.isEmpty {
+                    let name = try! (expression!.evaluate() as! UIFont).fontName
+                    if !expected.contains(name) {
+                        print("")
+                    }
+                    XCTAssertTrue(expected.contains(name), "\(expected) does not contain \(name)")
+                }
+            }
         }
     }
 }

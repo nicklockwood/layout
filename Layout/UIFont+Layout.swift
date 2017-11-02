@@ -2,6 +2,23 @@
 
 import UIKit
 
+private var fontWeights = [String: UIFont.Weight]()
+private let weightsBySuffix: [(String, UIFont.Weight)] = [
+    ("normal", .regular),
+    ("ultralight", .ultraLight),
+    ("thin", .thin),
+    ("light", .light),
+    ("regular", .regular),
+    ("medium", .medium),
+    ("semibold", .semibold),
+    ("demibold", .semibold),
+    ("extrabold", .heavy),
+    ("ultrabold", .heavy),
+    ("bold", .bold),
+    ("heavy", .heavy),
+    ("black", .black),
+]
+
 extension UIFont {
 
     // This is the actual default font size on iOS
@@ -13,10 +30,26 @@ extension UIFont {
     }
 
     var fontWeight: UIFont.Weight {
+        assert(Thread.isMainThread)
+        // Check cache
+        if let weight = fontWeights[fontName] {
+            return weight
+        }
+        // Do string-based match first, as this is more reliable
+        let name = fontName.lowercased()
+        for (suffix, weight) in weightsBySuffix {
+            if name.contains(suffix) {
+                fontWeights[fontName] = weight
+                return weight
+            }
+        }
+        // Use the weight attribute as a fallback, but this is not very reliable for 3rd party fonts
         guard let traits = fontDescriptor.object(forKey: UIFontDescriptor.AttributeName.traits) as? [UIFontDescriptor.TraitKey: Any],
             let weight = traits[UIFontDescriptor.TraitKey.weight] as? UIFont.Weight else {
+            fontWeights[fontName] = .regular
             return UIFont.Weight.regular
         }
+        fontWeights[fontName] = weight
         return weight
     }
 
@@ -84,11 +117,14 @@ extension UIFont {
                 .traitExpanded,
                 .traitItalic,
                 .traitMonoSpace,
-            ] as [UIFontDescriptorSymbolicTraits] where traits.contains(trait) && fontTraits.contains(trait) {
-                matchQuality += 1
-            }
-            if fontTraits.contains(.traitItalic), !traits.contains(.traitItalic) {
-                matchQuality -= 1
+            ] as [UIFontDescriptorSymbolicTraits] {
+                if traits.contains(trait) {
+                    if fontTraits.contains(trait) {
+                        matchQuality += 1
+                    }
+                } else if fontTraits.contains(trait) {
+                    matchQuality -= 0.1
+                }
             }
             matchQuality -= abs(Double(truncating: font.fontWeight as NSNumber) - Double(truncating: weight as NSNumber))
             if matchQuality > bestMatchQuality {
