@@ -15,7 +15,7 @@ public class RuntimeType: NSObject {
         case `enum`(Any.Type, [String: AnyHashable])
         case options(Any.Type, [String: Any])
 
-        public static func ==(lhs: Kind, rhs: Kind) -> Bool {
+        public static func == (lhs: Kind, rhs: Kind) -> Bool {
             return lhs.description == rhs.description
         }
 
@@ -40,7 +40,7 @@ public class RuntimeType: NSObject {
         case available
         case unavailable(reason: String?)
 
-        public static func ==(lhs: Availability, rhs: Availability) -> Bool {
+        public static func == (lhs: Availability, rhs: Availability) -> Bool {
             switch (lhs, rhs) {
             case (.available, .available):
                 return true
@@ -80,7 +80,7 @@ public class RuntimeType: NSObject {
     }
 
     public var values: [String: Any] {
-        switch self.type {
+        switch type {
         case let .enum(_, values):
             return values as [String: Any]
         case let .options(_, values):

@@ -59,10 +59,10 @@ extension UIScrollView {
     open override func setValue(_ value: Any, forExpression name: String) throws {
         switch name {
         case "contentInsetAdjustmentBehavior":
+            // Does nothing on iOS 10 and earlier
             if #available(iOS 11.0, *) {
                 fallthrough
             }
-            // Does nothing on iOS 10 and earlier
         default:
             try super.setValue(value, forExpression: name)
         }

@@ -354,7 +354,6 @@ class LayoutLoader {
         }
         return url
     }
-
 }
 
 #if arch(i386) || arch(x86_64)
@@ -392,7 +391,7 @@ class LayoutLoader {
         if let projectDirectory = _projectDirectory, path.hasPrefix(projectDirectory.path) {
             return projectDirectory
         }
-        
+
         var url = URL(fileURLWithPath: path).standardizedFileURL
         if !url.hasDirectoryPath {
             url.deleteLastPathComponent()

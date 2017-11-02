@@ -671,10 +671,10 @@ extension UITextField {
                 }
             #endif
         case "textDragDelegate", "textDropDelegate", "textDragOptions":
+            // Does nothing on iOS 10 and earlier
             if #available(iOS 11.0, *) {
                 fallthrough
             }
-            // Does nothing on iOS 10
         default:
             try super.setValue(value, forExpression: name)
         }
@@ -750,10 +750,10 @@ extension UITextView {
                 }
             #endif
         case "textDragDelegate", "textDropDelegate", "textDragOptions":
+            // Does nothing on iOS 10 and earlier
             if #available(iOS 11.0, *) {
                 fallthrough
             }
-            // Does nothing on iOS 10
         default:
             try super.setValue(value, forExpression: name)
         }
@@ -1419,10 +1419,10 @@ extension WKWebView {
         case "configuration.dataDetectorTypes",
              "configuration.mediaTypesRequiringUserActionForPlayback",
              "configuration.ignoresViewportScaleLimits":
+            // Does nothing on iOS 10 and earlier
             if #available(iOS 10, *) {
                 fallthrough
             }
-            // Does nothing on iOS 10
         default:
             try super.setValue(value, forExpression: name)
         }

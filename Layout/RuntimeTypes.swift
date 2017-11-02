@@ -625,7 +625,6 @@ public extension RuntimeType {
         ] as [String: UIStackViewAlignment])
     }
 
-
     // MARK: UITableView
     @objc class var uiTableViewCellAccessoryType: RuntimeType {
         return RuntimeType([

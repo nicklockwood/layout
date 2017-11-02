@@ -15,7 +15,7 @@ class FileTests: XCTestCase {
     }
 
     func testLoadMalformedIgnoreFile() {
-         let inputURL = URL(fileURLWithPath: #file)
+        let inputURL = URL(fileURLWithPath: #file)
             .deletingLastPathComponent()
             .appendingPathComponent("UTF16.txt")
         XCTAssertThrowsError(try parseIgnoreFile(inputURL)) { error in

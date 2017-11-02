@@ -248,7 +248,7 @@ public enum LayoutError: Error, Hashable, CustomStringConvertible {
         return description.hashValue
     }
 
-    public static func ==(lhs: LayoutError, rhs: LayoutError) -> Bool {
+    public static func == (lhs: LayoutError, rhs: LayoutError) -> Bool {
         return lhs.description == rhs.description
     }
 

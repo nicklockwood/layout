@@ -1,5 +1,14 @@
 # Change Log
 
+## [0.5.9](https://github.com/schibsted/layout/releases/tag/0.5.9) (2017-11-02)
+
+- Fixed assertion failure caused by view layout triggering during a Layout update
+- Fixed bug where nested XML templates sometimes failed to load correctly on second use
+- Improved font name and weight matching, especially when using custom fonts
+- Font weight matching will now match the closest available weight instead of requiring and exact match
+- Setting the `style` property is now permitted for `UITableViewCell` subclasses
+- Improved font expression documentation
+
 ## [0.5.8](https://github.com/schibsted/layout/releases/tag/0.5.8) (2017-10-31)
 
 - Fixed layout glitch after live reloading `UIStackView`-based layouts

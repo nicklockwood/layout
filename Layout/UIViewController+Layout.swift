@@ -450,10 +450,10 @@ extension UINavigationBar: TitleTextAttributes {
             }
             delegate = value as? UINavigationBarDelegate
         case "prefersLargeTitles":
+            // Does nothing on iOS 10 and earlier
             if #available(iOS 11.0, *) {
                 fallthrough
             }
-            // Does nothing on iOS 10 and earlier
         default:
             try _setValue(value, ofType: type(of: self).cachedExpressionTypes[name], forKeyPath: name)
         }
@@ -699,10 +699,10 @@ extension UIImagePickerController {
     open override func setValue(_ value: Any, forExpression name: String) throws {
         switch name {
         case "imageExportPreset":
+            // Does nothing on iOS 10 and earlier
             if #available(iOS 11.0, *) {
                 fallthrough
             }
-            // Does nothing on iOS 10
         default:
             try super.setValue(value, forExpression: name)
         }
@@ -746,10 +746,10 @@ extension UISplitViewController {
     open override func setValue(_ value: Any, forExpression name: String) throws {
         switch name {
         case "primaryEdge":
+            // Does nothing on iOS 10 and earlier
             if #available(iOS 11.0, *) {
                 fallthrough
             }
-            // Does nothing on iOS 10 and earlier
         default:
             try _setValue(value, ofType: type(of: self).cachedExpressionTypes[name], forKeyPath: name)
         }
