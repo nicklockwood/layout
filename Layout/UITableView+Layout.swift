@@ -420,9 +420,11 @@ extension UITableView {
                     state: state,
                     constants: constants
                 )
-                if node._view == nil, node.viewClass != UITableViewCell.self, node.expressions["style"] != nil {
-                    throw Expression.Error.message("Setting style for UITableViewCell subclasses is not supported")
-                }
+                #if !swift(>=3.2)
+                    if node._view == nil, node.viewClass != UITableViewCell.self, node.expressions["style"] != nil {
+                        throw Expression.Error.message("Setting style for UITableViewCell subclasses is not supported")
+                    }
+                #endif
                 var nodes = objc_getAssociatedObject(self, &nodesKey) as? NSMutableArray
                 if nodes == nil {
                     nodes = []
@@ -552,12 +554,16 @@ extension UITableViewCell {
         let style = try node.value(forExpression: "style") as? UITableViewCellStyle ?? .default
         let reuseIdentifier = try node.value(forExpression: "reuseIdentifier") as? String
         let cell: UITableViewCell
-        if self == UITableViewCell.self {
-            cell = UITableViewCell(style: style, reuseIdentifier: reuseIdentifier)
-        } else {
-            cell = self.init() // Workaround for `self.init(style:reuseIdentifier:)` causing build failure
-            cell.setValue(reuseIdentifier, forKey: "reuseIdentifier")
-        }
+        #if swift(>=3.2)
+            cell = self.init(style: style, reuseIdentifier: reuseIdentifier)
+        #else
+            if self == UITableViewCell.self {
+                cell = UITableViewCell(style: style, reuseIdentifier: reuseIdentifier)
+            } else {
+                cell = self.init() // Workaround for `self.init(style:reuseIdentifier:)` causing build failure
+                cell.setValue(reuseIdentifier, forKey: "reuseIdentifier")
+            }
+        #endif
         if node.expressions.keys.contains(where: { $0.hasPrefix("backgroundView.") }),
             !node.expressions.keys.contains("backgroundView") {
             // Add a backgroundView view if required
