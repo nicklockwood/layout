@@ -100,7 +100,7 @@ func parseStringExpression(_ expression: String) throws -> [ParsedExpressionPart
                 let comment = characters.readComment(upTo: "}")
                 parts.append(.expression(ParsedLayoutExpression(parsedExpression, comment: comment)))
                 if characters.first != "}" {
-                    fallthrough
+                    throw Expression.Error.message("Missing `}`")
                 }
                 characters.removeFirst()
             case "}":
