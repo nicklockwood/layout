@@ -529,6 +529,7 @@ public class LayoutNode: NSObject {
     /// The previous sibling of the node within its parent
     /// Returns nil if this is a root node, or is the first child of its parent
     var previous: LayoutNode? {
+        assert(_setupComplete)
         if let siblings = parent?.children, let index = siblings.index(where: { $0 === self }), index > 0 {
             return siblings[index - 1]
         }
@@ -538,6 +539,7 @@ public class LayoutNode: NSObject {
     /// The next sibling of the node within its parent
     /// Returns nil if this is a root node, or is the last child of its parent
     var next: LayoutNode? {
+        assert(_setupComplete)
         if let siblings = parent?.children, let index = siblings.index(where: { $0 === self }),
             index < siblings.count - 1 {
             return siblings[index + 1]
@@ -546,17 +548,39 @@ public class LayoutNode: NSObject {
     }
 
     // Find a node by id, starting with the children and then progressing to siblings and parents
-    private func node(forID id: String, excluding: LayoutNode? = nil) -> LayoutNode? {
+    func node(withID id: String, excluding: LayoutNode? = nil) -> LayoutNode? {
+        assert(_setupComplete)
         if self.id == id {
             return self
         }
         for child in children where child !== excluding {
-            if let match = child.node(forID: id, excluding: self) {
+            if let match = child.node(withID: id, excluding: self) {
                 return match
             }
         }
         if parent != excluding {
-            return parent?.node(forID: id, excluding: self)
+            return parent?.node(withID: id, excluding: self)
+        }
+        return nil
+    }
+
+    /// Find all children with matching id
+    public func children(withID id: String) -> [LayoutNode] {
+        return children.flatMap { child -> [LayoutNode] in
+            let matches = child.children(withID: id)
+            return child.id == id ? [child] + matches : matches
+        }
+    }
+
+    /// Perform a depth-first search for a child node with matching id
+    public func childNode(withID id: String) -> LayoutNode? {
+        for child in children {
+            if child.id == id {
+                return child
+            }
+            if let match = child.childNode(withID: id) {
+                return match
+            }
         }
         return nil
     }
@@ -1343,7 +1367,7 @@ public class LayoutNode: NSObject {
                     }
                 case let head where head.hasPrefix("#"):
                     let id = String(head.characters.dropFirst())
-                    if let node = self.node(forID: id) {
+                    if let node = self.node(withID: id) {
                         getter = { [unowned node] in
                             try node.value(forSymbol: tail) as Any
                         }

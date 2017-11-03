@@ -378,7 +378,112 @@ class LayoutNodeTests: XCTestCase {
         XCTAssertEqual(scrollView.contentInset.top, 5)
     }
 
+    // MARK: node lookup
+
+    func testFindChild() {
+        let child = LayoutNode(id: "bar")
+        let parent = LayoutNode(id: "foo", children: [child])
+        XCTAssertEqual(parent.childNode(withID: "bar"), child)
+        XCTAssertEqual(parent.children(withID: "bar"), [child])
+        parent.update()
+        XCTAssertEqual(parent.node(withID: "bar"), child)
+    }
+
+    func testFindChildren() {
+        let child1 = LayoutNode(id: "bar")
+        let child2 = LayoutNode(id: "bar")
+        let parent = LayoutNode(id: "foo", children: [child1, child2])
+        XCTAssertEqual(parent.childNode(withID: "bar"), child1)
+        XCTAssertEqual(parent.children(withID: "bar"), [child1, child2])
+        parent.update()
+        XCTAssertEqual(parent.node(withID: "bar"), child1)
+    }
+
+    func testFindGrandchild() {
+        let grandchild = LayoutNode(id: "baz")
+        let child = LayoutNode(id: "bar", children: [grandchild])
+        let parent = LayoutNode(id: "foo", children: [child])
+        XCTAssertEqual(parent.childNode(withID: "baz"), grandchild)
+        XCTAssertEqual(parent.children(withID: "baz"), [grandchild])
+        parent.update()
+        XCTAssertEqual(parent.node(withID: "baz"), grandchild)
+    }
+
+    func testFindSelf() {
+        let node = LayoutNode(id: "foo")
+        XCTAssertNil(node.childNode(withID: "foo"))
+        XCTAssert(node.children(withID: "foo").isEmpty)
+        node.update()
+        XCTAssertEqual(node.node(withID: "foo"), node)
+    }
+
+    func testFindParent() {
+        let child = LayoutNode(id: "bar")
+        let parent = LayoutNode(id: "foo", children: [child])
+        parent.update()
+        XCTAssertNil(child.childNode(withID: "foo"))
+        XCTAssert(child.children(withID: "foo").isEmpty)
+        XCTAssertEqual(parent.children[0], child)
+        XCTAssertEqual(child.node(withID: "foo"), parent)
+    }
+
+    func testFindGrandparent() {
+        let grandchild = LayoutNode(id: "baz")
+        let child = LayoutNode(id: "bar", children: [grandchild])
+        let parent = LayoutNode(id: "foo", children: [child])
+        parent.update()
+        XCTAssertEqual(grandchild.node(withID: "foo"), parent)
+    }
+
+    func testFindSiblings() {
+        let bar = LayoutNode(id: "bar")
+        let baz = LayoutNode(id: "baz")
+        let parent = LayoutNode(id: "foo", children: [bar, baz])
+        parent.update()
+        XCTAssertNil(bar.childNode(withID: "baz"))
+        XCTAssert(bar.children(withID: "baz").isEmpty)
+        XCTAssertEqual(bar.next, baz)
+        XCTAssertNil(bar.previous)
+        XCTAssertEqual(baz.previous, bar)
+        XCTAssertNil(baz.next)
+        XCTAssertEqual(parent.children[0], bar)
+        XCTAssertEqual(parent.children[1], baz)
+        XCTAssertEqual(bar.node(withID: "baz"), baz)
+    }
+
+    func testFindCousin() {
+        let bar = LayoutNode(id: "bar")
+        let baz = LayoutNode(id: "baz")
+        let parent = LayoutNode(id: "foo", children: [
+            LayoutNode(children: [bar]),
+            LayoutNode(children: [baz]),
+        ])
+        parent.update()
+        XCTAssertEqual(bar.node(withID: "baz"), baz)
+    }
+
+    func testFindNonexistentNode() {
+        let child = LayoutNode()
+        let parent = LayoutNode(id: "foo", children: [child])
+        XCTAssertNil(parent.childNode(withID: "bar"))
+        XCTAssert(parent.children(withID: "bar").isEmpty)
+        parent.update()
+        XCTAssertNil(parent.node(withID: "bar"))
+    }
+
     // MARK: memory leaks
+
+    func testLayoutWhereChildReferencesParentIsReleased() {
+        let child = LayoutNode(id: "bar", expressions: [
+            "backgroundColor": "parent.backgroundColor",
+            "contentMode": "#foo.contentMode",
+        ])
+        var strongParent: LayoutNode? = LayoutNode(id: "foo", children: [child])
+        weak var parent: LayoutNode? = strongParent
+        parent?.update()
+        strongParent = nil
+        XCTAssertNil(parent)
+    }
 
     func testLayoutNodeWithSelfReferencingExpressionIsReleased() {
         weak var node: LayoutNode?
