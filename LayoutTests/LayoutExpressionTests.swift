@@ -9,6 +9,27 @@ class TestClass: NSObject {
     }
 }
 
+func makeLayout(
+    expressions: [String: String] = [:],
+    parameters: [String: RuntimeType] = [:],
+    macros: [String: String] = [:],
+    children: [Layout] = []
+) -> Layout {
+    return Layout(
+        className: "UIView",
+        id: nil,
+        outlet: nil,
+        expressions: expressions,
+        parameters: parameters,
+        macros: macros,
+        children: children,
+        body: nil,
+        xmlPath: nil,
+        templatePath: nil,
+        relativePath: nil
+    )
+}
+
 class LayoutExpressionTests: XCTestCase {
 
     // MARK: Expression parsing
@@ -424,14 +445,14 @@ class LayoutExpressionTests: XCTestCase {
         let node = LayoutNode()
         let expression = LayoutExpression(boolExpression: "false // comment", for: node)
         XCTAssertNotNil(expression)
-        XCTAssertEqual(try! expression?.evaluate() as? Bool, false)
+        XCTAssertEqual(try expression?.evaluate() as? Bool, false)
     }
 
     func testColorExpressionWithComment() {
         let node = LayoutNode()
         let expression = LayoutExpression(colorExpression: "red // comment", for: node)
         XCTAssertNotNil(expression)
-        XCTAssertEqual(try! expression?.evaluate() as? UIColor, .red)
+        XCTAssertEqual(try expression?.evaluate() as? UIColor, .red)
     }
 
     func testImageExpressionWithComment() { // Not supported
@@ -439,5 +460,102 @@ class LayoutExpressionTests: XCTestCase {
         let expression = LayoutExpression(colorExpression: "MyImage.png // comment", for: node)
         XCTAssertNotNil(expression)
         XCTAssertThrowsError(try expression?.evaluate())
+    }
+
+    // MARK: Constant optimization
+
+    func testLiteral() {
+        let node = LayoutNode()
+        let expression = LayoutExpression(doubleExpression: "5 + 6", for: node)
+        XCTAssertEqual(expression?.isConstant, true)
+        XCTAssertEqual(try expression?.evaluate() as! Double, 11.0)
+    }
+
+    func testConstant() {
+        let node = LayoutNode(constants: ["foo": 5])
+        let expression = LayoutExpression(doubleExpression: "foo + 6", for: node)
+        XCTAssertEqual(expression?.isConstant, true)
+        XCTAssertEqual(try expression?.evaluate() as! Double, 11.0)
+    }
+
+    func testState() {
+        let node = LayoutNode(state: ["foo": 5])
+        let expression = LayoutExpression(doubleExpression: "foo + 6", for: node)
+        XCTAssertEqual(expression?.isConstant, false)
+        XCTAssertEqual(try expression?.evaluate() as! Double, 11.0)
+    }
+
+    func testInheritedConstant() {
+        let child = LayoutNode()
+        let parent = LayoutNode(constants: ["foo": 5], children: [child])
+        parent.update()
+        let expression = LayoutExpression(doubleExpression: "foo + 6", for: child)
+        XCTAssertEqual(expression?.isConstant, true)
+        XCTAssertEqual(try expression?.evaluate() as! Double, 11.0)
+    }
+
+    func testParentLiteralExpression() {
+        let child = LayoutNode()
+        let parent = LayoutNode(expressions: ["height": "5"], children: [child])
+        parent.update()
+        let expression = LayoutExpression(doubleExpression: "parent.height + 6", for: child)
+        XCTAssertEqual(expression?.isConstant, true)
+        XCTAssertEqual(try expression?.evaluate() as! Double, 11.0)
+    }
+
+    func testParentConstantExpression() {
+        let child = LayoutNode()
+        let parent = LayoutNode(constants: ["foo": 5], expressions: ["height": "foo + 6"], children: [child])
+        parent.update()
+        let expression = LayoutExpression(doubleExpression: "parent.height + 6", for: child)
+        XCTAssertEqual(expression?.isConstant, true)
+        XCTAssertEqual(try expression?.evaluate() as! Double, 17.0)
+    }
+
+    func testLiteralParameter() {
+        let layout = makeLayout(
+            expressions: ["foo": "5"],
+            parameters: ["foo": RuntimeType(Int.self)],
+            children: [
+                makeLayout(),
+            ]
+        )
+        let parent = try! LayoutNode(layout: layout)
+        let child = parent.children[0]
+        parent.update()
+        let expression = LayoutExpression(doubleExpression: "foo + 6", for: child)
+        XCTAssertEqual(expression?.isConstant, true)
+        XCTAssertEqual(try expression?.evaluate() as! Double, 11.0)
+    }
+
+    func testConstantParameter() {
+        let layout = makeLayout(
+            expressions: ["foo": "bar + 3"],
+            parameters: ["foo": RuntimeType(Int.self)],
+            children: [
+                makeLayout(),
+            ]
+        )
+        let parent = try! LayoutNode(layout: layout, constants: ["bar": 5])
+        let child = parent.children[0]
+        parent.update()
+        let expression = LayoutExpression(doubleExpression: "foo + 6", for: child)
+        XCTAssertEqual(expression?.isConstant, true)
+        XCTAssertEqual(try expression?.evaluate() as! Double, 14.0)
+    }
+
+    func testLiteralMacro() {
+        let layout = makeLayout(
+            macros: ["BAR": "5"],
+            children: [
+                makeLayout(),
+            ]
+        )
+        let parent = try! LayoutNode(layout: layout)
+        let child = parent.children[0]
+        parent.update()
+        let expression = LayoutExpression(doubleExpression: "BAR + 6", for: child)
+        XCTAssertEqual(expression?.isConstant, true)
+        XCTAssertEqual(try expression?.evaluate() as! Double, 11.0)
     }
 }

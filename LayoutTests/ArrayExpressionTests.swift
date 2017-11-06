@@ -42,11 +42,10 @@ class ArrayExpressionTests: XCTestCase {
     }
 
     func testSetSegmentedControlTitlesWithMixedConstantAndLiteral() {
-        let items = ["foo", "bar"]
         let node = LayoutNode(
             view: UISegmentedControl(),
             constants: [
-                "items": items,
+                "items": ["foo", "bar"],
             ],
             expressions: [
                 "items": "items, 'baz', 'quux'",

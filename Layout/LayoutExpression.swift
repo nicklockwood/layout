@@ -351,7 +351,7 @@ struct LayoutExpression {
         var macroSymbols = [String: Set<String>]()
         for symbol in parsedExpression.symbols where symbols[symbol] == nil &&
             numericSymbols[symbol] == nil && !ignoredSymbols.contains(symbol) {
-            if case let .variable(name) = symbol {
+            if case let .variable(name) = symbol, !name.hasPrefix("'"), !name.hasPrefix("\"") {
                 var key = name
                 let chars = name.characters
                 if chars.count >= 2, chars.first == "`", chars.last == "`" {
@@ -378,7 +378,7 @@ struct LayoutExpression {
                         }
                         macroSymbols[key] = macroExpression.symbols
                         symbols[symbol] = { _ in try SymbolError.wrap(macroExpression.evaluate, for: key) }
-                    } else if let value = try lookup(key) ?? node.value(forConstant: key) ??
+                    } else if let value = try lookup(key) ?? node.constantValue(forSymbol: key) ??
                         staticConstant(for: key) {
                         constants[name] = value
                     } else if circular {

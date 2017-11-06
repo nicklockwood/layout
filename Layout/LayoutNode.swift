@@ -815,88 +815,98 @@ public class LayoutNode: NSObject {
         guard _getters[symbol] == nil, let string = expressions[symbol] else {
             return
         }
+
+        enum ExpressionType {
+            case viewController
+            case view
+            case layout
+        }
+
         var expression: LayoutExpression!
-        var isViewControllerExpression = false
-        var isViewExpression = false
-        switch symbol {
-        case "left", "right":
-            expression = LayoutExpression(xExpression: string, for: self)
-        case "top", "bottom":
-            expression = LayoutExpression(yExpression: string, for: self)
-        case "width":
-            expression = LayoutExpression(widthExpression: string, for: self)
-        case "height":
-            expression = LayoutExpression(heightExpression: string, for: self)
-        default:
-            let type: RuntimeType
-            if let viewControllerType = viewControllerExpressionTypes[symbol] {
-                if viewControllerType.isAvailable {
-                    type = viewControllerType
-                    isViewControllerExpression = true
-                } else {
-                    type = constructorArgumentTypes[symbol] ?? viewControllerType
-                }
-            } else if let viewType = viewExpressionTypes[symbol] {
-                if viewType.isAvailable {
-                    type = viewType
-                    isViewExpression = true
-                } else {
-                    type = constructorArgumentTypes[symbol] ?? viewType
-                }
-            } else if let parameterType = _parameters[symbol] {
-                // TODO: check for parameter type / view type conflicts?
-                type = parameterType
-            } else if let constructorType = constructorArgumentTypes[symbol] {
-                // TODO: check for constructor type / view type conflicts?
-                type = constructorType
-            } else {
-                if let parts = try? parseStringExpression(string), parts.count == 1 {
-                    switch parts[0] {
-                    case .comment:
-                        return
-                    case let .expression(parsedExpression) where
-                        parsedExpression.comment != nil && parsedExpression.isEmpty:
-                        return
-                    default:
-                        break
-                    }
-                }
-                if let viewControllerClass = self.viewControllerClass,
-                    let viewController = try? viewControllerClass.create(with: self),
-                    let _ = try? viewController.value(forSymbol: symbol) {
-                    throw SymbolError(fatal: "\(_class).\(symbol) is private or read-only", for: symbol)
-                }
-                if let view = try? viewClass.create(with: self),
-                    let _ = try? view.value(forSymbol: symbol) {
-                    throw SymbolError(fatal: "\(_class).\(symbol) is private or read-only", for: symbol)
-                }
-                throw SymbolError("Unknown property `\(symbol)` of \(_class)", for: symbol)
-            }
-            switch type.availability {
-            case .available:
-                break
-            case let .unavailable(reason):
-                throw SymbolError(fatal: "\(_class).\(symbol) is not available\(reason.map { ". \($0)" } ?? "")", for: symbol)
-            }
-            if case let .any(kind) = type.type, kind is CGFloat.Type {
-                switch symbol {
-                case "contentSize.width":
-                    expression = LayoutExpression(contentWidthExpression: string, for: self)
-                case "contentSize.height":
-                    expression = LayoutExpression(contentHeightExpression: string, for: self)
-                default:
-                    // Allow use of % in any vertical/horizontal property expression
-                    let parts = symbol.components(separatedBy: ".")
-                    if ["left", "right", "x", "width"].contains(parts.last!) {
-                        expression = LayoutExpression(xExpression: string, for: self)
-                    } else if ["top", "bottom", "y", "height"].contains(parts.last!) {
-                        expression = LayoutExpression(yExpression: string, for: self)
+        var expressionType = ExpressionType.layout
+        do {
+            _evaluating.append(symbol)
+            defer { _evaluating.removeLast() }
+            switch symbol {
+            case "left", "right":
+                expression = LayoutExpression(xExpression: string, for: self)
+            case "top", "bottom":
+                expression = LayoutExpression(yExpression: string, for: self)
+            case "width":
+                expression = LayoutExpression(widthExpression: string, for: self)
+            case "height":
+                expression = LayoutExpression(heightExpression: string, for: self)
+            default:
+                let type: RuntimeType
+                if let viewControllerType = viewControllerExpressionTypes[symbol] {
+                    if viewControllerType.isAvailable {
+                        type = viewControllerType
+                        expressionType = .viewController
                     } else {
-                        expression = LayoutExpression(expression: string, type: type, for: self)
+                        type = constructorArgumentTypes[symbol] ?? viewControllerType
                     }
+                } else if let viewType = viewExpressionTypes[symbol] {
+                    if viewType.isAvailable {
+                        type = viewType
+                        expressionType = .view
+                    } else {
+                        type = constructorArgumentTypes[symbol] ?? viewType
+                    }
+                } else if let parameterType = _parameters[symbol] {
+                    // TODO: check for parameter type / view type conflicts?
+                    type = parameterType
+                } else if let constructorType = constructorArgumentTypes[symbol] {
+                    // TODO: check for constructor type / view type conflicts?
+                    type = constructorType
+                } else {
+                    if let parts = try? parseStringExpression(string), parts.count == 1 {
+                        switch parts[0] {
+                        case .comment:
+                            return
+                        case let .expression(parsedExpression) where
+                            parsedExpression.comment != nil && parsedExpression.isEmpty:
+                            return
+                        default:
+                            break
+                        }
+                    }
+                    if let viewControllerClass = self.viewControllerClass,
+                        let viewController = try? viewControllerClass.create(with: self),
+                        let _ = try? viewController.value(forSymbol: symbol) {
+                        throw SymbolError(fatal: "\(_class).\(symbol) is private or read-only", for: symbol)
+                    }
+                    if let view = try? viewClass.create(with: self),
+                        let _ = try? view.value(forSymbol: symbol) {
+                        throw SymbolError(fatal: "\(_class).\(symbol) is private or read-only", for: symbol)
+                    }
+                    throw SymbolError("Unknown property `\(symbol)` of \(_class)", for: symbol)
                 }
-            } else {
-                expression = LayoutExpression(expression: string, type: type, for: self)
+                switch type.availability {
+                case .available:
+                    break
+                case let .unavailable(reason):
+                    throw SymbolError(fatal: "\(_class).\(symbol) is not available\(reason.map { ". \($0)" } ?? "")", for: symbol)
+                }
+                if case let .any(kind) = type.type, kind is CGFloat.Type {
+                    switch symbol {
+                    case "contentSize.width":
+                        expression = LayoutExpression(contentWidthExpression: string, for: self)
+                    case "contentSize.height":
+                        expression = LayoutExpression(contentHeightExpression: string, for: self)
+                    default:
+                        // Allow use of % in any vertical/horizontal property expression
+                        let parts = symbol.components(separatedBy: ".")
+                        if ["left", "right", "x", "width"].contains(parts.last!) {
+                            expression = LayoutExpression(xExpression: string, for: self)
+                        } else if ["top", "bottom", "y", "height"].contains(parts.last!) {
+                            expression = LayoutExpression(yExpression: string, for: self)
+                        } else {
+                            expression = LayoutExpression(expression: string, type: type, for: self)
+                        }
+                    }
+                } else {
+                    expression = LayoutExpression(expression: string, type: type, for: self)
+                }
             }
         }
         guard expression != nil else {
@@ -905,59 +915,64 @@ public class LayoutNode: NSObject {
         }
 
         // Store getter
-        var previousValue: Any?
-        var cachedValue: Any?
-        _valueClearers.append {
-            previousValue = cachedValue
-            cachedValue = nil
-        }
-        _valueHasChanged[symbol] = { [unowned self] in
-            guard let previousValue = previousValue, let cachedValue = cachedValue else {
-                return true
+        if expression.isConstant {
+            _valueHasChanged[symbol] = { false }
+        } else {
+            var previousValue: Any?
+            var cachedValue: Any?
+            _valueClearers.append {
+                previousValue = cachedValue
+                cachedValue = nil
             }
-            return !areEqual(previousValue, cachedValue)
-        }
-        let evaluate = expression.evaluate
-        let symbols = expression.symbols
-        expression = LayoutExpression(
-            evaluate: { [unowned self] in
-                if let value = cachedValue {
-                    return value
+            _valueHasChanged[symbol] = { [unowned self] in
+                guard let previousValue = previousValue, let cachedValue = cachedValue else {
+                    return true
                 }
-                guard !self._evaluating.contains(symbol) else {
-                    // If an expression directly references itself it may be shadowing
-                    // a constant or variable, so check for that first before throwing
-                    if self._evaluating.last == symbol {
-                        if let value = try self.value(forVariableOrConstantOrParentParameter: symbol) {
-                            return value
-                        }
-                        if let macro = self.expression(forMacro: symbol) {
-                            // TODO: allow this
-                            throw SymbolError("Expression for `\(symbol)` references a macro of the same name (which is not currently supported)", for: symbol)
-                        }
+                return !areEqual(previousValue, cachedValue)
+            }
+            let evaluate: () throws -> Any = expression.evaluate
+            let symbols = expression.symbols
+            expression = LayoutExpression(
+                evaluate: { [unowned self] in
+                    if let value = cachedValue {
+                        return value
                     }
-                    // TODO: allow expression to reference its previous value instead of treating this as an error
-                    throw SymbolError("Expression for `\(symbol)` references a nonexistent symbol of the same name (expressions cannot reference themselves)", for: symbol)
-                }
-                self._evaluating.append(symbol)
-                defer {
-                    assert(self._evaluating.last == symbol)
-                    self._evaluating.removeLast()
-                }
-                let value = try SymbolError.wrap(evaluate, for: symbol)
-                cachedValue = value
-                return value
-            },
-            symbols: expression.symbols
-        )
+                    guard !self._evaluating.contains(symbol) else {
+                        // If an expression directly references itself it may be shadowing
+                        // a constant or variable, so check for that first before throwing
+                        if self._evaluating.last == symbol {
+                            if let value = try self.value(forVariableOrConstantOrParentParameter: symbol) {
+                                return value
+                            }
+                            if let macro = self.expression(forMacro: symbol) {
+                                // TODO: allow this
+                                throw SymbolError("Expression for `\(symbol)` references a macro of the same name (which is not currently supported)", for: symbol)
+                            }
+                        }
+                        // TODO: allow expression to reference its previous value instead of treating this as an error
+                        throw SymbolError("Expression for `\(symbol)` references a nonexistent symbol of the same name (expressions cannot reference themselves)", for: symbol)
+                    }
+                    self._evaluating.append(symbol)
+                    defer {
+                        assert(self._evaluating.last == symbol)
+                        self._evaluating.removeLast()
+                    }
+                    let value = try SymbolError.wrap(evaluate, for: symbol)
+                    cachedValue = value
+                    return value
+                },
+                symbols: expression.symbols
+            )
+        }
         _getters[symbol] = expression.evaluate
 
         // Store expression
-        if isViewControllerExpression {
+        switch expressionType {
+        case .viewController:
             _viewControllerExpressions[symbol] = expression
-        } else if isViewExpression {
+        case .view:
             _viewExpressions[symbol] = expression
-        } else {
+        case .layout:
             _layoutExpressions[symbol] = expression
         }
     }
@@ -1088,19 +1103,92 @@ public class LayoutNode: NSObject {
     }
 
     // Used by LayoutExpression
-    func value(forConstant name: String) throws -> Any? {
-        guard try value(forKeyPath: name, in: _variables) == nil else {
-            return nil
+    func constantValue(forSymbol symbol: String) throws -> Any? {
+        if symbolIsConstant(symbol) {
+            guard !_evaluating.contains(symbol) else {
+                // If an expression directly references itself it may be shadowing
+                // a constant or variable, so check for that first before throwing
+                if _evaluating.last == symbol {
+                    if let value = try value(forVariableOrConstantOrParentParameter: symbol) {
+                        return value
+                    }
+                    if expression(forMacro: symbol) != nil {
+                        // TODO: allow this
+                        throw SymbolError("Expression for `\(symbol)` references a macro of the same name (which is not currently supported)", for: symbol)
+                    }
+                }
+                // TODO: allow expression to reference its previous value instead of treating this as an error
+                throw SymbolError("Expression for `\(symbol)` references a nonexistent symbol of the same name (expressions cannot reference themselves)", for: symbol)
+            }
+            return try value(forSymbol: symbol)
         }
-        if let value = try value(forKeyPath: name, in: constants) ?? parent?.value(forConstant: name) {
-            return value
-        }
-        if name.hasPrefix("strings.") {
-            let key: String = String(name["strings.".endIndex ..< name.endIndex])
-            return attempt({ try localizedString(forKey: key) })
-        }
+
         // TODO: should we check the delegate as well?
         return nil
+    }
+
+    private func expressionIsConstant(_ name: String) -> Bool {
+        if let expression = _layoutExpressions[name] ??
+            _viewControllerExpressions[name] ?? _viewExpressions[name] {
+            return expression.isConstant
+        }
+        assert(expressions[name] != nil)
+        if attempt({ try setUpExpression(for: name) }) != nil {
+            return expressionIsConstant(name)
+        }
+        assertionFailure() // Shouldn't happen
+        return false
+    }
+
+    // Returns true if symbol is a constant, false if it's a variable, otherwise nil
+    private func valueIsConstant(_ symbol: String) -> Bool? {
+        do {
+            if try value(forKeyPath: symbol, in: _variables) != nil {
+                return false
+            }
+            if try value(forKeyPath: symbol, in: constants) != nil {
+                return true
+            }
+            if let parent = parent {
+                if parent._parameters[symbol] != nil {
+                    return parent.expressionIsConstant(symbol)
+                }
+                return parent.valueIsConstant(symbol)
+            }
+            return nil
+        } catch {
+            return false
+        }
+    }
+
+    private func symbolIsConstant(_ symbol: String) -> Bool {
+        if expressions[symbol] != nil, !_evaluating.contains(symbol) {
+            return expressionIsConstant(symbol)
+        }
+        if let result = valueIsConstant(symbol) {
+            return result
+        }
+        if let range = symbol.range(of: ".") {
+            let tail: String = String(symbol[range.upperBound ..< symbol.endIndex])
+            switch symbol[symbol.startIndex ..< range.lowerBound] {
+            case "parent":
+                if let parent = parent {
+                    return parent.symbolIsConstant(tail)
+                }
+            case "previous", "next":
+                return false // TODO: if previous/next isHidden is constant, we could still get a constant value here
+            case "strings":
+                return true // Localizable strings are always constant
+            case let head where head.hasPrefix("#"):
+                let id = String(head.characters.dropFirst())
+                if let node = self.node(withID: id) {
+                    return node.symbolIsConstant(tail)
+                }
+            default:
+                return false
+            }
+        }
+        return false
     }
 
     // Doesn't look up params defined directly on the callee, only its parents
@@ -1129,8 +1217,8 @@ public class LayoutNode: NSObject {
             if checking.contains(name) {
                 return true
             }
-            if let expression = _layoutExpressions[name] ??
-                _viewControllerExpressions[name] ?? _viewExpressions[name] {
+            if let expression = _layoutExpressions[name] ?? _viewControllerExpressions[name] ??
+                _viewExpressions[name], !expression.isConstant {
                 checking.append(name)
                 defer { checking.removeLast() }
                 for name in expression.symbols where
