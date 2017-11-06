@@ -12,6 +12,15 @@ private class TestView: UIView {
     }
 }
 
+private class TestViewController: UIViewController {
+    var labelWasSet = false
+    @objc weak var label: UILabel? {
+        didSet {
+            labelWasSet = true
+        }
+    }
+}
+
 class LayoutNodeTests: XCTestCase {
 
     // MARK: Expression errors
@@ -376,6 +385,78 @@ class LayoutNodeTests: XCTestCase {
 
         node.update()
         XCTAssertEqual(scrollView.contentInset.top, 5)
+    }
+
+    // MARK: outlet expressions
+
+    func testOutletBinding() {
+        let node = LayoutNode(
+            children: [
+                LayoutNode(
+                    view: UILabel(),
+                    outlet: "label"
+                ),
+            ]
+        )
+        let viewController = TestViewController()
+        XCTAssertNoThrow(try node.mount(in: viewController))
+        XCTAssertTrue(viewController.labelWasSet)
+    }
+
+    func testOutletConstantBinding() {
+        let node = LayoutNode(
+            constants: [
+                "label.outlet": "label",
+            ],
+            children: [
+                LayoutNode(
+                    view: UILabel(),
+                    outlet: "{label.outlet}"
+                ),
+            ]
+        )
+        let viewController = TestViewController()
+        XCTAssertNoThrow(try node.mount(in: viewController))
+        XCTAssertTrue(viewController.labelWasSet)
+    }
+
+    func testOutletConstantExpressionBinding() {
+        let node = LayoutNode(
+            view: UILabel(),
+            constants: [
+                "label.outlet": "label",
+            ],
+            expressions: [
+                "text": "{label.outlet}",
+            ],
+            children: [
+                LayoutNode(
+                    view: UILabel(),
+                    outlet: "{parent.text}"
+                ),
+            ]
+        )
+        let viewController = TestViewController()
+        XCTAssertNoThrow(try node.mount(in: viewController))
+        XCTAssertTrue(viewController.labelWasSet)
+    }
+
+    func testOutletVariableBinding() {
+        let node = LayoutNode(
+            state: [
+                "label.outlet": "label",
+            ],
+            children: [
+                LayoutNode(
+                    view: UILabel(),
+                    outlet: "{label.outlet}"
+                ),
+            ]
+        )
+        let viewController = TestViewController()
+        XCTAssertThrowsError(try node.mount(in: viewController)) { error in
+            XCTAssert("\(error)".contains("must be a constant or literal value"))
+        }
     }
 
     // MARK: node lookup

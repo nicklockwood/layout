@@ -18,7 +18,6 @@ func makeLayout(
     return Layout(
         className: "UIView",
         id: nil,
-        outlet: nil,
         expressions: expressions,
         parameters: parameters,
         macros: macros,

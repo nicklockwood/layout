@@ -37,7 +37,9 @@ public class LayoutNode: NSObject {
     }
 
     /// The name of an outlet belonging to the nodes' owner that the node should bind to
-    public private(set) var outlet: String?
+    public var outlet: String? {
+        return attempt { try value(forExpression: "outlet") } as? String
+    }
 
     /// The node identifier, which can be used to refer to the node from within an expression
     public private(set) var id: String?
@@ -234,7 +236,6 @@ public class LayoutNode: NSObject {
     init(
         class: AnyClass,
         id: String? = nil,
-        outlet: String? = nil,
         state: Any = (),
         constants: [String: Any]...,
         expressions: [String: String] = [:],
@@ -246,7 +247,6 @@ public class LayoutNode: NSObject {
         _class = `class`
         _state = try! unwrap(state)
         self.id = id
-        self.outlet = outlet
         self.constants = merge(constants)
         self.expressions = expressions
         self.children = children
@@ -287,10 +287,13 @@ public class LayoutNode: NSObject {
     ) {
         assert(Thread.isMainThread)
 
+        var expressions = expressions
+        if let outlet = outlet {
+            expressions["outlet"] = outlet
+        }
         try! self.init(
             class: viewController.classForCoder,
             id: id,
-            outlet: outlet,
             state: state,
             constants: merge(constants),
             expressions: expressions,
@@ -313,10 +316,13 @@ public class LayoutNode: NSObject {
     ) {
         assert(Thread.isMainThread)
 
+        var expressions = expressions
+        if let outlet = outlet {
+            expressions["outlet"] = outlet
+        }
         try! self.init(
             class: view?.classForCoder ?? UIView.self,
             id: id,
-            outlet: outlet,
             state: state,
             constants: merge(constants),
             expressions: expressions,
@@ -337,7 +343,7 @@ public class LayoutNode: NSObject {
     public static func isValidExpressionName(
         _ name: String, for viewOrViewControllerClass: AnyClass) -> Bool {
         switch name {
-        case "top", "left", "bottom", "right", "width", "height":
+        case "top", "left", "bottom", "right", "width", "height", "outlet":
             return true
         default:
             if let viewClass = viewOrViewControllerClass as? UIView.Type {
@@ -529,7 +535,6 @@ public class LayoutNode: NSObject {
     /// The previous sibling of the node within its parent
     /// Returns nil if this is a root node, or is the first child of its parent
     var previous: LayoutNode? {
-        assert(_setupComplete)
         if let siblings = parent?.children, let index = siblings.index(where: { $0 === self }), index > 0 {
             return siblings[index - 1]
         }
@@ -539,7 +544,6 @@ public class LayoutNode: NSObject {
     /// The next sibling of the node within its parent
     /// Returns nil if this is a root node, or is the last child of its parent
     var next: LayoutNode? {
-        assert(_setupComplete)
         if let siblings = parent?.children, let index = siblings.index(where: { $0 === self }),
             index < siblings.count - 1 {
             return siblings[index + 1]
@@ -549,7 +553,7 @@ public class LayoutNode: NSObject {
 
     // Find a node by id, starting with the children and then progressing to siblings and parents
     func node(withID id: String, excluding: LayoutNode? = nil) -> LayoutNode? {
-        assert(_setupComplete)
+        attempt(completeSetup)
         if self.id == id {
             return self
         }
@@ -714,8 +718,7 @@ public class LayoutNode: NSObject {
             overrideExpressions()
         }
 
-        if let outlet = layout.outlet {
-            self.outlet = outlet
+        if layout.expressions["outlet"] != nil {
             try LayoutError.wrap({ try _owner.map { try bind(to: $0) } }, for: self)
         }
 
@@ -836,6 +839,11 @@ public class LayoutNode: NSObject {
                 expression = LayoutExpression(widthExpression: string, for: self)
             case "height":
                 expression = LayoutExpression(heightExpression: string, for: self)
+            case "outlet":
+                expression = LayoutExpression(stringExpression: string, for: self)
+                if !expression.isConstant {
+                    throw SymbolError("Expression for `\(symbol)` must be a constant or literal value", for: symbol)
+                }
             default:
                 let type: RuntimeType
                 if let viewControllerType = viewControllerExpressionTypes[symbol] {

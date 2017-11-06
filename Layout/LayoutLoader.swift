@@ -36,7 +36,6 @@ private extension Layout {
         return Layout(
             className: layout.className,
             id: layout.id ?? id,
-            outlet: layout.outlet ?? outlet,
             expressions: expressions,
             parameters: parameters,
             macros: macros,

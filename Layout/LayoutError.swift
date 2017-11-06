@@ -114,7 +114,7 @@ public enum LayoutError: Error, Hashable, CustomStringConvertible {
                     return error.suggestions
                 }
                 symbolError = error as? SymbolError
-                suggestions = ["left", "right", "width", "top", "bottom", "height"]
+                suggestions = ["left", "right", "width", "top", "bottom", "height", "outlet"]
                 if let controllerClass = viewOrControllerClass as? UIViewController.Type {
                     suggestions +=
                         Array(controllerClass.expressionTypes.flatMap { $0.value.isAvailable ? $0.key : nil }) +

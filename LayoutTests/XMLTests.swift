@@ -122,11 +122,11 @@ class XMLTests: XCTestCase {
         XCTAssertNoThrow(try Layout(xmlData: xmlData))
     }
 
-    func testExpressionInOutletAttribute() {
-        let input = "<UILabel outlet=\"{foo}\"/>"
+    func testExpressionInXMLAttribute() {
+        let input = "<UILabel xml=\"{foo}\"/>"
         let xmlData = input.data(using: .utf8)!
         XCTAssertThrowsError(try Layout(xmlData: xmlData)) { error in
-            XCTAssert("\(error)".contains("outlet must be a literal value"))
+            XCTAssert("\(error)".contains("xml must be a literal value"))
         }
     }
 
