@@ -3,7 +3,6 @@
 import UIKit
 
 private let placeholderID = NSUUID().uuidString
-private var layoutNodeKey = 0
 
 private class Box {
     weak var node: LayoutNode?
@@ -29,11 +28,7 @@ extension UICollectionViewLayout {
     }
 }
 
-extension UICollectionView {
-    fileprivate weak var layoutNode: LayoutNode? {
-        return (objc_getAssociatedObject(self, &layoutNodeKey) as? Box)?.node
-    }
-
+extension UICollectionView: LayoutBacked {
     open override class func create(with node: LayoutNode) throws -> UICollectionView {
         // UICollectionView cannot be created with a nil collectionViewLayout
         // so we cannot allow create(with:) to throw. Instead, we'll intercept the error
@@ -42,7 +37,6 @@ extension UICollectionView {
         } as? UICollectionViewLayout ?? .defaultLayout(for: node)
         let collectionView = self.init(frame: .zero, collectionViewLayout: layout)
         collectionView.register(UICollectionViewCell.self, forCellWithReuseIdentifier: placeholderID)
-        objc_setAssociatedObject(collectionView, &layoutNodeKey, Box(node), .OBJC_ASSOCIATION_RETAIN)
         return collectionView
     }
 
@@ -172,7 +166,7 @@ extension UICollectionView: LayoutDelegate {
     }
 }
 
-extension UICollectionViewController {
+extension UICollectionViewController: LayoutBacked {
     open override class func create(with node: LayoutNode) throws -> UICollectionViewController {
         let layout = try node.value(forExpression: "collectionViewLayout") as? UICollectionViewLayout ?? .defaultLayout(for: node)
         let viewController = self.init(collectionViewLayout: layout)
@@ -184,7 +178,6 @@ extension UICollectionViewController {
         } else if node.expressions.keys.contains(where: { $0.hasPrefix("collectionView.") }) {
             // TODO: figure out how to propagate this config to the view once it has been created
         }
-        objc_setAssociatedObject(collectionView, &layoutNodeKey, Box(node), .OBJC_ASSOCIATION_RETAIN)
         return viewController
     }
 
@@ -340,7 +333,7 @@ extension UICollectionView {
                 assert(node._view == nil)
                 node._view = cell
                 try node.bind(to: cell) // TODO: find a better solution for binding
-                cell.layoutNode = node
+                cell.setLayoutNode(node)
                 return node
             case let .failure(error):
                 throw error
@@ -352,16 +345,7 @@ extension UICollectionView {
     }
 }
 
-extension UICollectionViewCell {
-    fileprivate weak var layoutNode: LayoutNode? {
-        get {
-            return (objc_getAssociatedObject(self, &layoutNodeKey) as? Box)?.node
-        }
-        set {
-            objc_setAssociatedObject(self, &layoutNodeKey, newValue.map(Box.init), .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
-        }
-    }
-
+extension UICollectionViewCell: LayoutBacked {
     open override class func create(with _: LayoutNode) throws -> UICollectionViewCell {
         throw LayoutError.message("UICollectionViewCells must be created by UICollectionView")
     }

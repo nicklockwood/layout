@@ -108,6 +108,9 @@ public class LayoutNode: NSObject {
                 }, for: self)
                 assert(_view != nil)
             }
+            if let layoutBacked = (_viewController ?? _view) as? LayoutBacked {
+                layoutBacked.setLayoutNode(self)
+            }
         }
 
         setUpAutoLayout()
@@ -333,6 +336,9 @@ public class LayoutNode: NSObject {
     }
 
     deinit {
+        if let layoutBacked = (_viewController ?? _view) as? LayoutBacked, layoutBacked.layoutNode == self {
+            layoutBacked.setLayoutNode(nil)
+        }
         stopObserving()
     }
 

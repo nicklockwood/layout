@@ -2,25 +2,11 @@
 
 import UIKit
 
-private var layoutNodeKey = 0
-
-private class Box {
-    weak var node: LayoutNode?
-    init(_ node: LayoutNode) {
-        self.node = node
-    }
-}
-
-extension UITableView {
-    fileprivate weak var layoutNode: LayoutNode? {
-        return (objc_getAssociatedObject(self, &layoutNodeKey) as? Box)?.node
-    }
-
+extension UITableView: LayoutBacked {
     open override class func create(with node: LayoutNode) throws -> UITableView {
         let style = try node.value(forExpression: "style") as? UITableViewStyle ?? .plain
         let tableView = self.init(frame: .zero, style: style)
         tableView.enableAutoSizing()
-        objc_setAssociatedObject(tableView, &layoutNodeKey, Box(node), .OBJC_ASSOCIATION_RETAIN)
         return tableView
     }
 
@@ -172,7 +158,7 @@ extension UITableView {
     }
 }
 
-extension UITableViewController {
+extension UITableViewController: LayoutBacked {
     open override class func create(with node: LayoutNode) throws -> UITableViewController {
         let style = try node.value(forExpression: "style") as? UITableViewStyle ?? .plain
         let viewController = self.init(style: style)
@@ -181,7 +167,6 @@ extension UITableViewController {
         } else if node.expressions.keys.contains(where: { $0.hasPrefix("tableView.") }) {
             // TODO: figure out how to propagate this config to the view once it has been created
         }
-        objc_setAssociatedObject(viewController.tableView, &layoutNodeKey, Box(node), .OBJC_ASSOCIATION_RETAIN)
         return viewController
     }
 
@@ -463,11 +448,7 @@ extension UITableView {
     }
 }
 
-extension UITableViewHeaderFooterView {
-    weak var layoutNode: LayoutNode? {
-        return (objc_getAssociatedObject(self, &layoutNodeKey) as? Box)?.node
-    }
-
+extension UITableViewHeaderFooterView: LayoutBacked {
     open override class func create(with node: LayoutNode) throws -> UITableViewHeaderFooterView {
         let reuseIdentifier = try node.value(forExpression: "reuseIdentifier") as? String
         let view = self.init() // Workaround for `self.init(reuseIdentifier:)` causing build failure
@@ -477,7 +458,6 @@ extension UITableViewHeaderFooterView {
             // Add a background view if required
             view.backgroundView = UIView(frame: view.bounds)
         }
-        objc_setAssociatedObject(view, &layoutNodeKey, Box(node), .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         return view
     }
 
@@ -545,11 +525,7 @@ extension UITableViewHeaderFooterView {
     }
 }
 
-extension UITableViewCell {
-    fileprivate weak var layoutNode: LayoutNode? {
-        return (objc_getAssociatedObject(self, &layoutNodeKey) as? Box)?.node
-    }
-
+extension UITableViewCell: LayoutBacked {
     open override class func create(with node: LayoutNode) throws -> UITableViewCell {
         let style = try node.value(forExpression: "style") as? UITableViewCellStyle ?? .default
         let reuseIdentifier = try node.value(forExpression: "reuseIdentifier") as? String
@@ -574,7 +550,6 @@ extension UITableViewCell {
             // Add a selectedBackground view if required
             cell.selectedBackgroundView = UIView(frame: cell.bounds)
         }
-        objc_setAssociatedObject(cell, &layoutNodeKey, Box(node), .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         return cell
     }
 
