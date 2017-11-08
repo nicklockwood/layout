@@ -64,7 +64,7 @@ class EditViewController: UIViewController {
         do {
             _ = view // Load the view
             let xmlData = (textView.text ?? "").data(using: .utf8) ?? Data()
-            previewController.layoutNode = try LayoutNode.with(xmlData: xmlData)
+            previewController.layoutNode = try LayoutNode(xmlData: xmlData)
         } catch {
             previewController.layoutError(LayoutError(error))
         }

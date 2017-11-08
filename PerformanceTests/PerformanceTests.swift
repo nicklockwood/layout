@@ -6,7 +6,7 @@ import Layout
 private let xmlURL = Bundle(for: PerformanceTests.self).url(forResource: "Example", withExtension: "xml")!
 private let nodeCount: Int = {
     let xmlData = try! Data(contentsOf: xmlURL)
-    let rootNode = try! LayoutNode.with(xmlData: xmlData)
+    let rootNode = try! LayoutNode(xmlData: xmlData)
     return rootNode.children.count
 }()
 
@@ -148,14 +148,14 @@ class PerformanceTests: XCTestCase {
     func testParseXML() {
         let xmlData = try! Data(contentsOf: xmlURL)
         measure {
-            _ = try! LayoutNode.with(xmlData: xmlData)
+            _ = try! LayoutNode(xmlData: xmlData)
         }
     }
 
     func testParseAndLoadXML() {
         measure {
             let xmlData = try! Data(contentsOf: xmlURL)
-            _ = try! LayoutNode.with(xmlData: xmlData)
+            _ = try! LayoutNode(xmlData: xmlData)
         }
     }
 
@@ -163,7 +163,7 @@ class PerformanceTests: XCTestCase {
         let view = UIView(frame: CGRect(x: 0, y: 0, width: 300, height: 400))
         measure {
             let xmlData = try! Data(contentsOf: xmlURL)
-            let rootNode = try! LayoutNode.with(xmlData: xmlData)
+            let rootNode = try! LayoutNode(xmlData: xmlData)
             try! rootNode.mount(in: view)
             rootNode.unmount()
         }
