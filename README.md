@@ -1,7 +1,6 @@
 [![Travis](https://img.shields.io/travis/schibsted/layout.svg)](https://travis-ci.org/schibsted/layout)
 [![Coveralls](https://coveralls.io/repos/github/schibsted/layout/badge.svg)](https://coveralls.io/github/schibsted/layout)
 [![Platform](https://img.shields.io/cocoapods/p/Layout.svg?style=flat)](http://cocoadocs.org/docsets/Layout)
-[![Swift](https://img.shields.io/badge/swift-3.1-yellow.svg?style=flat)](https://developer.apple.com/swift)
 [![Swift](https://img.shields.io/badge/swift-3.2-orange.svg?style=flat)](https://developer.apple.com/swift)
 [![Swift](https://img.shields.io/badge/swift-4.0-red.svg?style=flat)](https://developer.apple.com/swift)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](https://opensource.org/licenses/MIT)
@@ -122,7 +121,7 @@ Layout is designed to work with ordinary UIKit components, not to replace or rei
 
 ## Installation
 
-Layout is provided as a standalone Swift framework that you can use in your app. It works with Swift 3.1, 3.2 and 4.0, has no dependencies, and is not tied to any particular package management solution.
+Layout is provided as a standalone Swift framework that you can use in your app. It works with Swift 3.2 and 4.0, has no dependencies, and is not tied to any particular package management solution.
 
 To install Layout using CocoaPods, add the following to your Podfile:
 

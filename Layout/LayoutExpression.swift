@@ -109,18 +109,16 @@ func stringToColorAsset(_ string: String) throws -> UIColor? {
         return color
     }
     let asset = try stringToAsset(string)
-    #if swift(>=3.2)
-        if #available(iOS 11.0, *) {
-            if let color = UIColor(named: asset.name, in: asset.bundle, compatibleWith: asset.traits) {
-                _colorAssetCache[string] = color
-                return color
-            }
-            if let bundle = asset.bundle {
-                throw Expression.Error.message("Color named `\(asset.name)` not found in bundle \(bundle.bundleIdentifier ?? "<unknown>")")
-            }
-            return nil
+    if #available(iOS 11.0, *) {
+        if let color = UIColor(named: asset.name, in: asset.bundle, compatibleWith: asset.traits) {
+            _colorAssetCache[string] = color
+            return color
         }
-    #endif
+        if let bundle = asset.bundle {
+            throw Expression.Error.message("Color named `\(asset.name)` not found in bundle \(bundle.bundleIdentifier ?? "<unknown>")")
+        }
+        return nil
+    }
     if asset.bundle != nil {
         throw Expression.Error.message("Named colors are only supported in iOS 11 and above")
     }

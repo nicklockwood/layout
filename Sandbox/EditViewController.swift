@@ -24,13 +24,11 @@ class EditViewController: UIViewController {
         textView.font = UIFont(name: "Courier", size: 13)!
         textView.text = try! String(contentsOf: Bundle.main.url(forResource: "Default", withExtension: "xml")!)
 
-        #if swift(>=3.2)
-            if #available(iOS 11.0, *) {
-                textView.smartQuotesType = .no
-                textView.smartDashesType = .no
-                textView.smartInsertDeleteType = .no
-            }
-        #endif
+        if #available(iOS 11.0, *) {
+            textView.smartQuotesType = .no
+            textView.smartDashesType = .no
+            textView.smartInsertDeleteType = .no
+        }
 
         view.addSubview(textView)
 

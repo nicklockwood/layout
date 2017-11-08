@@ -240,11 +240,9 @@ extension UIViewController {
         case "navigationItem.rightBarButtonItem.systemItem":
             navigationItem.rightBarButtonItem = updatedBarItem(navigationItem.rightBarButtonItem, systemItem: value as! UIBarButtonSystemItem)
         case "navigationItem.largeTitleDisplayMode":
-            #if swift(>=3.2)
-                if #available(iOS 11.0, *) {
-                    navigationItem.largeTitleDisplayMode = value as! UINavigationItem.LargeTitleDisplayMode
-                }
-            #endif
+            if #available(iOS 11.0, *) {
+                navigationItem.largeTitleDisplayMode = value as! UINavigationItem.LargeTitleDisplayMode
+            }
         default:
             if name.hasPrefix("navigationItem.leftBarButtonItem."), navigationItem.leftBarButtonItem == nil {
                 navigationItem.leftBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)

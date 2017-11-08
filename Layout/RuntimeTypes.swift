@@ -46,16 +46,14 @@ public extension RuntimeType {
         ] as [String: CAEdgeAntialiasingMask])
     }
     @objc class var caCornerMask: RuntimeType {
-        #if swift(>=3.2)
-            if #available(iOS 11.0, *) {
-                return RuntimeType([
-                    "layerMinXMinYCorner": .layerMinXMinYCorner,
-                    "layerMaxXMinYCorner": .layerMaxXMinYCorner,
-                    "layerMinXMaxYCorner": .layerMinXMaxYCorner,
-                    "layerMaxXMaxYCorner": .layerMaxXMaxYCorner,
-                ] as [String: CACornerMask])
-            }
-        #endif
+        if #available(iOS 11.0, *) {
+            return RuntimeType([
+                "layerMinXMinYCorner": .layerMinXMinYCorner,
+                "layerMaxXMinYCorner": .layerMaxXMinYCorner,
+                "layerMinXMaxYCorner": .layerMinXMaxYCorner,
+                "layerMaxXMaxYCorner": .layerMaxXMaxYCorner,
+            ] as [String: CACornerMask])
+        }
         return RuntimeType([
             "layerMinXMinYCorner": UIntOptionSet(rawValue: 1),
             "layerMaxXMinYCorner": UIntOptionSet(rawValue: 2),
@@ -117,15 +115,13 @@ public extension RuntimeType {
             "lookupSuggestion": [],
             "all": .all,
         ] as [String: UIDataDetectorTypes]
-        #if swift(>=3.2)
-            if #available(iOS 11.0, *) {
-                var types = types
-                types["shipmentTrackingNumber"] = .shipmentTrackingNumber
-                types["flightNumber"] = .flightNumber
-                types["lookupSuggestion"] = .lookupSuggestion
-                return RuntimeType(types)
-            }
-        #endif
+        if #available(iOS 11.0, *) {
+            var types = types
+            types["shipmentTrackingNumber"] = .shipmentTrackingNumber
+            types["flightNumber"] = .flightNumber
+            types["lookupSuggestion"] = .lookupSuggestion
+            return RuntimeType(types)
+        }
         return RuntimeType(types)
     }
     @objc class var uiFont: RuntimeType {
@@ -249,15 +245,13 @@ public extension RuntimeType {
         ] as [String: UITextFieldViewMode])
     }
     @objc class var uiTextSmartQuotesType: RuntimeType {
-        #if swift(>=3.2)
-            if #available(iOS 11.0, *) {
-                return RuntimeType([
-                    "default": .default,
-                    "no": .no,
-                    "yes": .yes,
-                ] as [String: UITextSmartQuotesType])
-            }
-        #endif
+        if #available(iOS 11.0, *) {
+            return RuntimeType([
+                "default": .default,
+                "no": .no,
+                "yes": .yes,
+            ] as [String: UITextSmartQuotesType])
+        }
         return RuntimeType([
             "default": 0,
             "no": 1,
@@ -265,15 +259,13 @@ public extension RuntimeType {
         ] as [String: Int])
     }
     @objc class var uiTextSmartDashesType: RuntimeType {
-        #if swift(>=3.2)
-            if #available(iOS 11.0, *) {
-                return RuntimeType([
-                    "default": .default,
-                    "no": .no,
-                    "yes": .yes,
-                ] as [String: UITextSmartDashesType])
-            }
-        #endif
+        if #available(iOS 11.0, *) {
+            return RuntimeType([
+                "default": .default,
+                "no": .no,
+                "yes": .yes,
+            ] as [String: UITextSmartDashesType])
+        }
         return RuntimeType([
             "default": 0,
             "no": 1,
@@ -281,15 +273,13 @@ public extension RuntimeType {
         ] as [String: Int])
     }
     @objc class var uiTextSmartInsertDeleteType: RuntimeType {
-        #if swift(>=3.2)
-            if #available(iOS 11.0, *) {
-                return RuntimeType([
-                    "default": .default,
-                    "no": .no,
-                    "yes": .yes,
-                ] as [String: UITextSmartInsertDeleteType])
-            }
-        #endif
+        if #available(iOS 11.0, *) {
+            return RuntimeType([
+                "default": .default,
+                "no": .no,
+                "yes": .yes,
+            ] as [String: UITextSmartInsertDeleteType])
+        }
         return RuntimeType([
             "default": 0,
             "no": 1,
@@ -378,29 +368,23 @@ public extension RuntimeType {
 
     // MARK: Drag and drop
     @objc class var uiTextDragDelegate: RuntimeType {
-        #if swift(>=3.2)
-            if #available(iOS 11.0, *) {
-                return RuntimeType(UITextDragDelegate.self)
-            }
-        #endif
+        if #available(iOS 11.0, *) {
+            return RuntimeType(UITextDragDelegate.self)
+        }
         return .anyObject
     }
     @objc class var uiTextDropDelegate: RuntimeType {
-        #if swift(>=3.2)
-            if #available(iOS 11.0, *) {
-                return RuntimeType(UITextDropDelegate.self)
-            }
-        #endif
+        if #available(iOS 11.0, *) {
+            return RuntimeType(UITextDropDelegate.self)
+        }
         return .anyObject
     }
     @objc class var uiTextDragOptions: RuntimeType {
-        #if swift(>=3.2)
-            if #available(iOS 11.0, *) {
-                return RuntimeType([
-                    "stripTextColorFromPreviews": .stripTextColorFromPreviews,
-                ] as [String: UITextDragOptions])
-            }
-        #endif
+        if #available(iOS 11.0, *) {
+            return RuntimeType([
+                "stripTextColorFromPreviews": .stripTextColorFromPreviews,
+            ] as [String: UITextDragOptions])
+        }
         return RuntimeType([
             "stripTextColorFromPreviews": IntOptionSet(rawValue: 1),
         ] as [String: IntOptionSet])
@@ -518,16 +502,14 @@ public extension RuntimeType {
 
     // MARK: UIScrollView
     @objc class var uiScrollViewContentInsetAdjustmentBehavior: RuntimeType {
-        #if swift(>=3.2)
-            if #available(iOS 11.0, *) {
-                return RuntimeType([
-                    "automatic": .automatic,
-                    "scrollableAxes": .scrollableAxes,
-                    "never": .never,
-                    "always": .always,
-                ] as [String: UIScrollViewContentInsetAdjustmentBehavior])
-            }
-        #endif
+        if #available(iOS 11.0, *) {
+            return RuntimeType([
+                "automatic": .automatic,
+                "scrollableAxes": .scrollableAxes,
+                "never": .never,
+                "always": .always,
+            ] as [String: UIScrollViewContentInsetAdjustmentBehavior])
+        }
         return RuntimeType([
             "automatic": 0,
             "scrollableAxes": 1,
@@ -564,15 +546,13 @@ public extension RuntimeType {
         ] as [String: UICollectionViewScrollDirection])
     }
     @objc class var uiCollectionViewReorderingCadence: RuntimeType {
-        #if swift(>=3.2)
-            if #available(iOS 11.0, *) {
-                return RuntimeType([
-                    "immediate": .immediate,
-                    "fast": .fast,
-                    "slow": .slow,
-                ] as [String: UICollectionViewReorderingCadence])
-            }
-        #endif
+        if #available(iOS 11.0, *) {
+            return RuntimeType([
+                "immediate": .immediate,
+                "fast": .fast,
+                "slow": .slow,
+            ] as [String: UICollectionViewReorderingCadence])
+        }
         return RuntimeType([
             "immediate": 0,
             "fast": 1,
@@ -580,15 +560,13 @@ public extension RuntimeType {
         ] as [String: Int])
     }
     @objc class var uiCollectionViewFlowLayoutSectionInsetReference: RuntimeType {
-        #if swift(>=3.2)
-            if #available(iOS 11.0, *) {
-                return RuntimeType([
-                    "fromContentInset": .fromContentInset,
-                    "fromSafeArea": .fromSafeArea,
-                    "fromLayoutMargins": .fromLayoutMargins,
-                ] as [String: UICollectionViewFlowLayoutSectionInsetReference])
-            }
-        #endif
+        if #available(iOS 11.0, *) {
+            return RuntimeType([
+                "fromContentInset": .fromContentInset,
+                "fromSafeArea": .fromSafeArea,
+                "fromLayoutMargins": .fromLayoutMargins,
+            ] as [String: UICollectionViewFlowLayoutSectionInsetReference])
+        }
         return RuntimeType([
             "fromContentInset": 0,
             "fromSafeArea": 1,
@@ -665,14 +643,12 @@ public extension RuntimeType {
         ] as [String: UITableViewCellStyle])
     }
     @objc class var uiTableViewSeparatorInsetReference: RuntimeType {
-        #if swift(>=3.2)
-            if #available(iOS 11.0, *) {
-                return RuntimeType([
-                    "fromCellEdges": .fromCellEdges,
-                    "fromAutomaticInsets": .fromAutomaticInsets,
-                ] as [String: UITableViewSeparatorInsetReference])
-            }
-        #endif
+        if #available(iOS 11.0, *) {
+            return RuntimeType([
+                "fromCellEdges": .fromCellEdges,
+                "fromAutomaticInsets": .fromAutomaticInsets,
+            ] as [String: UITableViewSeparatorInsetReference])
+        }
         return RuntimeType([
             "fromCellEdges": 0,
             "fromAutomaticInsets": 1,
@@ -771,19 +747,11 @@ public extension RuntimeType {
         ] as [String: UIModalTransitionStyle])
     }
     @objc class var uiNavigationItem_LargeTitleDisplayMode: RuntimeType {
-        #if swift(>=3.2)
-            return RuntimeType([
-                "automatic": .automatic,
-                "always": .always,
-                "never": .never,
-            ] as [String: UINavigationItem.LargeTitleDisplayMode])
-        #else
-            return RuntimeType([
-                "automatic": 0,
-                "always": 1,
-                "never": 2,
-            ] as [String: Int])
-        #endif
+        return RuntimeType([
+            "automatic": .automatic,
+            "always": .always,
+            "never": .never,
+        ] as [String: UINavigationItem.LargeTitleDisplayMode])
     }
 
     // MARK: UICloudSharingViewController
@@ -825,14 +793,12 @@ public extension RuntimeType {
         ] as [String: UIImagePickerControllerCameraFlashMode])
     }
     @objc class var uiImagePickerControllerImageURLExportPreset: RuntimeType {
-        #if swift(>=3.2)
-            if #available(iOS 11.0, *) {
-                return RuntimeType([
-                    "compatible": .compatible,
-                    "current": .current,
-                ] as [String: UIImagePickerControllerImageURLExportPreset])
-            }
-        #endif
+        if #available(iOS 11.0, *) {
+            return RuntimeType([
+                "compatible": .compatible,
+                "current": .current,
+            ] as [String: UIImagePickerControllerImageURLExportPreset])
+        }
         return RuntimeType([
             "compatible": IntOptionSet(rawValue: 1),
             "current": IntOptionSet(rawValue: 2),
@@ -866,14 +832,12 @@ public extension RuntimeType {
         ] as [String: UISplitViewControllerDisplayMode])
     }
     @objc class var uiSplitViewControllerPrimaryEdge: RuntimeType {
-        #if swift(>=3.2)
-            if #available(iOS 11.0, *) {
-                return RuntimeType([
-                    "leading": .leading,
-                    "trailing": .trailing,
-                ] as [String: UISplitViewControllerPrimaryEdge])
-            }
-        #endif
+        if #available(iOS 11.0, *) {
+            return RuntimeType([
+                "leading": .leading,
+                "trailing": .trailing,
+            ] as [String: UISplitViewControllerPrimaryEdge])
+        }
         return RuntimeType([
             "leading": 0,
             "trailing": 1,

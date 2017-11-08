@@ -105,15 +105,6 @@ extension UIEdgeInsets {
     }
 }
 
-#if swift(>=3.2)
-#else
-
-    // Swift 3.2 compatibility helpers
-
-    struct NSAttributedStringKey {}
-
-#endif
-
 #if swift(>=4)
 #else
 

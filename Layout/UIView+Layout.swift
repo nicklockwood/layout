@@ -168,13 +168,11 @@ extension UIView {
     }
 
     var _safeAreaInsets: UIEdgeInsets {
-        #if swift(>=3.2)
-            if #available(iOS 11.0, *), let viewController = viewController {
-                // This is the root view of a controller, so we can use the inset value directly, as per
-                // https://developer.apple.com/documentation/uikit/uiview/2891103-safeareainsets
-                return viewController.view.safeAreaInsets
-            }
-        #endif
+        if #available(iOS 11.0, *), let viewController = viewController {
+            // This is the root view of a controller, so we can use the inset value directly, as per
+            // https://developer.apple.com/documentation/uikit/uiview/2891103-safeareainsets
+            return viewController.view.safeAreaInsets
+        }
         return UIEdgeInsets(
             top: _layoutGuideController?.topLayoutGuide.length ?? 0,
             left: 0,
@@ -651,25 +649,19 @@ extension UITextField {
         case "isSecureTextEntry": isSecureTextEntry = value as! Bool
         case "smartQuotesType":
             // TODO: warn about unavailability
-            #if swift(>=3.2)
-                if #available(iOS 11.0, *) {
-                    smartQuotesType = value as! UITextSmartQuotesType
-                }
-            #endif
+            if #available(iOS 11.0, *) {
+                smartQuotesType = value as! UITextSmartQuotesType
+            }
         case "smartDashesType":
             // TODO: warn about unavailability
-            #if swift(>=3.2)
-                if #available(iOS 11.0, *) {
-                    smartDashesType = value as! UITextSmartDashesType
-                }
-            #endif
+            if #available(iOS 11.0, *) {
+                smartDashesType = value as! UITextSmartDashesType
+            }
         case "smartInsertDeleteType":
             // TODO: warn about unavailability
-            #if swift(>=3.2)
-                if #available(iOS 11.0, *) {
-                    smartInsertDeleteType = value as! UITextSmartInsertDeleteType
-                }
-            #endif
+            if #available(iOS 11.0, *) {
+                smartInsertDeleteType = value as! UITextSmartInsertDeleteType
+            }
         case "textDragDelegate", "textDropDelegate", "textDragOptions":
             // Does nothing on iOS 10 and earlier
             if #available(iOS 11.0, *) {
@@ -730,25 +722,19 @@ extension UITextView {
         case "isSecureTextEntry": isSecureTextEntry = value as! Bool
         case "smartQuotesType":
             // TODO: warn about unavailability
-            #if swift(>=3.2)
-                if #available(iOS 11.0, *) {
-                    smartQuotesType = value as! UITextSmartQuotesType
-                }
-            #endif
+            if #available(iOS 11.0, *) {
+                smartQuotesType = value as! UITextSmartQuotesType
+            }
         case "smartDashesType":
             // TODO: warn about unavailability
-            #if swift(>=3.2)
-                if #available(iOS 11.0, *) {
-                    smartDashesType = value as! UITextSmartDashesType
-                }
-            #endif
+            if #available(iOS 11.0, *) {
+                smartDashesType = value as! UITextSmartDashesType
+            }
         case "smartInsertDeleteType":
             // TODO: warn about unavailability
-            #if swift(>=3.2)
-                if #available(iOS 11.0, *) {
-                    smartInsertDeleteType = value as! UITextSmartInsertDeleteType
-                }
-            #endif
+            if #available(iOS 11.0, *) {
+                smartInsertDeleteType = value as! UITextSmartInsertDeleteType
+            }
         case "textDragDelegate", "textDropDelegate", "textDragOptions":
             // Does nothing on iOS 10 and earlier
             if #available(iOS 11.0, *) {
@@ -806,25 +792,19 @@ extension UISearchBar {
         case "isSecureTextEntry": isSecureTextEntry = value as! Bool
         case "smartQuotesType":
             // TODO: warn about unavailability
-            #if swift(>=3.2)
-                if #available(iOS 11.0, *) {
-                    smartQuotesType = value as! UITextSmartQuotesType
-                }
-            #endif
+            if #available(iOS 11.0, *) {
+                smartQuotesType = value as! UITextSmartQuotesType
+            }
         case "smartDashesType":
             // TODO: warn about unavailability
-            #if swift(>=3.2)
-                if #available(iOS 11.0, *) {
-                    smartDashesType = value as! UITextSmartDashesType
-                }
-            #endif
+            if #available(iOS 11.0, *) {
+                smartDashesType = value as! UITextSmartDashesType
+            }
         case "smartInsertDeleteType":
             // TODO: warn about unavailability
-            #if swift(>=3.2)
-                if #available(iOS 11.0, *) {
-                    smartInsertDeleteType = value as! UITextSmartInsertDeleteType
-                }
-            #endif
+            if #available(iOS 11.0, *) {
+                smartInsertDeleteType = value as! UITextSmartInsertDeleteType
+            }
         default:
             try super.setValue(value, forExpression: name)
         }
