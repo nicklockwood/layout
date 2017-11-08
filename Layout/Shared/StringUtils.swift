@@ -2,8 +2,11 @@
 
 import Foundation
 
-private let AToZ = "A".unicodeScalars.first!.value ..< "Z".unicodeScalars.first!.value
-private let aToZ = "a".unicodeScalars.first!.value ..< "z".unicodeScalars.first!.value
+// NOTE: these functions only apply capitalization to the Roman alphabet, which is deliberate
+// because they are intended to be used with class and method names, not arbitrary strings
+
+private let AToZ = "A".unicodeScalars.first!.value ... "Z".unicodeScalars.first!.value
+private let aToZ = "a".unicodeScalars.first!.value ... "z".unicodeScalars.first!.value
 private let aMinusA = "a".unicodeScalars.first!.value - "A".unicodeScalars.first!.value
 
 extension Unicode.Scalar {
