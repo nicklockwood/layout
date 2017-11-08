@@ -85,12 +85,6 @@ func urlFromString(_ path: String) -> URL {
     }
 }
 
-extension Character {
-    var isUppercase: Bool {
-        return String(self).uppercased().characters.first == self
-    }
-}
-
 private let precision: CGFloat = 0.001
 
 extension CGSize {

@@ -151,8 +151,7 @@ public class Expression: CustomStringConvertible {
                     arity = requiredArity
                 }
                 let description = symbol.description
-                return String(description.characters.first!).uppercased() +
-                    String(description.characters.dropFirst()) +
+                return String(description.first!).uppercased() + String(description.dropFirst()) +
                     " expects \(arity) argument\(arity == 1 ? "" : "s")"
             }
         }

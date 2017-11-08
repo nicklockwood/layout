@@ -187,9 +187,8 @@ public class RuntimeType: NSObject {
                 return fn(target, selector)
             }
             setter = { target, key, value in
-                let chars = key.characters
                 let selector = Selector(
-                    "set\(String(chars.first!).uppercased())\(String(chars.dropFirst())):"
+                    "set\(key.capitalized()):"
                 )
                 let fn = unsafeBitCast(
                     class_getMethodImplementation(Swift.type(of: target), selector),
@@ -421,6 +420,7 @@ public class RuntimeType: NSObject {
     }
 }
 
+// Return the human-readable name, without braces or underscores, etc
 private func sanitizedStructName(_ objCType: String) -> String {
     guard let equalRange = objCType.range(of: "="),
         let braceRange = objCType.range(of: "{") else {
@@ -435,22 +435,16 @@ private func sanitizedStructName(_ objCType: String) -> String {
     }
 }
 
+// Converts type name to appropriate selector for lookup on RuntimeType
 func sanitizedTypeName(_ typeName: String) -> String {
-    var tail = String.CharacterView.SubSequence(typeName.characters)
-    var head = (tail.popFirst().map { String($0).lowercased() } ?? "").characters
+    var tail = Substring(typeName)
+    var head = tail.popFirst().map { String($0.lowercased()) } ?? ""
     while let char = tail.popFirst() {
-        if let first = tail.first {
-            let lowercased = String(first).lowercased().characters.first!
-            if lowercased == first {
-                head.append(char)
-                break
-            }
-        }
-        let lowercased = String(char).lowercased().characters.first!
-        head.append(lowercased)
-        if lowercased == char {
+        if char.isLowercase || tail.first?.isLowercase == true {
+            head.append(char)
             break
         }
+        head.append(char.lowercased())
     }
     return String(head + tail).replacingOccurrences(of: ".", with: "_")
 }

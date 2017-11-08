@@ -106,8 +106,7 @@ extension NSObject {
                         continue
                     }
                     // Get attributes
-                    let chars = name.characters
-                    let setter = "set\(String(chars.first!).uppercased())\(String(chars.dropFirst())):"
+                    let setter = "set\(name.capitalized()):"
                     guard instancesRespond(to: Selector(setter)) else {
                         continue
                     }
@@ -200,17 +199,16 @@ extension NSObject {
         var key = key
         var setter: String
         do {
-            let chars = key.characters
             if key.hasPrefix("is") {
-                let chars = chars.dropFirst(2)
-                setter = "set\(String(chars)):"
+                let trimmedKey = String(key.dropFirst(2))
+                setter = "set\(trimmedKey):"
                 if responds(to: Selector(setter)) {
-                    key = "\(String(chars.first!).lowercased())\(String(chars.dropFirst()))"
+                    key = trimmedKey.unCapitalized()
                 } else {
-                    setter = "setIs\(String(chars)):"
+                    setter = "setIs\(trimmedKey):"
                 }
             } else {
-                setter = "set\(String(chars.first!).uppercased())\(String(chars.dropFirst())):"
+                setter = "set\(key.capitalized()):"
             }
         }
         if animated, let type = type {

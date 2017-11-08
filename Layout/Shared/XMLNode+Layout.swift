@@ -6,8 +6,7 @@ extension XMLNode {
     var isLayout: Bool {
         switch self {
         case let .node(name, attributes, children):
-            guard let firstChar = name.characters.first.map({ String($0) }),
-                firstChar.uppercased() == firstChar else {
+            guard name.isCapitalized else {
                 return false
             }
             for key in attributes.keys {

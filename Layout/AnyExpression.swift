@@ -99,12 +99,8 @@ struct AnyExpression: CustomStringConvertible {
                     numericConstants["nil"] = store(null as Any)
                     continue
                 }
-                var chars = name.characters
-                if chars.count >= 2, let first = chars.first, let last = chars.last,
-                    "'\"".characters.contains(first), last == first {
-                    chars.removeFirst()
-                    chars.removeLast()
-                    numericConstants[name] = store(String(chars))
+                if name.count >= 2, let first = name.first, "'\"".contains(first), name.last == first {
+                    numericConstants[name] = store(String(name.dropFirst().dropLast()))
                 }
             }
         }

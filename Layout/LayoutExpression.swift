@@ -40,17 +40,17 @@ private let colorLookup = { (string: String) -> Any? in
         return color
     }
     if string.hasPrefix("#") {
-        var string = String(string.characters.dropFirst())
-        switch string.characters.count {
+        var string = String(string.dropFirst())
+        switch string.count {
         case 3:
             string += "f"
             fallthrough
         case 4:
-            let chars = string.characters
-            let red = chars[chars.index(chars.startIndex, offsetBy: 0)]
-            let green = chars[chars.index(chars.startIndex, offsetBy: 1)]
-            let blue = chars[chars.index(chars.startIndex, offsetBy: 2)]
-            let alpha = chars[chars.index(chars.startIndex, offsetBy: 3)]
+            let chars = Array(string)
+            let red = chars[0]
+            let green = chars[1]
+            let blue = chars[2]
+            let alpha = chars[3]
             string = "\(red)\(red)\(green)\(green)\(blue)\(blue)\(alpha)\(alpha)"
         case 6:
             string += "ff"
@@ -290,22 +290,16 @@ struct LayoutExpression {
                   for node: LayoutNode) {
 
         func staticConstant(for key: String) throws -> Any? {
-            guard key.characters.first?.isUppercase == true else {
-                return nil
-            }
             var tail = key
             var head = ""
-            while let range = tail.range(of: ".") {
-                guard tail.characters[range.lowerBound].isUppercase else {
-                    break
-                }
+            while tail.isCapitalized, let range = tail.range(of: ".") {
                 if !head.isEmpty {
                     head += "."
                 }
-                head += String(tail.characters[tail.startIndex ..< range.lowerBound])
-                tail = String(tail.characters[range.upperBound ..< tail.endIndex])
+                head += String(tail[..<range.lowerBound])
+                tail = String(tail[range.upperBound...])
             }
-            guard let type = RuntimeType(head) else {
+            guard !head.isEmpty, let type = RuntimeType(head) else {
                 return nil
             }
             switch type.type {
@@ -351,11 +345,10 @@ struct LayoutExpression {
         var macroSymbols = [String: Set<String>]()
         for symbol in parsedExpression.symbols where symbols[symbol] == nil &&
             numericSymbols[symbol] == nil && !ignoredSymbols.contains(symbol) {
-            if case let .variable(name) = symbol, !name.hasPrefix("'"), !name.hasPrefix("\"") {
+            if case let .variable(name) = symbol, let first = name.first, !"'\"".contains(first) {
                 var key = name
-                let chars = name.characters
-                if chars.count >= 2, chars.first == "`", chars.last == "`" {
-                    key = String(chars.dropFirst().dropLast())
+                if key.count >= 2, key.first == "`", key.last == "`" {
+                    key = String(key.dropFirst().dropLast())
                 }
                 let macro = node.expression(forMacro: key)
                 let circular = (macro != nil) ? macroReferences.contains(key) : false

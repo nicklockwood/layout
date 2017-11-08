@@ -173,22 +173,22 @@ public enum LayoutError: Error, Hashable, CustomStringConvertible {
                         let lhsDistance = lhsMatch.distance(from: lhsRange.lowerBound, to: lhsRange.upperBound)
                         let rhsDistance = rhsMatch.distance(from: rhsRange.lowerBound, to: rhsRange.upperBound)
                         if lhsDistance == rhsDistance {
-                            return lhsMatch.characters.count < rhsMatch.characters.count // Prefer the shortest match
+                            return lhsMatch.count < rhsMatch.count // Prefer the shortest match
                         }
                         return lhsDistance > rhsDistance // Prefer best match
                     }
                 }
                 // Find all matches with a common prefix
                 matches = suggestions.filter {
-                    $0.lowercased().commonPrefix(with: symbol).characters.count >= matchThreshold
+                    $0.lowercased().commonPrefix(with: symbol).count >= matchThreshold
                 }
                 if !matches.isEmpty {
                     // Sort suggestions by longest common prefix with symbol
                     return matches.sorted { lhs, rhs in
-                        let lhsLength = lhs.lowercased().commonPrefix(with: symbol).characters.count
-                        let rhsLength = rhs.lowercased().commonPrefix(with: symbol).characters.count
+                        let lhsLength = lhs.lowercased().commonPrefix(with: symbol).count
+                        let rhsLength = rhs.lowercased().commonPrefix(with: symbol).count
                         if lhsLength == rhsLength {
-                            return lhs.characters.count < rhs.characters.count // Prefer the shortest match
+                            return lhs.count < rhs.count // Prefer the shortest match
                         }
                         return lhsLength > rhsLength
                     }

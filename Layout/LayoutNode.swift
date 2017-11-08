@@ -1194,7 +1194,7 @@ public class LayoutNode: NSObject {
             case "strings":
                 return true // Localizable strings are always constant
             case let head where head.hasPrefix("#"):
-                let id = String(head.characters.dropFirst())
+                let id = String(head.dropFirst())
                 if let node = self.node(withID: id) {
                     return node.symbolIsConstant(tail)
                 }
@@ -1468,7 +1468,7 @@ public class LayoutNode: NSObject {
                         try self.value(forParameterOrVariableOrConstant: symbol) ?? self.localizedString(forKey: tail)
                     }
                 case let head where head.hasPrefix("#"):
-                    let id = String(head.characters.dropFirst())
+                    let id = String(head.dropFirst())
                     if let node = self.node(withID: id) {
                         getter = { [unowned node] in
                             try node.value(forSymbol: tail) as Any

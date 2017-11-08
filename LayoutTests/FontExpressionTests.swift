@@ -275,9 +275,6 @@ class FontExpressionTests: XCTestCase {
                 })
                 if !expected.isEmpty {
                     let name = try! (expression!.evaluate() as! UIFont).fontName
-                    if !expected.contains(name) {
-                        print("")
-                    }
                     XCTAssertTrue(expected.contains(name), "\(expected) does not contain \(name)")
                 }
             }
