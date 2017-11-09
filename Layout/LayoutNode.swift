@@ -836,6 +836,64 @@ public class LayoutNode: NSObject {
         return expressions
     }
 
+    private func keys(in values: [String: Any], matching type: RuntimeType) -> [String] {
+        var matches = [String]()
+        for (key, value) in values {
+            if type.matches(value) {
+                matches.append(key)
+            } else if let values = value as? [String: Any] {
+                matches += keys(in: values, matching: type).map { "\(key).\($0)" }
+            }
+        }
+        return matches
+    }
+
+    // Returns all symbols that can be referenced in an expression
+    func availableSymbols(forExpression name: String) -> [String] {
+        var symbols = [String]()
+        var type: RuntimeType
+        switch name {
+        case "left", "right", "top", "bottom":
+            type = .cgFloat
+        case "width", "height":
+            type = .cgFloat
+            symbols.append("auto")
+        case "outlet", "id", "xml", "template":
+            type = .string
+        default:
+            func validKeys(in types: [String: RuntimeType]) -> [String] {
+                return types.flatMap { $0.key != name && $0.value == type ? $0.key : nil }
+            }
+            if let controllerClass = viewControllerClass {
+                type = controllerClass.expressionTypes[name] ?? UIView.expressionTypes[name] ?? .any
+                symbols += validKeys(in: controllerClass.expressionTypes)
+                symbols += validKeys(in: UIView.expressionTypes)
+            } else {
+                type = viewClass.expressionTypes[name] ?? .any
+                symbols += validKeys(in: viewClass.expressionTypes)
+            }
+        }
+        symbols += type.values.keys
+        // TODO: basing the search on type is not especially effective because
+        // you can use symbols of other types inside an expression, but if we
+        // don't filter it somehow then there will be too many possible results
+        var node: LayoutNode? = self
+        while let _node = node {
+            symbols += keys(in: _node.constants, matching: type)
+            for (key, value) in _node._variables where type.matches(value) {
+                symbols.append(key)
+            }
+            if _node != self {
+                for (key, _type) in _node._parameters where type == _type {
+                    symbols.append(key)
+                }
+                // TODO: macros?
+            }
+            node = _node.parent
+        }
+        return symbols
+    }
+
     // Note: thrown error is always a SymbolError
     private func setUpExpression(for symbol: String) throws {
         guard _getters[symbol] == nil, let string = expressions[symbol] else {

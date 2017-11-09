@@ -71,7 +71,7 @@ public enum LayoutError: Error, Hashable, CustomStringConvertible {
     case message(String)
     case generic(Error, String?)
     case unknownExpression(Error /* SymbolError */, [String])
-    case unknownSymbol(Error, AnyClass?)
+    case unknownSymbol(Error /* SymbolError */, [String])
     case multipleMatches([URL], for: String)
 
     public init?(_ error: Error?) {
@@ -109,75 +109,24 @@ public enum LayoutError: Error, Hashable, CustomStringConvertible {
             self = error as! LayoutError
         case let LayoutError.generic(_, cls) where cls == viewOrControllerClass.map(nameOfClass):
             self = error as! LayoutError
-        case let LayoutError.unknownSymbol(_, cls) where cls === viewOrControllerClass:
-            self = error as! LayoutError
         case let error as LayoutError where viewOrControllerClass == nil:
             self = error
-        case let error as SymbolError where error.description.contains("Unknown property"):
-            if error.description.contains("expression") {
-                self = .unknownSymbol(error, viewOrControllerClass)
-            } else {
-                // TODO: suggestions
-                self = .unknownExpression(error, [])
-            }
         default:
             self = .generic(error, viewOrControllerClass.map(nameOfClass))
         }
     }
 
-    #if arch(i386) || arch(x86_64)
-
-        public var suggestions: [String] {
-            var suggestions = [String]()
-            var symbolError: SymbolError?
-            switch self {
-            case let .unknownExpression(error, symbols):
-                symbolError = error as? SymbolError
-                suggestions = symbols
-            case let .unknownSymbol(error, viewOrControllerClass):
-                if let error = error as? LayoutError, case .unknownSymbol = error {
-                    return error.suggestions
-                }
-                if let error = error as? SymbolError {
-                    symbolError = error.error as? SymbolError
-                    var type: RuntimeType?
-                    if let controllerClass = viewOrControllerClass as? UIViewController.Type {
-                        type = controllerClass.expressionTypes[error.symbol] ?? UIView.expressionTypes[error.symbol]
-                    } else if let viewClass = viewOrControllerClass as? UIView.Type {
-                        type = viewClass.expressionTypes[error.symbol]
-                    }
-                    if let subtype = type?.type {
-                        switch subtype {
-                        case let .enum(_, values):
-                            // Suggest enum types
-                            suggestions = Array(values.keys)
-                        case let .options(_, values):
-                            // Suggest options types
-                            suggestions = Array(values.keys)
-                        default:
-                            break
-                        }
-                    }
-                }
-            case let .generic(error, _):
-                if let error = error as? LayoutError {
-                    return error.suggestions
-                }
-                fallthrough
-            default:
-                return []
-            }
-            if let error = symbolError {
-                return bestMatches(for: error.symbol, in: suggestions)
-            }
+    public var suggestions: [String] {
+        switch self {
+        case let .unknownExpression(_, suggestions),
+             let .unknownSymbol(_, suggestions):
             return suggestions
+        case let .generic(error, _):
+            return (error as? LayoutError)?.suggestions ?? []
+        default:
+            return []
         }
-
-    #else
-
-        public var suggestions: [String] { return [] }
-
-    #endif
+    }
 
     public var description: String {
         switch self {
@@ -191,16 +140,8 @@ public enum LayoutError: Error, Hashable, CustomStringConvertible {
                 }
             }
             return description
-        case let .unknownSymbol(error, viewClass):
-            var description = stringify(error)
-            if let viewClass = viewClass {
-                let className = "\(viewClass)"
-                if !description.contains(className) {
-                    description = "\(description) in \(className)"
-                }
-            }
-            return description
-        case let .unknownExpression(error, _):
+        case let .unknownExpression(error, _),
+             let .unknownSymbol(error, _):
             return stringify(error)
         case let .multipleMatches(_, path):
             return "Layout found multiple source files matching \(path)"

@@ -16,10 +16,15 @@ extension LayoutError {
         switch error {
         case let error as SymbolError where error.description.contains("Unknown property"):
             if error.description.contains("expression") {
-                fallthrough
+                var suggestions = node.availableSymbols(forExpression: error.symbol)
+                if let subError = error.error as? SymbolError {
+                    suggestions = bestMatches(for: subError.symbol, in: suggestions)
+                }
+                self.init(LayoutError.unknownSymbol(error, suggestions), for: node)
+            } else {
+                let suggestions = bestMatches(for: error.symbol, in: node.availableExpressions)
+                self.init(LayoutError.unknownExpression(error, suggestions), for: node)
             }
-            let suggestions = bestMatches(for: error.symbol, in: node.availableExpressions)
-            self.init(LayoutError.unknownExpression(error, suggestions), for: node)
         default:
             self.init(error, in: nameOfClass(node._class), in: rootURL)
         }
@@ -78,6 +83,6 @@ func bestMatches(for symbol: String, in suggestions: [String]) -> [String] {
             return lhsLength > rhsLength
         }
     }
-    // Sort all single-element properties alphabetically
-    return suggestions.filter { !$0.contains(".") }.sorted()
+    // Sort all suggestions alphabetically
+    return suggestions.sorted()
 }
