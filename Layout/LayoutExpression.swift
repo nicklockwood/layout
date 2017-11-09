@@ -974,6 +974,67 @@ struct LayoutExpression {
         )
     }
 
+    init?(outletExpression: String, for node: LayoutNode) {
+        #if arch(i386) || arch(x86_64)
+            // Pre-validate expression so we can produce more useful errors
+            if let parts = try? parseStringExpression(outletExpression) {
+                for part in parts {
+                    switch part {
+                    case let .expression(expression):
+                        guard expression.symbols.count == 1,
+                            case let .variable(name) = expression.symbols.first!,
+                            let first = name.first, !"'\"".contains(first) else {
+                            continue
+                        }
+                        var parent = node.parent
+                        var invalidType: RuntimeType?
+                        while let _parent = parent {
+                            if let type = _parent._parameters[name] {
+                                switch type.type {
+                                case let .any(subtype):
+                                    switch subtype {
+                                    case is String.Type,
+                                         is Int.Type,
+                                         is Int32.Type,
+                                         is Int64.Type,
+                                         is UInt.Type,
+                                         is UInt32.Type,
+                                         is UInt64.Type,
+                                         is Bool.Type:
+                                        break
+                                    default:
+                                        invalidType = type
+                                    }
+                                default:
+                                    invalidType = type
+                                }
+                            }
+                            parent = _parent.parent
+                        }
+                        if let type = invalidType {
+                            self.init(
+                                evaluate: {
+                                    throw Expression.Error.message("Outlet parameters must be of type String, not \(type)")
+                                },
+                                symbols: []
+                            )
+                            return
+                        }
+                    case .string, .comment:
+                        continue
+                    }
+                }
+            }
+        #endif
+        guard let expression = LayoutExpression(stringExpression: outletExpression, for: node) else {
+            return nil
+        }
+        self.init(
+            evaluate: { try expression.evaluate() as! String },
+            symbols: expression.symbols
+        )
+    }
+
     init?(classExpression: String, class: AnyClass, for node: LayoutNode) {
         self.init(
             anyExpression: classExpression,

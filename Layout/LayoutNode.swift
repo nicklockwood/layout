@@ -921,8 +921,8 @@ public class LayoutNode: NSObject {
             case "height":
                 expression = LayoutExpression(heightExpression: string, for: self)
             case "outlet":
-                expression = LayoutExpression(stringExpression: string, for: self)
-                if !expression.isConstant {
+                expression = LayoutExpression(outletExpression: string, for: self)
+                if let expression = expression, !expression.isConstant {
                     throw SymbolError("Expression for `\(symbol)` must be a constant or literal value", for: symbol)
                 }
             default:
