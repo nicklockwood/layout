@@ -44,7 +44,7 @@ private extension Layout {
             xmlPath: layout.xmlPath,
             templatePath: templatePath,
             relativePath: layout.relativePath, // TODO: is this correct?
-            rootURL: layout.rootURL
+            rootURL: rootURL
         )
     }
 

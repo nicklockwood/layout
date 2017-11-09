@@ -70,7 +70,7 @@ internal struct SymbolError: Error, CustomStringConvertible {
 public enum LayoutError: Error, Hashable, CustomStringConvertible {
     case message(String)
     case generic(Error, String?)
-    case unknownExpression(Error, AnyClass?)
+    case unknownExpression(Error /* SymbolError */, [String])
     case unknownSymbol(Error, AnyClass?)
     case multipleMatches([URL], for: String)
 
@@ -109,20 +109,16 @@ public enum LayoutError: Error, Hashable, CustomStringConvertible {
             self = error as! LayoutError
         case let LayoutError.generic(_, cls) where cls == viewOrControllerClass.map(nameOfClass):
             self = error as! LayoutError
-        case let LayoutError.unknownExpression(_, cls) where cls === viewOrControllerClass,
-             let LayoutError.unknownSymbol(_, cls) where cls === viewOrControllerClass:
+        case let LayoutError.unknownSymbol(_, cls) where cls === viewOrControllerClass:
             self = error as! LayoutError
         case let error as LayoutError where viewOrControllerClass == nil:
             self = error
-        case LayoutError.unknownExpression:
-            self = .unknownExpression(error, viewOrControllerClass)
-        case LayoutError.unknownSymbol:
-            self = .unknownSymbol(error, viewOrControllerClass)
         case let error as SymbolError where error.description.contains("Unknown property"):
             if error.description.contains("expression") {
                 self = .unknownSymbol(error, viewOrControllerClass)
             } else {
-                self = .unknownExpression(error, viewOrControllerClass)
+                // TODO: suggestions
+                self = .unknownExpression(error, [])
             }
         default:
             self = .generic(error, viewOrControllerClass.map(nameOfClass))
@@ -132,24 +128,12 @@ public enum LayoutError: Error, Hashable, CustomStringConvertible {
     #if arch(i386) || arch(x86_64)
 
         public var suggestions: [String] {
-            let matchThreshold = 3 // Minimum characters needed to count as a match
             var suggestions = [String]()
             var symbolError: SymbolError?
             switch self {
-            case let .unknownExpression(error, viewOrControllerClass):
-                if let error = error as? LayoutError, case .unknownExpression = error {
-                    return error.suggestions
-                }
+            case let .unknownExpression(error, symbols):
                 symbolError = error as? SymbolError
-                suggestions = ["left", "right", "width", "top", "bottom", "height", "outlet"]
-                // TODO: find a way to include params as well
-                if let controllerClass = viewOrControllerClass as? UIViewController.Type {
-                    suggestions +=
-                        Array(controllerClass.expressionTypes.flatMap { $0.value.isAvailable ? $0.key : nil }) +
-                        Array(UIView.expressionTypes.flatMap { $0.value.isAvailable ? $0.key : nil })
-                } else if let viewClass = viewOrControllerClass as? UIView.Type {
-                    suggestions += Array(viewClass.expressionTypes.flatMap { $0.value.isAvailable ? $0.key : nil })
-                }
+                suggestions = symbols
             case let .unknownSymbol(error, viewOrControllerClass):
                 if let error = error as? LayoutError, case .unknownSymbol = error {
                     return error.suggestions
@@ -184,50 +168,7 @@ public enum LayoutError: Error, Hashable, CustomStringConvertible {
                 return []
             }
             if let error = symbolError {
-                let symbol = error.symbol.lowercased()
-                // Find all matches containing the string
-                var matches = suggestions.filter {
-                    let match = $0.lowercased()
-                    guard let range = match.range(of: symbol) else {
-                        return false
-                    }
-                    return match.distance(from: range.lowerBound, to: range.upperBound) >= matchThreshold
-                }
-                if !matches.isEmpty {
-                    return matches.sorted { lhs, rhs in
-                        let lhsMatch = lhs.lowercased()
-                        guard let lhsRange = lhsMatch.range(of: symbol) else {
-                            return false
-                        }
-                        let rhsMatch = rhs.lowercased()
-                        guard let rhsRange = rhsMatch.range(of: symbol) else {
-                            return true
-                        }
-                        let lhsDistance = lhsMatch.distance(from: lhsRange.lowerBound, to: lhsRange.upperBound)
-                        let rhsDistance = rhsMatch.distance(from: rhsRange.lowerBound, to: rhsRange.upperBound)
-                        if lhsDistance == rhsDistance {
-                            return lhsMatch.count < rhsMatch.count // Prefer the shortest match
-                        }
-                        return lhsDistance > rhsDistance // Prefer best match
-                    }
-                }
-                // Find all matches with a common prefix
-                matches = suggestions.filter {
-                    $0.lowercased().commonPrefix(with: symbol).count >= matchThreshold
-                }
-                if !matches.isEmpty {
-                    // Sort suggestions by longest common prefix with symbol
-                    return matches.sorted { lhs, rhs in
-                        let lhsLength = lhs.lowercased().commonPrefix(with: symbol).count
-                        let rhsLength = rhs.lowercased().commonPrefix(with: symbol).count
-                        if lhsLength == rhsLength {
-                            return lhs.count < rhs.count // Prefer the shortest match
-                        }
-                        return lhsLength > rhsLength
-                    }
-                }
-                // Sort all single-element properties alphabetically
-                return suggestions.filter { !$0.contains(".") }.sorted()
+                return bestMatches(for: error.symbol, in: suggestions)
             }
             return suggestions
         }
@@ -250,8 +191,7 @@ public enum LayoutError: Error, Hashable, CustomStringConvertible {
                 }
             }
             return description
-        case let .unknownSymbol(error, viewClass),
-             let .unknownExpression(error, viewClass):
+        case let .unknownSymbol(error, viewClass):
             var description = stringify(error)
             if let viewClass = viewClass {
                 let className = "\(viewClass)"
@@ -260,6 +200,8 @@ public enum LayoutError: Error, Hashable, CustomStringConvertible {
                 }
             }
             return description
+        case let .unknownExpression(error, _):
+            return stringify(error)
         case let .multipleMatches(_, path):
             return "Layout found multiple source files matching \(path)"
         }

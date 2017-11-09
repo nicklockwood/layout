@@ -820,6 +820,22 @@ public class LayoutNode: NSObject {
     private lazy var constructorArgumentTypes: [String: RuntimeType] =
         self.viewControllerClass?.parameterTypes ?? self.viewClass.parameterTypes
 
+    // Returns all expressions that can be set on the node
+    // Used for generating error suggestions
+    var availableExpressions: [String] {
+        var expressions = Array(layoutSymbols)
+        expressions += ["outlet", "id", "xml", "template"]
+        expressions += _parameters.keys
+        if let controllerClass = viewControllerClass {
+            expressions +=
+                Array(controllerClass.expressionTypes.flatMap { $0.value.isAvailable ? $0.key : nil }) +
+                Array(UIView.expressionTypes.flatMap { $0.value.isAvailable ? $0.key : nil })
+        } else {
+            expressions += Array(viewClass.expressionTypes.flatMap { $0.value.isAvailable ? $0.key : nil })
+        }
+        return expressions
+    }
+
     // Note: thrown error is always a SymbolError
     private func setUpExpression(for symbol: String) throws {
         guard _getters[symbol] == nil, let string = expressions[symbol] else {
