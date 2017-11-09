@@ -15,6 +15,7 @@ struct Layout {
     var xmlPath: String?
     var templatePath: String?
     var relativePath: String?
+    var rootURL: URL?
 
     func getClass() throws -> AnyClass {
         guard let cls: AnyClass = classFromString(className) else {

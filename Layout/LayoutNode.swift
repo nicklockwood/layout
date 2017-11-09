@@ -79,6 +79,7 @@ public class LayoutNode: NSObject {
     private(set) var _originalExpressions: [String: String]
     var _parameters: [String: RuntimeType]
     var _macros: [String: String]
+    var rootURL: URL?
 
     func expression(forMacro name: String) -> String? {
         if let macro = parent?._macros[name] {

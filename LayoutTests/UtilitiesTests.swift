@@ -122,4 +122,44 @@ class UtilitiesTests: XCTestCase {
     func testUnCapitalizefooBar() {
         XCTAssertEqual("fooBar".unCapitalized(), "fooBar")
     }
+
+    // MARK: urlFromString
+
+    func testURLFromAbsoluteURL() {
+        let input = "http://example.com"
+        let output = URL(string: input)
+        XCTAssertEqual(urlFromString(input), output)
+    }
+
+    func testURLFromDataURL() {
+        let input = "data:blahblah"
+        let output = URL(string: input)
+        XCTAssertEqual(urlFromString(input), output)
+    }
+
+    func testURLFromRelativePath() {
+        let input = "foo.xml"
+        let output = Bundle.main.resourceURL?.appendingPathComponent(input)
+        XCTAssertEqual(urlFromString(input), output)
+    }
+
+    func testURLFromRelativePathWithBaseURL() {
+        let input = "foo.xml"
+        let baseURL = URL(string: "http://example.com/bar/ba.xml")
+        let output = URL(string: input, relativeTo: baseURL)
+        XCTAssertEqual(urlFromString(input, relativeTo: baseURL), output)
+    }
+
+    func testURLFromUserPath() {
+        let input = "~/foo.xml"
+        let output = URL(fileURLWithPath: (input as NSString).expandingTildeInPath)
+        XCTAssertEqual(urlFromString(input), output)
+    }
+
+    func testURLFromUserPathWithBaseURL() {
+        let input = "~/foo.xml"
+        let baseURL = URL(string: "http://example.com/bar.xml")
+        let output = URL(fileURLWithPath: (input as NSString).expandingTildeInPath)
+        XCTAssertEqual(urlFromString(input, relativeTo: baseURL), output)
+    }
 }

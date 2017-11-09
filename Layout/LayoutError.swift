@@ -2,6 +2,19 @@
 
 import Foundation
 
+private func stringify(_ error: Error) -> String {
+    switch error {
+    case is SymbolError,
+         is LayoutError,
+         is FileError,
+         is XMLParser.Error,
+         is Expression.Error:
+        return "\(error)"
+    default:
+        return error.localizedDescription
+    }
+}
+
 /// An error relating to a specific symbol/expression
 internal struct SymbolError: Error, CustomStringConvertible {
     let symbol: String
@@ -11,7 +24,7 @@ internal struct SymbolError: Error, CustomStringConvertible {
     init(_ error: Error, for symbol: String) {
         self.symbol = symbol
         if let error = error as? SymbolError {
-            let description = String(describing: error.error)
+            let description = error.description
             if symbol == error.symbol || description.contains(symbol) {
                 self.error = error.error
             } else if description.contains(error.symbol) {
@@ -36,7 +49,7 @@ internal struct SymbolError: Error, CustomStringConvertible {
     }
 
     public var description: String {
-        var description = String(describing: error)
+        var description = stringify(error)
         if !description.contains(symbol) {
             description = "\(description) in `\(symbol)` expression"
         }
@@ -56,7 +69,7 @@ internal struct SymbolError: Error, CustomStringConvertible {
 /// The public interface for all Layout errors
 public enum LayoutError: Error, Hashable, CustomStringConvertible {
     case message(String)
-    case generic(Error, AnyClass?)
+    case generic(Error, String?)
     case unknownExpression(Error, AnyClass?)
     case unknownSymbol(Error, AnyClass?)
     case multipleMatches([URL], for: String)
@@ -68,11 +81,24 @@ public enum LayoutError: Error, Hashable, CustomStringConvertible {
         self.init(error)
     }
 
-    public init(_ message: String, for viewOrControllerClass: AnyClass? = nil) {
-        if viewOrControllerClass != nil {
-            self = .generic(LayoutError.message(message), viewOrControllerClass)
+    public init(_ message: String, in className: String? = nil, in url: URL? = nil) {
+        self.init(LayoutError.message(message), in: className, in: url)
+    }
+
+    @available(*, deprecated, message: "Use init(_:in:) instead")
+    public init(_ message: String, for viewOrControllerClass: AnyClass?) {
+        self.init(message, in: viewOrControllerClass.map(nameOfClass))
+    }
+
+    public init(_ error: Error, in className: String?, in url: URL?) {
+        self = .generic(LayoutError(error, in: className), url?.lastPathComponent)
+    }
+
+    public init(_ error: Error, in classNameOrFile: String?) {
+        if let cls: AnyClass = classNameOrFile.flatMap(classFromString) {
+            self.init(error, for: cls)
         } else {
-            self = .message(message)
+            self.init(LayoutError.generic(error, classNameOrFile))
         }
     }
 
@@ -81,8 +107,9 @@ public enum LayoutError: Error, Hashable, CustomStringConvertible {
         case LayoutError.multipleMatches:
             // Should never be wrapped or it's hard to treat as special case
             self = error as! LayoutError
-        case let LayoutError.generic(_, cls) where cls === viewOrControllerClass,
-             let LayoutError.unknownExpression(_, cls) where cls === viewOrControllerClass,
+        case let LayoutError.generic(_, cls) where cls == viewOrControllerClass.map(nameOfClass):
+            self = error as! LayoutError
+        case let LayoutError.unknownExpression(_, cls) where cls === viewOrControllerClass,
              let LayoutError.unknownSymbol(_, cls) where cls === viewOrControllerClass:
             self = error as! LayoutError
         case let error as LayoutError where viewOrControllerClass == nil:
@@ -98,7 +125,7 @@ public enum LayoutError: Error, Hashable, CustomStringConvertible {
                 self = .unknownExpression(error, viewOrControllerClass)
             }
         default:
-            self = .generic(error, viewOrControllerClass)
+            self = .generic(error, viewOrControllerClass.map(nameOfClass))
         }
     }
 
@@ -115,6 +142,7 @@ public enum LayoutError: Error, Hashable, CustomStringConvertible {
                 }
                 symbolError = error as? SymbolError
                 suggestions = ["left", "right", "width", "top", "bottom", "height", "outlet"]
+                // TODO: find a way to include params as well
                 if let controllerClass = viewOrControllerClass as? UIViewController.Type {
                     suggestions +=
                         Array(controllerClass.expressionTypes.flatMap { $0.value.isAvailable ? $0.key : nil }) +
@@ -147,6 +175,11 @@ public enum LayoutError: Error, Hashable, CustomStringConvertible {
                         }
                     }
                 }
+            case let .generic(error, _):
+                if let error = error as? LayoutError {
+                    return error.suggestions
+                }
+                fallthrough
             default:
                 return []
             }
@@ -209,10 +242,17 @@ public enum LayoutError: Error, Hashable, CustomStringConvertible {
         switch self {
         case let .message(message):
             return message
-        case let .generic(error, viewClass),
-             let .unknownSymbol(error, viewClass),
+        case let .generic(error, className):
+            var description = stringify(error)
+            if let className = className {
+                if !description.contains(className) {
+                    description = "\(description) in \(className)"
+                }
+            }
+            return description
+        case let .unknownSymbol(error, viewClass),
              let .unknownExpression(error, viewClass):
-            var description = "\(error)"
+            var description = stringify(error)
             if let viewClass = viewClass {
                 let className = "\(viewClass)"
                 if !description.contains(className) {
@@ -254,10 +294,14 @@ public enum LayoutError: Error, Hashable, CustomStringConvertible {
 
     /// Converts error thrown by the wrapped closure to a LayoutError
     static func wrap<T>(_ closure: () throws -> T) throws -> T {
+        return try wrap(closure, in: nil)
+    }
+
+    static func wrap<T>(_ closure: () throws -> T, in className: String?, in url: URL? = nil) throws -> T {
         do {
             return try closure()
         } catch {
-            throw self.init(error)
+            throw self.init(error, in: className, in: url)
         }
     }
 }

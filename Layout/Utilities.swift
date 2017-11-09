@@ -50,9 +50,19 @@ func merge(_ dictionaries: [[String: Any]]) -> [String: Any] {
 private let classPrefix = (Bundle.main.object(forInfoDictionaryKey: "CFBundleName") as? String ?? "")
     .replacingOccurrences(of: "[^a-zA-Z0-9_]", with: "_", options: .regularExpression)
 
-// Get a class by name
+// Get a class by name, adding project prefix if needed
 func classFromString(_ name: String) -> AnyClass? {
     return NSClassFromString(name) ?? NSClassFromString("\(classPrefix).\(name)")
+}
+
+// Get the name of a class, without project prefix
+func nameOfClass(_ name: AnyClass) -> String {
+    let name = NSStringFromClass(name)
+    let prefix = "\(classPrefix)."
+    if name.hasPrefix(prefix) {
+        return String(name[prefix.endIndex...])
+    }
+    return name
 }
 
 // Get a protocol by name
@@ -61,25 +71,25 @@ func protocolFromString(_ name: String) -> Protocol? {
 }
 
 // Internal API for converting a path to a full URL
-func urlFromString(_ path: String) -> URL {
-    if let url = URL(string: path), url.scheme != nil {
+func urlFromString(_ path: String, relativeTo baseURL: URL? = nil) -> URL {
+    if path.hasPrefix("~") {
+        let path = path.removingPercentEncoding ?? path
+        return URL(fileURLWithPath: (path as NSString).expandingTildeInPath)
+    } else if let url = URL(string: path, relativeTo: baseURL), url.scheme != nil {
         return url
     }
 
-    // Check for scheme
-    if path.contains(":") {
+    // Check if url has a scheme
+    if baseURL != nil || path.contains(":") {
         let path = path.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? path
-        if let url = URL(string: path) {
+        if let url = URL(string: path, relativeTo: baseURL) {
             return url
         }
     }
 
     // Assume local path
-    let path = path.removingPercentEncoding ?? path
-    if path.hasPrefix("~") {
-        return URL(fileURLWithPath: (path as NSString).expandingTildeInPath)
-    } else if (path as NSString).isAbsolutePath {
-        return URL(fileURLWithPath: path)
+    if (path as NSString).isAbsolutePath {
+        return URL(fileURLWithPath: path.removingPercentEncoding ?? path)
     } else {
         return Bundle.main.resourceURL!.appendingPathComponent(path)
     }

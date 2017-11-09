@@ -4,7 +4,7 @@ import Foundation
 
 extension Layout {
 
-    public init(xmlData: Data, relativeTo: String? = #file) throws {
+    public init(xmlData: Data, url: URL? = nil, relativeTo: String? = #file) throws {
         let xml: [XMLNode]
         do {
             xml = try XMLParser.parse(data: xmlData, options: .skipComments)
@@ -20,10 +20,10 @@ extension Layout {
             }
             throw LayoutError("Invalid root element <\(name)> in XML. Root element must be a UIView or UIViewController.")
         }
-        try self.init(xmlNode: root, relativeTo: relativeTo)
+        try self.init(xmlNode: root, url: url, relativeTo: relativeTo)
     }
 
-    private init(xmlNode: XMLNode, relativeTo: String?) throws {
+    private init(xmlNode: XMLNode, url: URL?, relativeTo: String?) throws {
         guard case .node(let className, var attributes, let childNodes) = xmlNode else {
             preconditionFailure()
         }
@@ -36,14 +36,14 @@ extension Layout {
             switch node {
             case let .node(_, attributes, childNodes):
                 if isHTML { // <param> is a valid html tag, so check if we're in an HTML context first
-                    body += try node.toHTML()
+                    body += try LayoutError.wrap({ try node.toHTML() }, in: className, in: url)
                 } else if node.isParameter {
                     guard childNodes.isEmpty else {
-                        throw LayoutError("<param> node should not contain children", for: NSClassFromString(className))
+                        throw LayoutError("<param> node should not contain children", in: className, in: url)
                     }
                     for key in ["name", "type"] {
                         guard let value = attributes[key], !value.isEmpty else {
-                            throw LayoutError("<param> \(key) is a required attribute", for: NSClassFromString(className))
+                            throw LayoutError("<param> \(key) is a required attribute", in: className, in: url)
                         }
                     }
                     var name = ""
@@ -54,22 +54,21 @@ extension Layout {
                             name = value
                         case "type":
                             guard let runtimeType = RuntimeType(value) else {
-                                throw LayoutError("Unknown or unsupported type \(value) in <param>. Try using Any instead",
-                                                  for: NSClassFromString(name))
+                                throw LayoutError("Unknown or unsupported type \(value) in <param>. Try using Any instead", in: className, in: url)
                             }
                             type = runtimeType
                         default:
-                            throw LayoutError("Unexpected attribute `\(key)` in <param>", for: NSClassFromString(className))
+                            throw LayoutError("Unexpected attribute `\(key)` in <param>", in: className, in: url)
                         }
                     }
                     parameters[name] = type
                 } else if node.isMacro {
                     guard childNodes.isEmpty else {
-                        throw LayoutError("<macro> node should not contain children", for: NSClassFromString(className))
+                        throw LayoutError("<macro> node should not contain children", in: className, in: url)
                     }
                     for key in ["name", "value"] {
                         guard let value = attributes[key], !value.isEmpty else {
-                            throw LayoutError("<macro> \(key) is a required attribute", for: NSClassFromString(className))
+                            throw LayoutError("<macro> \(key) is a required attribute", in: className, in: url)
                         }
                     }
                     var name = ""
@@ -81,16 +80,18 @@ extension Layout {
                         case "value":
                             expression = value
                         default:
-                            throw LayoutError("Unexpected attribute `\(key)` in <macro>", for: NSClassFromString(className))
+                            throw LayoutError("Unexpected attribute `\(key)` in <macro>", in: className, in: url)
                         }
                     }
                     macros[name] = expression
                 } else if node.isHTML {
-                    body = try body.xmlEncoded() + node.toHTML()
+                    body = try LayoutError.wrap({ try body.xmlEncoded() + node.toHTML() }, in: className, in: url)
                     isHTML = true
                 } else {
                     body = ""
-                    try children.append(Layout(xmlNode: node, relativeTo: relativeTo))
+                    try LayoutError.wrap({
+                        try children.append(Layout(xmlNode: node, url: url, relativeTo: relativeTo))
+                    }, in: className, in: url)
                 }
             case let .text(string):
                 body += isHTML ? string.xmlEncoded() : string
@@ -104,24 +105,20 @@ extension Layout {
                 return nil
             }
             attributes[name] = nil
-            do {
-                let parts = try parseStringExpression(expression)
-                if parts.count == 1 {
-                    switch parts[0] {
-                    case .comment:
-                        return nil
-                    case let .string(string):
-                        return string
-                    case .expression:
-                        break
-                    }
-                } else if parts.isEmpty {
+            let parts = try LayoutError.wrap({ try parseStringExpression(expression) }, in: className, in: url)
+            if parts.count == 1 {
+                switch parts[0] {
+                case .comment:
                     return nil
+                case let .string(string):
+                    return string
+                case .expression:
+                    break
                 }
-                throw LayoutError("\(name) must be a literal value, not an expression")
-            } catch {
-                throw LayoutError("\(error)", for: NSClassFromString(className))
+            } else if parts.isEmpty {
+                return nil
             }
+            throw LayoutError("\(name) must be a literal value, not an expression", in: className, in: url)
         }
 
         let id = try parseStringAttribute(for: "id")
@@ -142,7 +139,8 @@ extension Layout {
             body: body.isEmpty ? nil : body,
             xmlPath: xmlPath,
             templatePath: templatePath,
-            relativePath: relativeTo
+            relativePath: relativeTo,
+            rootURL: url
         )
     }
 }

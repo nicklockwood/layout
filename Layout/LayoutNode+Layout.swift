@@ -11,50 +11,71 @@ extension LayoutNode {
         state: Any = (),
         constants: [String: Any]...
     ) throws {
-        if let path = layout.templatePath {
-            throw LayoutError("Cannot initialize \(layout.className) node until content for \(path) has been loaded")
-        }
-        let _class: AnyClass = try layout.getClass()
-        var expressions = layout.expressions
-        if let body = layout.body {
-            guard let viewClass = _class as? UIView.Type, let bodyExpression = viewClass.bodyExpression else {
-                throw LayoutError("\(layout.className) does not support inline (X)HTML content")
-            }
-            expressions[bodyExpression] = body
-        }
         try self.init(
-            class: _class,
-            id: layout.id,
+            layout: layout,
+            outlet: outlet,
             state: state,
             constants: merge(constants),
-            expressions: expressions,
-            children: layout.children.map {
-                try LayoutNode(layout: $0)
-            }
+            isRoot: true
         )
-        _parameters = layout.parameters
-        _macros = layout.macros
-        guard let xmlPath = layout.xmlPath else {
-            return
-        }
-        var deferredError: Error?
-        LayoutLoader().loadLayout(
-            withContentsOfURL: urlFromString(xmlPath),
-            relativeTo: layout.relativePath
-        ) { [weak self] layout, error in
-            if let layout = layout {
-                do {
-                    try self?.update(with: layout)
-                } catch {
+    }
+
+    private convenience init(
+        layout: Layout,
+        outlet: String? = nil,
+        state: Any = (),
+        constants: [String: Any] = [:],
+        isRoot: Bool
+    ) throws {
+        do {
+            if let path = layout.templatePath {
+                throw LayoutError("Cannot initialize \(layout.className) node until content for \(path) has been loaded")
+            }
+            let _class: AnyClass = try layout.getClass()
+            var expressions = layout.expressions
+            if let body = layout.body {
+                guard let viewClass = _class as? UIView.Type, let bodyExpression = viewClass.bodyExpression else {
+                    throw LayoutError("\(layout.className) does not support inline (X)HTML content")
+                }
+                expressions[bodyExpression] = body
+            }
+            try self.init(
+                class: _class,
+                id: layout.id,
+                state: state,
+                constants: constants,
+                expressions: expressions,
+                children: layout.children.map {
+                    try LayoutNode(layout: $0, isRoot: false)
+                }
+            )
+            _parameters = layout.parameters
+            _macros = layout.macros
+            rootURL = layout.rootURL
+            guard let xmlPath = layout.xmlPath else {
+                return
+            }
+            var deferredError: Error?
+            LayoutLoader().loadLayout(
+                withContentsOfURL: urlFromString(xmlPath, relativeTo: rootURL),
+                relativeTo: layout.relativePath
+            ) { [weak self] layout, error in
+                if let layout = layout {
+                    do {
+                        try self?.update(with: layout)
+                    } catch {
+                        deferredError = error
+                    }
+                } else if let error = error {
                     deferredError = error
                 }
-            } else if let error = error {
-                deferredError = error
             }
-        }
-        // TODO: what about errors thrown by deferred load?
-        if let error = deferredError {
-            throw error
+            // TODO: what about errors thrown by deferred load?
+            if let error = deferredError {
+                throw error
+            }
+        } catch {
+            throw LayoutError(error, in: layout.className, in: isRoot ? layout.rootURL : nil)
         }
     }
 }
@@ -65,7 +86,7 @@ extension Layout {
     // TODO: this isn't a lossless conversion - find a better approach
     init(_ node: LayoutNode) {
         self.init(
-            className: NSStringFromClass(node._class),
+            className: nameOfClass(node._class),
             id: node.id,
             expressions: node._originalExpressions,
             parameters: node._parameters,
@@ -74,7 +95,8 @@ extension Layout {
             body: nil,
             xmlPath: nil, // TODO: what if the layout is currently loading this? Race condition!
             templatePath: nil,
-            relativePath: nil
+            relativePath: nil,
+            rootURL: node.rootURL
         )
     }
 }

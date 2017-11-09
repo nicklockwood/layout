@@ -16,10 +16,8 @@ enum FormatError: Error, CustomStringConvertible {
             self = error
         case let error as XMLParser.Error:
             self = .parsing(error.description)
-        case let error as CustomStringConvertible:
-            self = .generic(error.description)
         default:
-            self = .generic((error as NSError).localizedDescription)
+            self = .generic(error.localizedDescription)
         }
     }
 
@@ -200,12 +198,12 @@ func parseLayoutXML(_ fileURL: URL) throws -> [XMLNode]? {
         return xml.isLayout ? xml : nil
     } catch {
         switch error {
-        case is XMLParser.Error:
+        case let error as XMLParser.Error:
             throw FormatError.parsing("\(error) in \(fileURL.path)")
-        case is FileError:
-            throw FormatError.parsing("\(error)")
+        case let error as FileError:
+            throw FormatError.parsing(error.description)
         default:
-            throw FormatError.reading((error as NSError).localizedDescription)
+            throw FormatError.reading(error.localizedDescription)
         }
     }
 }

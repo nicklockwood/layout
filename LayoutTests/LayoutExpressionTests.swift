@@ -25,7 +25,8 @@ func makeLayout(
         body: nil,
         xmlPath: nil,
         templatePath: nil,
-        relativePath: nil
+        relativePath: nil,
+        rootURL: nil
     )
 }
 

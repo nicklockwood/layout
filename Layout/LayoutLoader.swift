@@ -43,7 +43,8 @@ private extension Layout {
             body: layout.body ?? body,
             xmlPath: layout.xmlPath,
             templatePath: templatePath,
-            relativePath: layout.relativePath // TODO: is this correct?
+            relativePath: layout.relativePath, // TODO: is this correct?
+            rootURL: layout.rootURL
         )
     }
 
@@ -72,7 +73,7 @@ private extension Layout {
         if let templatePath = templatePath {
             requestCount += 1
             LayoutLoader().loadLayout(
-                withContentsOfURL: urlFromString(templatePath),
+                withContentsOfURL: urlFromString(templatePath, relativeTo: rootURL),
                 relativeTo: relativePath
             ) { layout, _error in
                 if _error != nil {
@@ -219,11 +220,11 @@ class LayoutLoader {
         func processLayoutData(_ data: Data) throws {
             assert(Thread.isMainThread) // TODO: can we parse XML in the background instead?
             do {
-                let layout = try Layout(xmlData: data, relativeTo: relativeTo ?? _xmlURL.path)
+                let layout = try Layout(xmlData: data, url: _xmlURL, relativeTo: relativeTo)
                 queue.async { cache[self._xmlURL] = layout }
                 layout.processTemplates(completion: completion)
             } catch {
-                throw LayoutError("\(error) in \(xmlURL.lastPathComponent)")
+                throw LayoutError(error, in: xmlURL.lastPathComponent)
             }
         }
 
