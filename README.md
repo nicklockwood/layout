@@ -447,7 +447,7 @@ class MyViewController: LayoutViewController {
 
 In this example we've bound the `LayoutNode` containing the `UILabel` to the `labelNode` property. A few things to note:
 
-* There's no need to use the `@IBOutlet` attribute for your `outlet` property, but you can do so if you feel it makes the purpose clearer. If you do not use `@IBOutlet`, you may need to use `@objc` to ensure the property is visible to Layout at runtime.
+* There's no need to use the `@IBOutlet` attribute for your `outlet` property, but you can do so if you feel it makes the purpose clearer. If you do not use `@IBOutlet`, you will need to use `@objc` to ensure the property is visible to Layout at runtime.
 * The type of the `outlet` property can be either `LayoutNode` or a `UIView` subclass that's compatible with the view managed by the node. The syntax is the same in either case - the type will be checked at runtime, and an error will be thrown if it doesn't match up.
 * In the example above we have used Swift's `#keyPath` syntax to specify the `outlet` value, for better static validation. This is recommended, but not required.
 * The `labelNode` outlet in the example has been marked as Optional. It is common to use Implicitly Unwrapped Optionals (IUOs) when defining IBOutlets, and that will work with Layout too, but it will result in a hard crash if you make a mistake in your XML and then try to access the outlet. Using regular Optionals means XML errors can be trapped and fixed without restarting the app.
@@ -463,7 +463,25 @@ To specify outlet bindings when using XML templates, use the `outlet` attribute:
 </UIView>
 ```
 
-In this case we lose the static validation provided by `#keyPath`, but Layout still performs a runtime check and will throw a graceful error in the event of a typo or type mismatch, rather than crashing. Note that although the `outlet` attribute is set in the same way as an expression, it is just a constant string, and cannot contain expression logic (although it can be commented-out using `//`, as with all other attributes).
+In this case we lose the static validation provided by `#keyPath`, but Layout still performs a runtime check and will throw a graceful error in the event of a typo or type mismatch, rather than crashing.
+
+Outlets can also be set using an expression instead of a literal value. This is useful if you wish to pass the outlet in to the template via a parameter, for example:
+
+```xml
+<UIView>
+    <param name="labelOutlet" type="String"/>
+
+    <UILabel
+        outlety="{labelOutlet}"
+        text="Hello World"
+    />
+</UIView>
+```
+
+The type of the parameter in this case must be `String`, and not `UILabel` as you might expect. The reason for this is that the outlet is a KeyPath that references a property of the layout's owner (typically a view controller), not a direct reference to the view itself.
+
+**Note:** Outlet expressions must be set using a constant or literal value, and cannot be changed once set. Attempting to set the outlet using a state variable or other dynamic value will result in an error.
+
 
 ## Delegates
 

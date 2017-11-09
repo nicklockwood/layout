@@ -39,6 +39,9 @@ extension LayoutNode {
                 }
                 expressions[bodyExpression] = body
             }
+            if let outlet = outlet {
+                expressions["outlet"] = outlet
+            }
             try self.init(
                 class: _class,
                 id: layout.id,

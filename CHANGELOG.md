@@ -1,5 +1,18 @@
 # Change Log
 
+## [0.6.0](https://github.com/schibsted/layout/releases/tag/0.6.0) (2017-11-09)
+
+- Outlets can now be set using an expression as long the result is constant (see README.md for details)
+- Error messages now include the name of the Layout XML file where the error occured
+- Improved error messages, including bug fixes and better suggestions for mistyped property names
+- Added `childNode(withID:)` and `children(withID:)` methods to `LayoutNode` for looking up child nodes
+- The `layoutNode` property for Layout-managed table and collection view cells is now public
+- Better constant analysis, which should improve performance when updating mostly-static views
+- Fixed incorrect error message when expression is missing a closing brace
+- Dropped support for Swift 3.1 and Xcode 8.3.3 (this was broken in the previous release anyway)
+- Fixed string and character-related warnings in Xcode 9
+- Minor breaking changes to LayoutError API
+
 ## [0.5.9](https://github.com/schibsted/layout/releases/tag/0.5.9) (2017-11-02)
 
 - Fixed assertion failure caused by view layout triggering during a Layout update
