@@ -42,6 +42,9 @@ func printHelp() {
     print("rename <files> <old> <new>")
     print(" - renames all classes or symbols named <old> to <new> in <files>")
     print("")
+    print("strings <files>")
+    print(" - lists all Localizable.strings keys used in <files>")
+    print("")
 }
 
 enum ExitResult: Int32 {
@@ -86,6 +89,13 @@ func processArguments(_ args: [String]) -> ExitResult {
             break
         }
         errors += rename(old, to: new, in: paths)
+    case "strings":
+        let paths = Array(args.dropFirst(2))
+        if paths.isEmpty {
+            errors.append(.options("list command expects one or more file paths to search"))
+            break
+        }
+        errors += listStrings(in: paths)
     case let arg:
         print("error: unknown command \(arg)", to: &stderr)
         print("LayoutTool \(arg) is not a valid command".inRed, to: &stderr)

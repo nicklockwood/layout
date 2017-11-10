@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		010564BC1FB5F59700342074 /* Strings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 010564BB1FB5F59700342074 /* Strings.swift */; };
+		010564BD1FB5FA9F00342074 /* Strings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 010564BB1FB5F59700342074 /* Strings.swift */; };
+		010564BF1FB5FAE800342074 /* StringsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 010564BE1FB5FAE800342074 /* StringsTests.swift */; };
 		0105F77B1F05477B0067B313 /* Layout.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 011CE6991F053ABD0034771C /* Layout.framework */; };
 		0105F7891F0547910067B313 /* AnyExpression.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0105F77C1F0547910067B313 /* AnyExpression.swift */; };
 		0105F78A1F0547910067B313 /* LayoutError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0105F77D1F0547910067B313 /* LayoutError.swift */; };
@@ -251,6 +254,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		010564BB1FB5F59700342074 /* Strings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Strings.swift; sourceTree = "<group>"; };
+		010564BE1FB5FAE800342074 /* StringsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StringsTests.swift; sourceTree = "<group>"; };
 		0105F7791F05473A0067B313 /* Expression.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Expression.framework; path = "../../Library/Developer/Xcode/DerivedData/Layout-dywuqcmuxfxexhcatfkwvqimcwys/Build/Products/Debug-iphonesimulator/Expression/Expression.framework"; sourceTree = "<group>"; };
 		0105F77C1F0547910067B313 /* AnyExpression.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AnyExpression.swift; sourceTree = "<group>"; };
 		0105F77D1F0547910067B313 /* LayoutError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LayoutError.swift; sourceTree = "<group>"; };
@@ -497,6 +502,7 @@
 				0105F7A11F055F9D0067B313 /* Common.swift */,
 				0105F7B61F0AA7D70067B313 /* Formatter.swift */,
 				017539811F28B623005B7516 /* Renamer.swift */,
+				010564BB1FB5F59700342074 /* Strings.swift */,
 			);
 			path = LayoutTool;
 			sourceTree = "<group>";
@@ -509,6 +515,7 @@
 				358348591F3F1EB000CFB6BB /* ReturnCodeTests.swift */,
 				017539831F28D055005B7516 /* RenamerTests.swift */,
 				01B1316B1F627E0700B426BB /* ValidationTests.swift */,
+				010564BE1FB5FAE800342074 /* StringsTests.swift */,
 			);
 			path = LayoutToolTests;
 			sourceTree = "<group>";
@@ -1262,6 +1269,7 @@
 				0105F79D1F055C260067B313 /* main.swift in Sources */,
 				0105F7B81F0AA7D70067B313 /* Formatter.swift in Sources */,
 				0105F7A21F055F9D0067B313 /* Common.swift in Sources */,
+				010564BC1FB5F59700342074 /* Strings.swift in Sources */,
 				01181E0A1F0F7E4A0011C4DE /* Expression.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1272,6 +1280,7 @@
 			files = (
 				01181E071F0EA8070011C4DE /* ExpressionParser.swift in Sources */,
 				0164F9241F470A4500AFCDCA /* Files.swift in Sources */,
+				010564BD1FB5FA9F00342074 /* Strings.swift in Sources */,
 				3583485A1F3F1EB000CFB6BB /* ReturnCodeTests.swift in Sources */,
 				011D736B1FB1D222006406F7 /* StringUtils.swift in Sources */,
 				017539841F28D055005B7516 /* RenamerTests.swift in Sources */,
@@ -1285,6 +1294,7 @@
 				01B131701F629F0700B426BB /* XMLNode+Layout.swift in Sources */,
 				0105F7B11F059CCC0067B313 /* Common.swift in Sources */,
 				01181E0B1F0F7E530011C4DE /* Expression.swift in Sources */,
+				010564BF1FB5FAE800342074 /* StringsTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
