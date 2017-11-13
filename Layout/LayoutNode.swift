@@ -684,11 +684,19 @@ public class LayoutNode: NSObject {
 
                 _setupComplete = false
 
-                (_widthConstraint as NSLayoutConstraint?).map {
+                _widthConstraint.map {
                     oldView?.removeConstraint($0)
                     _widthConstraint = nil
                 }
-                (_heightConstraint as NSLayoutConstraint?).map {
+                _heightConstraint.map {
+                    oldView?.removeConstraint($0)
+                    _heightConstraint = nil
+                }
+                _leftConstraint.map {
+                    oldView?.removeConstraint($0)
+                    _widthConstraint = nil
+                }
+                _topConstraint.map {
                     oldView?.removeConstraint($0)
                     _heightConstraint = nil
                 }
@@ -1921,6 +1929,8 @@ public class LayoutNode: NSObject {
         } ?? false
         setUpConstraints()
     }
+    private var _topConstraint: NSLayoutConstraint?
+    private var _leftConstraint: NSLayoutConstraint?
     private var _widthConstraint: NSLayoutConstraint?
     private var _heightConstraint: NSLayoutConstraint?
     private func setUpConstraints() {
@@ -1931,6 +1941,10 @@ public class LayoutNode: NSObject {
         _heightConstraint = _view?.heightAnchor.constraint(equalToConstant: 0)
         _heightConstraint?.priority = UILayoutPriority(rawValue: UILayoutPriority.required.rawValue - 1)
         _heightConstraint?.identifier = "LayoutHeight"
+        if let parentView = parent?._view {
+            _topConstraint = _view?.topAnchor.constraint(equalTo: parentView.topAnchor, constant: 0)
+            _leftConstraint = _view?.leftAnchor.constraint(equalTo: parentView.leftAnchor, constant: 0)
+        }
     }
 
     // Prevent `update()` from being called when making changes to view properties, etc
@@ -1976,6 +1990,10 @@ public class LayoutNode: NSObject {
                 _widthConstraint.isActive = true
                 _heightConstraint.constant = frame.height
                 _heightConstraint.isActive = true
+                _leftConstraint?.constant = frame.origin.x
+                _leftConstraint?.isActive = true
+                _topConstraint?.constant = frame.origin.y
+                _topConstraint?.isActive = true
             }
         }
         if viewClass == UIScrollView.self, // Skip this behavior for subclasses like UITableView
