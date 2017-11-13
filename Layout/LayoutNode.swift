@@ -1583,8 +1583,8 @@ public class LayoutNode: NSObject {
             CGRect(
                 x: try cgFloatValue(forSymbol: "left"),
                 y: try cgFloatValue(forSymbol: "top"),
-                width: try cgFloatValue(forSymbol: "width"),
-                height: try cgFloatValue(forSymbol: "height")
+                width: _evaluating.contains("width") ? 0 : try cgFloatValue(forSymbol: "width"),
+                height: _evaluating.contains("height") ? 0 : try cgFloatValue(forSymbol: "height")
             )
         } ?? .zero
     }
