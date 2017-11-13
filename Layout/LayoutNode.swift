@@ -450,7 +450,9 @@ public class LayoutNode: NSObject {
                 _unhandledError = nil
             }
             delegate.layoutNode?(self, didDetectError: error)
+            return
         }
+        assertionFailure("Layout error: \(error)")
     }
 
     // Attempt a throwing operation but catch the error and bubble it up the Layout hierarchy
