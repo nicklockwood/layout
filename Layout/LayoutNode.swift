@@ -1995,6 +1995,9 @@ public class LayoutNode: NSObject {
                 _topConstraint?.constant = frame.origin.y
                 _topConstraint?.isActive = true
             }
+            if parent == nil {
+                _view.superview?.setNeedsLayout()
+            }
         }
         if viewClass == UIScrollView.self, // Skip this behavior for subclasses like UITableView
             let scrollView = _view as? UIScrollView {
