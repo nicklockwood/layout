@@ -195,6 +195,7 @@ public class LayoutNode: NSObject {
         }
     }
 
+    var _anyChildDependsOnContentOffset: Bool?
     public override func observeValue(
         forKeyPath _: String?,
         of _: Any?,
@@ -206,7 +207,7 @@ public class LayoutNode: NSObject {
         }
         switch new {
         case let rect as CGRect:
-            if !rect.size.isNearlyEqual(to: _previousFrame.size) {
+            if !rect.size.isNearlyEqual(to: _previousBounds.size) {
                 var root = self
                 while let parent = root.parent {
                     root = parent
@@ -214,6 +215,17 @@ public class LayoutNode: NSObject {
                 if root._view?.superview != nil, root._setupComplete,
                     root._updateLock == 0, root._evaluating.isEmpty {
                     root.update()
+                }
+            } else if _view is UIScrollView, !rect.origin.isNearlyEqual(to: _previousBounds.origin) {
+                if _anyChildDependsOnContentOffset == nil {
+                    _anyChildDependsOnContentOffset = anyExpressionDependsOn([
+                        "contentOffset", "contentOffset.x", "contentOffset.y",
+                        "bounds", "bounds.origin", "bounds.origin.x", "bounds.origin.y",
+                        "bounds.x", "bounds.y",
+                    ])
+                }
+                if _anyChildDependsOnContentOffset == true {
+                    children.forEach { $0.update() }
                 }
             }
         case let insets as UIEdgeInsets:
@@ -799,6 +811,7 @@ public class LayoutNode: NSObject {
         }
         _widthDependsOnParent = nil
         _heightDependsOnParent = nil
+        _anyChildDependsOnContentOffset = nil
         _expressionsSetUp = false
         _getters.removeAll()
         _layoutExpressions.removeAll()
@@ -1330,6 +1343,26 @@ public class LayoutNode: NSObject {
         return _value(forSymbol: name, dependsOn: symbol)
     }
 
+    private func anyExpressionDependsOn(_ symbols: [String]) -> Bool {
+        for name in expressions.keys {
+            if let expression = _layoutExpressions[name] ??
+                _viewControllerExpressions[name] ?? _viewExpressions[name],
+                symbols.contains(where: { expression.symbols.contains($0) }) {
+                return true
+            }
+        }
+        let symbols = symbols.flatMap { symbol -> [String] in
+            if symbol.hasPrefix("#") {
+                return []
+            }
+            if let id = self.id {
+                return ["#\(id).\(symbol)", "parent.\(symbol)"]
+            }
+            return ["parent.\(symbol)"]
+        }
+        return children.contains(where: { $0.anyExpressionDependsOn(symbols) })
+    }
+
     // Used by LayoutExpression and for unit tests
     // Note: thrown error is always a SymbolError
     func doubleValue(forSymbol symbol: String) throws -> Double {
@@ -1582,7 +1615,7 @@ public class LayoutNode: NSObject {
     }
 
     private var _previousSafeAreaInsets: UIEdgeInsets = .zero
-    private var _previousFrame: CGRect = .zero
+    private var _previousBounds: CGRect = .zero
 
     /// The anticipated frame for the view, based on the current state
     // TODO: should this be public?
@@ -1999,6 +2032,8 @@ public class LayoutNode: NSObject {
                 _view.superview?.setNeedsLayout()
             }
         }
+        _previousBounds = frame
+        _previousBounds.origin = _view.bounds.origin
         if viewClass == UIScrollView.self, // Skip this behavior for subclasses like UITableView
             let scrollView = _view as? UIScrollView {
             let oldContentSize = scrollView.contentSize
@@ -2013,7 +2048,6 @@ public class LayoutNode: NSObject {
                 scrollView.contentSize = contentSize
             }
         }
-        _previousFrame = frame
         for child in children {
             try LayoutError.wrap(child.updateFrame, for: self)
         }

@@ -97,6 +97,13 @@ func urlFromString(_ path: String, relativeTo baseURL: URL? = nil) -> URL {
 
 private let precision: CGFloat = 0.001
 
+extension CGPoint {
+    func isNearlyEqual(to other: CGPoint?) -> Bool {
+        guard let other = other else { return false }
+        return abs(x - other.x) <= precision && abs(y - other.y) <= precision
+    }
+}
+
 extension CGSize {
     func isNearlyEqual(to other: CGSize?) -> Bool {
         guard let other = other else { return false }
