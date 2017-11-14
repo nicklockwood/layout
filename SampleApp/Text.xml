@@ -1,14 +1,15 @@
 <UIViewController backgroundColor="#fee">
     <UIScrollView
-        contentInset.bottom="safeAreaInsets.bottom + 20"
-        contentInset.left="safeAreaInsets.left + 20"
-        contentInset.right="safeAreaInsets.right + 20"
-        contentInset.top="max(safeAreaInsets.top + 10, 20)"
+        contentInset.bottom="safeAreaInsets.bottom + PADDING"
+        contentInset.left="safeAreaInsets.left + PADDING"
+        contentInset.right="safeAreaInsets.right + PADDING"
+        contentInset.top="max(safeAreaInsets.top + 10, PADDING)"
         contentInsetAdjustmentBehavior="never"
         scrollIndicatorInsets.bottom="safeAreaInsets.bottom"
         scrollIndicatorInsets.top="safeAreaInsets.top">
 
-        <macro name="SPACING" value="previous.bottom + 20"/>
+        <macro name="PADDING" value="20"/>
+        <macro name="SPACING" value="previous.bottom + PADDING"/>
 
         <UILabel
             backgroundColor="#0001"

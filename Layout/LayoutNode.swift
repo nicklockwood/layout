@@ -83,10 +83,7 @@ public class LayoutNode: NSObject {
     var rootURL: URL?
 
     func expression(forMacro name: String) -> String? {
-        if let macro = parent?._macros[name] {
-            return macro
-        }
-        return parent?.expression(forMacro: name)
+        return _macros[name] ?? parent?.expression(forMacro: name)
     }
 
     // Note: The LayoutNode lifecycle works as follows:
