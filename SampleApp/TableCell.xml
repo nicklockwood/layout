@@ -1,4 +1,4 @@
-<UITableViewCell
+<TableCell
     detailTextLabel.highlightedTextColor="white"
     detailTextLabel.text="This cell is defined in TableCell.xml"
     detailTextLabel.textColor="#aaa"
@@ -16,4 +16,14 @@
         tintColor="colors.red"
         top="20"
     />
-</UITableViewCell>
+    <UIButton
+            touchUpInside="buttonClicked"
+            backgroundColor="red"
+            title="{buttonText}"
+            outlet="button"
+            top="previous.bottom + 52"
+            height="auto"
+            width="auto"
+            left="18"
+        />
+</TableCell>

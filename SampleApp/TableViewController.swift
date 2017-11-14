@@ -41,6 +41,7 @@ class TableViewController: UIViewController, UITableViewDataSource, UITableViewD
             "row": indexPath.row,
             "image": image,
             "whiteImage": image.withRenderingMode(.alwaysOriginal),
+            "buttonText": "Click"
         ])
 
         return node.view as! UITableViewCell
