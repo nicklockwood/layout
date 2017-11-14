@@ -86,4 +86,3 @@ func listStrings(in files: [String]) -> [FormatError] {
     }
     return errors.map(FormatError.init)
 }
-

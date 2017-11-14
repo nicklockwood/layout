@@ -213,7 +213,7 @@ class EditViewController: UIViewController, UITextFieldDelegate {
         }
         var match = ""
         for name in validClasses {
-            if match.isEmpty || name.characters.count < match.characters.count,
+            if match.isEmpty || name.count < match.count,
                 name.lowercased().hasPrefix(text.lowercased()) {
                 match = name
             }

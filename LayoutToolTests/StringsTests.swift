@@ -28,4 +28,3 @@ class StringsTests: XCTestCase {
         XCTAssertEqual(try strings(in: input), output)
     }
 }
-

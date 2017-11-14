@@ -2,6 +2,9 @@
 
 import Foundation
 
+// Prevent cache from distorting performance test results
+let runningInUnitTest = (NSClassFromString("XCTestCase") != nil)
+
 struct ParsedLayoutExpression: CustomStringConvertible {
     var expression: ParsedExpression
     var comment: String?
@@ -32,9 +35,6 @@ enum ParsedExpressionPart {
     case comment(String)
     case expression(ParsedLayoutExpression)
 }
-
-// Prevent cache from distorting performance test results
-private let runningInUnitTest = (NSClassFromString("XCTestCase") != nil)
 
 // NOTE: it is not safe to access this concurrently from multiple threads due to cache
 private var _expressionCache = [String: ParsedLayoutExpression]()
