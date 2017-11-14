@@ -580,4 +580,22 @@ class LayoutNodeTests: XCTestCase {
         }
         XCTAssertNil(node)
     }
+
+    // MARK: empty expressions
+
+    func testHasExpression() {
+        let node = LayoutNode(expressions: ["backgroundColor": "red"])
+        XCTAssertTrue(node.hasExpression("backgroundColor"))
+    }
+
+    func testDoesntHaveExpression() {
+        let node = LayoutNode(expressions: ["backgroundColor": "//red"])
+        XCTAssertFalse(node.hasExpression("backgroundColor"))
+    }
+
+    func testDoesntHaveDefaultExpression() {
+        let node = LayoutNode(expressions: ["width": "//5", "left": "4", "right": "6"])
+        XCTAssertFalse(node.hasExpression("width"))
+        XCTAssertEqual(try node.doubleValue(forSymbol: "width"), 2.0)
+    }
 }

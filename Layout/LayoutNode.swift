@@ -83,6 +83,7 @@ public class LayoutNode: NSObject {
     var rootURL: URL?
 
     func expression(forMacro name: String) -> String? {
+        attempt(completeSetup)
         return _macros[name] ?? parent?.expression(forMacro: name)
     }
 
@@ -129,9 +130,9 @@ public class LayoutNode: NSObject {
         _heightConstraint?.priority = UILayoutPriority(rawValue: UILayoutPriority.required.rawValue - 1)
         _heightConstraint?.identifier = "LayoutHeight"
 
+        _ = updateVariables() // Must be done before expressions are overridden
         setUpPositionConstraints()
         overrideExpressions()
-        _ = updateVariables()
         updateObservers()
 
         var index = 0
@@ -288,17 +289,18 @@ public class LayoutNode: NSObject {
         // Merge expressions with defaults
         let defaultExpressions = viewControllerClass?.defaultExpressions ?? viewClass.defaultExpressions
         for (key, value) in defaultExpressions {
-            guard _originalExpressions[key] == nil else { continue }
+            guard !hasExpression(key) else { continue }
             switch key {
-            case "left" where _originalExpressions["width"] != nil && _originalExpressions["right"] != nil,
-                 "right" where _originalExpressions["width"] != nil && _originalExpressions["left"] != nil,
-                 "width" where _originalExpressions["left"] != nil && _originalExpressions["right"] != nil,
-                 "top" where _originalExpressions["height"] != nil && _originalExpressions["bottom"] != nil,
-                 "bottom" where _originalExpressions["height"] != nil && _originalExpressions["top"] != nil,
-                 "height" where _originalExpressions["top"] != nil && _originalExpressions["bottom"] != nil:
+            case "left" where hasExpression("width") && hasExpression("right"),
+                 "right" where hasExpression("width") && hasExpression("left"),
+                 "width" where hasExpression("left") && hasExpression("right"),
+                 "top" where hasExpression("height") && hasExpression("bottom"),
+                 "bottom" where hasExpression("height") && hasExpression("top"),
+                 "height" where hasExpression("top") && hasExpression("bottom"):
                 break // Redundant
             default:
                 _originalExpressions[key] = value
+                _getters[key] = nil
             }
         }
     }
@@ -412,15 +414,26 @@ public class LayoutNode: NSObject {
         return errors
     }
 
+    func hasExpression(_ name: String) -> Bool {
+        if _originalExpressions[name] != nil {
+            attempt { try setUpExpression(for: name) } // Sets expressions[name] to nil if empty
+            if expressions[name] != nil {
+                return true
+            }
+            _originalExpressions[name] = nil // Prevents false postives when overridden
+        }
+        return false
+    }
+
     private func redundantExpressionErrors() -> Set<LayoutError> {
         var errors = Set<LayoutError>()
-        if !(expressions["bottom"] ?? "").isEmpty,
+        if hasExpression("bottom"),
             !value(forSymbol: "height", dependsOn: "bottom"),
             !value(forSymbol: "top", dependsOn: "bottom") {
             errors.insert(LayoutError(SymbolError("Expression for bottom is redundant",
                                                   for: "bottom"), for: self))
         }
-        if !(expressions["right"] ?? "").isEmpty,
+        if hasExpression("right"),
             !value(forSymbol: "width", dependsOn: "right"),
             !value(forSymbol: "left", dependsOn: "right") {
             errors.insert(LayoutError(SymbolError("Expression for right is redundant",
@@ -772,8 +785,9 @@ public class LayoutNode: NSObject {
             _macros[name] = value
         }
 
-        for (name, expression) in layout.expressions where _originalExpressions[name] == nil {
+        for (name, expression) in layout.expressions where !hasExpression(name) {
             _originalExpressions[name] = expression
+            _getters[name] = nil
         }
 
         if _setupComplete {
@@ -801,9 +815,9 @@ public class LayoutNode: NSObject {
         expressions = _originalExpressions
 
         // layout props
-        if expressions["width"] == nil {
+        if !hasExpression("width") {
             _getters["width"] = nil
-            if expressions["left"] != nil, expressions["right"] != nil {
+            if hasExpression("left"), hasExpression("right") {
                 expressions["width"] = "right - left"
             } else if !(_view is UIScrollView), _view is UIImageView || _usesAutoLayout ||
                 _view?.intrinsicContentSize.width != UIViewNoIntrinsicMetric {
@@ -812,15 +826,15 @@ public class LayoutNode: NSObject {
                 expressions["width"] = "100%"
             }
         }
-        if expressions["left"] == nil, expressions["right"] != nil {
+        if !hasExpression("left"), hasExpression("right") {
             _getters["left"] = nil
             expressions["left"] = "right - width"
         }
-        if expressions["height"] == nil {
+        if !hasExpression("height") {
             _getters["height"] = nil
             if _class is UIStackView.Type {
                 expressions["height"] = "auto" // TODO: remove special case
-            } else if expressions["top"] != nil, expressions["bottom"] != nil {
+            } else if hasExpression("top"), hasExpression("bottom") {
                 expressions["height"] = "bottom - top"
             } else if !(_view is UIScrollView), _view is UIImageView || _usesAutoLayout ||
                 _view?.intrinsicContentSize.height != UIViewNoIntrinsicMetric {
@@ -829,7 +843,7 @@ public class LayoutNode: NSObject {
                 expressions["height"] = "100%"
             }
         }
-        if expressions["top"] == nil, expressions["bottom"] != nil {
+        if !hasExpression("top"), hasExpression("bottom") {
             _getters["top"] = nil
             expressions["top"] = "bottom - height"
         }
@@ -962,7 +976,7 @@ public class LayoutNode: NSObject {
 
     // Note: thrown error is always a SymbolError
     private func setUpExpression(for symbol: String) throws {
-        guard _getters[symbol] == nil, let string = expressions[symbol] else {
+        guard _getters[symbol] == nil, let string = expressions[symbol], !_evaluating.contains(symbol) else {
             return
         }
 
@@ -1283,20 +1297,18 @@ public class LayoutNode: NSObject {
     }
 
     private func expressionIsConstant(_ name: String) -> Bool {
+        assert(hasExpression(name))
+        attempt { try setUpExpression(for: name) }
         if let expression = _layoutExpressions[name] ??
             _viewControllerExpressions[name] ?? _viewExpressions[name] {
             return expression.isConstant
         }
-        assert(expressions[name] != nil)
-        if attempt({ try setUpExpression(for: name) }) != nil {
-            return expressionIsConstant(name)
-        }
-        assertionFailure() // Shouldn't happen
-        return false
+        return true
     }
 
     // Returns true if symbol is a constant, false if it's a variable, otherwise nil
     private func valueIsConstant(_ symbol: String) -> Bool? {
+        assert(_setupComplete)
         do {
             if try value(forKeyPath: symbol, in: _variables) != nil {
                 return false
@@ -1317,12 +1329,13 @@ public class LayoutNode: NSObject {
     }
 
     private func symbolIsConstant(_ symbol: String) -> Bool {
-        if expressions[symbol] != nil, !_evaluating.contains(symbol) {
+        if hasExpression(symbol), !_evaluating.contains(symbol) {
             return expressionIsConstant(symbol)
         }
         if let result = valueIsConstant(symbol) {
             return result
         }
+        assert(_setupComplete)
         if let range = symbol.range(of: ".") {
             let tail: String = String(symbol[range.upperBound ..< symbol.endIndex])
             switch symbol[symbol.startIndex ..< range.lowerBound] {
@@ -1348,6 +1361,7 @@ public class LayoutNode: NSObject {
 
     // Doesn't look up params defined directly on the callee, only its parents
     private func value(forVariableOrConstantOrParentParameter name: String) throws -> Any? {
+        assert(_setupComplete)
         return try value(forKeyPath: name, in: _variables) ??
             value(forKeyPath: name, in: constants) ??
             parent?.value(forParameterOrVariableOrConstant: name) ??
@@ -1451,12 +1465,14 @@ public class LayoutNode: NSObject {
     // Used by LayoutExpression and for unit tests
     // Note: thrown error is always a SymbolError
     func value(forSymbol symbol: String) throws -> Any {
-        try setUpExpression(for: symbol)
         if let getter = _getters[symbol] {
             return try getter()
         }
-        assert(expressions[symbol] == nil)
         attempt(completeSetup) // Using attempt to avoid throwing LayoutError
+        try setUpExpression(for: symbol) // Try again now that expressions are set up
+        if let getter = _getters[symbol] {
+            return try getter()
+        }
         let getter: Getter
         switch symbol {
         case "left":
@@ -1678,13 +1694,14 @@ public class LayoutNode: NSObject {
         if let result = _widthDependsOnParent {
             return result
         }
+        assert(_setupComplete)
         if value(forSymbol: "width", dependsOn: "parent.width") ||
             value(forSymbol: "width", dependsOn: "parent.containerSize.width") {
             _widthDependsOnParent = true
             return true
         }
         if value(forSymbol: "width", dependsOn: "inferredSize.width"),
-            expressions["contentSize"] == nil, expressions["contentSize.width"] == nil,
+            !hasExpression("contentSize"), !hasExpression("contentSize.width"),
             !_usesAutoLayout, _view?.intrinsicContentSize.width == UIViewNoIntrinsicMetric, children.isEmpty {
             _widthDependsOnParent = true
             return true
@@ -1698,13 +1715,14 @@ public class LayoutNode: NSObject {
         if let result = _heightDependsOnParent {
             return result
         }
+        assert(_setupComplete)
         if value(forSymbol: "height", dependsOn: "parent.height") ||
             value(forSymbol: "height", dependsOn: "parent.containerSize.height") {
             _heightDependsOnParent = true
             return true
         }
         if value(forSymbol: "height", dependsOn: "inferredSize.height"),
-            expressions["contentSize"] == nil, expressions["contentSize.height"] == nil,
+            !hasExpression("contentSize"), !hasExpression("contentSize.height"),
             !_usesAutoLayout, _view?.intrinsicContentSize.height == UIViewNoIntrinsicMetric, children.isEmpty {
             _heightDependsOnParent = true
             return true
@@ -1716,17 +1734,17 @@ public class LayoutNode: NSObject {
     private func inferContentSize() throws -> CGSize {
         // Check for explicit size
         // TODO: find a less hacky way to do this
-        if expressions["contentSize"] != nil, !_evaluating.contains("contentSize") {
+        if hasExpression("contentSize"), !_evaluating.contains("contentSize") {
             var size = try value(forSymbol: "contentSize") as! CGSize
-            if expressions["contentSize.width"] != nil, !_evaluating.contains("contentSize.width") {
+            if hasExpression("contentSize.width"), !_evaluating.contains("contentSize.width") {
                 size.width = try cgFloatValue(forSymbol: "contentSize.width")
             }
-            if expressions["contentSize.height"] != nil, !_evaluating.contains("contentSize.height") {
+            if hasExpression("contentSize.height"), !_evaluating.contains("contentSize.height") {
                 size.height = try cgFloatValue(forSymbol: "contentSize.height")
             }
             return size
-        } else if expressions["contentSize.width"] != nil, !_evaluating.contains("contentSize.width"),
-            expressions["contentSize.height"] != nil, !_evaluating.contains("contentSize.height") {
+        } else if hasExpression("contentSize.width"), !_evaluating.contains("contentSize.width"),
+            hasExpression("contentSize.height"), !_evaluating.contains("contentSize.height") {
             return CGSize(
                 width: try cgFloatValue(forSymbol: "contentSize.width"),
                 height: try cgFloatValue(forSymbol: "contentSize.height")
@@ -1801,9 +1819,9 @@ public class LayoutNode: NSObject {
             size.height = height - contentInset.top - contentInset.bottom
         }
         // Check for explicit width / height
-        if expressions["contentSize.width"] != nil, !_evaluating.contains("contentSize.width") {
+        if hasExpression("contentSize.width"), !_evaluating.contains("contentSize.width") {
             size.width = try cgFloatValue(forSymbol: "contentSize.width")
-        } else if expressions["contentSize.height"] != nil, !_evaluating.contains("contentSize.height") {
+        } else if hasExpression("contentSize.height"), !_evaluating.contains("contentSize.height") {
             size.height = try cgFloatValue(forSymbol: "contentSize.height")
         }
         return size
@@ -1814,16 +1832,16 @@ public class LayoutNode: NSObject {
             return .zero
         }
         var contentInset = try value(forSymbol: "contentInset") as! UIEdgeInsets
-        if expressions["contentInset.top"] != nil, !_evaluating.contains("contentInset.top") {
+        if hasExpression("contentInset.top"), !_evaluating.contains("contentInset.top") {
             contentInset.top = try cgFloatValue(forSymbol: "contentInset.top")
         }
-        if expressions["contentInset.left"] != nil, !_evaluating.contains("contentInset.left") {
+        if hasExpression("contentInset.left"), !_evaluating.contains("contentInset.left") {
             contentInset.left = try cgFloatValue(forSymbol: "contentInset.left")
         }
-        if expressions["contentInset.bottom"] != nil, !_evaluating.contains("contentInset.bottom") {
+        if hasExpression("contentInset.bottom"), !_evaluating.contains("contentInset.bottom") {
             contentInset.bottom = try cgFloatValue(forSymbol: "contentInset.bottom")
         }
-        if expressions["contentInset.right"] != nil, !_evaluating.contains("contentInset.right") {
+        if hasExpression("contentInset.right"), !_evaluating.contains("contentInset.right") {
             contentInset.right = try cgFloatValue(forSymbol: "contentInset.right")
         }
         if #available(iOS 11.0, *) {
@@ -1833,20 +1851,20 @@ public class LayoutNode: NSObject {
             case .automatic, .scrollableAxes:
                 var contentInset = contentInset
                 var contentSize: CGSize = .zero
-                if expressions["contentSize"] != nil, !_evaluating.contains("contentSize") {
+                if hasExpression("contentSize"), !_evaluating.contains("contentSize") {
                     contentSize = try value(forSymbol: "contentSize.width") as! CGSize
                 }
-                if expressions["contentSize.width"] != nil, !_evaluating.contains("contentSize.width") {
+                if hasExpression("contentSize.width"), !_evaluating.contains("contentSize.width") {
                     contentSize.width = try cgFloatValue(forSymbol: "contentSize.width")
                 }
-                if expressions["contentSize.height"] != nil, !_evaluating.contains("contentSize.height") {
+                if hasExpression("contentSize.height"), !_evaluating.contains("contentSize.height") {
                     contentSize.height = try cgFloatValue(forSymbol: "contentSize.height")
                 }
                 var size: CGSize = .zero
-                if expressions["width"] != nil, !_evaluating.contains("width") {
+                if hasExpression("width"), !_evaluating.contains("width") {
                     size.width = try cgFloatValue(forSymbol: "width")
                 }
-                if expressions["height"] != nil, !_evaluating.contains("height") {
+                if hasExpression("height"), !_evaluating.contains("height") {
                     size.height = try cgFloatValue(forSymbol: "height")
                 }
                 let safeAreaInsets = view._safeAreaInsets
@@ -1882,11 +1900,11 @@ public class LayoutNode: NSObject {
             !_evaluating.contains("height") || !value(forSymbol: "width", dependsOn: "height") {
             return try cgFloatValue(forSymbol: "width")
         }
-        if expressions["contentSize.width"] != nil, !_evaluating.contains("contentSize.width") {
+        if hasExpression("contentSize.width"), !_evaluating.contains("contentSize.width") {
             let contentInset = try computeContentInset()
             return try cgFloatValue(forSymbol: "contentSize.width") + contentInset.left + contentInset.right
         }
-        if expressions["contentSize"] != nil, !_evaluating.contains("contentSize") {
+        if hasExpression("contentSize"), !_evaluating.contains("contentSize") {
             let contentInset = try computeContentInset()
             let contentSize = try value(forSymbol: "contentSize") as! CGSize
             return contentSize.width + contentInset.left + contentInset.right
@@ -1899,11 +1917,11 @@ public class LayoutNode: NSObject {
             !_evaluating.contains("width") || !value(forSymbol: "height", dependsOn: "width") {
             return try cgFloatValue(forSymbol: "height")
         }
-        if expressions["contentSize.height"] != nil, !_evaluating.contains("contentSize.height") {
+        if hasExpression("contentSize.height"), !_evaluating.contains("contentSize.height") {
             let contentInset = try computeContentInset()
             return try cgFloatValue(forSymbol: "contentSize.height") + contentInset.top + contentInset.bottom
         }
-        if expressions["contentSize"] != nil, !_evaluating.contains("contentSize") {
+        if hasExpression("contentSize"), !_evaluating.contains("contentSize") {
             let contentInset = try computeContentInset()
             let contentSize = try value(forSymbol: "contentSize") as! CGSize
             return contentSize.height + contentInset.top + contentInset.left
@@ -2072,10 +2090,10 @@ public class LayoutNode: NSObject {
             let scrollView = _view as? UIScrollView {
             let oldContentSize = scrollView.contentSize
             var contentSize = try value(forSymbol: "contentSize") as! CGSize
-            if expressions["contentSize.width"] != nil {
+            if hasExpression("contentSize.width") {
                 contentSize.width = try cgFloatValue(forSymbol: "contentSize.width")
             }
-            if expressions["contentSize.height"] != nil {
+            if hasExpression("contentSize.height") {
                 contentSize.height = try cgFloatValue(forSymbol: "contentSize.height")
             }
             if !contentSize.isNearlyEqual(to: oldContentSize) {
