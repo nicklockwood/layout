@@ -77,6 +77,7 @@ public class LayoutNode: NSObject {
     @objc var _view: UIView?
     private(set) var _viewController: UIViewController?
     private(set) var _originalExpressions: [String: String]
+    private var _usesAutoLayout = false
     var _parameters: [String: RuntimeType]
     var _macros: [String: String]
     var rootURL: URL?
@@ -87,6 +88,12 @@ public class LayoutNode: NSObject {
         }
         return parent?.expression(forMacro: name)
     }
+
+    // Note: The LayoutNode lifecycle works as follows:
+    // completeSetup() creates the view/controller and sets properties that depend on it
+    // such as autolayout conformance, expression overrides, and observers
+    // once these are set up, they won't be reset by a cleanUp(), so anything that
+    // may effect them (such as adding children), must be done again
 
     // Note: Thrown error is always a LayoutError
     private var _setupComplete = false
@@ -109,12 +116,23 @@ public class LayoutNode: NSObject {
                 }, for: self)
                 assert(_view != nil)
             }
-            if let layoutBacked = (_viewController ?? _view) as? LayoutBacked {
-                layoutBacked.setLayoutNode(self)
-            }
+        }
+        if let layoutBacked = (_viewController ?? _view) as? LayoutBacked {
+            layoutBacked.setLayoutNode(self)
         }
 
-        setUpAutoLayout()
+        // AutoLayout support
+        _usesAutoLayout = _view!.constraints.contains {
+            [.top, .left, .bottom, .right, .width, .height].contains($0.firstAttribute)
+        }
+        _widthConstraint = _view?.widthAnchor.constraint(equalToConstant: 0)
+        _widthConstraint?.priority = UILayoutPriority(rawValue: UILayoutPriority.required.rawValue - 1)
+        _widthConstraint?.identifier = "LayoutWidth"
+        _heightConstraint = _view?.heightAnchor.constraint(equalToConstant: 0)
+        _heightConstraint?.priority = UILayoutPriority(rawValue: UILayoutPriority.required.rawValue - 1)
+        _heightConstraint?.identifier = "LayoutHeight"
+
+        setUpPositionConstraints()
         overrideExpressions()
         _ = updateVariables()
         updateObservers()
@@ -176,6 +194,7 @@ public class LayoutNode: NSObject {
         _stopObservingInsets()
     }
 
+    // Depends on presence of parent - must be called again if parent is added or removed
     private func updateObservers() {
         if _observingContentSizeCategory, parent != nil {
             _stopObservingContentSizeCategory()
@@ -208,10 +227,6 @@ public class LayoutNode: NSObject {
         switch new {
         case let rect as CGRect:
             if !rect.size.isNearlyEqual(to: _previousBounds.size) {
-                var root = self
-                while let parent = root.parent {
-                    root = parent
-                }
                 if root._view?.superview != nil, root._setupComplete,
                     root._updateLock == 0, root._evaluating.isEmpty {
                     root.update()
@@ -243,7 +258,7 @@ public class LayoutNode: NSObject {
         guard _setupComplete else {
             return
         }
-        cleanUp()
+        cleanUp(recursive: true)
         update()
     }
 
@@ -540,17 +555,31 @@ public class LayoutNode: NSObject {
     /// The parent node of this layout (unretained)
     public private(set) weak var parent: LayoutNode? {
         didSet {
-            if let parent = parent, parent._setupComplete {
-                parent._widthDependsOnParent = nil
-                parent._heightDependsOnParent = nil
-            }
             if _setupComplete {
-                cleanUp()
-                overrideExpressions()
-                bubbleUnhandledError()
+                _leftConstraint.map {
+                    oldValue?._view?.removeConstraint($0)
+                    _leftConstraint = nil
+                }
+                _topConstraint.map {
+                    oldValue?._view?.removeConstraint($0)
+                    _topConstraint = nil
+                }
+                // These must be called again if parent changes
+                setUpPositionConstraints()
                 updateObservers()
+                bubbleUnhandledError()
+                cleanUp(recursive: true)
             }
         }
+    }
+
+    /// The root node of this layout tree (unretained)
+    private var _root: LayoutNode?
+    public var root: LayoutNode {
+        if _root == nil {
+            _root = parent?.root ?? self
+        }
+        return _root!
     }
 
     /// The previous sibling of the node within its parent
@@ -622,6 +651,7 @@ public class LayoutNode: NSObject {
         child.removeFromParent()
         children.insert(child, at: index)
         if _setupComplete {
+            cleanUp(recursive: false)
             child.parent = self
             if let owner = _owner {
                 try? child.bind(to: owner)
@@ -706,11 +736,11 @@ public class LayoutNode: NSObject {
                 }
                 _leftConstraint.map {
                     oldView?.removeConstraint($0)
-                    _widthConstraint = nil
+                    _leftConstraint = nil
                 }
                 _topConstraint.map {
                     oldView?.removeConstraint($0)
-                    _heightConstraint = nil
+                    _topConstraint = nil
                 }
 
                 unmount()
@@ -743,7 +773,7 @@ public class LayoutNode: NSObject {
         }
 
         if _setupComplete {
-            cleanUp()
+            root.cleanUp(recursive: true)
             overrideExpressions()
         }
 
@@ -761,6 +791,7 @@ public class LayoutNode: NSObject {
 
     // MARK: expressions
 
+    // Only called from completeSetup(), shouldn't be called else
     private func overrideExpressions() {
         assert(_setupComplete && !_expressionsSetUp && _view != nil)
         expressions = _originalExpressions
@@ -804,24 +835,32 @@ public class LayoutNode: NSObject {
         for fn in _valueClearers { fn() }
     }
 
-    private func cleanUp() {
+    private func cleanUp(recursive: Bool) {
         assert(_evaluating.isEmpty)
+        assert(!_settingUpExpressions)
         if let error = _unhandledError, error.isTransient {
             _unhandledError = nil
         }
+        _root = nil
         _widthDependsOnParent = nil
         _heightDependsOnParent = nil
         _anyChildDependsOnContentOffset = nil
-        _expressionsSetUp = false
-        _getters.removeAll()
-        _layoutExpressions.removeAll()
-        _viewControllerExpressions.removeAll()
-        _viewExpressions.removeAll()
-        _valueClearers.removeAll()
-        _valueHasChanged.removeAll()
-        _updateExpressionValues = { _ in }
-        for child in children {
-            child.cleanUp()
+        if _expressionsSetUp {
+            _expressionsSetUp = false
+            _updateExpressionValues = { _ in }
+        }
+        if !_getters.isEmpty {
+            _getters.removeAll()
+            _layoutExpressions.removeAll()
+            _viewControllerExpressions.removeAll()
+            _viewExpressions.removeAll()
+            _valueClearers.removeAll()
+            _valueHasChanged.removeAll()
+        }
+        if recursive {
+            for child in children {
+                child.cleanUp(recursive: true)
+            }
         }
     }
 
@@ -1105,13 +1144,13 @@ public class LayoutNode: NSObject {
     private var _settingUpExpressions = false
     private var _expressionsSetUp = false
     private func setUpExpressions() throws {
+        try completeSetup()
         guard !_expressionsSetUp, !_settingUpExpressions else { return }
         _settingUpExpressions = true
         defer {
             _settingUpExpressions = false
             _expressionsSetUp = true
         }
-        try completeSetup()
         for symbol in expressions.keys {
             try LayoutError.wrap({ try setUpExpression(for: symbol) }, for: self)
         }
@@ -1884,6 +1923,8 @@ public class LayoutNode: NSObject {
             let frame = _view.frame
             let usesAutoresizing = _view.translatesAutoresizingMaskIntoConstraints
             _view.translatesAutoresizingMaskIntoConstraints = false
+            _leftConstraint?.isActive = false
+            _topConstraint?.isActive = false
             if let width = try computeExplicitWidth() {
                 _widthConstraint.isActive = true
                 _widthConstraint.constant = width
@@ -1955,25 +1996,14 @@ public class LayoutNode: NSObject {
     }
 
     // AutoLayout support
-    private var _usesAutoLayout = false
-    private func setUpAutoLayout() {
-        _usesAutoLayout = _view?.constraints.contains {
-            [.top, .left, .bottom, .right, .width, .height].contains($0.firstAttribute)
-        } ?? false
-        setUpConstraints()
-    }
     private var _topConstraint: NSLayoutConstraint?
     private var _leftConstraint: NSLayoutConstraint?
     private var _widthConstraint: NSLayoutConstraint?
     private var _heightConstraint: NSLayoutConstraint?
-    private func setUpConstraints() {
-        if _widthConstraint != nil { return }
-        _widthConstraint = _view?.widthAnchor.constraint(equalToConstant: 0)
-        _widthConstraint?.priority = UILayoutPriority(rawValue: UILayoutPriority.required.rawValue - 1)
-        _widthConstraint?.identifier = "LayoutWidth"
-        _heightConstraint = _view?.heightAnchor.constraint(equalToConstant: 0)
-        _heightConstraint?.priority = UILayoutPriority(rawValue: UILayoutPriority.required.rawValue - 1)
-        _heightConstraint?.identifier = "LayoutHeight"
+
+    // Depends on parent view - must be called again if parent view changes
+    private func setUpPositionConstraints() {
+        assert(_topConstraint == nil)
         if let parentView = parent?._view {
             _topConstraint = _view?.topAnchor.constraint(equalTo: parentView.topAnchor, constant: 0)
             _leftConstraint = _view?.leftAnchor.constraint(equalTo: parentView.leftAnchor, constant: 0)
@@ -2018,7 +2048,6 @@ public class LayoutNode: NSObject {
                 _view.frame = frame
                 _view.layer.transform = transform
             } else if let _widthConstraint = _widthConstraint, let _heightConstraint = _heightConstraint {
-                setUpConstraints()
                 _widthConstraint.constant = frame.width
                 _widthConstraint.isActive = true
                 _heightConstraint.constant = frame.height
@@ -2154,10 +2183,12 @@ public class LayoutNode: NSObject {
         }
         _delegate = oldDelegate
         _owner = owner
-        if _setupComplete {
-            cleanUp()
-        } else {
-            try completeSetup()
+        if parent == nil {
+            if _setupComplete {
+                cleanUp(recursive: true)
+            } else {
+                try completeSetup()
+            }
         }
         if let outlet = outlet {
             guard let type = Swift.type(of: owner).allPropertyTypes()[outlet] else {
@@ -2199,18 +2230,14 @@ public class LayoutNode: NSObject {
             }
         }
         for (name, type) in viewExpressionTypes where expressions[name] == nil {
-            guard case .protocol = type.type, type.matches(owner) else {
+            guard case .protocol = type.type, type.matches(owner),
+                name == "delegate" || name == "dataSource" ||
+                name.hasSuffix("Delegate") || name.hasSuffix("DataSource") else {
                 continue
             }
-            if name == "delegate" || name.hasSuffix("Delegate") {
-                try LayoutError.wrap({
-                    try self._view?.setValue(owner, forExpression: name)
-                }, for: self)
-            } else if name == "dataSource" || name.hasSuffix("DataSource") {
-                try LayoutError.wrap({
-                    try _view?.setValue(owner, forExpression: name)
-                }, for: self)
-            }
+            try LayoutError.wrap({
+                try self._view?.setValue(owner, forExpression: name)
+            }, for: self)
         }
         try bindActions()
         for child in children {
@@ -2238,19 +2265,15 @@ public class LayoutNode: NSObject {
         for child in children {
             child.unbind()
         }
-        cleanUp()
+        cleanUp(recursive: false)
     }
 
     private func bindActions() throws {
         guard let owner = _owner else { return }
-        guard let control = view as? UIControl else {
-            if let viewController = _viewController {
-                if let buttonItem = viewController.navigationItem.leftBarButtonItem {
-                    try buttonItem.bindAction(for: owner)
-                }
-                if let buttonItem = viewController.navigationItem.rightBarButtonItem {
-                    try buttonItem.bindAction(for: owner)
-                }
+        guard let control = _view as? UIControl else {
+            if let navigationItem = _viewController?.navigationItem,
+                let buttonItem = navigationItem.leftBarButtonItem ?? navigationItem.rightBarButtonItem {
+                try buttonItem.bindAction(for: owner)
             }
             return
         }
