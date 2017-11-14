@@ -476,7 +476,9 @@ public class LayoutNode: NSObject {
             delegate.layoutNode?(self, didDetectError: error)
             return
         }
-        assertionFailure("Layout error: \(error)")
+        if !runningInUnitTest {
+            assertionFailure("Layout error: \(error)")
+        }
     }
 
     // Attempt a throwing operation but catch the error and bubble it up the Layout hierarchy
@@ -561,11 +563,14 @@ public class LayoutNode: NSObject {
                     oldValue?._view?.removeConstraint($0)
                     _topConstraint = nil
                 }
-                // These must be called again if parent changes
-                setUpPositionConstraints()
-                updateObservers()
-                bubbleUnhandledError()
                 cleanUp(recursive: true)
+                // These must be called again if parent changes
+                if (parent == nil) != (oldValue == nil) {
+                    updateObservers()
+                    overrideExpressions()
+                }
+                setUpPositionConstraints()
+                bubbleUnhandledError()
             }
         }
     }
@@ -648,7 +653,6 @@ public class LayoutNode: NSObject {
         child.removeFromParent()
         children.insert(child, at: index)
         if _setupComplete {
-            cleanUp(recursive: false)
             child.parent = self
             if let owner = _owner {
                 try? child.bind(to: owner)
@@ -788,7 +792,7 @@ public class LayoutNode: NSObject {
 
     // MARK: expressions
 
-    // Only called from completeSetup(), shouldn't be called else
+    // Depends on presence of parent - must be called again if parent is added or removed
     private func overrideExpressions() {
         assert(_setupComplete && !_expressionsSetUp && _view != nil)
         expressions = _originalExpressions
@@ -2268,9 +2272,13 @@ public class LayoutNode: NSObject {
     private func bindActions() throws {
         guard let owner = _owner else { return }
         guard let control = _view as? UIControl else {
-            if let navigationItem = _viewController?.navigationItem,
-                let buttonItem = navigationItem.leftBarButtonItem ?? navigationItem.rightBarButtonItem {
-                try buttonItem.bindAction(for: owner)
+            if let navigationItem = _viewController?.navigationItem {
+                if let buttonItem = navigationItem.leftBarButtonItem {
+                    try buttonItem.bindAction(for: owner)
+                }
+                if let buttonItem = navigationItem.rightBarButtonItem {
+                    try buttonItem.bindAction(for: owner)
+                }
             }
             return
         }

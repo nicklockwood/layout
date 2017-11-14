@@ -83,7 +83,9 @@ public extension LayoutLoading {
                 }
                 responder = responder?.next ?? (responder as? UIViewController)?.parent
             }
-            assertionFailure("Layout error: \(error)")
+            if !runningInUnitTest {
+                assertionFailure("Layout error: \(error)")
+            }
         }
     }
 

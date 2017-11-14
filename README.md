@@ -73,6 +73,7 @@
     - [Installation](#installation-1)
     - [Formatting](#formatting)
     - [Renaming](#renaming)
+    - [Strings](#strings)
 - [Xcode Extension](#xcodeextension)
     - [Installation](#installation-2)
     - [Formatting](#formatting-1)
@@ -126,13 +127,13 @@ Layout is provided as a standalone Swift framework that you can use in your app.
 To install Layout using CocoaPods, add the following to your Podfile:
 
 ```ruby
-pod 'Layout', '~> 0.5'
+pod 'Layout', '~> 0.6'
 ```
 
 To install using Carthage, add this to your Cartfile:
 
 ```
-github "schibsted/Layout" ~> 0.5
+github "schibsted/Layout" ~> 0.6
 ```
 
 ## Integration
@@ -2463,7 +2464,7 @@ Sometimes you will find yourself repeating the same expression multiple times in
 
 Although you can pass numeric values into your layout as constants, this doesn't work for expressions like "100%" or "previous.bottom", where the symbols being referenced are relative to the position of the node in the hierarchy, so the actual value will vary in each instance.
 
-Layout has a solution for this, in the form of *macros*. A macro is a reusable expression that you define inside your Layout template. Like parameters, macros can be referenced by any child of the node where they are defined, but *unlike* parameters they cannot be set or overridden externally, and their value is determined at the point of use, rather than relative to the node where they are defined.
+Layout has a solution for this, in the form of *macros*. A macro is a reusable expression that you define inside your Layout template. Macros can be referenced by expressions on the node containing them, or any child of that node, but unlike parameters they cannot be set or overridden externally, and their value is determined at the point of use, rather than relative to the node where they are defined.
 
 Using macros, we can change the example above to:
 
@@ -2596,6 +2597,14 @@ LayoutTool also provides a function for renaming classes or expression variables
 Only class names and values inside expressions will be affected. Attributes (i.e. expression names) are ignored, along with HTML elements and literal string fragments.
 
 **Note:** Performing a rename also applies standard formatting to the file. There is currently no way to disable this.
+
+## Strings
+
+LayoutTool's `strings` command prints a list of all Localizable.strings constants referenced in your Layout XML templates. Use it as follows:
+
+```bash
+"${PODS_ROOT}/Layout/LayoutTool/LayoutTool" strings "${SRCROOT}/path/to/your/layout/xml/"
+```
 
 
 # Xcode Extension

@@ -1,5 +1,16 @@
 # Change Log
 
+## [0.6.1](https://github.com/schibsted/layout/releases/tag/0.6.1) (2017-11-14)
+
+- Expressions that reference the `contentOffset` of a containing UIScrollView now update automatically when it changes
+- Layout now automatically calls `setNeedsLayout()` on the containing view of the root LayoutNode when its frame changes
+- You can now reference a macro defined in the root node of a Layout XML file from an expression on the root node 
+- Improved support for views using AutoLayout (i.e. where `translatesAutoresizingMaskIntoConstraints = false`)
+- Fixed a spurious circular reference error relating to implicit height expressions
+- Unhandled errors that are thrown outside of a `LayoutViewController` now assert instead of failing silently
+- Added strings command to LayoutTool for extracting localizable string references
+- Reduced setup time for a Layout view hierarchy by ~30%
+
 ## [0.6.0](https://github.com/schibsted/layout/releases/tag/0.6.0) (2017-11-09)
 
 - Outlets can now be set using an expression as long the result is constant (see README.md for details)
