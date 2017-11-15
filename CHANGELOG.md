@@ -1,5 +1,11 @@
 # Change Log
 
+## [0.6.2](https://github.com/schibsted/layout/releases/tag/0.6.2) (2017-11-15)
+
+- Fixed an infinite recursion bug in the `updateFrame()` logic
+- Disabled an assertion that sometimes fired incorrectly due to a race condition
+- Fixed a bug where children added programmatically might be positioned incorrectly
+
 ## [0.6.1](https://github.com/schibsted/layout/releases/tag/0.6.1) (2017-11-14)
 
 - Expressions that reference the `contentOffset` of a containing UIScrollView now update automatically when it changes
