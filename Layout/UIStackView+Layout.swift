@@ -43,4 +43,11 @@ extension UIStackView {
         (node._view as UIView?).map(removeArrangedSubview)
         super.willRemoveChildNode(node, at: index)
     }
+
+    open override class var defaultExpressions: [String: String] {
+        return [
+            "width": "auto",
+            "height": "auto",
+        ]
+    }
 }

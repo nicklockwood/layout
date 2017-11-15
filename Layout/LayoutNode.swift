@@ -165,6 +165,7 @@ public class LayoutNode: NSObject {
     private var _observingFrame = false
     private func _stopObservingFrame() {
         if _observingFrame {
+            removeObserver(self, forKeyPath: "_view.translatesAutoresizingMaskIntoConstraints")
             removeObserver(self, forKeyPath: "_view.frame")
             removeObserver(self, forKeyPath: "_view.bounds")
             _observingFrame = false
@@ -200,6 +201,7 @@ public class LayoutNode: NSObject {
             NotificationCenter.default.addObserver(self, selector: #selector(contentSizeCategoryChanged), name: .UIContentSizeCategoryDidChange, object: nil)
         }
         if !_observingFrame {
+            addObserver(self, forKeyPath: "_view.translatesAutoresizingMaskIntoConstraints", options: [.new, .old], context: nil)
             addObserver(self, forKeyPath: "_view.frame", options: .new, context: nil)
             addObserver(self, forKeyPath: "_view.bounds", options: .new, context: nil)
             _observingFrame = true
@@ -247,6 +249,10 @@ public class LayoutNode: NSObject {
                 update()
             }
             _previousSafeAreaInsets = insets
+        case let useAutoresizing as Bool:
+            if useAutoresizing != change?[.oldKey] as? Bool {
+                update()
+            }
         default:
             preconditionFailure()
         }
@@ -832,9 +838,7 @@ public class LayoutNode: NSObject {
         }
         if !hasExpression("height") {
             _getters["height"] = nil
-            if _class is UIStackView.Type {
-                expressions["height"] = "auto" // TODO: remove special case
-            } else if hasExpression("top"), hasExpression("bottom") {
+            if hasExpression("top"), hasExpression("bottom") {
                 expressions["height"] = "bottom - top"
             } else if !(_view is UIScrollView), _view is UIImageView || _usesAutoLayout ||
                 _view?.intrinsicContentSize.height != UIViewNoIntrinsicMetric {
@@ -854,7 +858,6 @@ public class LayoutNode: NSObject {
     }
 
     private func cleanUp(recursive: Bool) {
-        assert(_evaluating.isEmpty)
         assert(!_settingUpExpressions)
         if let error = _unhandledError, error.isTransient {
             _unhandledError = nil
@@ -1515,6 +1518,9 @@ public class LayoutNode: NSObject {
                         break
                     }
                 }
+                if self._evaluating.contains("width") {
+                    return 0
+                }
                 return try SymbolError.wrap({
                     let contentInset = try self.computeContentInset()
                     return try self.cgFloatValue(forSymbol: "width") -
@@ -1532,6 +1538,9 @@ public class LayoutNode: NSObject {
                     default:
                         break
                     }
+                }
+                if self._evaluating.contains("height") {
+                    return 0
                 }
                 return try SymbolError.wrap({
                     let contentInset = try self.computeContentInset()
@@ -1759,10 +1768,10 @@ public class LayoutNode: NSObject {
             if !children.isEmpty {
                 for child in children {
                     var childSize = CGSize.zero
-                    if !child.widthDependsOnParent {
+                    if !child._evaluating.contains("width") {
                         childSize.width = try child.cgFloatValue(forSymbol: "width")
                     }
-                    if !child.heightDependsOnParent {
+                    if !child._evaluating.contains("height") {
                         childSize.height = try child.cgFloatValue(forSymbol: "height")
                     }
                     if isVertical {
@@ -1778,6 +1787,22 @@ public class LayoutNode: NSObject {
                 } else {
                     size.width -= spacing
                 }
+            } else {
+                if _view?.translatesAutoresizingMaskIntoConstraints == false {
+                    if let width = try computeExplicitWidth(), width != 0 {
+                        _widthConstraint?.constant = width
+                        _widthConstraint?.isActive = true
+                    } else {
+                        _widthConstraint?.isActive = false
+                    }
+                    if let height = try computeExplicitHeight(), height != 0 {
+                        _heightConstraint?.constant = height
+                        _heightConstraint?.isActive = true
+                    } else {
+                        _heightConstraint?.isActive = false
+                    }
+                }
+                size = _view?.systemLayoutSizeFitting(.zero) ?? .zero
             }
             return size
         }
@@ -1937,7 +1962,7 @@ public class LayoutNode: NSObject {
             return intrinsicSize
         }
         // Try AutoLayout
-        if _usesAutoLayout, let _widthConstraint = _widthConstraint, let _heightConstraint = _heightConstraint {
+        if _usesAutoLayout {
             defer { _updateLock -= 1 }
             _updateLock += 1
             let transform = _view.layer.transform
@@ -1945,41 +1970,38 @@ public class LayoutNode: NSObject {
             let frame = _view.frame
             let usesAutoresizing = _view.translatesAutoresizingMaskIntoConstraints
             _view.translatesAutoresizingMaskIntoConstraints = false
-            _leftConstraint?.isActive = false
-            _topConstraint?.isActive = false
             if let width = try computeExplicitWidth() {
-                _widthConstraint.isActive = true
-                _widthConstraint.constant = width
+                _widthConstraint?.constant = width
+                _widthConstraint?.isActive = true
             } else if intrinsicSize.width != UIViewNoIntrinsicMetric,
                 _view.constraints.contains(where: { $0.firstAttribute == .width }) {
-                _widthConstraint.isActive = true
-                _widthConstraint.constant = intrinsicSize.width
+                _widthConstraint?.constant = intrinsicSize.width
+                _widthConstraint?.isActive = true
             } else {
-                _widthConstraint.isActive = false
+                _widthConstraint?.isActive = false
             }
             if let height = try computeExplicitHeight() {
-                _heightConstraint.isActive = true
-                _heightConstraint.constant = height
+                _heightConstraint?.constant = height
+                _heightConstraint?.isActive = true
             } else if intrinsicSize.height != UIViewNoIntrinsicMetric,
                 _view.constraints.contains(where: { $0.firstAttribute == .height }) {
-                _widthConstraint.isActive = true
-                _widthConstraint.constant = intrinsicSize.height
+                _widthConstraint?.constant = intrinsicSize.height
+                _widthConstraint?.isActive = true
             } else {
-                _heightConstraint.isActive = false
+                _heightConstraint?.isActive = false
             }
             _view.layoutIfNeeded()
             let size = _view.frame.size
-            _widthConstraint.isActive = false
-            _heightConstraint.isActive = false
-            _view.translatesAutoresizingMaskIntoConstraints = usesAutoresizing
-            _view.frame = frame
+            if usesAutoresizing {
+                _widthConstraint?.isActive = false
+                _heightConstraint?.isActive = false
+                _view.translatesAutoresizingMaskIntoConstraints = true
+                _view.frame = frame
+            }
             _view.layer.transform = transform
             if size.width > 0 || size.height > 0 {
                 return size
             }
-        } else {
-            _widthConstraint?.isActive = false
-            _heightConstraint?.isActive = false
         }
         // Try intrinsic size
         var size = intrinsicSize
@@ -2026,9 +2048,11 @@ public class LayoutNode: NSObject {
     // Depends on parent view - must be called again if parent view changes
     private func setUpPositionConstraints() {
         assert(_topConstraint == nil)
-        if let parentView = parent?._view {
+        if let parentView = parent?._view, !(parentView is UIStackView) {
             _topConstraint = _view?.topAnchor.constraint(equalTo: parentView.topAnchor, constant: 0)
+            _topConstraint?.identifier = "LayoutTop"
             _leftConstraint = _view?.leftAnchor.constraint(equalTo: parentView.leftAnchor, constant: 0)
+            _leftConstraint?.identifier = "LayoutLeft"
         }
     }
 
@@ -2060,30 +2084,35 @@ public class LayoutNode: NSObject {
     // Note: thrown error is always a LayoutError
     private func updateFrame() throws {
         guard _updateLock == 0, let _view = _view else { return }
+        let frame: CGRect
         defer {
             if parent == nil, _previousBounds != _view.bounds {
                 _view.superview?.setNeedsLayout()
             }
-            _previousBounds = _view.bounds
+            _previousBounds = CGRect(
+                origin: _view.bounds.origin,
+                size: frame.size
+            )
             _updateLock -= 1
         }
         _updateLock += 1
-        let frame = self.frame
+        frame = self.frame
         if frame != _view.frame {
             if _view.translatesAutoresizingMaskIntoConstraints {
                 let transform = _view.layer.transform
                 _view.layer.transform = CATransform3DIdentity
                 _view.frame = frame
                 _view.layer.transform = transform
-            } else if let _widthConstraint = _widthConstraint, let _heightConstraint = _heightConstraint {
-                _widthConstraint.constant = frame.width
-                _widthConstraint.isActive = true
-                _heightConstraint.constant = frame.height
-                _heightConstraint.isActive = true
+            } else {
+                _widthConstraint?.constant = frame.width
+                _widthConstraint?.isActive = true
+                _heightConstraint?.constant = frame.height
+                _heightConstraint?.isActive = true
                 _leftConstraint?.constant = frame.origin.x
                 _leftConstraint?.isActive = true
                 _topConstraint?.constant = frame.origin.y
                 _topConstraint?.isActive = true
+                _view.updateConstraintsIfNeeded()
             }
         }
         if viewClass == UIScrollView.self, // Skip this behavior for subclasses like UITableView
@@ -2103,6 +2132,7 @@ public class LayoutNode: NSObject {
         for child in children {
             try LayoutError.wrap(child.updateFrame, for: self)
         }
+        _view.layoutIfNeeded()
         _view.didUpdateLayout(for: self)
         _view.viewController?.didUpdateLayout(for: self)
         try throwUnhandledError()

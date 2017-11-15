@@ -229,6 +229,7 @@ class LayoutFrameTests: XCTestCase {
         node.update()
         XCTAssertTrue(node.frame.width > 100)
         XCTAssertTrue(node.frame.height < 30)
+        XCTAssertEqual(node.frame, node.view.frame)
         node = LayoutNode(
             view: UILabel(),
             expressions: [
@@ -240,5 +241,37 @@ class LayoutFrameTests: XCTestCase {
         node.update()
         XCTAssertTrue(node.frame.width <= 50)
         XCTAssertTrue(node.frame.height > 20)
+        XCTAssertEqual(node.frame, node.view.frame)
+    }
+
+    // MARK: AutoLayout
+
+    func testAutosizeTextUsingConstraints() {
+        let text = "This is a line long enough to wrap"
+        var node = LayoutNode(
+            view: UILabel(),
+            expressions: [
+                "translatesAutoresizingMaskIntoConstraints": "false",
+                "text": text,
+                "numberOfLines": "0",
+            ]
+        )
+        node.update()
+        XCTAssertTrue(node.frame.width > 100)
+        XCTAssertTrue(node.frame.height < 30)
+        XCTAssertEqual(node.frame.size, node.view.systemLayoutSizeFitting(.zero))
+        node = LayoutNode(
+            view: UILabel(),
+            expressions: [
+                "translatesAutoresizingMaskIntoConstraints": "false",
+                "text": text,
+                "width": "50",
+                "numberOfLines": "0",
+            ]
+        )
+        node.update()
+        XCTAssertTrue(node.frame.width <= 50)
+        XCTAssertTrue(node.frame.height > 20)
+        XCTAssertEqual(node.frame.size, node.view.systemLayoutSizeFitting(.zero))
     }
 }
