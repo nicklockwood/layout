@@ -72,7 +72,7 @@ public extension LayoutLoading {
     }
 
     /// Default error handler implementation - bubbles error up to the first
-    /// responder that will handle it, or log the error if no handler is found
+    /// responder that will handle it, or asserts if no handler is found
     func layoutError(_ error: LayoutError) {
         DispatchQueue.main.async {
             var responder = (self as? UIResponder)?.next
@@ -83,9 +83,7 @@ public extension LayoutLoading {
                 }
                 responder = responder?.next ?? (responder as? UIViewController)?.parent
             }
-            if !runningInUnitTest {
-                assertionFailure("Layout error: \(error)")
-            }
+            assertionFailure("Layout error: \(error)")
         }
     }
 

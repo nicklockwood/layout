@@ -476,7 +476,7 @@ public class LayoutNode: NSObject {
             delegate.layoutNode?(self, didDetectError: error)
             return
         }
-        if !runningInUnitTest {
+        if !error.isTransient {
             assertionFailure("Layout error: \(error)")
         }
     }
@@ -554,6 +554,9 @@ public class LayoutNode: NSObject {
     /// The parent node of this layout (unretained)
     public private(set) weak var parent: LayoutNode? {
         didSet {
+            if let parent = parent, parent._setupComplete {
+                parent.cleanUp(recursive: false)
+            }
             if _setupComplete {
                 _leftConstraint.map {
                     oldValue?._view?.removeConstraint($0)
@@ -2039,7 +2042,13 @@ public class LayoutNode: NSObject {
     // Note: thrown error is always a LayoutError
     private func updateFrame() throws {
         guard _updateLock == 0, let _view = _view else { return }
-        defer { _updateLock -= 1 }
+        defer {
+            if parent == nil, _previousBounds != _view.bounds {
+                _view.superview?.setNeedsLayout()
+            }
+            _previousBounds = _view.bounds
+            _updateLock -= 1
+        }
         _updateLock += 1
         let frame = self.frame
         if frame != _view.frame {
@@ -2058,12 +2067,7 @@ public class LayoutNode: NSObject {
                 _topConstraint?.constant = frame.origin.y
                 _topConstraint?.isActive = true
             }
-            if parent == nil {
-                _view.superview?.setNeedsLayout()
-            }
         }
-        _previousBounds = frame
-        _previousBounds.origin = _view.bounds.origin
         if viewClass == UIScrollView.self, // Skip this behavior for subclasses like UITableView
             let scrollView = _view as? UIScrollView {
             let oldContentSize = scrollView.contentSize

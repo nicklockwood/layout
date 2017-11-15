@@ -3,7 +3,7 @@
 import Foundation
 
 // Prevent cache from distorting performance test results
-let runningInUnitTest = (NSClassFromString("XCTestCase") != nil)
+private let runningInUnitTest = (NSClassFromString("XCTestCase") != nil)
 
 struct ParsedLayoutExpression: CustomStringConvertible {
     var expression: ParsedExpression
