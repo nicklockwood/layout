@@ -1,5 +1,10 @@
 # Change Log
 
+## [0.6.3](https://github.com/schibsted/layout/releases/tag/0.6.3) (2017-11-17)
+
+- Fixed UIStackView bug introduced in 0.6.1, and made further improvements
+- Fixed some inconsistent behavior when using empty or commented-out expressions
+
 ## [0.6.2](https://github.com/schibsted/layout/releases/tag/0.6.2) (2017-11-15)
 
 - Fixed an infinite recursion bug in the `updateFrame()` logic
