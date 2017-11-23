@@ -1311,7 +1311,7 @@ public class LayoutNode: NSObject {
 
     // Returns true if symbol is a constant, false if it's a variable, otherwise nil
     private func valueIsConstant(_ symbol: String) -> Bool? {
-        assert(_setupComplete)
+        attempt(completeSetup)
         do {
             if try value(forKeyPath: symbol, in: _variables) != nil {
                 return false

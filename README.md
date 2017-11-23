@@ -821,6 +821,20 @@ It's common practice on iOS to use the English text as the key for localized str
 <UILabel text="{`strings.Some text with spaces and punctuation!`}"/>
 ```
 
+Localized strings may contain placeholder tokens for runtime values. On iOS, the convention for this is to use the printf `%` escape sequences for these placeholders, which are then replaced propgrammatically. Layout supports this mechanism by treating parameterized string constants as functions. For example, for the following localized string:
+
+```
+"Messages.Title" = "Hello %s, you have %i new messages";
+```
+
+You could display the formatted string directly inside your template as follows (assuming that `name` and `messageCount` are both valid state variables):
+
+```xml
+<UILabel text="{strings.Messages.Title(name, messageCount)}"/>
+```
+
+Layout checks the placeholders in the format string, and will display an error if you pass the wrong number or types of arguments.
+
 In addition to reducing boilerplate, strings referenced directly from your XML will also take advantage of [live reloading](#live-reloading), so you can make changes to your `Localizable.strings` file, and they will be picked up when you type Cmd-R in the simulator, with no need to recompile the app.
 
 

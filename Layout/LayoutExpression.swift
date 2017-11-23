@@ -343,7 +343,8 @@ struct LayoutExpression {
         var macroSymbols = [String: Set<String>]()
         for symbol in parsedExpression.symbols where symbols[symbol] == nil &&
             numericSymbols[symbol] == nil && !ignoredSymbols.contains(symbol) {
-            if case let .variable(name) = symbol, let first = name.first, !"'\"".contains(first) {
+            switch symbol {
+            case let .variable(name) where !"'\"".contains(name.first ?? " "):
                 var key = name
                 if key.count >= 2, key.first == "`", key.last == "`" {
                     key = String(key.dropFirst().dropLast())
@@ -388,6 +389,37 @@ struct LayoutExpression {
                 } catch {
                     symbols[symbol] = { _ in throw error }
                 }
+            case let .function(name, arity):
+                var key = name
+                if key.count >= 2, key.first == "`", key.last == "`" {
+                    key = String(key.dropFirst().dropLast())
+                }
+                do {
+                    guard let value = (try lookup(key) ?? node.constantValue(forSymbol: key)) as? String else {
+                        break
+                    }
+                    let formatString = try FormatString(value)
+                    let types = formatString.types.map { RuntimeType($0) }
+                    if arity > types.count {
+                        // TODO: this should probably be a warning, since there are legitimate cases where this
+                        // might arise - e.g. if a string doesn't use a param in one locale but does in others
+                        throw SymbolError("Too many arguments (\(arity)) for format string '\(value)' for key `\(key)`", for: key)
+                    } else if arity < types.count {
+                        throw SymbolError("Too few arguments (\(arity)) for format string '\(value)' for key `\(key)`", for: key)
+                    }
+                    symbols[symbol] = {
+                        do {
+                            let args = zip(types, $0).map { type, value in type.cast(value) ?? value }
+                            return try formatString.print(arguments: args)
+                        } catch {
+                            throw SymbolError("\(error)", for: key)
+                        }
+                    }
+                } catch {
+                    symbols[symbol] = { _ in throw SymbolError("\(error)", for: key) }
+                }
+            default:
+                break
             }
         }
         let evaluator: AnyExpression.Evaluator? = numericSymbols.isEmpty ? nil : { symbol, anyArgs in
