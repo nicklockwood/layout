@@ -15,7 +15,7 @@ extension NSObject {
             return [:]
         }
         var allProperties = [String: RuntimeType]()
-        func addProperty(name: String, type: RuntimeType) {
+        func addProperty(_ name: String, _ type: RuntimeType) {
             allProperties[name] = type
             let availability = type.availability
             switch type.type {
@@ -121,7 +121,7 @@ extension NSObject {
                     if !typeName.hasPrefix("("), typeName.contains("_") { // We don't want to mess with private stuff
                         continue
                     }
-                    addProperty(name: name, type: type)
+                    addProperty(name, type)
                 }
             }
         }
@@ -160,10 +160,31 @@ extension NSObject {
                     instancesRespond(to: Selector(isName)) {
                     name = isName
                 }
-                addProperty(name: name, type: type)
+                addProperty(name, type)
             }
             ctype.deallocate(capacity: maxChars)
         }
+        // Accessibility properties (TODO: find a way to automate this)
+        if self.conforms(to: UIAccessibilityIdentification.self) {
+            addProperty("accessibilityIdentifier", .string)
+        }
+        addProperty("isAccessibilityElement", .bool)
+        addProperty("accessibilityLabel", .string)
+        // TODO: iOS 11 addProperty("accessibilityAttributedLabel", .nsAttributedString)
+        addProperty("accessibilityHint", .string)
+        // TODO: iOS 11 addProperty("accessibilityAttributedHint", .nsAttributedString)
+        addProperty("accessibilityValue", .string)
+        // TODO: iOS 11 addProperty("accessibilityAttributedValue", .nsAttributedString)
+        addProperty("accessibilityTraits", .uiAccessibilityTraits)
+        addProperty("accessibilityFrame", .cgRect)
+        addProperty("accessibilityPath", .uiBezierPath)
+        addProperty("accessibilityActivationPoint", .cgPoint)
+        addProperty("accessibilityLanguage", .string)
+        addProperty("accessibilityElementsHidden", .bool)
+        addProperty("accessibilityViewIsModal", .bool)
+        addProperty("shouldGroupAccessibilityChildren", .bool)
+        addProperty("accessibilityNavigationStyle", .uiAccessibilityNavigationStyle)
+
         // Memoize properties
         objc_setAssociatedObject(self, &propertiesKey, allProperties, .OBJC_ASSOCIATION_RETAIN)
         return allProperties

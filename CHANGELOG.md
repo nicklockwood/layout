@@ -32,7 +32,7 @@
 - Better constant analysis, which should improve performance when updating mostly-static views
 - Fixed incorrect error message when expression is missing a closing brace
 - Dropped support for Swift 3.1 and Xcode 8.3.3 (this was broken in the previous release anyway)
-- Fixed string and character-related warnings in Xcode 9
+- Fixed string and character-related warnings in Xcode 9.1
 - Minor breaking changes to LayoutError API
 
 ## [0.5.9](https://github.com/schibsted/layout/releases/tag/0.5.9) (2017-11-02)

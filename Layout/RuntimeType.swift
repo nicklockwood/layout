@@ -54,13 +54,13 @@ public class RuntimeType: NSObject {
 
     public typealias Getter = (_ target: AnyObject, _ key: String) -> Any?
     public typealias Setter = (_ target: AnyObject, _ key: String, _ value: Any) throws -> Void
-    private typealias Caster = (_ value: Any) -> Any?
+    internal typealias Caster = (_ value: Any) -> Any?
 
     public let type: Kind
     private(set) var availability = Availability.available
     private(set) var getter: Getter?
     private(set) var setter: Setter?
-    private var caster: Caster?
+    internal var caster: Caster?
 
     static func unavailable(_ reason: String? = nil) -> RuntimeType? {
         #if arch(i386) || arch(x86_64)
@@ -90,7 +90,7 @@ public class RuntimeType: NSObject {
         }
     }
 
-    @nonobjc private init(_ type: Kind, _ availability: Availability = .available) {
+    @nonobjc init(_ type: Kind, _ availability: Availability = .available) {
         self.type = type
         self.availability = availability
     }
@@ -339,6 +339,14 @@ public class RuntimeType: NSObject {
                 return value as? UInt ??
                     (value as? Double).map { UInt($0) } ??
                     (value as? NSNumber).map { UInt(truncating: $0) }
+            case is Int64.Type:
+                return value as? Int64 ??
+                    (value as? Double).map { Int64($0) } ??
+                    (value as? NSNumber).map { Int64(truncating: $0) }
+            case is UInt64.Type:
+                return value as? UInt64 ??
+                    (value as? Double).map { UInt64($0) } ??
+                    (value as? NSNumber).map { UInt64(truncating: $0) }
             case is Bool.Type:
                 return value as? Bool ??
                     (value as? Double).map { $0 != 0 } ??

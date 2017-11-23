@@ -66,7 +66,68 @@ public extension RuntimeType {
     @objc class var uiColor: RuntimeType { return RuntimeType(UIColor.self) }
     @objc class var uiImage: RuntimeType { return RuntimeType(UIImage.self) }
 
+    // MARK: Accessibility
+    @objc class var uiAccessibilityContainerType: RuntimeType {
+        if #available(iOS 11.0, *) {
+            return RuntimeType([
+                "none": .none,
+                "dataTable": .dataTable,
+                "list": .list,
+                "landmark": .landmark,
+            ] as [String: UIAccessibilityContainerType])
+        }
+        return RuntimeType([
+            "none": 0,
+            "dataTable": 1,
+            "list": 2,
+            "landmark": 3,
+        ] as [String: Int])
+    }
+    @objc class var uiAccessibilityNavigationStyle: RuntimeType {
+        return RuntimeType([
+            "automatic": .automatic,
+            "separate": .separate,
+            "combined": .combined,
+        ] as [String: UIAccessibilityNavigationStyle])
+    }
+    @objc class var uiAccessibilityTraits: RuntimeType {
+        let tabBarTrait: UIAccessibilityTraits
+        if #available(iOS 10, *) {
+            tabBarTrait = UIAccessibilityTraitTabBar
+        } else {
+            tabBarTrait = UIAccessibilityTraitNone
+        }
+        let type = RuntimeType(RuntimeType.Kind.options(UIAccessibilityTraits.self, [
+            "none": UIAccessibilityTraitNone,
+            "button": UIAccessibilityTraitButton,
+            "link": UIAccessibilityTraitLink,
+            "header": UIAccessibilityTraitHeader,
+            "searchField": UIAccessibilityTraitSearchField,
+            "image": UIAccessibilityTraitImage,
+            "selected": UIAccessibilityTraitSelected,
+            "playsSound": UIAccessibilityTraitPlaysSound,
+            "keyboardKey": UIAccessibilityTraitKeyboardKey,
+            "staticText": UIAccessibilityTraitStaticText,
+            "summaryElement": UIAccessibilityTraitSummaryElement,
+            "notEnabled": UIAccessibilityTraitNotEnabled,
+            "updatesFrequently": UIAccessibilityTraitUpdatesFrequently,
+            "startsMediaSession": UIAccessibilityTraitStartsMediaSession,
+            "adjustable": UIAccessibilityTraitAdjustable,
+            "allowsIndirectInteraction": UIAccessibilityTraitAllowsDirectInteraction,
+            "causesPageTurn": UIAccessibilityTraitCausesPageTurn,
+            "tabBar": tabBarTrait,
+        ] as [String: UIAccessibilityTraits]))
+        type.caster = { value in
+            if let values = value as? [UIAccessibilityTraits] {
+                return values.reduce(0) { $0.0 + $0.1 }
+            }
+            return value as? UIAccessibilityTraits
+        }
+        return type
+    }
+
     // MARK: Geometry
+    @objc class var uiBezierPath: RuntimeType { return RuntimeType(UIBezierPath.self) }
     @objc class var uiEdgeInsets: RuntimeType { return RuntimeType(UIEdgeInsets.self) }
     @objc class var uiOffset: RuntimeType { return RuntimeType(UIOffset.self) }
     @objc class var uiRectEdge: RuntimeType {
