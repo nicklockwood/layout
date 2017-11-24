@@ -119,7 +119,7 @@ public extension RuntimeType {
         ] as [String: UIAccessibilityTraits]))
         type.caster = { value in
             if let values = value as? [UIAccessibilityTraits] {
-                return values.reduce(0) { $0.0 + $0.1 }
+                return values.reduce(0) { $0 + $1 }
             }
             return value as? UIAccessibilityTraits
         }

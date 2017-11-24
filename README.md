@@ -15,6 +15,7 @@
     - [How?](#how)
 - [Usage](#usage)
     - [Installation](#installation)
+    - [Dependencies](#dependencies)
     - [Integration](#integration)
     - [Editor Support](#editor-support)
     - [Live Reloading](#live-reloading)
@@ -73,7 +74,7 @@
     - [Installation](#installation-1)
     - [Formatting](#formatting)
     - [Renaming](#renaming)
-    - [Strings](#strings)
+    - [Strings](#strings-1)
 - [Xcode Extension](#xcodeextension)
     - [Installation](#installation-2)
     - [Formatting](#formatting-1)
@@ -122,7 +123,7 @@ Layout is designed to work with ordinary UIKit components, not to replace or rei
 
 ## Installation
 
-Layout is provided as a standalone Swift framework that you can use in your app. It works with Swift 3.2 and 4.0, has no dependencies, and is not tied to any particular package management solution.
+Layout is provided as a standalone Swift framework that you can use in your app. It works with Swift 3.2 and 4.0, and is not tied to any particular package management solution.
 
 To install Layout using CocoaPods, add the following to your Podfile:
 
@@ -135,6 +136,14 @@ To install using Carthage, add this to your Cartfile:
 ```
 github "schibsted/Layout" ~> 0.6
 ```
+
+
+## Dependencies
+
+Layout has no external dependencies. It makes use of the [Expression](https://github.com/nicklockwood/Expression) and [Sprinter](https://github.com/nicklockwood/Sprinter) frameworks internally, but these have been included inside the Layout module as part of the source distribution, so there is no need to include them separately.
+
+Because Expression and Sprinter are inside the Layout namespace, you can safely use Layout in a project that is already using another copy of either of these frameworks.
+
 
 ## Integration
 
@@ -827,13 +836,13 @@ Localized strings may contain placeholder tokens for runtime values. On iOS, the
 "Messages.Title" = "Hello %s, you have %i new messages";
 ```
 
-You could display the formatted string directly inside your template as follows (assuming that `name` and `messageCount` are both valid state variables):
+You could display the formatted string directly inside your template as follows (assuming that `name` and `messageCount` are valid state variables):
 
 ```xml
 <UILabel text="{strings.Messages.Title(name, messageCount)}"/>
 ```
 
-Layout checks the placeholders in the format string, and will display an error if you pass the wrong number or types of arguments.
+Layout checks the placeholders in the format string, and will display an error if you pass the wrong number or types of arguments. Layout's format string processing is powered by the [Sprinter](https://github.com/nicklockwood/Sprinter) framework, and has full support for the [IEEE printf spec](http://pubs.opengroup.org/onlinepubs/009695399/functions/printf.html), so you can use flags such as `%1.3f` or `%3$0x` in your localized strings to control parameter order and formatting.
 
 In addition to reducing boilerplate, strings referenced directly from your XML will also take advantage of [live reloading](#live-reloading), so you can make changes to your `Localizable.strings` file, and they will be picked up when you type Cmd-R in the simulator, with no need to recompile the app.
 

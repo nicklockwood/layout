@@ -33,7 +33,7 @@ class FormatXMLCommand: NSObject, XCSourceEditorCommand {
             guard let lastLine = invocation.buffer.lines.lastObject as? String else {
                 return completionHandler(nil)
             }
-            let position = XCSourceTextPosition(line: invocation.buffer.lines.count - 1, column: lastLine.characters.count)
+            let position = XCSourceTextPosition(line: invocation.buffer.lines.count - 1, column: lastLine.count)
             let updatedSelectionRange = XCSourceTextRange(start: position, end: position)
             invocation.buffer.selections.add(updatedSelectionRange)
 

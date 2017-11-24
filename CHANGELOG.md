@@ -1,5 +1,10 @@
 # Change Log
 
+## [0.6.4](https://github.com/schibsted/layout/releases/tag/0.6.4) (2017-11-24)
+
+- Added ability to specify format arguments for localized string constants (see README for details)
+- Fixed bug where UIAccessibility properties were reported as private or unavailable
+
 ## [0.6.3](https://github.com/schibsted/layout/releases/tag/0.6.3) (2017-11-17)
 
 - Fixed UIStackView bug introduced in 0.6.1, and made further improvements
@@ -24,7 +29,7 @@
 
 ## [0.6.0](https://github.com/schibsted/layout/releases/tag/0.6.0) (2017-11-09)
 
-- Outlets can now be set using an expression as long the result is constant (see README.md for details)
+- Outlets can now be set using an expression as long the result is constant (see README for details)
 - Error messages now include the name of the Layout XML file where the error occured
 - Improved error messages, including bug fixes and better suggestions for mistyped property names
 - Added `childNode(withID:)` and `children(withID:)` methods to `LayoutNode` for looking up child nodes
@@ -48,7 +53,7 @@
 
 - Fixed layout glitch after live reloading `UIStackView`-based layouts
 - Font expressions now support additional weights such as `black` and `ultralight`
-- Minor breaking change when creating bold system fonts in font expressions. See README.md for details
+- Minor breaking change when creating bold system fonts in font expressions. See README for details
 - Unicode characters in attributedString expressions or inline HTML are no longer mangled
 - Fixed bug where source file loading errors were sometimes not reported
 - Fixed bug where `.layout-ignore` file paths could sometimes be ignored
@@ -82,7 +87,7 @@
 
 ## [0.5.4](https://github.com/schibsted/layout/releases/tag/0.5.4) (2017-10-16)
 
-- Added macros feature for reusable expressions and sub-expressions. See README.md for details
+- Added macros feature for reusable expressions and sub-expressions. See README for details
 - Added node references, allowing expressions to reference arbitrary nodes in the layout hierarchy
 - Added the Layout Xcode Extension, making Layout XML formatting available from within Xcode
 - Improved support for inline HTML in templates, including support for inline HTML inside webviews
@@ -117,7 +122,7 @@
 
 ## [0.5.0](https://github.com/schibsted/layout/releases/tag/0.5.0) (2017-09-28)
 
-- Added `defaultExpressions` property for custom views (see README.md for details)
+- Added `defaultExpressions` property for custom views (see README for details)
 - Percentages in `contentSize` expressions now refer to `self.width` instead of `parent.width`
 - Fixed bug that caused views to fail to resize correctly when using default width/height
 - Named Image and color asset expressions can now use bundle name instead of identifier
@@ -145,7 +150,7 @@
 ## [0.4.25](https://github.com/schibsted/layout/releases/tag/0.4.25) (2017-09-22)
 
 - Fixed regression in auto-sizing of AutoLayout-based components
-- Commenting-out string-based expressions now works more intuitively (see README.md for details)
+- Commenting-out string-based expressions now works more intuitively (see README for details)
 - Commenting-out `outlet`, `xml` or `template` attributes now works as you would expect
 - Width and height of `UIImageView` are now set to `auto` by default
 
@@ -162,7 +167,7 @@
 
 ## [0.4.23](https://github.com/schibsted/layout/releases/tag/0.4.23) (2017-09-19)
 
-- Added full, backwards-compatible support for safe areas on iOS 11 (see README.md for details)
+- Added full, backwards-compatible support for safe areas on iOS 11 (see README for details)
 - Percentage sizes now take content insets into account when used inside a scroll view
 - Added support for new iOS 11 text input properties
 - Improved messaging for XML parsing errors
@@ -171,7 +176,7 @@
 
 ## [0.4.22](https://github.com/schibsted/layout/releases/tag/0.4.22) (2017-09-10)
 
-- Added Layout XML file autocompletion support for the Sublime Text editor (see README.md for details)
+- Added Layout XML file autocompletion support for the Sublime Text editor (see README for details)
 - Fixed a regression introduced in version 0.4.21 that caused constant values to be re-evaluated on each update 
 - View and view controller properties whose value has not changed are no longer re-applied on each update
 - Fixed a bug where constant expressions containing `true`, `false` or `nil` were re-evaluated on each update
@@ -225,7 +230,7 @@
 ## [0.4.16](https://github.com/schibsted/layout/releases/tag/0.4.16) (2017-08-25)
 
 - Fix for spurious "property unavailable" errors when using `UITableView`, `UICollectionView` or `UIStackView`
-- Added `UIStackView` documentation to README.md
+- Added `UIStackView` documentation to README
 
 ## [0.4.15](https://github.com/schibsted/layout/releases/tag/0.4.15) (2017-08-22)
 
