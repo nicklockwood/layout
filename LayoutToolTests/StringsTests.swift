@@ -27,4 +27,16 @@ class StringsTests: XCTestCase {
         let output = ["hello world"]
         XCTAssertEqual(try strings(in: input), output)
     }
+
+    func testFindParameterizedString() {
+        let input = "<UILabel text=\"{strings.foo(arg1, arg2)}\"/>"
+        let output = ["foo"]
+        XCTAssertEqual(try strings(in: input), output)
+    }
+
+    func testFindEscapedParameterizedString() {
+        let input = "<UILabel text=\"{`strings.foo`(arg1, arg2)}\"/>"
+        let output = ["foo"]
+        XCTAssertEqual(try strings(in: input), output)
+    }
 }
