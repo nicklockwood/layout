@@ -165,7 +165,8 @@ extension NSObject {
             ctype.deallocate(capacity: maxChars)
         }
         // Accessibility properties (TODO: find a way to automate this)
-        if conforms(to: UIAccessibilityIdentification.self) {
+        if conforms(to: UIAccessibilityIdentification.self) ||
+            self is UIView.Type || self is UIBarItem.Type || self is UIImage.Type {
             addProperty("accessibilityIdentifier", .string)
         }
         addProperty("isAccessibilityElement", .bool)
