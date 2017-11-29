@@ -1,5 +1,10 @@
 # Change Log
 
+## [0.6.5](https://github.com/schibsted/layout/releases/tag/0.6.5) (2017-11-29)
+
+- Fixed a bug where `accessibilityIdentifier` property was reported as private or unavailable
+- LayoutTool `strings` command now finds parameterized strings
+
 ## [0.6.4](https://github.com/schibsted/layout/releases/tag/0.6.4) (2017-11-24)
 
 - Added ability to specify format arguments for localized string constants (see README for details)

@@ -1557,6 +1557,7 @@
 		0105F79F1F055C260067B313 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_CODE_COVERAGE = NO;
 				CODE_SIGN_IDENTITY = "-";
 				DEVELOPMENT_TEAM = 8VQKF583ED;
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
@@ -1569,6 +1570,7 @@
 		0105F7A01F055C260067B313 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_CODE_COVERAGE = NO;
 				CODE_SIGN_IDENTITY = "-";
 				DEVELOPMENT_TEAM = 8VQKF583ED;
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
@@ -1581,6 +1583,7 @@
 		0105F7AF1F059A820067B313 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_CODE_COVERAGE = NO;
 				CODE_SIGN_IDENTITY = "-";
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = 8VQKF583ED;
@@ -1596,6 +1599,7 @@
 		0105F7B01F059A820067B313 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_CODE_COVERAGE = NO;
 				CODE_SIGN_IDENTITY = "-";
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = 8VQKF583ED;
@@ -1708,6 +1712,7 @@
 		011CE6A41F053ABD0034771C /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_CODE_COVERAGE = NO;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "";
 				DEFINES_MODULE = YES;
@@ -1743,6 +1748,7 @@
 		011CE6B71F053D090034771C /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_CODE_COVERAGE = NO;
 				CLANG_ENABLE_MODULES = YES;
 				DEVELOPMENT_TEAM = 8VQKF583ED;
 				INFOPLIST_FILE = LayoutTests/Info.plist;
@@ -1757,6 +1763,7 @@
 		0136F1C21F17863C00C44673 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_CODE_COVERAGE = NO;
 				DEVELOPMENT_TEAM = 8VQKF583ED;
 				INFOPLIST_FILE = PerformanceTests/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 10.3;
@@ -1769,6 +1776,7 @@
 		0136F1C31F17863C00C44673 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_CODE_COVERAGE = NO;
 				DEVELOPMENT_TEAM = 8VQKF583ED;
 				INFOPLIST_FILE = PerformanceTests/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 10.3;
@@ -1782,6 +1790,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_ENABLE_CODE_COVERAGE = NO;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_ENTITLEMENTS = EditorExtension/Extension/Extension.entitlements;
 				CODE_SIGN_IDENTITY = "Mac Developer";
@@ -1802,6 +1811,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_ENABLE_CODE_COVERAGE = NO;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_ENTITLEMENTS = EditorExtension/Extension/Extension.entitlements;
 				CODE_SIGN_IDENTITY = "Mac Developer";
@@ -1824,6 +1834,7 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_ENABLE_CODE_COVERAGE = NO;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_ENTITLEMENTS = EditorExtension/Application/Application.entitlements;
 				CODE_SIGN_IDENTITY = "Mac Developer";
@@ -1845,6 +1856,7 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_ENABLE_CODE_COVERAGE = NO;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_ENTITLEMENTS = EditorExtension/Application/Application.entitlements;
 				CODE_SIGN_IDENTITY = "Mac Developer";
@@ -2008,6 +2020,7 @@
 		01EAFD7C1F60613600B73E92 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_CODE_COVERAGE = NO;
 				DEVELOPMENT_TEAM = 8VQKF583ED;
 				INFOPLIST_FILE = UIKitSymbols/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
@@ -2022,6 +2035,7 @@
 		01EAFD7D1F60613600B73E92 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_CODE_COVERAGE = NO;
 				DEVELOPMENT_TEAM = 8VQKF583ED;
 				INFOPLIST_FILE = UIKitSymbols/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
