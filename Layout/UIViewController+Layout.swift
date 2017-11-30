@@ -112,6 +112,30 @@ extension UIViewController {
             types["availablePermissions"] = .uiCloudSharingPermissionOptions
         }
 
+        // UIImagePickerController support
+        // Added here so we can avoid referencing UIImagePickerController in the code
+        // as this causes App Store submission issues if the app isn't using the feature
+        if "\(self)" == "UIImagePickerController" {
+            types["cameraCaptureMode"] = .uiImagePickerControllerCameraCaptureMode
+            types["cameraDevice"] = .uiImagePickerControllerCameraDevice
+            types["cameraFlashMode"] = .uiImagePickerControllerCameraFlashMode
+            types["imageExportPreset"] = .uiImagePickerControllerImageURLExportPreset
+            types["sourceType"] = .uiImagePickerControllerSourceType
+            types["videoQuality"] = .uiImagePickerControllerQualityType
+            // TODO: validate media types
+            // TODO: validate videoExportPreset
+            #if arch(i386) || arch(x86_64)
+                // Private properties
+                for name in [
+                    "allowsImageEditing",
+                    "initialViewControllerClassName",
+                    "photosExtension",
+                ] {
+                    types[name] = nil
+                }
+            #endif
+        }
+
         return types
     }
 
@@ -243,11 +267,19 @@ extension UIViewController {
             if #available(iOS 11.0, *) {
                 navigationItem.largeTitleDisplayMode = value as! UINavigationItem.LargeTitleDisplayMode
             }
+        case "imageExportPreset": // Used by UIImagePickerController
+            // Does nothing on iOS 10 and earlier
+            if #available(iOS 11.0, *) {
+                fallthrough
+            }
         default:
-            if name.hasPrefix("navigationItem.leftBarButtonItem."), navigationItem.leftBarButtonItem == nil {
-                navigationItem.leftBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
-            } else if name.hasPrefix("navigationItem.rightBarButtonItem."), navigationItem.rightBarButtonItem == nil {
-                navigationItem.rightBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
+            if name.hasPrefix("navigationItem.leftBarButtonItem."),navigationItem.leftBarButtonItem == nil {
+                navigationItem.leftBarButtonItem =
+                    UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
+            } else if name.hasPrefix("navigationItem.rightBarButtonItem."),
+                navigationItem.rightBarButtonItem == nil {
+                navigationItem.rightBarButtonItem =
+                    UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
             }
             try _setValue(value, ofType: type(of: self).cachedExpressionTypes[name], forKeyPath: name)
         }
@@ -667,43 +699,6 @@ extension UIActivityViewController {
             }
         #endif
         return types
-    }
-}
-
-extension UIImagePickerController {
-    open override class var expressionTypes: [String: RuntimeType] {
-        var types = super.expressionTypes
-        types["cameraCaptureMode"] = .uiImagePickerControllerCameraCaptureMode
-        types["cameraDevice"] = .uiImagePickerControllerCameraDevice
-        types["cameraFlashMode"] = .uiImagePickerControllerCameraFlashMode
-        types["imageExportPreset"] = .uiImagePickerControllerImageURLExportPreset
-        types["sourceType"] = .uiImagePickerControllerSourceType
-        types["videoQuality"] = .uiImagePickerControllerQualityType
-        // TODO: validate media types
-        // TODO: validate videoExportPreset
-        #if arch(i386) || arch(x86_64)
-            // Private properties
-            for name in [
-                "allowsImageEditing",
-                "initialViewControllerClassName",
-                "photosExtension",
-            ] {
-                types[name] = nil
-            }
-        #endif
-        return types
-    }
-
-    open override func setValue(_ value: Any, forExpression name: String) throws {
-        switch name {
-        case "imageExportPreset":
-            // Does nothing on iOS 10 and earlier
-            if #available(iOS 11.0, *) {
-                fallthrough
-            }
-        default:
-            try super.setValue(value, forExpression: name)
-        }
     }
 }
 
