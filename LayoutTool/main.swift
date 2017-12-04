@@ -3,7 +3,7 @@
 import Foundation
 
 /// The current LayoutTool version
-let version = "0.6.5"
+let version = "0.6.6"
 
 extension String {
     var inDefault: String { return "\u{001B}[39m\(self)" }
@@ -52,6 +52,13 @@ enum ExitResult: Int32 {
     case failure = 1
 }
 
+func timeEvent(block: () throws -> Void) rethrows -> String {
+    let start = CFAbsoluteTimeGetCurrent()
+    try block()
+    let time = round((CFAbsoluteTimeGetCurrent() - start) * 100) / 100 // round to nearest 10ms
+    return String(format: "%gs", time)
+}
+
 func processArguments(_ args: [String]) -> ExitResult {
     var errors = [FormatError]()
     guard args.count > 1 else {
@@ -70,7 +77,13 @@ func processArguments(_ args: [String]) -> ExitResult {
             errors.append(.options("format command expects one or more file paths as input"))
             break
         }
-        errors += format(paths)
+        var filesChecked = 0, filesUpdated = 0
+        let time = timeEvent {
+            (filesChecked, filesUpdated, errors) = format(paths)
+        }
+        if errors.isEmpty {
+            print("LayoutTool format completed. \(filesUpdated)/\(filesChecked) files updated in \(time)".inGreen)
+        }
     case "list":
         let paths = Array(args.dropFirst(2))
         if paths.isEmpty {

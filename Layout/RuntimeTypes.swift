@@ -9,6 +9,7 @@ import WebKit
 public extension RuntimeType {
 
     // MARK: Swift
+
     @objc class var any: RuntimeType { return RuntimeType(Any.self) }
     @objc class var bool: RuntimeType { return RuntimeType(Bool.self) }
     @objc class var double: RuntimeType { return RuntimeType(Double.self) }
@@ -18,6 +19,7 @@ public extension RuntimeType {
     @objc class var uInt: RuntimeType { return RuntimeType(UInt.self) }
 
     // MARK: Foundation
+
     @objc class var anyObject: RuntimeType { return RuntimeType(AnyObject.self) }
     @objc class var selector: RuntimeType { return RuntimeType(Selector.self) }
     @objc class var nsAttributedString: RuntimeType { return RuntimeType(NSAttributedString.self) }
@@ -25,6 +27,7 @@ public extension RuntimeType {
     @objc class var urlRequest: RuntimeType { return RuntimeType(URLRequest.self) }
 
     // MARK: CoreGraphics
+
     @objc class var cgAffineTransform: RuntimeType { return RuntimeType(CGAffineTransform.self) }
     @objc class var cgColor: RuntimeType { return RuntimeType(CGColor.self) }
     @objc class var cgFloat: RuntimeType { return RuntimeType(CGFloat.self) }
@@ -36,6 +39,7 @@ public extension RuntimeType {
     @objc class var cgVector: RuntimeType { return RuntimeType(CGVector.self) }
 
     // MARK: QuartzCore
+
     @objc class var caTransform3D: RuntimeType { return RuntimeType(CATransform3D.self) }
     @objc class var caEdgeAntialiasingMask: RuntimeType {
         return RuntimeType([
@@ -63,10 +67,12 @@ public extension RuntimeType {
     }
 
     // MARK: UIKit
+
     @objc class var uiColor: RuntimeType { return RuntimeType(UIColor.self) }
     @objc class var uiImage: RuntimeType { return RuntimeType(UIImage.self) }
 
     // MARK: Accessibility
+
     @objc class var uiAccessibilityContainerType: RuntimeType {
         if #available(iOS 11.0, *) {
             return RuntimeType([
@@ -127,6 +133,7 @@ public extension RuntimeType {
     }
 
     // MARK: Geometry
+
     @objc class var uiBezierPath: RuntimeType { return RuntimeType(UIBezierPath.self) }
     @objc class var uiEdgeInsets: RuntimeType { return RuntimeType(UIEdgeInsets.self) }
     @objc class var uiOffset: RuntimeType { return RuntimeType(UIOffset.self) }
@@ -141,6 +148,7 @@ public extension RuntimeType {
     }
 
     // MARK: Text
+
     @objc class var nsLineBreakMode: RuntimeType {
         return RuntimeType([
             "byWordWrapping": .byWordWrapping,
@@ -230,6 +238,7 @@ public extension RuntimeType {
     }
 
     // MARK: TextInput
+
     @objc class var uiKeyboardAppearance: RuntimeType {
         return RuntimeType([
             "default": .default,
@@ -356,6 +365,7 @@ public extension RuntimeType {
     }
 
     // MARK: Toolbars
+
     @objc class var uiBarStyle: RuntimeType {
         return RuntimeType([
             "default": .default,
@@ -428,6 +438,7 @@ public extension RuntimeType {
     }
 
     // MARK: Drag and drop
+
     @objc class var uiTextDragDelegate: RuntimeType {
         if #available(iOS 11.0, *) {
             return RuntimeType(UITextDragDelegate.self)
@@ -452,6 +463,7 @@ public extension RuntimeType {
     }
 
     // MARK: UIView
+
     @objc class var uiViewAutoresizing: RuntimeType {
         return RuntimeType([
             "flexibleLeftMargin": .flexibleLeftMargin,
@@ -497,6 +509,7 @@ public extension RuntimeType {
     }
 
     // MARK: UIControl
+
     @objc class var uiControlContentVerticalAlignment: RuntimeType {
         return RuntimeType([
             "center": .center,
@@ -515,6 +528,7 @@ public extension RuntimeType {
     }
 
     // MARK: UIButton
+
     @objc class var uiButtonType: RuntimeType {
         return RuntimeType([
             "custom": .custom,
@@ -527,6 +541,7 @@ public extension RuntimeType {
     }
 
     // MARK: UIActivityIndicatorView
+
     @objc class var uiActivityIndicatorViewStyle: RuntimeType {
         return RuntimeType([
             "whiteLarge": .whiteLarge,
@@ -536,6 +551,7 @@ public extension RuntimeType {
     }
 
     // MARK: UIProgressView
+
     @objc class var uiProgressViewStyle: RuntimeType {
         return RuntimeType([
             "default": .default,
@@ -544,6 +560,7 @@ public extension RuntimeType {
     }
 
     // MARK: UIInputView
+
     @objc class var uiInputViewStyle: RuntimeType {
         return RuntimeType([
             "default": .default,
@@ -552,6 +569,7 @@ public extension RuntimeType {
     }
 
     // MARK: UIDatePicker
+
     @objc class var uiDatePickerMode: RuntimeType {
         return RuntimeType([
             "time": .time,
@@ -562,6 +580,7 @@ public extension RuntimeType {
     }
 
     // MARK: UIScrollView
+
     @objc class var uiScrollViewContentInsetAdjustmentBehavior: RuntimeType {
         if #available(iOS 11.0, *) {
             return RuntimeType([
@@ -600,6 +619,7 @@ public extension RuntimeType {
     }
 
     // MARK: UICollectionView
+
     @objc class var uiCollectionViewScrollDirection: RuntimeType {
         return RuntimeType([
             "horizontal": .horizontal,
@@ -636,6 +656,7 @@ public extension RuntimeType {
     }
 
     // MARK: UIStackView
+
     @objc class var uiLayoutConstraintAxis: RuntimeType {
         return RuntimeType([
             "horizontal": .horizontal,
@@ -665,6 +686,7 @@ public extension RuntimeType {
     }
 
     // MARK: UITableView
+
     @objc class var uiTableViewCellAccessoryType: RuntimeType {
         return RuntimeType([
             "none": .none,
@@ -723,6 +745,7 @@ public extension RuntimeType {
     }
 
     // MARK: UIWebView
+
     @objc class var uiWebPaginationMode: RuntimeType {
         return RuntimeType([
             "unpaginated": .unpaginated,
@@ -740,6 +763,7 @@ public extension RuntimeType {
     }
 
     // MARK: WebKit
+
     @objc class var wkAudiovisualMediaTypes: RuntimeType {
         if #available(iOS 10, *) {
             return RuntimeType([
@@ -786,6 +810,7 @@ public extension RuntimeType {
     }
 
     // MARK: UIViewController
+
     @objc class var uiModalPresentationStyle: RuntimeType {
         return RuntimeType([
             "fullScreen": .fullScreen,
@@ -816,6 +841,7 @@ public extension RuntimeType {
     }
 
     // MARK: UICloudSharingViewController
+
     @objc class var uiCloudSharingPermissionOptions: RuntimeType {
         if #available(iOS 10.0, *) {
             return RuntimeType([
@@ -834,6 +860,7 @@ public extension RuntimeType {
     }
 
     // MARK: UIImagePickerController
+
     @objc class var uiImagePickerControllerCameraCaptureMode: RuntimeType {
         return RuntimeType([
             "photo": .photo,
@@ -884,6 +911,7 @@ public extension RuntimeType {
     }
 
     // MARK: UISplitViewController
+
     @objc class var uiSplitViewControllerDisplayMode: RuntimeType {
         return RuntimeType([
             "automatic": .automatic,

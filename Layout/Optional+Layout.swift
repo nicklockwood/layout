@@ -13,7 +13,7 @@ func unwrap(_ value: Any) throws -> Any {
         return value
     }
     guard let value = optional.value else {
-        throw LayoutError.message("Unexpected nil value")
+        throw Expression.Error.message("Unexpected nil value")
     }
     return value
 }

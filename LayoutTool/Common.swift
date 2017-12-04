@@ -191,9 +191,8 @@ func expandPath(_ path: String) -> URL {
     return URL(fileURLWithPath: path, relativeTo: directoryURL)
 }
 
-func parseLayoutXML(_ fileURL: URL) throws -> [XMLNode]? {
+func parseLayoutXML(_ data: Data, for fileURL: URL) throws -> [XMLNode]? {
     do {
-        let data = try Data(contentsOf: fileURL)
         let xml = try XMLParser.parse(data: data)
         return xml.isLayout ? xml : nil
     } catch {
@@ -206,6 +205,11 @@ func parseLayoutXML(_ fileURL: URL) throws -> [XMLNode]? {
             throw FormatError.reading(error.localizedDescription)
         }
     }
+}
+
+func parseLayoutXML(_ fileURL: URL) throws -> [XMLNode]? {
+    let data = try Data(contentsOf: fileURL)
+    return try parseLayoutXML(data, for: fileURL)
 }
 
 // Currently only used for testing

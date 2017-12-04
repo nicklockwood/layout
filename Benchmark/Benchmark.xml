@@ -73,7 +73,7 @@
     <UIButton
         backgroundColor="#9cf"
         layer.cornerRadius="5"
-        left="50% - (width / 2)"
+        left="50% - width / 2"
         title="Refresh"
         top="previous.bottom + 30"
         touchUpInside="refresh"

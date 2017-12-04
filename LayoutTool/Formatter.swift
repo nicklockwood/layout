@@ -2,25 +2,41 @@
 
 import Foundation
 
-func format(_ files: [String]) -> [FormatError] {
-    var errors = [Error]()
+func format(_ files: [String]) -> (filesChecked: Int, filesUpdated: Int, errors: [FormatError]) {
+    var filesChecked = 0, filesUpdated = 0, errors = [Error]()
     for path in files {
         let url = expandPath(path)
         errors += enumerateFiles(withInputURL: url, concurrent: false) { inputURL, outputURL in
+            var checked = false, updated = false
             do {
-                if let xml = try parseLayoutXML(inputURL) {
+                let data = try Data(contentsOf: inputURL)
+                if let input = String(data: data, encoding: .utf8),
+                    let xml = try parseLayoutXML(data, for: inputURL) {
+                    checked = true
                     let output = try format(xml)
-                    try output.write(to: outputURL, atomically: true, encoding: .utf8)
+                    if output != input {
+                        try output.write(to: outputURL, atomically: true, encoding: .utf8)
+                        updated = true
+                    }
                 }
-                return {}
+                return {
+                    if checked { filesChecked += 1 }
+                    if updated { filesUpdated += 1 }
+                }
             } catch let FormatError.parsing(error) {
-                return { throw FormatError.parsing("\(error) in \(inputURL.path)") }
+                return {
+                    if checked { filesChecked += 1 }
+                    throw FormatError.parsing("\(error) in \(inputURL.path)")
+                }
             } catch {
-                return { throw error }
+                return {
+                    if checked { filesChecked += 1 }
+                    throw error
+                }
             }
         }
     }
-    return errors.map(FormatError.init)
+    return (filesChecked, filesUpdated, errors.map(FormatError.init))
 }
 
 func format(_ xml: String) throws -> String {

@@ -459,9 +459,7 @@ struct LayoutExpression {
                     args.flatMap { $0 as? [Any] ?? [$0] }
                 }
             default:
-                
                 break
-
             }
         }
         let evaluator: AnyExpression.Evaluator? = numericSymbols.isEmpty ? nil : { symbol, anyArgs in
