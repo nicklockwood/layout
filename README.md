@@ -1186,11 +1186,13 @@ There is no need to wrap multiple OptionSet values in square brackets, as you wo
 
 ## Arrays
 
-There is no syntax for array literals inside expressions (yet), but for array-type expressions, you can use commas to pass multiple values:
+For array-type expressions, you can use commas to pass multiple values:
 
 ```xml
 <UISegmentedControl items="'Hello', 'World'"/>
 ```
+
+**Note:** There is currently no validation of the element types inside an array, so if you (for example) attempt to pass an array of strings to a property expecting an array of view controllers, the app won't display a Red Box error overlay, it will simply crash.
 
 If you return a single non-array value from an array expression, it will be "boxed" inside an array automatically:
 
@@ -1201,10 +1203,6 @@ If you return a single non-array value from an array expression, it will be "box
 
 The `,` operator automatically flattens nested array constants, so the following code will produce a single, flat array instead of an outer array with another array inside it:
 
-```xml
-<UISegmentedControl items="firstTwoItems, 'Third'"/>
-```
-
 ```swift
 loadLayout(
     named: "MyLayout.xml",
@@ -1213,7 +1211,35 @@ loadLayout(
     ]
 )
 
-**Note:** There is currently no validation of the element types inside an array, so if you (for example) attempt to pass an array of strings to a property expecting an array of view controllers, the app won't display a Red Box error overlay, it will simply crash.
+```xml
+<UISegmentedControl items="firstTwoItems, 'Third'"/>
+```
+
+You can use the same array literal syntax inside [macros](#macros), if you need to re-use the values:
+
+```xml
+<UIView>
+    <macro name="ITEMS" items="'First', 'Second'"/>
+    <UISegmentedControl items="ITEMS"/>
+</UIView>
+```
+
+If you need to access individual elements of an array, you can use the `[]` subscript operators in an expression:
+
+```swift
+loadLayout(
+    named: "MyLayout.xml",
+    constants: [
+        "colors": [UIColor.green, UIColor.black],
+    ],
+)
+
+```xml
+<!-- green label -->
+<UILabel textColor="colors[0]"/>
+```
+
+Attempting to access an array with an out-of-bounds index won't crash, but will display a Red Box error.
 
 
 ## Optionals

@@ -88,20 +88,24 @@ struct AnyExpression: CustomStringConvertible {
 
         // Handle string literals and constants
         var numericConstants = [String: Double]()
+        var arrayConstants = [String: [Double]]()
         for symbol in expression.symbols {
-            if case let .variable(name) = symbol {
+            switch symbol {
+            case .variable("nil"):
+                numericConstants["nil"] = store(nil as Any? as Any)
+            case let .variable(name):
                 if let value = constants[name] {
                     numericConstants[name] = store(value)
-                    continue
-                }
-                if name == "nil" {
-                    let null: Any? = nil
-                    numericConstants["nil"] = store(null as Any)
-                    continue
-                }
-                if name.count >= 2, let first = name.first, "'\"".contains(first), name.last == first {
+                } else if name.count >= 2, let first = name.first, "'\"".contains(first), name.last == first {
                     numericConstants[name] = store(String(name.dropFirst().dropLast()))
                 }
+            case let .array(name):
+                if let array = constants[name] as? [Any] {
+                    arrayConstants[name] = array.map { store($0) }
+                }
+            // TODO: literal string as function (formatted string)?
+            default:
+                break
             }
         }
 
@@ -122,6 +126,7 @@ struct AnyExpression: CustomStringConvertible {
         let expression = Expression(expression,
                                     options: options,
                                     constants: numericConstants,
+                                    arrays: arrayConstants,
                                     symbols: numericSymbols) { symbol, args in
             let anyArgs = args.map(load)
             if let value = try evaluator?(symbol, anyArgs) {

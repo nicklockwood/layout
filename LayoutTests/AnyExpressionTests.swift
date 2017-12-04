@@ -20,6 +20,25 @@ class AnyExpressionTests: XCTestCase {
         XCTAssertEqual(try expression.evaluate() as? Double, 9)
     }
 
+    func testLookUpArrayConstant() {
+        let expression = AnyExpression("a[b]", constants: [
+            "a": ["hello", "world"],
+            "b": 1,
+        ])
+        XCTAssertEqual(expression.symbols, [])
+        XCTAssertEqual(try expression.evaluate() as? String, "world")
+    }
+
+    func testLookUpArrayWithString() {
+        let expression = AnyExpression("a[b]", constants: [
+            "a": ["hello", "world"],
+            "b": "oops",
+        ])
+        XCTAssertThrowsError(try expression.evaluate()) { error in
+            XCTAssert("\(error)".contains("out of bounds"))
+        }
+    }
+
     func testPreserveNumericPrecision() {
         let expression = AnyExpression("true ? a : b", constants: [
             "a": UInt64.max,

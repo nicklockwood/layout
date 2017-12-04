@@ -335,6 +335,23 @@ struct LayoutExpression {
             }
             throw SymbolError("Unsupported type \(type)", for: key)
         }
+        func arrayHander(
+            for evaluator: @escaping AnyExpression.SymbolEvaluator,
+            key: String
+        ) -> AnyExpression.SymbolEvaluator {
+            return { args in
+                guard let array = try evaluator([]) as? [Any] else {
+                    throw SymbolError("Property \(key) is not an array", for: key)
+                }
+                guard let index = (args[0] as? NSNumber).flatMap({ Int(exactly: $0) }) else {
+                    throw SymbolError("Invalid array index \(args[0])", for: key)
+                }
+                guard array.indices.contains(index) else {
+                    throw SymbolError(Expression.Error.arrayBounds(.array(key), Double(index)), for: key)
+                }
+                return array[index]
+            }
+        }
         if parsedExpression.isEmpty {
             return nil
         }
@@ -344,8 +361,10 @@ struct LayoutExpression {
         for symbol in parsedExpression.symbols where symbols[symbol] == nil &&
             numericSymbols[symbol] == nil && !ignoredSymbols.contains(symbol) {
             switch symbol {
-            case let .variable(name) where !"'\"".contains(name.first ?? " "):
+            case let .variable(name) where !"'\"".contains(name.first ?? " "),
+                 let .array(name):
                 var key = name
+                let isArray = (symbol == .array(name))
                 if key.count >= 2, key.first == "`", key.last == "`" {
                     key = String(key.dropFirst().dropLast())
                 }
@@ -355,7 +374,7 @@ struct LayoutExpression {
                     if let macro = macro, !circular {
                         guard let macroExpression = LayoutExpression(
                             anyExpression: try parseExpression(macro),
-                            type: type,
+                            type: .any,
                             nullable: nullable,
                             symbols: symbols,
                             numericSymbols: numericSymbols,
@@ -369,21 +388,38 @@ struct LayoutExpression {
                             continue
                         }
                         macroSymbols[key] = macroExpression.symbols
-                        symbols[symbol] = { _ in try SymbolError.wrap(macroExpression.evaluate, for: key) }
+                        let evaluator: AnyExpression.SymbolEvaluator = { _ in
+                            try SymbolError.wrap(macroExpression.evaluate, for: key)
+                        }
+                        if isArray {
+                            symbols[symbol] = arrayHander(for: evaluator, key: key)
+                        } else {
+                            symbols[symbol] = evaluator
+                        }
                     } else if let value = try lookup(key) ?? node.constantValue(forSymbol: key) ??
                         staticConstant(for: key) {
                         constants[name] = value
                     } else if circular {
-                        symbols[symbol] = { [unowned node] _ in
+                        let evaluator: AnyExpression.SymbolEvaluator = { [unowned node] _ in
                             do {
                                 return try node.value(forSymbol: key)
                             } catch {
                                 throw SymbolError("Macro `\(key)` references a nonexistent symbol of the same name (macros cannot reference themselves)", for: key)
                             }
                         }
+                        if isArray {
+                            symbols[symbol] = arrayHander(for: evaluator, key: key)
+                        } else {
+                            symbols[symbol] = evaluator
+                        }
                     } else {
-                        symbols[symbol] = { [unowned node] _ in
+                        let evaluator: AnyExpression.SymbolEvaluator = { [unowned node] _ in
                             try node.value(forSymbol: key)
+                        }
+                        if isArray {
+                            symbols[symbol] = arrayHander(for: evaluator, key: key)
+                        } else {
+                            symbols[symbol] = evaluator
                         }
                     }
                 } catch {
@@ -418,8 +454,14 @@ struct LayoutExpression {
                 } catch {
                     symbols[symbol] = { _ in throw SymbolError("\(error)", for: key) }
                 }
+            case .infix(",") where symbols[symbol] == nil:
+                symbols[symbol] = { args in
+                    args.flatMap { $0 as? [Any] ?? [$0] }
+                }
             default:
+                
                 break
+
             }
         }
         let evaluator: AnyExpression.Evaluator? = numericSymbols.isEmpty ? nil : { symbol, anyArgs in
@@ -457,11 +499,11 @@ struct LayoutExpression {
                 switch symbol {
                 case _ where ignoredSymbols.contains(symbol):
                     return []
-                case let .variable(string):
-                    if let symbols = macroSymbols[string] {
+                case let .variable(name), let .array(name):
+                    if let symbols = macroSymbols[name] {
                         return Array(symbols)
                     }
-                    return [string]
+                    return [name]
                 case let .postfix(string):
                     return [string]
                 default:
@@ -977,7 +1019,6 @@ struct LayoutExpression {
         self.init(
             anyExpression: enumExpression,
             type: type,
-            symbols: [:],
             lookup: { name in values[name] },
             for: node
         )
@@ -988,9 +1029,6 @@ struct LayoutExpression {
         self.init(
             anyExpression: optionsExpression,
             type: type,
-            symbols: [.infix(","): { args in
-                args.flatMap { $0 as? NSArray ?? [$0] }
-            }],
             lookup: { name in values[name] },
             for: node
         )
@@ -1071,19 +1109,7 @@ struct LayoutExpression {
         self.init(
             anyExpression: classExpression,
             type: RuntimeType(class: `class`),
-            symbols: [:],
             lookup: { name in classFromString(name) },
-            for: node
-        )
-    }
-
-    init?(arrayExpression: String, type: RuntimeType, for node: LayoutNode) {
-        self.init(
-            anyExpression: arrayExpression,
-            type: type,
-            symbols: [.infix(","): { args in
-                args.flatMap { $0 as? NSArray ?? [$0] }
-            }],
             for: node
         )
     }
@@ -1108,8 +1134,6 @@ struct LayoutExpression {
                 self.init(urlExpression: expression, for: node)
             case is URLRequest.Type, is NSURLRequest.Type:
                 self.init(urlRequestExpression: expression, for: node)
-            case is NSArray.Type:
-                self.init(arrayExpression: expression, type: type, for: node)
             default:
                 self.init(anyExpression: expression, type: type, nullable: false, for: node)
             }
