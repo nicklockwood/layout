@@ -1,5 +1,11 @@
 # Change Log
 
+## [0.6.6](https://github.com/schibsted/layout/releases/tag/0.6.6) (2017-12-04)
+
+- Improved support for comma-delimited array literals in expressions, and added support for array subscripting using `[]`
+- Upgraded Expression library to 0.9.1, which fixes a number of parsing bugs and improves LayoutTool expression formatting
+- Removed UIImagePickerController extension, which caused problems with AppStore Review for apps not using the photo library
+
 ## [0.6.5](https://github.com/schibsted/layout/releases/tag/0.6.5) (2017-11-29)
 
 - Fixed a bug where `accessibilityIdentifier` property was reported as private or unavailable

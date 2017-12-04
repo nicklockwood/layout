@@ -273,7 +273,7 @@ extension UIViewController {
                 fallthrough
             }
         default:
-            if name.hasPrefix("navigationItem.leftBarButtonItem."),navigationItem.leftBarButtonItem == nil {
+            if name.hasPrefix("navigationItem.leftBarButtonItem."), navigationItem.leftBarButtonItem == nil {
                 navigationItem.leftBarButtonItem =
                     UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
             } else if name.hasPrefix("navigationItem.rightBarButtonItem."),

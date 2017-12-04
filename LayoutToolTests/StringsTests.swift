@@ -23,8 +23,8 @@ class StringsTests: XCTestCase {
     }
 
     func testFindEscapedString() {
-        let input = "<UILabel text=\"{`strings.hello world`}\"/>"
-        let output = ["hello world"]
+        let input = "<UILabel text=\"{`strings.hello\\nworld`}\"/>"
+        let output = ["hello\nworld"]
         XCTAssertEqual(try strings(in: input), output)
     }
 

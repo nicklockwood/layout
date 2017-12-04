@@ -4,8 +4,9 @@
 
 ## Build generated
 build/
-DerivedData/
+culprits.txt
 default.profraw
+DerivedData/
 /html
 
 ## Various settings
@@ -28,7 +29,6 @@ xcuserdata/
 *.ipa
 *.dSYM.zip
 *.dSYM
-culprits.txt
 
 ## Playgrounds
 timeline.xctimeline
