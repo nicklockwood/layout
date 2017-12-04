@@ -331,7 +331,7 @@ func validateLayoutExpression(_ parsedExpression: ParsedLayoutExpression) throws
     ])
     for symbol in parsedExpression.symbols {
         switch symbol {
-        case .variable:
+        case .variable, .array:
             break
         case .prefix, .infix, .postfix:
             guard keys.contains(symbol) else {

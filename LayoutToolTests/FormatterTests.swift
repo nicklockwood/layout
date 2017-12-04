@@ -260,7 +260,7 @@ class FormatterTests: XCTestCase {
 
     func testFormatKnownExpressionAttribute() {
         let input = "<Foo top=\"10-5* 4\"/>"
-        let output = "<Foo top=\"10 - (5 * 4)\"/>\n"
+        let output = "<Foo top=\"10 - 5 * 4\"/>\n"
         XCTAssertEqual(try format(input), output)
     }
 
@@ -286,19 +286,19 @@ class FormatterTests: XCTestCase {
 
     func testExpressionWithComment() {
         let input = "<Foo top=\"10-5* 4//foo\"/>"
-        let output = "<Foo top=\"10 - (5 * 4) // foo\"/>\n"
+        let output = "<Foo top=\"10 - 5 * 4 // foo\"/>\n"
         XCTAssertEqual(try format(input), output)
     }
 
     func testExpressionWithCommentInBraces() {
         let input = "<Foo top=\"{10-5* 4//foo}\"/>"
-        let output = "<Foo top=\"10 - (5 * 4) // foo\"/>\n"
+        let output = "<Foo top=\"10 - 5 * 4 // foo\"/>\n"
         XCTAssertEqual(try format(input), output)
     }
 
     func testStringExpressionWithComment() {
         let input = "<Foo text=\"hello {10-5* 4//foo} world\"/>"
-        let output = "<Foo text=\"hello {10 - (5 * 4) // foo} world\"/>\n"
+        let output = "<Foo text=\"hello {10 - 5 * 4 // foo} world\"/>\n"
         XCTAssertEqual(try format(input), output)
     }
 

@@ -2,7 +2,7 @@
     <UICollectionView
         backgroundColor="white"
         collectionViewLayout.itemSize.height="collectionViewLayout.itemSize.width"
-        collectionViewLayout.itemSize.width="(100% - (6 * 10)) / 7"
+        collectionViewLayout.itemSize.width="(100% - 6 * 10) / 7"
         collectionViewLayout.minimumInteritemSpacing="10"
         collectionViewLayout.scrollDirection="vertical"
         contentInset.bottom="safeAreaInsets.bottom"
