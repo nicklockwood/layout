@@ -214,7 +214,9 @@ public class LayoutNode: NSObject {
         }
     }
 
-    var _anyChildDependsOnContentOffset: Bool?
+    private var _previousBounds = CGRect.zero
+    private var _previousSafeAreaInsets: UIEdgeInsets = .zero
+    private var _anyChildDependsOnContentOffset: Bool?
     public override func observeValue(
         forKeyPath _: String?,
         of _: Any?,
@@ -225,13 +227,14 @@ public class LayoutNode: NSObject {
             return
         }
         switch new {
-        case let rect as CGRect:
-            if !rect.size.isNearlyEqual(to: _previousBounds.size) {
+        case is CGRect:
+            let bounds = _view!.bounds
+            if !bounds.size.isNearlyEqual(to: _previousBounds.size) {
                 if root._view?.superview != nil, root._setupComplete,
                     root._updateLock == 0, root._evaluating.isEmpty {
                     root.update()
                 }
-            } else if _view is UIScrollView, !rect.origin.isNearlyEqual(to: _previousBounds.origin) {
+            } else if _view is UIScrollView, !bounds.origin.isNearlyEqual(to: _previousBounds.origin) {
                 if _anyChildDependsOnContentOffset == nil {
                     _anyChildDependsOnContentOffset = anyExpressionDependsOn([
                         "contentOffset", "contentOffset.x", "contentOffset.y",
@@ -243,6 +246,7 @@ public class LayoutNode: NSObject {
                     children.forEach { $0.update() }
                 }
             }
+            _previousBounds = _view!.bounds
         case let insets as UIEdgeInsets:
             if _view?.window != nil, !insets.isNearlyEqual(to: _previousSafeAreaInsets) {
                 // If not yet mounted, safe area insets can't be valid
@@ -1682,9 +1686,6 @@ public class LayoutNode: NSObject {
         return view.isHidden
     }
 
-    private var _previousSafeAreaInsets: UIEdgeInsets = .zero
-    private var _previousBounds: CGRect = .zero
-
     /// The anticipated frame for the view, based on the current state
     // TODO: should this be public?
     public var frame: CGRect {
@@ -2087,12 +2088,9 @@ public class LayoutNode: NSObject {
         let frame: CGRect
         defer {
             if parent == nil, _previousBounds != _view.bounds {
+                _previousBounds = _view.bounds
                 _view.superview?.setNeedsLayout()
             }
-            _previousBounds = CGRect(
-                origin: _view.bounds.origin,
-                size: frame.size
-            )
             _updateLock -= 1
         }
         _updateLock += 1
