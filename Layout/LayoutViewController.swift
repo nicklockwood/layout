@@ -18,7 +18,7 @@ open class LayoutViewController: UIViewController, LayoutLoading {
                 do {
                     try layoutNode.mount(in: self)
                     if _error == nil {
-                        layoutDidLoad()
+                        layoutDidLoad(layoutNode)
                     }
                 } catch {
                     layoutError(LayoutError(error, for: layoutNode))
@@ -56,6 +56,14 @@ open class LayoutViewController: UIViewController, LayoutLoading {
 
     /// Called immediately after the layoutNode is set. Will not be called
     /// in the event of an error, or if layoutNode is set to nil
+    open func layoutDidLoad(_ layoutNode: LayoutNode) {
+        // Mimic old behaviour if not overriden
+        layoutDidLoad()
+    }
+
+    /// Called immediately after the layoutNode is set. Will not be called
+    /// in the event of an error, or if layoutNode is set to nil
+    @available(*, deprecated, message: "Use layoutDidLoad(_ layoutNode:) instead")
     open func layoutDidLoad() {
         // Override in subclass
     }

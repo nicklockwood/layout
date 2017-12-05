@@ -37,14 +37,13 @@ class ExamplesViewController: LayoutViewController, UITabBarControllerDelegate {
         )
     }
 
-    override var layoutNode: LayoutNode? {
-        didSet {
-            guard let tabBarController = layoutNode?.viewController as? UITabBarController else {
-                return
-            }
-            tabBarController.selectedIndex = selectedTab
-            tabBarController.delegate = self
+    override func layoutDidLoad(_ layoutNode: LayoutNode) {
+        guard let tabBarController = layoutNode.viewController as? UITabBarController else {
+            return
         }
+
+        tabBarController.selectedIndex = selectedTab
+        tabBarController.delegate = self
     }
 
     func tabBarController(_ tabBarController: UITabBarController, didSelect viewController: UIViewController) {
