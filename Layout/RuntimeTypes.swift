@@ -663,6 +663,14 @@ public extension RuntimeType {
             "vertical": .vertical,
         ] as [String: UILayoutConstraintAxis])
     }
+    @objc class var uiLayoutPriority: RuntimeType {
+        return RuntimeType(RuntimeType.Kind.options(UILayoutPriority.self, [
+            "required": .required,
+            "defaultHigh": .defaultHigh,
+            "defaultLow": .defaultLow,
+            "fittingSizeLevel": .fittingSizeLevel,
+        ] as [String: UILayoutPriority]))
+    }
     @objc class var uiStackViewDistribution: RuntimeType {
         return RuntimeType([
             "fill": .fill,

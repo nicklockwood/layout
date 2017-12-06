@@ -40,6 +40,12 @@ extension UIView {
             types["layer.\(name)"] = type
         }
 
+        // AutoLayout support
+        types["contentHuggingPriority.horizontal"] = .uiLayoutPriority
+        types["contentHuggingPriority.vertical"] = .uiLayoutPriority
+        types["contentCompressionResistancePriority.horizontal"] = .uiLayoutPriority
+        types["contentCompressionResistancePriority.vertical"] = .uiLayoutPriority
+
         // Explicitly disabled properties
         for name in [
             "autoresizingMask",
@@ -223,7 +229,18 @@ extension UIView {
                 break
             }
         }
-        try _setValue(value, ofType: type(of: self).cachedExpressionTypes[name], forKeyPath: name)
+        switch name {
+        case "contentHuggingPriority.horizontal":
+            setContentHuggingPriority(value as! UILayoutPriority, for: .horizontal)
+        case "contentHuggingPriority.vertical":
+            setContentHuggingPriority(value as! UILayoutPriority, for: .vertical)
+        case "contentCompressionResistancePriority.horizontal":
+            setContentCompressionResistancePriority(value as! UILayoutPriority, for: .horizontal)
+        case "contentCompressionResistancePriority.vertical":
+            setContentCompressionResistancePriority(value as! UILayoutPriority, for: .vertical)
+        default:
+            try _setValue(value, ofType: type(of: self).cachedExpressionTypes[name], forKeyPath: name)
+        }
     }
 
     // Set expression value with animation (if applicable)
@@ -251,6 +268,14 @@ extension UIView {
             return _layoutGuideController?.topLayoutGuide.length ?? 0
         case "bottomLayoutGuide.length": // TODO: deprecate this
             return _layoutGuideController?.bottomLayoutGuide.length ?? 0
+        case "contentHuggingPriority.horizontal":
+            return contentHuggingPriority(for: .horizontal)
+        case "contentHuggingPriority.vertical":
+            return contentHuggingPriority(for: .vertical)
+        case "contentCompressionResistancePriority.horizontal":
+            return contentCompressionResistancePriority(for: .horizontal)
+        case "contentCompressionResistancePriority.vertical":
+            return contentCompressionResistancePriority(for: .vertical)
         default:
             break
         }
@@ -269,6 +294,8 @@ extension UIView {
                 return ltr ? layoutMargins.right : layoutMargins.left
             case "effectiveUserInterfaceLayoutDirection":
                 return _effectiveUserInterfaceLayoutDirection
+            case "layer.maskedCorners":
+                return CACornerMask()
             default:
                 break
             }

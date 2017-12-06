@@ -68,7 +68,11 @@ class StackViewTests: XCTestCase {
 
         let label2 = try LayoutNode(
             class: UILabel.self,
-            expressions: ["text": "Goodbye World"]
+            expressions: [
+                "text": "Goodbye World",
+                // Workaround for behavior change in iOS 11.2
+                "contentCompressionResistancePriority.horizontal": "required",
+            ]
         )
         label2.update()
         let label2Size = label2.frame.size

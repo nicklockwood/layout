@@ -177,6 +177,9 @@ extension UIEdgeInsets {
         init(rawValue: Float) { self = rawValue }
 
         static let required = UILayoutPriorityRequired
+        static let defaultHigh = UILayoutPriorityDefaultHigh
+        static let defaultLow = UILayoutPriorityDefaultLow
+        static let fittingSizeLevel = UILayoutPriorityFittingSizeLevel
     }
 
     extension Int64 {
