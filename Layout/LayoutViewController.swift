@@ -27,14 +27,8 @@ open class LayoutViewController: UIViewController, LayoutLoading {
         }
     }
 
-    private var _state: Any = ()
     private var _errorNode: LayoutNode?
     private var _error: LayoutError?
-
-    open override var canBecomeFirstResponder: Bool {
-        // Ensure Cmd-R shortcut works inside modal view controller
-        return childViewControllers.isEmpty
-    }
 
     open override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
@@ -56,7 +50,7 @@ open class LayoutViewController: UIViewController, LayoutLoading {
 
     /// Called immediately after the layoutNode is set. Will not be called
     /// in the event of an error, or if layoutNode is set to nil
-    open func layoutDidLoad(_ layoutNode: LayoutNode) {
+    open func layoutDidLoad(_: LayoutNode) {
         // Mimic old behaviour if not overriden
         layoutDidLoad()
     }
@@ -69,21 +63,16 @@ open class LayoutViewController: UIViewController, LayoutLoading {
     }
 
     @objc private func _reloadLayout() {
-        print("Reloading \(type(of: self))")
-        self._dismissError()
-        self.reloadLayout(withCompletion: nil)
-    }
-
-    @objc private func _hardReloadLayout() {
-        loader.clearSourceURLs()
-        _reloadLayout()
+        _dismissError()
+        reloadLayout()
     }
 
     @objc private func _selectMatch(_ sender: UIButton) {
         if let error = _error, case let .multipleMatches(matches, path) = error {
             loader.setSourceURL(matches[sender.tag], for: path)
         }
-        _reloadLayout()
+        _dismissError()
+        reloadLayout()
     }
 
     open override var preferredStatusBarStyle: UIStatusBarStyle {
@@ -245,7 +234,7 @@ open class LayoutViewController: UIViewController, LayoutLoading {
         }
     }
 
-    private func _dismissError() {
+    func _dismissError() {
         if let errorNode = _errorNode {
             view.bringSubview(toFront: errorNode.view)
             UIView.animate(withDuration: 0.25, animations: {
@@ -260,17 +249,6 @@ open class LayoutViewController: UIViewController, LayoutLoading {
     }
 
     #if arch(i386) || arch(x86_64)
-
-        // MARK: Only applicable when running in the simulator
-
-        private let _keyCommands = [
-            UIKeyCommand(input: "r", modifierFlags: .command, action: #selector(_reloadLayout)),
-            UIKeyCommand(input: "r", modifierFlags: [.command, .alternate], action: #selector(_hardReloadLayout)),
-        ]
-
-        open override var keyCommands: [UIKeyCommand]? {
-            return _keyCommands
-        }
 
         private let reloadMessage = "Press ⌘R or Tap to Reload"
 

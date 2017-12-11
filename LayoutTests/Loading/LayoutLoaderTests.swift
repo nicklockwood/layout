@@ -9,14 +9,18 @@ private func createTempDirectory(_ suffix: String) throws -> URL {
     return directory
 }
 
+private let projectDirectory = URL(fileURLWithPath: #file)
+    .deletingLastPathComponent()
+    .deletingLastPathComponent()
+    .deletingLastPathComponent()
+
 class LayoutLoaderTests: XCTestCase {
 
     func testFindProjectDirectory() {
         let loader = LayoutLoader()
         let file = #file
         let path = loader.findProjectDirectory(at: file)
-        let expected = URL(fileURLWithPath: file).deletingLastPathComponent().deletingLastPathComponent()
-        XCTAssertEqual(path, expected)
+        XCTAssertEqual(path, projectDirectory)
     }
 
     func testFindProjectDirectoryIfPathContainsDot() {
@@ -37,11 +41,6 @@ class LayoutLoaderTests: XCTestCase {
 
     func testFindXMLSourceFile() {
         let loader = LayoutLoader()
-        let file = #file
-        guard let projectDirectory = loader.findProjectDirectory(at: file) else {
-            XCTFail()
-            return
-        }
         do {
             loader.clearSourceURLs()
             let sourceURL = try loader.findSourceURL(
@@ -49,10 +48,7 @@ class LayoutLoaderTests: XCTestCase {
                 in: projectDirectory,
                 usingCache: true
             )
-            let expected = URL(fileURLWithPath: file)
-                .deletingLastPathComponent()
-                .deletingLastPathComponent()
-                .appendingPathComponent("SampleApp/Examples.xml")
+            let expected = projectDirectory.appendingPathComponent("SampleApp/Examples.xml")
             XCTAssertEqual(sourceURL, expected)
             // Load again, this time from cache
             let cachedSourceURL = try loader.findSourceURL(
@@ -69,11 +65,6 @@ class LayoutLoaderTests: XCTestCase {
 
     func testFindXMLSourceFileWithPath() {
         let loader = LayoutLoader()
-        let file = #file
-        guard let projectDirectory = loader.findProjectDirectory(at: file) else {
-            XCTFail()
-            return
-        }
         do {
             loader.clearSourceURLs()
             let sourceURL = try loader.findSourceURL(
@@ -81,10 +72,7 @@ class LayoutLoaderTests: XCTestCase {
                 in: projectDirectory,
                 usingCache: false
             )
-            let expected = URL(fileURLWithPath: file)
-                .deletingLastPathComponent()
-                .deletingLastPathComponent()
-                .appendingPathComponent("SampleApp/Examples.xml")
+            let expected = projectDirectory.appendingPathComponent("SampleApp/Examples.xml")
             XCTAssertEqual(sourceURL, expected)
         } catch {
             XCTFail("\(error)")

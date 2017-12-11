@@ -87,6 +87,8 @@
 		01346F8A1F597F88002C0802 /* TitleTextAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01346F891F597F88002C0802 /* TitleTextAttributes.swift */; };
 		0136F1BC1F17863C00C44673 /* PerformanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0136F1BB1F17863C00C44673 /* PerformanceTests.swift */; };
 		0136F1BE1F17863C00C44673 /* Layout.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 011CE6991F053ABD0034771C /* Layout.framework */; };
+		0137B81B1FDEF24200E2061F /* ReloadManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0137B81A1FDEF24200E2061F /* ReloadManager.swift */; };
+		0137B81D1FDFD9E000E2061F /* ReloadManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0137B81C1FDFD9E000E2061F /* ReloadManagerTests.swift */; };
 		013A91AD1FC729090043C543 /* Expression.swift in Sources */ = {isa = PBXBuildFile; fileRef = 013A91AB1FC729090043C543 /* Expression.swift */; };
 		013A91AE1FC729090043C543 /* Sprinter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 013A91AC1FC729090043C543 /* Sprinter.swift */; };
 		013A91AF1FC729130043C543 /* Expression.swift in Sources */ = {isa = PBXBuildFile; fileRef = 013A91AB1FC729090043C543 /* Expression.swift */; };
@@ -343,6 +345,8 @@
 		0136F1B91F17863A00C44673 /* PerformanceTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PerformanceTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		0136F1BB1F17863C00C44673 /* PerformanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerformanceTests.swift; sourceTree = "<group>"; };
 		0136F1BD1F17863C00C44673 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		0137B81A1FDEF24200E2061F /* ReloadManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReloadManager.swift; sourceTree = "<group>"; };
+		0137B81C1FDFD9E000E2061F /* ReloadManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReloadManagerTests.swift; sourceTree = "<group>"; };
 		013A91AB1FC729090043C543 /* Expression.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Expression.swift; sourceTree = "<group>"; };
 		013A91AC1FC729090043C543 /* Sprinter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Sprinter.swift; sourceTree = "<group>"; };
 		013A91B21FC72ED50043C543 /* StringConstantTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StringConstantTests.swift; sourceTree = "<group>"; };
@@ -607,6 +611,7 @@
 				0105F7831F0547910067B313 /* LayoutViewController.swift */,
 				0105F7841F0547910067B313 /* Optional+Layout.swift */,
 				0105F7851F0547910067B313 /* Properties.swift */,
+				0137B81A1FDEF24200E2061F /* ReloadManager.swift */,
 				015498861F4352620030A6A2 /* RuntimeType.swift */,
 				018E49701F9F3AD100ABADBC /* RuntimeTypes.swift */,
 				0192A6D61FA86D5C00A30FDA /* UIFont+Layout.swift */,
@@ -628,7 +633,7 @@
 		011CE6AE1F053D090034771C /* LayoutTests */ = {
 			isa = PBXGroup;
 			children = (
-				ACD6CEF11FD6AF8900E08B8C /* ViewController */,
+				ACD6CEF11FD6AF8900E08B8C /* Loading */,
 				01345C541F66B784002BDEC9 /* PropertiesTests.swift */,
 				011CE6B91F053D530034771C /* AnyExpressionTests.swift */,
 				011CE6BA1F053D530034771C /* ColorExpressionTests.swift */,
@@ -649,7 +654,6 @@
 				017539881F2A2F2F005B7516 /* XMLTests.swift */,
 				0192A6CE1FA73BA300A30FDA /* FileTests.swift */,
 				01B17AAD1FB350DE0048E582 /* UtilitiesTests.swift */,
-				0192A6D21FA77ED000A30FDA /* LayoutLoaderTests.swift */,
 				011CE6B11F053D090034771C /* Info.plist */,
 			);
 			path = LayoutTests;
@@ -794,14 +798,16 @@
 			path = UIKitSymbols;
 			sourceTree = "<group>";
 		};
-		ACD6CEF11FD6AF8900E08B8C /* ViewController */ = {
+		ACD6CEF11FD6AF8900E08B8C /* Loading */ = {
 			isa = PBXGroup;
 			children = (
+				0137B81C1FDFD9E000E2061F /* ReloadManagerTests.swift */,
+				0192A6D21FA77ED000A30FDA /* LayoutLoaderTests.swift */,
 				ACD6CEEF1FD6ABC900E08B8C /* LayoutViewControllerTests.swift */,
 				ACD6CEF21FD6AFC400E08B8C /* LayoutDidLoad_Valid.xml */,
 				ACD6CEF61FD6C64A00E08B8C /* LayoutDidLoad_Invalid.xml */,
 			);
-			path = ViewController;
+			path = Loading;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -1373,6 +1379,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				01E7E0511F1C077900B7F9DB /* LayoutError+LayoutNode.swift in Sources */,
+				0137B81B1FDEF24200E2061F /* ReloadManager.swift in Sources */,
 				01E7E04F1F1C057700B7F9DB /* Layout+XML.swift in Sources */,
 				012073261F39EE0000FD092A /* UIScrollView+Layout.swift in Sources */,
 				0164F9261F474B5E00AFCDCA /* Utilities.swift in Sources */,
@@ -1428,6 +1435,7 @@
 				011CE6C71F053D530034771C /* GeometryExpressionTests.swift in Sources */,
 				011CE6CC1F053D530034771C /* StateTests.swift in Sources */,
 				01F62CCD1F8CF2C60052B8E9 /* OptionSetExpressionTests.swift in Sources */,
+				0137B81D1FDFD9E000E2061F /* ReloadManagerTests.swift in Sources */,
 				01345C551F66B784002BDEC9 /* PropertiesTests.swift in Sources */,
 				017539891F2A2F2F005B7516 /* XMLTests.swift in Sources */,
 				011CE6CA1F053D530034771C /* LayoutNodeTests.swift in Sources */,

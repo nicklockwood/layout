@@ -3,11 +3,18 @@
 import XCTest
 @testable import Layout
 
+private func url(forXml name: String) throws -> URL {
+    guard let url = Bundle(for: LayoutViewControllerTests.self)
+        .url(forResource: name, withExtension: "xml") else {
+        throw NSError(domain: "Could not locate: \(name).xml", code: 0)
+    }
+    return url
+}
+
 class LayoutViewControllerTests: XCTestCase {
 
-    /// Test class for layoutDidLoad() backward compatibility test
-    class BackwardTestLayoutViewController: LayoutViewController {
-
+    // Test class for layoutDidLoad() backward compatibility test
+    private class BackwardTestLayoutViewController: LayoutViewController {
         var layoutDidLoadCallCount = 0
 
         override func layoutDidLoad() {
@@ -15,9 +22,8 @@ class LayoutViewControllerTests: XCTestCase {
         }
     }
 
-    /// Test class which overrides layoutDidLoad(_:)
-    class TestLayoutViewController: BackwardTestLayoutViewController {
-
+    // Test class which overrides layoutDidLoad(_:)
+    private class TestLayoutViewController: BackwardTestLayoutViewController {
         var layoutDidLoadLayoutNode: LayoutNode?
         var layoutDidLoadLayoutNodeCallCount = 0
 
@@ -58,13 +64,5 @@ class LayoutViewControllerTests: XCTestCase {
         viewController.loadLayout(withContentsOfURL: try url(forXml: "LayoutDidLoad_Invalid"))
 
         XCTAssertEqual(viewController.layoutDidLoadCallCount, 0)
-    }
-
-    private func url(forXml name: String) throws -> URL {
-        guard let url = Bundle(for: LayoutViewControllerTests.self).url(forResource: name, withExtension: "xml") else {
-            throw NSError(domain: "Could not find the following test resource: \(name).xml", code: 0)
-        }
-
-        return url
     }
 }

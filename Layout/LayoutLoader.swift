@@ -113,6 +113,7 @@ class LayoutLoader {
 
     // MARK: LayoutNode loading
 
+    /// Loads a named XML layout file from the app resources folder
     public func loadLayoutNode(
         named: String,
         bundle: Bundle = Bundle.main,
@@ -135,6 +136,7 @@ class LayoutLoader {
         )
     }
 
+    /// Loads a local or remote XML layout file with the specified URL
     public func loadLayoutNode(
         withContentsOfURL xmlURL: URL,
         relativeTo: String? = #file,
@@ -170,6 +172,7 @@ class LayoutLoader {
         )
     }
 
+    /// Reloads the most recently loaded XML layout file
     public func reloadLayoutNode(withCompletion completion: @escaping LayoutLoaderCallback) {
         guard let xmlURL = _originalURL, _dataTask == nil, queue.sync(execute: {
             guard reloadLock == 0 else { return false }

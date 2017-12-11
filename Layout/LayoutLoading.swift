@@ -42,6 +42,7 @@ public extension LayoutLoading {
         constants: [String: Any]...,
         completion: ((LayoutError?) -> Void)? = nil
     ) {
+        ReloadManager.addObserver(self)
         loader.loadLayoutNode(
             withContentsOfURL: xmlURL,
             relativeTo: relativeTo,
@@ -60,7 +61,7 @@ public extension LayoutLoading {
 
     /// Reload the previously loaded xml file
     func reloadLayout(withCompletion completion: ((LayoutError?) -> Void)? = nil) {
-        loader.reloadLayoutNode { layoutNode, error in
+        self.loader.reloadLayoutNode { layoutNode, error in
             if let layoutNode = layoutNode {
                 self.layoutNode = layoutNode
             }
