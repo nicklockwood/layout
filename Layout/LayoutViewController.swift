@@ -69,14 +69,9 @@ open class LayoutViewController: UIViewController, LayoutLoading {
     }
 
     @objc private func _reloadLayout() {
-        // Async dispatch needed here to avoid a concurrency issue caused by
-        // the attributedString HTML parser spinning its own runloop instance
-        // https://github.com/schibsted/layout/issues/9
-        DispatchQueue.main.async {
-            print("Reloading \(type(of: self))")
-            self._dismissError()
-            self.reloadLayout(withCompletion: nil)
-        }
+        print("Reloading \(type(of: self))")
+        self._dismissError()
+        self.reloadLayout(withCompletion: nil)
     }
 
     @objc private func _hardReloadLayout() {

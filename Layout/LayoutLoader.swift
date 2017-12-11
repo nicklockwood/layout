@@ -7,6 +7,7 @@ typealias LayoutLoaderCallback = (LayoutNode?, LayoutError?) -> Void
 // Cache for previously loaded layouts
 private var cache = [URL: Layout]()
 private let queue = DispatchQueue(label: "com.Layout")
+private var reloadLock = 0
 
 private extension Layout {
 
@@ -102,6 +103,14 @@ class LayoutLoader {
     private var _constants: [String: Any] = [:]
     private var _strings: [String: String]?
 
+    /// Used for protecting operations that must not be interupted by a reload.
+    /// Any reload attempts that happen inside the block will be ignored
+    static func atomic<T>(_ protected: () throws -> T) rethrows -> T {
+        queue.sync { reloadLock += 1 }
+        defer { queue.sync { reloadLock -= 1 } }
+        return try protected()
+    }
+
     // MARK: LayoutNode loading
 
     public func loadLayoutNode(
@@ -162,8 +171,11 @@ class LayoutLoader {
     }
 
     public func reloadLayoutNode(withCompletion completion: @escaping LayoutLoaderCallback) {
-        queue.sync { cache.removeAll() }
-        guard let xmlURL = _originalURL, _dataTask == nil else {
+        guard let xmlURL = _originalURL, _dataTask == nil, queue.sync(execute: {
+            guard reloadLock == 0 else { return false }
+            cache.removeAll()
+            return true
+        }) else {
             completion(nil, nil)
             return
         }

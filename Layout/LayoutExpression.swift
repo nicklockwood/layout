@@ -617,14 +617,19 @@ struct LayoutExpression {
                         htmlString += try stringify(part)
                     }
                 }
-                let result = try NSMutableAttributedString(
-                    data: htmlString.data(using: .utf8, allowLossyConversion: true) ?? Data(),
-                    options: [
-                        NSAttributedString.DocumentReadingOptionKey.documentType: NSAttributedString.DocumentType.html,
-                        NSAttributedString.DocumentReadingOptionKey.characterEncoding: String.Encoding.utf8.rawValue,
-                    ],
-                    documentAttributes: nil
-                )
+                // LayoutLoader.atomic is needed here to avoid a concurrency issue caused by
+                // the attributedString HTML parser spinning its own runloop instance
+                // https://github.com/schibsted/layout/issues/9
+                let result = try LayoutLoader.atomic {
+                    try NSMutableAttributedString(
+                        data: htmlString.data(using: .utf8, allowLossyConversion: true) ?? Data(),
+                        options: [
+                            NSAttributedString.DocumentReadingOptionKey.documentType: NSAttributedString.DocumentType.html,
+                            NSAttributedString.DocumentReadingOptionKey.characterEncoding: String.Encoding.utf8.rawValue,
+                        ],
+                        documentAttributes: nil
+                    )
+                }
                 let correctFont: UIFont
                 if symbols.contains("font"), let font = try node.value(forSymbol: "font") as? UIFont {
                     correctFont = font
