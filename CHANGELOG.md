@@ -1,5 +1,17 @@
 # Change Log
 
+## [0.6.7](https://github.com/schibsted/layout/releases/tag/0.6.6) (2017-12-12)
+
+- Fixed a major performance regression introduced in version 0.6.3 (caused by calling `UIView.layoutIfNeeded()`)
+- The Red Box debug console is now attached to the main window, so it no longer requires an onscreen `LayoutViewController`
+- The Red Box is now disabled by default in production builds. You can enable it programmatically if you want it to be shown
+- The Cmd-R reload shortcut now works in any view or controller, not just subclasses of `LayoutViewController`
+- Added a more reliable fix for intermittent crashes when reloading due to a race condition in NSAttributedString logic
+- It is now possible to specify `contentHuggingPriority` and `contentCompressionResistancePriority` using expressions
+- Fixed a test regression in Xcode 9.2 / iOS 11.2 due to a change in `UIStackView` behavior
+- Fixed a bug that caused an infinite update loop for certain types of expression error
+- The `layoutDidLoad()` delegate method now receives the `LayoutNode` as an argument (the old method signature is deprecated)
+
 ## [0.6.6](https://github.com/schibsted/layout/releases/tag/0.6.6) (2017-12-04)
 
 - Improved support for comma-delimited array literals in expressions, and added support for array subscripting using `[]`

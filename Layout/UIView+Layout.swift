@@ -538,7 +538,7 @@ extension UIButton {
                 case "TitleColor": setTitleColor(value as? UIColor, for: state)
                 case "TitleShadowColor": setTitleShadowColor(value as? UIColor, for: state)
                 case "Image": setImage(value as? UIImage, for: state)
-                case "BackgroundImage":setBackgroundImage(value as? UIImage, for: state)
+                case "BackgroundImage": setBackgroundImage(value as? UIImage, for: state)
                 case "AttributedTitle": setAttributedTitle(value as? NSAttributedString, for: state)
                 default:
                     break

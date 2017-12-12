@@ -8,7 +8,7 @@ class ReloadManagerTests: XCTestCase {
     private class TestController: LayoutViewController {
         var loadCount = 0
 
-        override func layoutDidLoad(_ layoutNode: LayoutNode) {
+        override func layoutDidLoad(_: LayoutNode) {
             loadCount += 1
         }
     }
@@ -50,4 +50,3 @@ class ReloadManagerTests: XCTestCase {
         XCTAssertTrue(ReloadManager.observers.isEmpty)
     }
 }
-

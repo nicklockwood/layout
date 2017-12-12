@@ -61,7 +61,7 @@ public extension LayoutLoading {
 
     /// Reload the previously loaded xml file
     func reloadLayout(withCompletion completion: ((LayoutError?) -> Void)? = nil) {
-        self.loader.reloadLayoutNode { layoutNode, error in
+        loader.reloadLayoutNode { layoutNode, error in
             if let layoutNode = layoutNode {
                 self.layoutNode = layoutNode
             }

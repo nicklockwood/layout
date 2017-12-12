@@ -19,6 +19,7 @@
     - [Integration](#integration)
     - [Editor Support](#editor-support)
     - [Live Reloading](#live-reloading)
+    - [Debugging](#debugging)
     - [Constants](#constants)
     - [State](#state)
     - [Actions](#actions)
@@ -196,7 +197,7 @@ The equivalent XML markup for the layout above is:
 
 Most built-in iOS views should already work when used as a Layout XML element. For custom views, you may need to make a few minor changes for full Layout-compatibility. See the [Custom Components](#custom-components) section below for details.
 
-To mount a `LayoutNode` inside a view or view controller, subclass `LayoutViewController` and use one of the following three approaches to load your layout:
+To mount a `LayoutNode` inside a view or view controller, the simplest approach is to subclass `LayoutViewController` and use one of the following three options to load your layout:
 
 ```swift
 class MyViewController: LayoutViewController {
@@ -243,21 +244,30 @@ We hope to add support for other editors in future. If you are interested in con
 
 ## Live Reloading
 
-The `LayoutViewController` class provides a number of helpful features to improve your development productivity, most notably the *Red Box* debugger and the *live reloading* feature.
-
-If the Layout framework throws an error during XML parsing, mounting, or updating, the `LayoutViewController` will detect it and display the *Red Box*, which is a full-screen overlay that displays the error message along with a reload button. Pressing reload will reset the layout state and re-parse the layout XML file.
+Layout provides a number of helpful features to improve your development productivity, most notably the [Red Box debugger](#debugging) and the *live reloading* feature.
 
 When you load an XML layout file in the iOS Simulator, the Layout framework will attempt to find the original source XML file for the layout and load that instead of the static version bundled into the compiled app.
 
-This means that you can go ahead and fix the errors in your XML file, then reload it *without* restarting the simulator, or recompiling the app.
+This means that you can make changes to your XML file and then reload it *without* recompiling the app or restarting the simulator.
 
 **Note:** If multiple source files match the bundled file name, you will be asked to choose which one to load. See the [Ignore File](#ignore-file) section below if you need to exclude certain files from the search process.
 
-You can reload at any time, even if there was no error, by pressing Cmd-R in the simulator (not in Xcode itself, as that will recompile the app). `LayoutViewController` will detect that key combination and reload the XML, provided that it is the current first responder on screen.
+You can reload your XML files at any time by pressing Cmd-R in the simulator (not in Xcode itself, as that will recompile the app). Layout will detect that key combination and reload the XML.
 
 **Note:** This only works for changes you make to your layout XML files, or in your `Localizable.strings` file, not for Swift code changes in your view controller, or other resources such as images.
 
 The live reloading feature, combined with the gracious handling of errors, means that it should be possible to do most of your interface development without needing to recompile the app.
+
+
+## Debugging
+
+If the Layout framework throws an error during XML parsing, mounting, or updating, it will display the *Red Box*, which is a full-screen overlay that displays the error message along with a reload button.
+
+Thanks to the [live reloading](#live-reloading) feature, many bugs (e.g. syntax errors or misnamed properties) can be fixed without recompiling the app. Once you have fixed the bug, pressing reload (or Cmd-R) will dismiss the error console and reload the layout XML file.
+
+The Red Box interface is managed by the `LayoutConsole` singleton. This exposes static methods to show and hide the console, along with an `isEnabled` property to enable or disable the console programmatically. By default, the console is enabled for debug builds and disabled for release, but if you need to override this setting at runtime you can do so.
+
+If the `LayoutConsole` is disabled, errors will be printed to the Xcode console instead.
 
 
 ## Constants
@@ -2306,9 +2316,9 @@ extension MyView {
 
 ## Layout-based Components
 
-If you are creating a library of views or controllers that use Layout internally, it probably doesn't make sense to base each component on a subclass of `LayoutViewController`. Ideally there should only be one `LayoutViewController` visible on-screen at once, otherwise the behavior of using Cmd-R to reload becomes ambiguous.
+If you are creating a library of views that use Layout internally, it's probably overkill wrap each one in its own `LayoutViewController` subclass.
 
-If the consumers of your component library are using `Layout`, then you could expose all your components as xml files and allow them to be composed directly using Layout templates or code, but if you want the library to work well with an ordinary UIKit app, then it is better if each component is exposed as a regular `UIView` or `UIViewController` subclass.
+If the consumers of your component library are using `Layout`, then you could expose all your components as xml files and allow them to be composed directly using Layout templates or code, but if you want the library to work well with an ordinary UIKit app then it's better if each component is exposed as a regular `UIView` or `UIViewController` subclass.
 
 To implement this, you can make use of the `LayoutLoading` protocol. `LayoutLoading` works in the same way as `LayoutViewController`, providing `loadLayout(...)` and `reloadLayout(...)` methods to load the subviews of your view or view controller using Layout templates.
 
@@ -2367,9 +2377,9 @@ class MyView: UIView, LayoutLoading {
 }
 ```
 
-Unlike `LayoutViewController`,  `LayoutLoading` provides no Red Box error console or keyboard shortcuts for reloading, and because it is a protocol rather than a base class, it can be applied on top of any existing `UIView` or `UIViewController` base class that you require.
+Unlike `LayoutViewController`, `LayoutLoading` is a protocol rather than a base class, so it can be applied on top of any existing `UIView` or `UIViewController` base class that you require.
 
-The default implementation of `LayoutLoading` will bubble errors up the responder chain to the first view or view controller that handles them. If the `LayoutLoading` view or view controller is placed inside a root `LayoutViewController`, it will therefore gain all the same debugging features as if it was using a `LayoutViewController` base class.
+The default implementation of `LayoutLoading` will bubble errors up the responder chain to the first view or view controller that handles them. If no responder in the chain intercepts the error, it will be displayed in the [Red Box console](#debugging).
 
 
 ## Manual Integration
@@ -2398,8 +2408,6 @@ class MyViewController: UIViewController {
     }
 }
 ```
-
-This method of integration does not provide the live reloading feature for local XML files, nor the Red Box debugging interface - both of those are implemented internally by the `LayoutViewController`.
 
 If you are using some fancy architecture like [Viper](https://github.com/MindorksOpenSource/iOS-Viper-Architecture) that splits up view controllers into sub-components, you may find that you need to bind a `LayoutNode` to something other than a `UIView` or `UIViewController` subclass. In that case you can use the `bind(to:)` method, which will connect the node's outlets, actions and delegates to the specified owner object, but won't attempt to mount the view or view controllers.
 
