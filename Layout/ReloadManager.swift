@@ -50,9 +50,7 @@ class ReloadManager {
             if hard {
                 observer.loader.clearSourceURLs()
             }
-            if let observer = observer as? LayoutViewController {
-                observer._dismissError() // TODO: find a better solution
-            }
+            LayoutConsole.hide() // TODO: remove this dependency?
             observer.reloadLayout()
         }
     }

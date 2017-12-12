@@ -89,6 +89,7 @@
 		0136F1BE1F17863C00C44673 /* Layout.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 011CE6991F053ABD0034771C /* Layout.framework */; };
 		0137B81B1FDEF24200E2061F /* ReloadManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0137B81A1FDEF24200E2061F /* ReloadManager.swift */; };
 		0137B81D1FDFD9E000E2061F /* ReloadManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0137B81C1FDFD9E000E2061F /* ReloadManagerTests.swift */; };
+		0137B81F1FE0159800E2061F /* LayoutConsole.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0137B81E1FE0159800E2061F /* LayoutConsole.swift */; };
 		013A91AD1FC729090043C543 /* Expression.swift in Sources */ = {isa = PBXBuildFile; fileRef = 013A91AB1FC729090043C543 /* Expression.swift */; };
 		013A91AE1FC729090043C543 /* Sprinter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 013A91AC1FC729090043C543 /* Sprinter.swift */; };
 		013A91AF1FC729130043C543 /* Expression.swift in Sources */ = {isa = PBXBuildFile; fileRef = 013A91AB1FC729090043C543 /* Expression.swift */; };
@@ -347,6 +348,7 @@
 		0136F1BD1F17863C00C44673 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		0137B81A1FDEF24200E2061F /* ReloadManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReloadManager.swift; sourceTree = "<group>"; };
 		0137B81C1FDFD9E000E2061F /* ReloadManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReloadManagerTests.swift; sourceTree = "<group>"; };
+		0137B81E1FE0159800E2061F /* LayoutConsole.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LayoutConsole.swift; sourceTree = "<group>"; };
 		013A91AB1FC729090043C543 /* Expression.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Expression.swift; sourceTree = "<group>"; };
 		013A91AC1FC729090043C543 /* Sprinter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Sprinter.swift; sourceTree = "<group>"; };
 		013A91B21FC72ED50043C543 /* StringConstantTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StringConstantTests.swift; sourceTree = "<group>"; };
@@ -604,6 +606,7 @@
 				0105F77F1F0547910067B313 /* LayoutLoader.swift */,
 				0105F7801F0547910067B313 /* LayoutLoading.swift */,
 				011D73601FB1B7DE006406F7 /* LayoutBacked.swift */,
+				0137B81E1FE0159800E2061F /* LayoutConsole.swift */,
 				0105F7811F0547910067B313 /* LayoutNode.swift */,
 				01CB3DF91F47559500343286 /* LayoutDelegate.swift */,
 				01E7E04C1F1C033600B7F9DB /* LayoutNode+Layout.swift */,
@@ -1387,6 +1390,7 @@
 				01346F8A1F597F88002C0802 /* TitleTextAttributes.swift in Sources */,
 				01CB3DFA1F47559500343286 /* LayoutDelegate.swift in Sources */,
 				0105F7931F0547910067B313 /* UITableView+Layout.swift in Sources */,
+				0137B81F1FE0159800E2061F /* LayoutConsole.swift in Sources */,
 				011EC5921F40A2E200BFA229 /* XMLParser.swift in Sources */,
 				011D73691FB1D218006406F7 /* StringUtils.swift in Sources */,
 				0105F7911F0547910067B313 /* Optional+Layout.swift in Sources */,
