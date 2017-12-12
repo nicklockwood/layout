@@ -2130,7 +2130,6 @@ public class LayoutNode: NSObject {
         for child in children {
             try LayoutError.wrap(child.updateFrame, for: self)
         }
-        _view.layoutIfNeeded()
         _view.didUpdateLayout(for: self)
         _view.viewController?.didUpdateLayout(for: self)
         try throwUnhandledError()
