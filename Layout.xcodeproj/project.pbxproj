@@ -147,6 +147,7 @@
 		01BD7E6B1F9DF508007BB03B /* Template.xml in Resources */ = {isa = PBXBuildFile; fileRef = 01BD7E441F9DF1EE007BB03B /* Template.xml */; };
 		01BD7E6C1F9DF50A007BB03B /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01BD7E351F9DED54007BB03B /* ViewController.swift */; };
 		01CB3DFA1F47559500343286 /* LayoutDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01CB3DF91F47559500343286 /* LayoutDelegate.swift */; };
+		01D1FF6F1FE0479C00F621B8 /* Layout.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 011CE6991F053ABD0034771C /* Layout.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		01E7E0491F1A96F600B7F9DB /* Layout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01E7E0481F1A96F600B7F9DB /* Layout.swift */; };
 		01E7E04B1F1BFD9100B7F9DB /* Example.xml in Resources */ = {isa = PBXBuildFile; fileRef = 01E7E04A1F1BFD9100B7F9DB /* Example.xml */; };
 		01E7E04D1F1C033600B7F9DB /* LayoutNode+Layout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01E7E04C1F1C033600B7F9DB /* LayoutNode+Layout.swift */; };
@@ -256,6 +257,17 @@
 			dstSubfolderSpec = 10;
 			files = (
 				01BD7E611F9DF4AC007BB03B /* Layout.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		01D1FF6E1FE0476B00F621B8 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				01D1FF6F1FE0479C00F621B8 /* Layout.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -870,6 +882,7 @@
 				01185CAD1F3207FB00D34EA7 /* Sources */,
 				01185CAE1F3207FB00D34EA7 /* Frameworks */,
 				01185CAF1F3207FB00D34EA7 /* Resources */,
+				01D1FF6E1FE0476B00F621B8 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);

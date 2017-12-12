@@ -36,8 +36,8 @@ class ReloadManager {
                 // (Don't worry, this code is only included in simulator builds)
                 let originalSelector = #selector(getter: UIResponder.keyCommands)
                 let swizzledSelector = #selector(UIResponder.layout_keyCommands)
-                let originalMethod = class_getInstanceMethod(UIResponder.self, originalSelector)
-                let swizzledMethod = class_getInstanceMethod(UIResponder.self, swizzledSelector)
+                let originalMethod = class_getInstanceMethod(UIResponder.self, originalSelector)!
+                let swizzledMethod = class_getInstanceMethod(UIResponder.self, swizzledSelector)!
                 method_exchangeImplementations(originalMethod, swizzledMethod)
                 UIResponder.handlerInstalled = true
             }

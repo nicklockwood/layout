@@ -1810,7 +1810,6 @@ public class LayoutNode: NSObject {
         // Try best fit for subviews
         var size = CGSize.zero
         if let _view = _view as? UITableViewCell {
-            _view.layoutIfNeeded()
             _view.textLabel?.sizeToFit()
             _view.detailTextLabel?.sizeToFit()
             switch try value(forSymbol: "style") as? UITableViewCellStyle ?? .default {
@@ -1966,9 +1965,6 @@ public class LayoutNode: NSObject {
         if _usesAutoLayout {
             defer { _updateLock -= 1 }
             _updateLock += 1
-            let transform = _view.layer.transform
-            _view.layer.transform = CATransform3DIdentity
-            let frame = _view.frame
             let usesAutoresizing = _view.translatesAutoresizingMaskIntoConstraints
             _view.translatesAutoresizingMaskIntoConstraints = false
             if let width = try computeExplicitWidth() {
@@ -1991,15 +1987,12 @@ public class LayoutNode: NSObject {
             } else {
                 _heightConstraint?.isActive = false
             }
-            _view.layoutIfNeeded()
-            let size = _view.frame.size
+            let size = _view.systemLayoutSizeFitting(.zero)
             if usesAutoresizing {
                 _widthConstraint?.isActive = false
                 _heightConstraint?.isActive = false
                 _view.translatesAutoresizingMaskIntoConstraints = true
-                _view.frame = frame
             }
-            _view.layer.transform = transform
             if size.width > 0 || size.height > 0 {
                 return size
             }
