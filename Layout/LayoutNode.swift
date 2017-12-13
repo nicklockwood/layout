@@ -557,10 +557,8 @@ public class LayoutNode: NSObject {
             _variables = members
             return true
         }
-        // TODO: what about nested objects?
         var equal = true
-        let mirror = Mirror(reflecting: _state)
-        for (name, value) in mirror.children {
+        for (name, value) in Mirror(reflecting: _state).children {
             if let name = name, (equal && areEqual(_variables[name] as Any, value)) == false {
                 _variables[name] = value
                 equal = false
@@ -1259,21 +1257,38 @@ public class LayoutNode: NSObject {
         return try getter()
     }
 
-    private func value(forKeyPath keyPath: String, in dictionary: [String: Any]) throws -> Any? {
-        if let value = dictionary[keyPath] {
+    private func value(forKeyPath keyPath: String, in object: Any) throws -> Any? {
+        if let dictionary = object as? [String: Any] {
+            if let value = dictionary[keyPath] {
+                return value
+            }
+            guard let range = keyPath.range(of: ".") else {
+                return nil
+            }
+            let key: String = String(keyPath[keyPath.startIndex ..< range.lowerBound])
+            guard let object = dictionary[key] else {
+                return nil
+            }
+            let subKeyPath: String = String(keyPath[range.upperBound...])
+            if let value = try self.value(forKeyPath: subKeyPath, in: object) {
+                return value
+            }
+            throw SymbolError("Unknown property `\(subKeyPath)` in `\(key)`", for: keyPath)
+        }
+        let children = Mirror(reflecting: object).children
+        if let (_, value) = children.first(where: { $0.label == keyPath }) {
             return value
         }
         guard let range = keyPath.range(of: ".") else {
             return nil
         }
         let key: String = String(keyPath[keyPath.startIndex ..< range.lowerBound])
-        // TODO: if not a dictionary, should we use a mirror?
-        if let dictionary = dictionary[key] as? [String: Any] {
-            let subKeyPath: String = String(keyPath[range.upperBound ..< keyPath.endIndex])
-            guard let value = try value(forKeyPath: subKeyPath, in: dictionary) else {
-                throw SymbolError("Unknown property `\(subKeyPath)` in `\(key)`", for: keyPath)
+        if let (_, object) = children.first(where: { $0.label == key }) {
+            let subKeyPath: String = String(keyPath[range.upperBound...])
+            if let value = try self.value(forKeyPath: subKeyPath, in: object) {
+                return value
             }
-            return value
+            throw SymbolError("Unknown property `\(subKeyPath)` in `\(key)`", for: keyPath)
         }
         return nil
     }

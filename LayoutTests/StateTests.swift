@@ -71,6 +71,27 @@ class StateTests: XCTestCase {
         }
     }
 
+    struct ChildState: Equatable {
+        var baz = false
+
+        static func == (lhs: ChildState, rhs: ChildState) -> Bool {
+            return lhs.baz == rhs.baz
+        }
+    }
+
+    struct NestedState {
+        var foo = 5
+        var bar = ChildState()
+    }
+
+    func testNestedStateStruct() {
+        let state = NestedState()
+        let node = LayoutNode(state: state)
+        XCTAssertEqual(try node.value(forSymbol: "foo") as? Int, 5)
+        XCTAssertEqual(try node.value(forSymbol: "bar") as? ChildState, ChildState())
+        XCTAssertEqual(try node.value(forSymbol: "bar.baz") as? Bool, false)
+    }
+
     class TestVC: UIViewController {
         var updated = false
 
