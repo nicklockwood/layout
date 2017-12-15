@@ -297,7 +297,7 @@ struct LayoutExpression {
                 head += String(tail[..<range.lowerBound])
                 tail = String(tail[range.upperBound...])
             }
-            guard !head.isEmpty, let type = RuntimeType(head) else {
+            guard !head.isEmpty, let type = RuntimeType.type(named: head) else {
                 return nil
             }
             switch type.type {

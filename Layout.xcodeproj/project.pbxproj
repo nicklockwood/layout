@@ -96,6 +96,7 @@
 		013A91B01FC7291D0043C543 /* Expression.swift in Sources */ = {isa = PBXBuildFile; fileRef = 013A91AB1FC729090043C543 /* Expression.swift */; };
 		013A91B11FC7291E0043C543 /* Expression.swift in Sources */ = {isa = PBXBuildFile; fileRef = 013A91AB1FC729090043C543 /* Expression.swift */; };
 		013A91B31FC72ED50043C543 /* StringConstantTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 013A91B21FC72ED50043C543 /* StringConstantTests.swift */; };
+		013E16751FE403FB008D14A3 /* RuntimeTypeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 013E16741FE403FB008D14A3 /* RuntimeTypeTests.swift */; };
 		014F37481F352B2600F63CCF /* CollectionCell.xml in Resources */ = {isa = PBXBuildFile; fileRef = 014F37471F352B2600F63CCF /* CollectionCell.xml */; };
 		014F374A1F35A23000F63CCF /* Collection.xml in Resources */ = {isa = PBXBuildFile; fileRef = 014F37491F35A23000F63CCF /* Collection.xml */; };
 		015256131F8F591000BDD15D /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 015256121F8F591000BDD15D /* Cocoa.framework */; };
@@ -364,6 +365,7 @@
 		013A91AB1FC729090043C543 /* Expression.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Expression.swift; sourceTree = "<group>"; };
 		013A91AC1FC729090043C543 /* Sprinter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Sprinter.swift; sourceTree = "<group>"; };
 		013A91B21FC72ED50043C543 /* StringConstantTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StringConstantTests.swift; sourceTree = "<group>"; };
+		013E16741FE403FB008D14A3 /* RuntimeTypeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuntimeTypeTests.swift; sourceTree = "<group>"; };
 		014F37471F352B2600F63CCF /* CollectionCell.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = CollectionCell.xml; sourceTree = "<group>"; };
 		014F37491F35A23000F63CCF /* Collection.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = Collection.xml; sourceTree = "<group>"; };
 		015256111F8F591000BDD15D /* Layout.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = Layout.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -650,6 +652,7 @@
 			children = (
 				ACD6CEF11FD6AF8900E08B8C /* Loading */,
 				01345C541F66B784002BDEC9 /* PropertiesTests.swift */,
+				013E16741FE403FB008D14A3 /* RuntimeTypeTests.swift */,
 				011CE6B91F053D530034771C /* AnyExpressionTests.swift */,
 				011CE6BA1F053D530034771C /* ColorExpressionTests.swift */,
 				011CE6BB1F053D530034771C /* EnumExpressionTests.swift */,
@@ -1448,6 +1451,7 @@
 				011CE6C91F053D530034771C /* LayoutFrameTests.swift in Sources */,
 				011CE6C51F053D530034771C /* EnumExpressionTests.swift in Sources */,
 				01B17AAE1FB350DE0048E582 /* UtilitiesTests.swift in Sources */,
+				013E16751FE403FB008D14A3 /* RuntimeTypeTests.swift in Sources */,
 				017539871F290085005B7516 /* SelectorExpressionTests.swift in Sources */,
 				011CE6C71F053D530034771C /* GeometryExpressionTests.swift in Sources */,
 				011CE6CC1F053D530034771C /* StateTests.swift in Sources */,

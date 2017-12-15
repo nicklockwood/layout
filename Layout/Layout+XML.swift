@@ -53,7 +53,7 @@ extension Layout {
                         case "name":
                             name = value
                         case "type":
-                            guard let runtimeType = RuntimeType(value) else {
+                            guard let runtimeType = RuntimeType.type(named: value) else {
                                 throw LayoutError("Unknown or unsupported type \(value) in <param>. Try using Any instead", in: className, in: url)
                             }
                             type = runtimeType

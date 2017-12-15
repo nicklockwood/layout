@@ -62,6 +62,44 @@ public class RuntimeType: NSObject {
     private(set) var setter: Setter?
     internal var caster: Caster?
 
+    private static var cache = [String: RuntimeType?]()
+    private static let queue = DispatchQueue(label: "com.Layout.RuntimeType")
+    private static func _type(named typeName: String) -> RuntimeType? {
+        if let type = queue.sync(execute: { cache[typeName] }) {
+            return type
+        }
+        let type: RuntimeType?
+        switch typeName {
+        case "CGColor", "CGImage", "CGPath":
+            type = RuntimeType(.pointer(typeName))
+        case "NSString":
+            type = RuntimeType(.any(String.self))
+        default:
+            if let cls = classFromString(typeName) {
+                type = RuntimeType(.any(cls))
+            } else if let proto = protocolFromString(typeName) {
+                type = RuntimeType(.protocol(proto))
+            } else {
+                type = nil
+            }
+        }
+        queue.sync { cache[typeName] = type }
+        return type
+    }
+
+    public static func type(named typeName: String) -> RuntimeType? {
+        if let type = _type(named: typeName) {
+            return type
+        }
+        let instanceName = sanitizedTypeName(typeName)
+        guard RuntimeType.responds(to: Selector(instanceName)),
+            let type = RuntimeType.value(forKey: instanceName) as? RuntimeType else {
+            return nil // No point updating cache, as it's already nil
+        }
+        queue.sync { cache[typeName] = type }
+        return type
+    }
+
     static func unavailable(_ reason: String? = nil) -> RuntimeType? {
         #if arch(i386) || arch(x86_64)
             return RuntimeType(String.self, .unavailable(reason: reason))
@@ -93,51 +131,61 @@ public class RuntimeType: NSObject {
     @nonobjc init(_ type: Kind, _ availability: Availability = .available) {
         self.type = type
         self.availability = availability
-    }
-
-    @nonobjc public convenience init(_ type: Any.Type, _ availability: Availability = .available) {
-        let name = "\(type)"
-        switch name {
-        case "CGColor", "CGImage", "CGPath":
-            self.init(.pointer(name), availability)
-        case "NSString":
-            self.init(.any(String.self), availability)
+        switch type {
+        case let .any(type) where type is Selector.Type:
+            getter = { target, key in
+                let selector = Selector(key)
+                let fn = unsafeBitCast(
+                    class_getMethodImplementation(Swift.type(of: target), selector),
+                    to: (@convention(c) (AnyObject?, Selector) -> Selector?).self
+                )
+                return fn(target, selector)
+            }
+            setter = { target, key, value in
+                let selector = Selector(
+                    "set\(key.capitalized()):"
+                )
+                let fn = unsafeBitCast(
+                    class_getMethodImplementation(Swift.type(of: target), selector),
+                    to: (@convention(c) (AnyObject?, Selector, Selector?) -> Void).self
+                )
+                fn(target, selector, value as? Selector)
+            }
         default:
-            self.init(.any(type), availability)
+            break
         }
     }
 
-    @nonobjc public convenience init(class: AnyClass, _ availability: Availability = .available) {
-        self.init(.class(`class`), availability)
+    @nonobjc public convenience init(_ type: Any.Type, _ availability: Availability = .available) {
+        if let type = RuntimeType._type(named: "\(type)") {
+            self.init(type.type, availability)
+        } else {
+            self.init(.any(type), availability)
+        }
     }
 
     @nonobjc public convenience init(_ type: Protocol, _ availability: Availability = .available) {
         self.init(.protocol(type), availability)
     }
 
-    @nonobjc public convenience init?(_ typeName: String, _ availability: Availability = .available) {
-        guard let type = classFromString(typeName) else {
-            guard let proto = protocolFromString(typeName) else {
-                let instanceName = sanitizedTypeName(typeName)
-                guard RuntimeType.responds(to: Selector(instanceName)),
-                    let type = RuntimeType.value(forKey: instanceName) as? RuntimeType else {
-                    return nil
-                }
-                self.init(type.type, availability) // TODO: This copying isn't ideal
-                return
-            }
-            self.init(proto, availability)
-            return
-        }
-        self.init(type, availability)
+    @nonobjc public convenience init(class: AnyClass, _ availability: Availability = .available) {
+        self.init(.class(`class`), availability)
     }
 
-    @nonobjc public init?(objCType: String, _ availability: Availability = .available) {
+    @available(*, deprecated, message: "Use type(named:) instead")
+    @nonobjc public convenience init?(_ typeName: String, _ availability: Availability = .available) {
+        guard let type = RuntimeType.type(named: typeName) else {
+            return nil
+        }
+        self.init(type.type, availability)
+    }
+
+    @nonobjc public convenience init?(objCType: String, _ availability: Availability = .available) {
         guard let first = objCType.unicodeScalars.first else {
             assertionFailure("Empty objCType")
             return nil
         }
-        self.availability = availability
+        let type: Kind
         switch first {
         case "c" where objCBoolIsChar, "B":
             type = .any(Bool.self)
@@ -160,7 +208,8 @@ public class RuntimeType: NSObject {
                     let protocolName: String = String(className[range])
                     if let proto = NSProtocolFromString(protocolName) {
                         type = .protocol(proto)
-                        return
+                    } else {
+                        return nil
                     }
                 } else if let cls = NSClassFromString(className) {
                     if cls == NSString.self {
@@ -168,34 +217,18 @@ public class RuntimeType: NSObject {
                     } else {
                         type = .any(cls)
                     }
-                    return
+                } else {
+                    return nil
                 }
+            } else {
+                // Can't infer the object type, so ignore it
+                return nil
             }
-            // Can't infer the object type, so ignore it
-            return nil
         case "#":
             // Can't infer the specific subclass, so ignore it
             return nil
         case ":":
             type = .any(Selector.self)
-            getter = { target, key in
-                let selector = Selector(key)
-                let fn = unsafeBitCast(
-                    class_getMethodImplementation(Swift.type(of: target), selector),
-                    to: (@convention(c) (AnyObject?, Selector) -> Selector?).self
-                )
-                return fn(target, selector)
-            }
-            setter = { target, key, value in
-                let selector = Selector(
-                    "set\(key.capitalized()):"
-                )
-                let fn = unsafeBitCast(
-                    class_getMethodImplementation(Swift.type(of: target), selector),
-                    to: (@convention(c) (AnyObject?, Selector, Selector?) -> Void).self
-                )
-                fn(target, selector, value as? Selector)
-            }
         case "{":
             type = .struct(sanitizedStructName(objCType))
         case "^" where objCType.hasPrefix("^{"),
@@ -205,6 +238,7 @@ public class RuntimeType: NSObject {
             // Unsupported type
             return nil
         }
+        self.init(type, availability)
     }
 
     @nonobjc public init<T: RawRepresentable & Hashable>(_: T.Type, _ values: [String: T]) {

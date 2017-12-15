@@ -6,7 +6,7 @@ typealias LayoutLoaderCallback = (LayoutNode?, LayoutError?) -> Void
 
 // Cache for previously loaded layouts
 private var cache = [URL: Layout]()
-private let queue = DispatchQueue(label: "com.Layout")
+private let queue = DispatchQueue(label: "com.Layout.LayoutLoader")
 private var reloadLock = 0
 
 private extension Layout {
