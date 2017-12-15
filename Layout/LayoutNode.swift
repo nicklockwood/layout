@@ -499,9 +499,7 @@ public class LayoutNode: NSObject {
             delegate.layoutNode?(self, didDetectError: error)
             return
         }
-        if !error.isTransient {
-            assertionFailure("Layout error: \(error)")
-        }
+        LayoutConsole.showError(error)
     }
 
     // Attempt a throwing operation but catch the error and bubble it up the Layout hierarchy
