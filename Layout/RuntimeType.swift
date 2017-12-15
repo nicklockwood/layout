@@ -14,6 +14,7 @@ public class RuntimeType: NSObject {
         case `protocol`(Protocol)
         case `enum`(Any.Type, [String: AnyHashable])
         case options(Any.Type, [String: Any])
+        case array(RuntimeType)
 
         public static func == (lhs: Kind, rhs: Kind) -> Bool {
             return lhs.description == rhs.description
@@ -32,6 +33,8 @@ public class RuntimeType: NSObject {
                 return type
             case let .protocol(proto):
                 return "<\(NSStringFromProtocol(proto))>"
+            case let .array(type):
+                return "Array<\(type)>"
             }
         }
     }
@@ -74,11 +77,20 @@ public class RuntimeType: NSObject {
             type = RuntimeType(.pointer(typeName))
         case "NSString":
             type = RuntimeType(.any(String.self))
+        case "NSArray":
+            type = RuntimeType(.array(.any))
         default:
             if let cls = classFromString(typeName) {
                 type = RuntimeType(.any(cls))
             } else if let proto = protocolFromString(typeName) {
                 type = RuntimeType(.protocol(proto))
+            } else if typeName.hasPrefix("Array<"), typeName.hasSuffix(">") {
+                let name = typeName.dropLast()["Array<".endIndex...]
+                type = RuntimeType.type(named: String(name)).map { RuntimeType(.array($0)) }
+            } else if typeName.hasPrefix("["), typeName.hasSuffix("]") {
+                let name = typeName.dropFirst().dropLast()
+                // TODO: What about dictionary literals (or arrays of dictionary literals, etc)?
+                type = RuntimeType.type(named: String(name)).map { RuntimeType(.array($0)) }
             } else {
                 type = nil
             }
@@ -98,6 +110,14 @@ public class RuntimeType: NSObject {
         }
         queue.sync { cache[typeName] = type }
         return type
+    }
+
+    public static func array(of type: RuntimeType) -> RuntimeType {
+        return RuntimeType(.array(type))
+    }
+
+    public static func array(of type: Any.Type) -> RuntimeType {
+        return .array(of: RuntimeType(type))
     }
 
     static func unavailable(_ reason: String? = nil) -> RuntimeType? {
@@ -123,7 +143,7 @@ public class RuntimeType: NSObject {
             return values as [String: Any]
         case let .options(_, values):
             return values
-        case .any, .class, .struct, .pointer, .protocol:
+        case .any, .class, .struct, .pointer, .protocol, .array:
             return [:]
         }
     }
@@ -170,6 +190,10 @@ public class RuntimeType: NSObject {
 
     @nonobjc public convenience init(class: AnyClass, _ availability: Availability = .available) {
         self.init(.class(`class`), availability)
+    }
+
+    @nonobjc public convenience init<T>(array type: Array<T>.Type, _ availability: Availability = .available) {
+        self.init(.array(RuntimeType(type)), availability)
     }
 
     @available(*, deprecated, message: "Use type(named:) instead")
@@ -390,8 +414,6 @@ public class RuntimeType: NSObject {
                 return value as? String ?? "\(value)"
             case is NSAttributedString.Type:
                 return value as? NSAttributedString ?? NSAttributedString(string: "\(value)")
-            case is NSArray.Type:
-                return value as? NSArray ?? [value] // TODO: validate element types
             case let subtype as AnyClass:
                 return (value as AnyObject).isKind(of: subtype) ? value : nil
             case _ where type == Any.self:
@@ -442,6 +464,20 @@ public class RuntimeType: NSObject {
             return nil
         case let .protocol(type):
             return (value as AnyObject).conforms(to: type) ? value : nil
+        case let .array(type):
+            if type.type == .any(Any.self), value is NSArray {
+                return value // Fast path, avoids copying
+            }
+            guard var array = value as? [Any] else {
+                return type.cast(value).map { [$0] } // Scalar values are array-ified
+            }
+            for (i, value) in array.enumerated() {
+                guard let value = type.cast(value) else {
+                    return nil
+                }
+                array[i] = value
+            }
+            return array
         }
     }
 

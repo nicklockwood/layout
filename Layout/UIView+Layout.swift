@@ -778,7 +778,7 @@ extension UISearchBar {
         var types = super.expressionTypes
         types["barPosition"] = .uiBarPosition
         types["barStyle"] = .uiBarStyle
-        types["scopeButtonTitles"] = RuntimeType(Array<String>.self)
+        types["scopeButtonTitles"] = .array(of: .string)
         types["searchBarStyle"] = .uiSearchBarStyle
         for (name, type) in textInputTraits {
             types[name] = type

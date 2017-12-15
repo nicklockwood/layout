@@ -493,7 +493,7 @@ extension UINavigationBar: TitleTextAttributes {
 extension UIToolbar {
     open override class var expressionTypes: [String: RuntimeType] {
         var types = super.expressionTypes
-        types["items"] = RuntimeType(Array<UIBarButtonItem>.self)
+        types["items"] = .array(of: UIBarButtonItem.self)
         types["backgroundImage"] = .uiImage
         types["shadowImage"] = .uiImage
         types["barStyle"] = .uiBarStyle
@@ -554,7 +554,7 @@ extension UINavigationController {
 
     open override class var expressionTypes: [String: RuntimeType] {
         var types = super.expressionTypes
-        types["viewControllers"] = RuntimeType(Array<UIViewController>.self)
+        types["viewControllers"] = .array(of: UIViewController.self)
         #if arch(i386) || arch(x86_64)
             // Private and read-only properties
             for name in [
@@ -650,7 +650,7 @@ extension UIActivityViewController {
 
     open override class var parameterTypes: [String: RuntimeType] {
         return [
-            "activityItems": RuntimeType([Any].self), // TODO: validate activity item types
+            "activityItems": .array(of: .any), // TODO: validate activity item types
             "applicationActivities": RuntimeType([UIActivity].self),
         ]
     }

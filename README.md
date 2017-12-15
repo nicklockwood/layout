@@ -1202,8 +1202,6 @@ For array-type expressions, you can use commas to pass multiple values:
 <UISegmentedControl items="'Hello', 'World'"/>
 ```
 
-**Note:** There is currently no validation of the element types inside an array, so if you (for example) attempt to pass an array of strings to a property expecting an array of view controllers, the app won't display a Red Box error overlay, it will simply crash.
-
 If you return a single non-array value from an array expression, it will be "boxed" inside an array automatically:
 
 ```xml
@@ -1249,7 +1247,7 @@ loadLayout(
 <UILabel textColor="colors[0]"/>
 ```
 
-Attempting to access an array with an out-of-bounds index won't crash, but will display a Red Box error.
+Attempting to access an array with an out-of-bounds index won't crash, but will display a Red Box error. There is currently no way to check the bounds of an array from inside an expression.
 
 
 ## Optionals

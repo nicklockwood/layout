@@ -1152,7 +1152,7 @@ struct LayoutExpression {
             self.init(colorExpression: expression, type: type, for: node)
         case .pointer("CGImage"):
             self.init(imageExpression: expression, type: type, for: node)
-        case .pointer, .protocol:
+        case .pointer, .protocol, .array:
             self.init(anyExpression: expression, type: type, nullable: true, for: node)
         }
     }
