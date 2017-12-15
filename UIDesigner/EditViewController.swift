@@ -91,7 +91,7 @@ class EditViewController: UIViewController, UITextFieldDelegate {
             ),
         ]
         expressionFields.removeAll()
-        func filterTypes(_ key: String, _ type: RuntimeType) -> String? {
+        func filterType(_ key: String, _ type: RuntimeType) -> String? {
             if !type.isAvailable {
                 return nil
             }
@@ -118,11 +118,13 @@ class EditViewController: UIViewController, UITextFieldDelegate {
                 return key
             case .struct, .pointer, .protocol:
                 return nil
+            case let .array(elementType):
+                return filterType(key, elementType)
             }
         }
         let fieldNames = ["top", "left", "width", "height", "bottom", "right"]
-            + node.viewControllerExpressionTypes.flatMap(filterTypes).sorted()
-            + node.viewExpressionTypes.flatMap(filterTypes).sorted {
+            + node.viewControllerExpressionTypes.flatMap(filterType).sorted()
+            + node.viewExpressionTypes.flatMap(filterType).sorted {
                 switch ($0.hasPrefix("layer."), $1.hasPrefix("layer.")) {
                 case (true, true), (false, false):
                     return $0 < $1

@@ -340,6 +340,8 @@ extension UIView {
 extension UIImageView {
     open override class var expressionTypes: [String: RuntimeType] {
         var types = super.expressionTypes
+        types["animationImages"] = .array(of: .uiImage)
+        types["highlightedAnimationImages"] = .array(of: .uiImage)
         #if arch(i386) || arch(x86_64)
             // Private properties
             for name in [
@@ -636,6 +638,7 @@ extension UITextField {
                 "displaySecureTextUsingPlainText",
                 "drawsAsAtom",
                 "inactiveHasDimAppearance",
+                "isDevicePasscodeEntry",
                 "isUndoEnabled",
                 "labelOffset",
                 "nonEditingLinebreakMode",
@@ -1288,6 +1291,18 @@ extension UIRefreshControl {
         default:
             try super.setValue(value, forExpression: name)
         }
+    }
+}
+
+extension UIVisualEffectView {
+    open override class var expressionTypes: [String: RuntimeType] {
+        var types = super.expressionTypes
+        #if arch(i386) || arch(x86_64)
+            // Private property
+            types["backgroundEffects"] = nil
+            types["contentEffects"] = nil
+        #endif
+        return types
     }
 }
 

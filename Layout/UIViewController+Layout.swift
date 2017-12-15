@@ -50,6 +50,8 @@ extension UIViewController {
             types["navigationItem.\(name)"] = type
         }
         types["navigationItem.largeTitleDisplayMode"] = .uiNavigationItem_LargeTitleDisplayMode
+        types["navigationItem.leftBarButtonItems"] = .array(of: UIBarButtonItem.self)
+        types["navigationItem.rightBarButtonItems"] = .array(of: UIBarButtonItem.self)
         for (name, type) in UIBarButtonItem.expressionTypes {
             types["navigationItem.leftBarButtonItem.\(name)"] = type
             types["navigationItem.rightBarButtonItem.\(name)"] = type
@@ -80,6 +82,7 @@ extension UIViewController {
                 "modalTransitionView",
                 "mutableChildViewControllers",
                 "navigationInsetAdjustment",
+                "navigationItem.useRelativeLargeTitleInsets",
                 "needsDidMoveCleanup",
                 "overrideTraitCollection",
                 "parentModalViewController",
@@ -120,6 +123,7 @@ extension UIViewController {
             types["cameraDevice"] = .uiImagePickerControllerCameraDevice
             types["cameraFlashMode"] = .uiImagePickerControllerCameraFlashMode
             types["imageExportPreset"] = .uiImagePickerControllerImageURLExportPreset
+            types["mediaTypes"] = .array(of: .string)
             types["sourceType"] = .uiImagePickerControllerSourceType
             types["videoQuality"] = .uiImagePickerControllerQualityType
             // TODO: validate media types
@@ -341,6 +345,7 @@ extension UITabBar {
         types["barStyle"] = .uiBarStyle
         types["itemSpacing"] = .cgFloat
         types["itemWidth"] = .cgFloat
+        types["items"] = .array(of: UITabBarItem.self)
 
         #if arch(i386) || arch(x86_64)
             // Private properties
@@ -384,6 +389,7 @@ extension UITabBarController {
     open override class var expressionTypes: [String: RuntimeType] {
         var types = super.expressionTypes
         types["selectedIndex"] = .int
+        types["customizableViewControllers"] = .array(of: UIViewController.self)
 
         #if arch(i386) || arch(x86_64)
             // Private and read-only properties
@@ -432,6 +438,7 @@ extension UINavigationBar: TitleTextAttributes {
         types["barStyle"] = .uiBarStyle
         types["barPosition"] = .uiBarPosition
         types["prefersLargeTitles"] = .bool
+        types["items"] = .array(of: UINavigationItem.self)
 
         #if arch(i386) || arch(x86_64)
             // Private properties
@@ -501,6 +508,7 @@ extension UIToolbar {
 
         #if arch(i386) || arch(x86_64)
             // Private properties
+            types["backgroundEffects"] = nil
             types["centerTextButtons"] = nil
         #endif
         return types
@@ -657,6 +665,7 @@ extension UIActivityViewController {
 
     open override class var expressionTypes: [String: RuntimeType] {
         var types = super.expressionTypes
+        types["excludedActivityTypes"] = .array(of: .uiActivityType)
         #if arch(i386) || arch(x86_64)
             // Private properties
             for name in [

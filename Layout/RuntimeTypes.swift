@@ -70,6 +70,29 @@ public extension RuntimeType {
 
     @objc class var uiColor: RuntimeType { return RuntimeType(UIColor.self) }
     @objc class var uiImage: RuntimeType { return RuntimeType(UIImage.self) }
+    @objc class var uiActivityType: RuntimeType {
+        var values: [String: UIActivityType] = [
+            "postToFacebook": .postToFacebook,
+            "postToTwitter": .postToTwitter,
+            "postToWeibo": .postToWeibo,
+            "message": .message,
+            "mail": .mail,
+            "print": .print,
+            "copyToPasteboard": .copyToPasteboard,
+            "assignToContact": .assignToContact,
+            "saveToCameraRoll": .saveToCameraRoll,
+            "addToReadingList": .addToReadingList,
+            "postToFlickr": .postToFlickr,
+            "postToVimeo": .postToVimeo,
+            "postToTencentWeibo": .postToTencentWeibo,
+            "airDrop": .airDrop,
+            "openInIBooks": .openInIBooks,
+        ]
+        if #available(iOS 11.0, *) {
+            values["markupAsPDF"] = .markupAsPDF
+        }
+        return RuntimeType(values)
+    }
 
     // MARK: Accessibility
 
