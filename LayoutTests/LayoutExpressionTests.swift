@@ -575,4 +575,13 @@ class LayoutExpressionTests: XCTestCase {
         XCTAssertEqual(expression?.isConstant, true)
         XCTAssertEqual(try expression?.evaluate() as! String, "foo")
     }
+
+    // MARK: Edge cases
+
+    func testPercentOperatorSpacingAmbiguity() {
+        let child = LayoutNode(expressions: ["width": "100%-5"])
+        let parent = LayoutNode(expressions: ["width": "50"], children: [child])
+        parent.update()
+        XCTAssertEqual(child.frame.width, 45)
+    }
 }
