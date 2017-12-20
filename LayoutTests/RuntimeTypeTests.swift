@@ -118,7 +118,7 @@ class RuntimeTypeTests: XCTestCase {
         XCTAssertNotNil(runtimeType.cast([5, "foo"]))
         XCTAssertNotNil(runtimeType.cast([5]))
         XCTAssertNotNil(runtimeType.cast(NSArray()))
-        XCTAssertNotNil(runtimeType.cast([(1,2,3)]))
+        XCTAssertNotNil(runtimeType.cast([(1, 2, 3)]))
     }
 
     func testCastDoesntCopyNSArray() {

@@ -1,6 +1,13 @@
 # Change Log
 
-## [0.6.7](https://github.com/schibsted/layout/releases/tag/0.6.6) (2017-12-12)
+## [0.6.8](https://github.com/schibsted/layout/releases/tag/0.6.8) (2017-12-20)
+
+- Fixed a regression in UITableView auto-sizing for cells and section headers
+- Array literals in expression are now type checked, Layout and will throw an error if the element types don't match
+- `RuntimeType(_: String)` is now deprecated - use `RuntimeType.type(named: String)` instead
+- Expressions can now reference properties of nested structs or classes inside state objects
+
+## [0.6.7](https://github.com/schibsted/layout/releases/tag/0.6.7) (2017-12-12)
 
 - Fixed a major performance regression introduced in version 0.6.3 (caused by calling `UIView.layoutIfNeeded()`)
 - The Red Box debug console is now attached to the main window, so it no longer requires an onscreen `LayoutViewController`
