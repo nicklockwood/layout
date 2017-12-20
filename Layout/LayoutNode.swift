@@ -230,8 +230,7 @@ public class LayoutNode: NSObject {
         case is CGRect:
             let bounds = _view!.bounds
             if !bounds.size.isNearlyEqual(to: _previousBounds.size) {
-                if root._view?.superview != nil, root._setupComplete,
-                    root._updateLock == 0, root._evaluating.isEmpty {
+                if root._setupComplete, root._updateLock == 0, root._evaluating.isEmpty {
                     root.update()
                 }
             } else if _view is UIScrollView, !bounds.origin.isNearlyEqual(to: _previousBounds.origin) {
@@ -1823,6 +1822,7 @@ public class LayoutNode: NSObject {
         // Try best fit for subviews
         var size = CGSize.zero
         if let _view = _view as? UITableViewCell {
+            _view.layoutIfNeeded() // TODO: find a more performant solution for automatic cell-sizing
             _view.textLabel?.sizeToFit()
             _view.detailTextLabel?.sizeToFit()
             switch try value(forSymbol: "style") as? UITableViewCellStyle ?? .default {
