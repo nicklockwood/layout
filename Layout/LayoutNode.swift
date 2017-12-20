@@ -1359,8 +1359,11 @@ public class LayoutNode: NSObject {
             let tail: String = String(symbol[range.upperBound ..< symbol.endIndex])
             switch symbol[symbol.startIndex ..< range.lowerBound] {
             case "parent":
-                if let parent = parent {
-                    return parent.symbolIsConstant(tail)
+                switch tail {
+                case "top", "left":
+                    return true // Always zero
+                default:
+                    return parent?.symbolIsConstant(tail) ?? false
                 }
             case "previous", "next":
                 return false // TODO: if previous/next isHidden is constant, we could still get a constant value here
@@ -1621,24 +1624,27 @@ public class LayoutNode: NSObject {
                 let tail: String = String(symbol[range.upperBound ..< symbol.endIndex])
                 switch symbol[symbol.startIndex ..< range.lowerBound] {
                 case "parent":
-                    if parent != nil {
+                    switch tail {
+                    case "top", "left":
+                        getter = { _ in 0 }
+                    case "right", "width", "containerSize.width":
+                        getter = { [unowned self] in
+                            try self.parent?.cgFloatValue(forSymbol: "containerSize.width") ??
+                                self._view?.superview?.bounds.width ?? 0
+                        }
+                    case "bottom", "height", "containerSize.height":
+                        getter = { [unowned self] in
+                            try self.parent?.cgFloatValue(forSymbol: "containerSize.height") ??
+                                self._view?.superview?.bounds.height ?? 0
+                        }
+                    case _ where parent != nil:
                         getter = { [unowned self] in
                             try self.parent?.value(forSymbol: tail) as Any
                         }
-                    } else {
-                        switch tail {
-                        case "width", "containerSize.width":
-                            getter = { [unowned self] in
-                                self._view?.superview?.bounds.width ?? 0
-                            }
-                        case "height", "containerSize.height":
-                            getter = { [unowned self] in
-                                self._view?.superview?.bounds.height ?? 0
-                            }
-                        default:
-                            getter = {
-                                throw SymbolError("Undefined symbol `\(tail)`", for: symbol)
-                            }
+                    default:
+                        getter = {
+                            // TODO: should we allow view properties to be referenced?
+                            throw SymbolError("Undefined symbol `\(tail)`", for: symbol)
                         }
                     }
                 case "previous" where layoutSymbols.contains(tail):
