@@ -67,6 +67,12 @@ extension UIView {
             }
         }
         for name in [
+            "firstBaselineAnchor",
+            "lastBaselineAnchor",
+        ] {
+            types[name] = .unavailable("Use firstBaseline or lastBaseline instead")
+        }
+        for name in [
             "center",
             "centerXAnchor",
             "centerYAnchor",

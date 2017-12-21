@@ -304,10 +304,22 @@ public class LayoutNode: NSObject {
                  "left" where hasExpression("center.x") || (hasExpression("right") && hasExpression("width")),
                  "right" where hasExpression("center.x") || (hasExpression("left") && hasExpression("width")),
                  "width" where hasExpression("left") && hasExpression("right"),
-                 "center.y" where hasExpression("top") || hasExpression("bottom"),
-                 "top" where hasExpression("center.y") || (hasExpression("height") && hasExpression("bottom")),
-                 "bottom" where hasExpression("center.y") || (hasExpression("height") && hasExpression("top")),
-                 "height" where hasExpression("top") && hasExpression("bottom"):
+                 "center.y" where
+                    hasExpression("top") || hasExpression("bottom") ||
+                    hasExpression("firstBaseline") || hasExpression("lastBaseline"),
+                 "top" where
+                    hasExpression("center.y") || hasExpression("firstBaseline") ||
+                    hasExpression("lastBaseline") || (hasExpression("height") && hasExpression("bottom")),
+                 "bottom" where
+                    hasExpression("center.y") || hasExpression("firstBaseline") ||
+                    hasExpression("lastBaseline") ||  (hasExpression("height") && hasExpression("top")),
+                 "height" where hasExpression("top") && hasExpression("bottom"),
+                 "firstBaseline" where
+                    hasExpression("top") || hasExpression("bottom") ||
+                    hasExpression("center.y") || hasExpression("lastBaseline"),
+                 "lastBaseline" where
+                    hasExpression("top") || hasExpression("bottom") ||
+                    hasExpression("center.y") || hasExpression("firstBaseline"):
                 break // Redundant
             default:
                 _originalExpressions[key] = value
@@ -387,7 +399,9 @@ public class LayoutNode: NSObject {
     public static func isValidExpressionName(
         _ name: String, for viewOrViewControllerClass: AnyClass) -> Bool {
         switch name {
-        case "top", "left", "bottom", "right", "width", "height", "center.x", "center.y", "outlet":
+        case "top", "left", "bottom", "right", "width", "height",
+             "center.x", "center.y", "firstBaseline", "lastBaseline",
+             "outlet":
             return true
         default:
             if let viewClass = viewOrViewControllerClass as? UIView.Type {
@@ -450,13 +464,15 @@ public class LayoutNode: NSObject {
             errors.insert(LayoutError(SymbolError("Expression for right is redundant",
                                                   for: "right"), for: self))
         }
-        if hasExpression("center.y"), !value(forSymbol: "top", dependsOn: "center.y") {
-            errors.insert(LayoutError(SymbolError("Expression for center.y is redundant",
-                                                  for: "center.y"), for: self))
-        }
         if hasExpression("center.x"), !value(forSymbol: "left", dependsOn: "center.x") {
             errors.insert(LayoutError(SymbolError("Expression for center.x is redundant",
                                                   for: "center.x"), for: self))
+        }
+        for key in ["center.y", "firstBaseline", "lastBaseline"] {
+            if hasExpression(key), !value(forSymbol: "top", dependsOn: key) {
+                errors.insert(LayoutError(SymbolError("Expression for \(key) is redundant",
+                                                      for: key), for: self))
+            }
         }
         return errors
     }
@@ -866,6 +882,10 @@ public class LayoutNode: NSObject {
                 expressions["top"] = "bottom - height"
             } else if hasExpression("center.y") {
                 expressions["top"] = "center.y - height * layer.anchorPoint.y"
+            } else if hasExpression("firstBaseline") {
+                expressions["top"] = "firstBaseline - firstBaselineOffset"
+            } else if hasExpression("lastBaseline") {
+                expressions["top"] = "lastBaseline - lastBaselineOffset"
             }
         }
     }
@@ -1014,7 +1034,7 @@ public class LayoutNode: NSObject {
             switch symbol {
             case "left", "right", "center.x":
                 expression = LayoutExpression(xExpression: string, for: self)
-            case "top", "bottom", "center.y":
+            case "top", "bottom", "center.y", "firstBaseline", "lastBaseline":
                 expression = LayoutExpression(yExpression: string, for: self)
             case "width":
                 expression = LayoutExpression(widthExpression: string, for: self)
@@ -1605,6 +1625,22 @@ public class LayoutNode: NSObject {
             getter = { [unowned self] in
                 try self.inferContentSize().height
             }
+        case "firstBaselineOffset":
+            getter = { [unowned self] in
+                try self.getFirstBaselineOffset()
+            }
+        case "lastBaselineOffset":
+            getter = { [unowned self] in
+                try self.getLastBaselineOffset()
+            }
+        case "firstBaseline":
+            getter = { [unowned self] in
+                try self.getFirstBaselineOffset() + self.cgFloatValue(forSymbol: "top")
+            }
+        case "lastBaseline":
+            getter = { [unowned self] in
+                try self.getLastBaselineOffset() + self.cgFloatValue(forSymbol: "top")
+            }
         default:
             func getterFor(_ symbol: String) -> Getter {
                 let fallback: Getter
@@ -1654,6 +1690,14 @@ public class LayoutNode: NSObject {
                         getter = { [unowned self] in
                             try (self.parent?.cgFloatValue(forSymbol: "containerSize.height") ??
                                 self._view?.superview?.bounds.width ?? 0) / 2
+                        }
+                    case "firstBaseline" where parent != nil:
+                        getter = { [unowned self] in
+                            try self.parent?.cgFloatValue(forSymbol: "firstBaselineOffset") ?? 0
+                        }
+                    case "lastBaseline" where parent != nil:
+                        getter = { [unowned self] in
+                            try self.parent?.cgFloatValue(forSymbol: "lastBaselineOffset") ?? 0
                         }
                     case "right", "width", "containerSize.width":
                         getter = { [unowned self] in
@@ -1965,6 +2009,30 @@ public class LayoutNode: NSObject {
             }
         }
         return contentInset
+    }
+
+    private func getFirstBaselineOffset() throws -> CGFloat {
+        switch _view?.forFirstBaselineLayout {
+        case let label as UILabel:
+            return ceil(label.font.ascender)
+        case let textView as UITextView:
+            return ceil(textView.textContainerInset.top +
+                (textView.font ?? UIFont.systemFont(ofSize: 17)).ascender)
+        default:
+            throw SymbolError("\(_class) does not implement firstBaseline", for: "firstBaseline")
+        }
+    }
+
+    private func getLastBaselineOffset() throws -> CGFloat {
+        switch _view?.forLastBaselineLayout {
+        case let label as UILabel:
+                return floor(frame.height + label.font.descender)
+        case let textView as UITextView:
+                return floor(textView.contentSize.height - textView.textContainerInset.bottom
+                    + (textView.font ?? UIFont.systemFont(ofSize: 17)).descender)
+        default:
+            throw SymbolError("\(_class) does not implement lastBaseline", for: "lastBaseline")
+        }
     }
 
     private func computeExplicitWidth() throws -> CGFloat? {
