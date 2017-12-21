@@ -35,7 +35,7 @@
     <UIPageControl
         bottom="100% - parent.safeAreaInsets.bottom - 40"
         isUserInteractionEnabled="false"
-        left="50% - width / 2"
+        center.x="50%"
         numberOfPages="3"
         outlet="pageControl"
     />

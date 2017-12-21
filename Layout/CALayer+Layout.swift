@@ -53,23 +53,15 @@ extension CALayer {
         for name in [
             "bounds",
             "frame",
-            "position",
         ] {
-            types[name] = .unavailable("Use top/left/width/height expressions instead")
+            types[name] = .unavailable("Use top/left/width/height instead")
             let name = "\(name)."
             for key in types.keys where key.hasPrefix(name) {
-                types[key] = .unavailable("Use top/left/width/height expressions instead")
+                types[key] = .unavailable("Use top/left/width/height instead")
             }
         }
-        for name in [
-            "anchorPoint",
-            "needsDisplayInRect",
-        ] {
-            types[name] = .unavailable()
-            for key in types.keys where key.hasPrefix(name) {
-                types[key] = .unavailable()
-            }
-        }
+        types["position"] = .unavailable("Use center.x or center.y instead")
+        types["needsDisplayInRect"] = .unavailable()
 
         #if arch(i386) || arch(x86_64)
             // Private properties

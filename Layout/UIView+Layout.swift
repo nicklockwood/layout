@@ -50,7 +50,6 @@ extension UIView {
         for name in [
             "autoresizingMask",
             "bounds",
-            "center",
             "frame",
             "topAnchor",
             "bottomAnchor",
@@ -60,14 +59,19 @@ extension UIView {
             "heightAnchor",
             "leadingAnchor",
             "trailingAnchor",
+        ] {
+            types[name] = .unavailable("Use top/left/width/height instead")
+            let name = "\(name)."
+            for key in types.keys where key.hasPrefix(name) {
+                types[key] = .unavailable("Use top/left/width/height instead")
+            }
+        }
+        for name in [
+            "center",
             "centerXAnchor",
             "centerYAnchor",
         ] {
-            types[name] = .unavailable("Use top/left/width/height expressions instead")
-            let name = "\(name)."
-            for key in types.keys where key.hasPrefix(name) {
-                types[key] = .unavailable("Use top/left/width/height expressions instead")
-            }
+            types[name] = .unavailable("Use center.x or center.y instead")
         }
         for name in [
             "needsDisplayInRect",

@@ -300,11 +300,13 @@ public class LayoutNode: NSObject {
         for (key, value) in defaultExpressions {
             guard !hasExpression(key) else { continue }
             switch key {
-            case "left" where hasExpression("width") && hasExpression("right"),
-                 "right" where hasExpression("width") && hasExpression("left"),
+            case "center.x" where hasExpression("left") || hasExpression("right"),
+                 "left" where hasExpression("center.x") || (hasExpression("right") && hasExpression("width")),
+                 "right" where hasExpression("center.x") || (hasExpression("left") && hasExpression("width")),
                  "width" where hasExpression("left") && hasExpression("right"),
-                 "top" where hasExpression("height") && hasExpression("bottom"),
-                 "bottom" where hasExpression("height") && hasExpression("top"),
+                 "center.y" where hasExpression("top") || hasExpression("bottom"),
+                 "top" where hasExpression("center.y") || (hasExpression("height") && hasExpression("bottom")),
+                 "bottom" where hasExpression("center.y") || (hasExpression("height") && hasExpression("top")),
                  "height" where hasExpression("top") && hasExpression("bottom"):
                 break // Redundant
             default:
@@ -385,7 +387,7 @@ public class LayoutNode: NSObject {
     public static func isValidExpressionName(
         _ name: String, for viewOrViewControllerClass: AnyClass) -> Bool {
         switch name {
-        case "top", "left", "bottom", "right", "width", "height", "outlet":
+        case "top", "left", "bottom", "right", "width", "height", "center.x", "center.y", "outlet":
             return true
         default:
             if let viewClass = viewOrViewControllerClass as? UIView.Type {
@@ -429,7 +431,7 @@ public class LayoutNode: NSObject {
             if expressions[name] != nil {
                 return true
             }
-            _originalExpressions[name] = nil // Prevents false postives when overridden
+            _originalExpressions[name] = nil // Prevents false positives when overridden
         }
         return false
     }
@@ -447,6 +449,14 @@ public class LayoutNode: NSObject {
             !value(forSymbol: "left", dependsOn: "right") {
             errors.insert(LayoutError(SymbolError("Expression for right is redundant",
                                                   for: "right"), for: self))
+        }
+        if hasExpression("center.y"), !value(forSymbol: "top", dependsOn: "center.y") {
+            errors.insert(LayoutError(SymbolError("Expression for center.y is redundant",
+                                                  for: "center.y"), for: self))
+        }
+        if hasExpression("center.x"), !value(forSymbol: "left", dependsOn: "center.x") {
+            errors.insert(LayoutError(SymbolError("Expression for center.x is redundant",
+                                                  for: "center.x"), for: self))
         }
         return errors
     }
@@ -831,9 +841,13 @@ public class LayoutNode: NSObject {
                 expressions["width"] = "100%"
             }
         }
-        if !hasExpression("left"), hasExpression("right") {
+        if !hasExpression("left") {
             _getters["left"] = nil
-            expressions["left"] = "right - width"
+            if hasExpression("right") {
+                expressions["left"] = "right - width"
+            } else if hasExpression("center.x") {
+                expressions["left"] = "center.x - width * layer.anchorPoint.x"
+            }
         }
         if !hasExpression("height") {
             _getters["height"] = nil
@@ -846,9 +860,13 @@ public class LayoutNode: NSObject {
                 expressions["height"] = "100%"
             }
         }
-        if !hasExpression("top"), hasExpression("bottom") {
+        if !hasExpression("top") {
             _getters["top"] = nil
-            expressions["top"] = "bottom - height"
+            if hasExpression("bottom") {
+                expressions["top"] = "bottom - height"
+            } else if hasExpression("center.y") {
+                expressions["top"] = "center.y - height * layer.anchorPoint.y"
+            }
         }
     }
 
@@ -935,7 +953,7 @@ public class LayoutNode: NSObject {
         var symbols = [String]()
         var type: RuntimeType
         switch name {
-        case "left", "right", "top", "bottom":
+        case "left", "right", "top", "bottom", "center.x", "center.y":
             type = .cgFloat
         case "width", "height":
             type = .cgFloat
@@ -994,9 +1012,9 @@ public class LayoutNode: NSObject {
             _evaluating.append(symbol)
             defer { _evaluating.removeLast() }
             switch symbol {
-            case "left", "right":
+            case "left", "right", "center.x":
                 expression = LayoutExpression(xExpression: string, for: self)
-            case "top", "bottom":
+            case "top", "bottom", "center.y":
                 expression = LayoutExpression(yExpression: string, for: self)
             case "width":
                 expression = LayoutExpression(widthExpression: string, for: self)
@@ -1627,6 +1645,16 @@ public class LayoutNode: NSObject {
                     switch tail {
                     case "top", "left":
                         getter = { _ in 0 }
+                    case "center.x":
+                        getter = { [unowned self] in
+                            try (self.parent?.cgFloatValue(forSymbol: "containerSize.width") ??
+                                self._view?.superview?.bounds.width ?? 0) / 2
+                        }
+                    case "center.y":
+                        getter = { [unowned self] in
+                            try (self.parent?.cgFloatValue(forSymbol: "containerSize.height") ??
+                                self._view?.superview?.bounds.width ?? 0) / 2
+                        }
                     case "right", "width", "containerSize.width":
                         getter = { [unowned self] in
                             try self.parent?.cgFloatValue(forSymbol: "containerSize.width") ??

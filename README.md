@@ -732,7 +732,7 @@ The following types of property are given special treatment in order to make it 
 
 ## Geometry
 
-Because Layout manages the view frame automatically, direct manipulation of the view's frame, bounds and position via expressions is not permitted - you should use the `top`/`left`/`bottom`/`right`/`width`/`height` expressions instead. However, there are other geometric properties that do not directly affect the frame, and many of these *are* available to be set via expressions, for example:
+Because Layout manages the view frame automatically, direct manipulation of the view's `frame` or `bounds` is not permitted - you should use the `top`, `left`, `bottom`, `right`, `width`, `height`, `center.x` and `center.y` expressions instead. However, there are other geometric properties that do not directly affect the frame, and many of these *are* available to be set via expressions, for example:
 
 * contentSize
 * contentInset
@@ -1544,7 +1544,7 @@ Layout supports UIKit's `UIStackView` class, which you can use for flexbox-like 
 </UIStackView>
 ```
 
-Subview nodes nested inside a `UIStackView` are automatically added to the `arrangedSubviews` array. The `width` and `height` properties are respected for children of a `UIStackView`, but the `top`, `left`, `bottom` and `right` expressions are ignored.
+Subview nodes nested inside a `UIStackView` are automatically added to the `arrangedSubviews` array. The `width` and `height` properties are respected for children of a `UIStackView`, but the `top`, `left`, `bottom`, `right`, `center.x` and `center.y` expressions are ignored.
 
 Since `UIStackView` is a non-drawing view, only its position and layout attributes can be configured. Inherited `UIView` properties such as `backgroundColor` or `borderWidth` are unavailable.
 

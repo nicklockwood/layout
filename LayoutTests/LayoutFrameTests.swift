@@ -274,4 +274,52 @@ class LayoutFrameTests: XCTestCase {
         XCTAssertTrue(node.frame.height > 20)
         XCTAssertEqual(node.frame.size, node.view.systemLayoutSizeFitting(.zero))
     }
+
+    // MARK: Center
+
+    func testCenterPositioning() {
+        let child = LayoutNode(expressions: [
+            "width": "50%",
+            "height": "50%",
+            "center.x": "50%",
+            "center.y": "25%",
+        ])
+        let parent = LayoutNode(expressions: [
+            "width": "100",
+            "height": "100",
+        ], children: [child])
+        parent.update()
+        XCTAssertEqual(child.frame.origin.x, 25)
+        XCTAssertEqual(child.frame.origin.y, 0)
+    }
+
+    func testCenterPositioningWithCustomAnchor() {
+        let child = LayoutNode(expressions: [
+            "width": "50%",
+            "height": "50%",
+            "center.x": "50%",
+            "center.y": "25%",
+            "layer.anchorPoint.x": "0",
+            "layer.anchorPoint.y": "1",
+        ])
+        let parent = LayoutNode(expressions: [
+            "width": "100",
+            "height": "100",
+        ], children: [child])
+        parent.update()
+        XCTAssertEqual(child.frame.origin.x, 50)
+        XCTAssertEqual(child.frame.origin.y, -25)
+    }
+
+    func testRedundantCenterPosition() {
+        let node = LayoutNode(expressions: [
+            "width": "100",
+            "height": "100",
+            "left": "50% - width / 2",
+            "center.x": "50%",
+        ])
+        let errors = node.validate()
+        XCTAssert(errors.count == 1)
+        XCTAssert((errors.first.map { "\($0)" } ?? "").contains("center.x is redundant"))
+    }
 }
