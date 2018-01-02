@@ -19,6 +19,8 @@ extension LayoutError {
                 var suggestions = node.availableSymbols(forExpression: error.symbol)
                 if let subError = error.error as? SymbolError {
                     suggestions = bestMatches(for: subError.symbol, in: suggestions)
+                } else {
+                    suggestions = bestMatches(for: error.symbol, in: suggestions)
                 }
                 self.init(LayoutError.unknownSymbol(error, suggestions), for: node)
             } else {
@@ -40,49 +42,39 @@ extension LayoutError {
 }
 
 func bestMatches(for symbol: String, in suggestions: [String]) -> [String] {
-    let matchThreshold = 3 // Minimum characters needed to count as a match
-    let symbol = symbol.lowercased()
-    // Find all matches containing the string
-    var matches = suggestions.filter {
-        let match = $0.lowercased()
-        guard let range = match.range(of: symbol) else {
-            return false
+    func levenshtein(_ lhs: String, _ rhs: String) -> Int {
+        var dist = [[Int]]()
+        for i in 0 ... lhs.count {
+            dist.append([i])
         }
-        return match.distance(from: range.lowerBound, to: range.upperBound) >= matchThreshold
-    }
-    if !matches.isEmpty {
-        return matches.sorted { lhs, rhs in
-            let lhsMatch = lhs.lowercased()
-            guard let lhsRange = lhsMatch.range(of: symbol) else {
-                return false
-            }
-            let rhsMatch = rhs.lowercased()
-            guard let rhsRange = rhsMatch.range(of: symbol) else {
-                return true
-            }
-            let lhsDistance = lhsMatch.distance(from: lhsRange.lowerBound, to: lhsRange.upperBound)
-            let rhsDistance = rhsMatch.distance(from: rhsRange.lowerBound, to: rhsRange.upperBound)
-            if lhsDistance == rhsDistance {
-                return lhsMatch.count < rhsMatch.count // Prefer the shortest match
-            }
-            return lhsDistance > rhsDistance // Prefer best match
+        for j in 1 ... rhs.count {
+            dist[0].append(j)
         }
-    }
-    // Find all matches with a common prefix
-    matches = suggestions.filter {
-        $0.lowercased().commonPrefix(with: symbol).count >= matchThreshold
-    }
-    if !matches.isEmpty {
-        // Sort suggestions by longest common prefix with symbol
-        return matches.sorted { lhs, rhs in
-            let lhsLength = lhs.lowercased().commonPrefix(with: symbol).count
-            let rhsLength = rhs.lowercased().commonPrefix(with: symbol).count
-            if lhsLength == rhsLength {
-                return lhs.count < rhs.count // Prefer the shortest match
+        for i in 1 ... lhs.count {
+            let lhs = lhs[lhs.index(lhs.startIndex, offsetBy: i - 1)]
+            for j in 1 ... rhs.count {
+                if lhs == rhs[rhs.index(rhs.startIndex, offsetBy: j - 1)] {
+                    dist[i].append(dist[i-1][j-1])
+                } else {
+                    dist[i].append(min(min(dist[i-1][j] + 1, dist[i][j-1] + 1), dist[i-1][j-1] + 1))
+                }
             }
-            return lhsLength > rhsLength
         }
+        return dist[lhs.count][rhs.count]
     }
-    // Sort all suggestions alphabetically
-    return suggestions.sorted()
+    let lowercasedSymbol = symbol.lowercased()
+    // Sort suggestions by Levenshtein distance
+    return suggestions
+        .flatMap { (string) -> (String, Int)? in
+            let lowercaseString = string.lowercased()
+            // Eliminate keypaths unless symbol itself is a keypath or is part of result
+            guard !lowercaseString.contains(".") || symbol.contains(".") ||
+                lowercaseString.hasPrefix("\(lowercasedSymbol).") else {
+                return nil
+            }
+            return (string, levenshtein(string.lowercased(), lowercasedSymbol))
+        }
+        // Sort by Levenshtein distance
+        .sorted { $0.1 < $1.1 }
+        .map { $0.0 }
 }

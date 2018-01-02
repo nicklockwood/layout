@@ -970,28 +970,32 @@ public class LayoutNode: NSObject {
 
     // Returns all symbols that can be referenced in an expression
     func availableSymbols(forExpression name: String) -> [String] {
-        var symbols = [String]()
-        var type: RuntimeType
+        var symbols = Array(layoutSymbols)
+        let type: RuntimeType
         switch name {
-        case "left", "right", "top", "bottom", "center.x", "center.y":
+        case "left", "right", "top", "bottom",
+             "center.x", "center.y", "firstBaseline", "lastBaseline":
             type = .cgFloat
-        case "width", "height":
+        case "width", "height", "contentSize.width", "contentSize.height":
             type = .cgFloat
             symbols.append("auto")
         case "outlet", "id", "xml", "template":
             type = .string
         default:
-            func validKeys(in types: [String: RuntimeType]) -> [String] {
-                return types.flatMap { $0.key != name && $0.value == type ? $0.key : nil }
-            }
             if let controllerClass = viewControllerClass {
                 type = controllerClass.expressionTypes[name] ?? UIView.expressionTypes[name] ?? .any
-                symbols += validKeys(in: controllerClass.expressionTypes)
-                symbols += validKeys(in: UIView.expressionTypes)
             } else {
                 type = viewClass.expressionTypes[name] ?? .any
-                symbols += validKeys(in: viewClass.expressionTypes)
             }
+        }
+        func validKeys(in types: [String: RuntimeType]) -> [String] {
+            return types.flatMap { $0.key != name && $0.value == type ? $0.key : nil }
+        }
+        if let controllerClass = viewControllerClass {
+            symbols += validKeys(in: controllerClass.expressionTypes)
+            symbols += validKeys(in: UIView.expressionTypes)
+        } else {
+            symbols += validKeys(in: viewClass.expressionTypes)
         }
         symbols += type.values.keys
         // TODO: basing the search on type is not especially effective because
@@ -1758,6 +1762,16 @@ public class LayoutNode: NSObject {
                             throw SymbolError("Could not find node with id `\(id)`", for: symbol)
                         }
                     }
+                case "top", "left",
+                     "bottom", "right",
+                     "width", "height",
+                     "center", "firstBaseline", "lastBaseline",
+                     "firstBaselineOffset", "lastBaselineOffset",
+                     "containerSize", "inferredSize",
+                     "contentSize", "inferredContentSize":
+                    getter = {
+                        throw SymbolError("Unknown property \(symbol)", for: symbol)
+                    }
                 default:
                     getter = getterFor(symbol)
                 }
@@ -2452,7 +2466,8 @@ public class LayoutNode: NSObject {
 }
 
 private let layoutSymbols: Set<String> = [
-    "left", "right", "width", "top", "bottom", "height",
+    "left", "right", "width", "top", "bottom", "height", "center",
+    "center.x", "center.y", "firstBaseline", "lastBaseline",
 ]
 
 private func areEqual(_ lhs: Any, _ rhs: Any) -> Bool {

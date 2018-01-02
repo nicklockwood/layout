@@ -120,7 +120,7 @@ private class LayoutConsoleView: UIView, LayoutLoading {
             background = "red"
             let suggestions = error.suggestions
             if suggestions.count == 1 {
-                message += " Did you mean \(suggestions[0])?"
+                message += "\n\nDid you mean `\(suggestions[0])`?"
             } else if !suggestions.isEmpty {
                 message += " Did you mean one of the following?"
             }
