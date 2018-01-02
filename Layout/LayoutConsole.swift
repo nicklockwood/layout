@@ -179,7 +179,7 @@ private class LayoutConsoleView: UIView, LayoutLoading {
             view: UIScrollView(),
             expressions: [
                 "backgroundColor": "\(background)",
-                "contentInset.top": "max(max(safeAreaInsets.top + 10, 20), 50% - contentSize.height / 2)",
+                "contentInset.top": "max(max(safeAreaInsets.top + 10, 30), 50% - contentSize.height / 2)",
                 "contentInset.bottom": "20",
                 "contentInset.left": "safeAreaInsets.left",
                 "contentInset.right": "safeAreaInsets.right",
@@ -200,6 +200,12 @@ private class LayoutConsoleView: UIView, LayoutLoading {
                 ),
             ]
         )
+        (layoutNode?.view as? UIScrollView).map {
+            // Workaround for contentSize calculation race condition
+            // TODO: Fix contentSize calculation race condition
+            $0.frame.size.width = self.frame.width
+            $0.contentOffset.y = -$0.contentInset.top
+        }
         UIView.animate(withDuration: 0.25) {
             self.alpha = 1
         }
