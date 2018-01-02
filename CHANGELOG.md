@@ -1,5 +1,13 @@
 # Change Log
 
+## [0.6.9](https://github.com/schibsted/layout/releases/tag/0.6.9) (2018-01-02)
+
+- You can now position views using `center.x` and `center.y` instead of having to calculate the center offset yourself
+- Layout now supports `layer.anchorPoint`, and respects its value when positioning using `center.x/y` expressions
+- Added support for `firstBaseline` and `lastBaseline` expressions for positioning text-based views
+- Referencing parent properties like `top` and `right` now transforms the value to the current node's coordinate space
+- Improved property error Red Box suggestions
+
 ## [0.6.8](https://github.com/schibsted/layout/releases/tag/0.6.8) (2017-12-20)
 
 - Fixed a regression in UITableView auto-sizing for cells and section headers

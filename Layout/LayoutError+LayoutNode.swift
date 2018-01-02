@@ -54,9 +54,9 @@ func bestMatches(for symbol: String, in suggestions: [String]) -> [String] {
             let lhs = lhs[lhs.index(lhs.startIndex, offsetBy: i - 1)]
             for j in 1 ... rhs.count {
                 if lhs == rhs[rhs.index(rhs.startIndex, offsetBy: j - 1)] {
-                    dist[i].append(dist[i-1][j-1])
+                    dist[i].append(dist[i - 1][j - 1])
                 } else {
-                    dist[i].append(min(min(dist[i-1][j] + 1, dist[i][j-1] + 1), dist[i-1][j-1] + 1))
+                    dist[i].append(min(min(dist[i - 1][j] + 1, dist[i][j - 1] + 1), dist[i - 1][j - 1] + 1))
                 }
             }
         }

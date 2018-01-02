@@ -305,21 +305,21 @@ public class LayoutNode: NSObject {
                  "right" where hasExpression("center.x") || (hasExpression("left") && hasExpression("width")),
                  "width" where hasExpression("left") && hasExpression("right"),
                  "center.y" where
-                    hasExpression("top") || hasExpression("bottom") ||
-                    hasExpression("firstBaseline") || hasExpression("lastBaseline"),
+                     hasExpression("top") || hasExpression("bottom") ||
+                     hasExpression("firstBaseline") || hasExpression("lastBaseline"),
                  "top" where
-                    hasExpression("center.y") || hasExpression("firstBaseline") ||
-                    hasExpression("lastBaseline") || (hasExpression("height") && hasExpression("bottom")),
+                     hasExpression("center.y") || hasExpression("firstBaseline") ||
+                     hasExpression("lastBaseline") || (hasExpression("height") && hasExpression("bottom")),
                  "bottom" where
-                    hasExpression("center.y") || hasExpression("firstBaseline") ||
-                    hasExpression("lastBaseline") ||  (hasExpression("height") && hasExpression("top")),
+                     hasExpression("center.y") || hasExpression("firstBaseline") ||
+                     hasExpression("lastBaseline") || (hasExpression("height") && hasExpression("top")),
                  "height" where hasExpression("top") && hasExpression("bottom"),
                  "firstBaseline" where
-                    hasExpression("top") || hasExpression("bottom") ||
-                    hasExpression("center.y") || hasExpression("lastBaseline"),
+                     hasExpression("top") || hasExpression("bottom") ||
+                     hasExpression("center.y") || hasExpression("lastBaseline"),
                  "lastBaseline" where
-                    hasExpression("top") || hasExpression("bottom") ||
-                    hasExpression("center.y") || hasExpression("firstBaseline"):
+                     hasExpression("top") || hasExpression("bottom") ||
+                     hasExpression("center.y") || hasExpression("firstBaseline"):
                 break // Redundant
             default:
                 _originalExpressions[key] = value
@@ -2040,10 +2040,10 @@ public class LayoutNode: NSObject {
     private func getLastBaselineOffset() throws -> CGFloat {
         switch _view?.forLastBaselineLayout {
         case let label as UILabel:
-                return floor(frame.height + label.font.descender)
+            return floor(frame.height + label.font.descender)
         case let textView as UITextView:
-                return floor(textView.contentSize.height - textView.textContainerInset.bottom
-                    + (textView.font ?? UIFont.systemFont(ofSize: 17)).descender)
+            return floor(textView.contentSize.height - textView.textContainerInset.bottom
+                + (textView.font ?? UIFont.systemFont(ofSize: 17)).descender)
         default:
             throw SymbolError("\(_class) does not implement lastBaseline", for: "lastBaseline")
         }

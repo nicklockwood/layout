@@ -72,8 +72,8 @@
     <!-- UI -->
     <UIButton
         backgroundColor="#9cf"
-        layer.cornerRadius="5"
         center.x="50%"
+        layer.cornerRadius="5"
         title="Refresh"
         top="previous.bottom + 30"
         touchUpInside="refresh"

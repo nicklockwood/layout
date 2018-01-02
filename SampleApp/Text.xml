@@ -34,8 +34,8 @@
         />
         <UILabel
             backgroundColor="#0001"
-            font="courier"
             center.x="50%"
+            font="courier"
             numberOfLines="0"
             text="This text is left-aligned, but the paragraph itself is centered. It also uses a custom font"
             top="SPACING"

@@ -1,6 +1,6 @@
 {
   "name": "Layout",
-  "version": "0.6.8",
+  "version": "0.6.9",
   "license": {
     "type": "MIT",
     "file": "LICENSE.md"
@@ -10,7 +10,7 @@
   "authors": "Nick Lockwood",
   "source": {
     "git": "https://github.com/schibsted/layout.git",
-    "tag": "0.6.8"
+    "tag": "0.6.9"
   },
   "default_subspecs": "Core",
   "subspecs": [

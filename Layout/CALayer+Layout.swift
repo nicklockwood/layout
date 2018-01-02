@@ -60,8 +60,22 @@ extension CALayer {
                 types[key] = .unavailable("Use top/left/width/height instead")
             }
         }
-        types["position"] = .unavailable("Use center.x or center.y instead")
-        types["needsDisplayInRect"] = .unavailable()
+        for name in [
+            "needsDisplayInRect",
+        ] {
+            types[name] = .unavailable()
+            for key in types.keys where key.hasPrefix(name) {
+                types[key] = .unavailable()
+            }
+        }
+        for name in [
+            "position",
+        ] {
+            types[name] = .unavailable("Use center.x or center.y instead")
+            for key in types.keys where key.hasPrefix(name) {
+                types[key] = .unavailable("Use center.x or center.y instead")
+            }
+        }
 
         #if arch(i386) || arch(x86_64)
             // Private properties
