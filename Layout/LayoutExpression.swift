@@ -425,7 +425,7 @@ struct LayoutExpression {
                 } catch {
                     symbols[symbol] = { _ in throw error }
                 }
-            case let .function(name, arity):
+            case let .function(name, .exactly(arity)):
                 var key = name
                 if key.count >= 2, key.first == "`", key.last == "`" {
                     key = String(key.dropFirst().dropLast())

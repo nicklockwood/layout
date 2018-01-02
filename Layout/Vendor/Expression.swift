@@ -2,7 +2,7 @@
 //  Expression.swift
 //  Expression
 //
-//  Version 0.9.3
+//  Version 0.10.0
 //
 //  Created by Nick Lockwood on 15/09/2016.
 //  Copyright © 2016 Nick Lockwood. All rights reserved.
@@ -44,6 +44,49 @@ public class Expression: CustomStringConvertible {
     /// but there is some other problem (e.g. wrong number of arguments for a function)
     public typealias Evaluator = (_ symbol: Symbol, _ args: [Double]) throws -> Double?
 
+    /// Type representing the arity (number of arguments) accepted by a function
+    public enum Arity: ExpressibleByIntegerLiteral, CustomStringConvertible, Equatable {
+        public typealias IntegerLiteralType = Int
+
+        /// An exact number of arguments
+        case exactly(Int)
+
+        /// A minimum number of arguments
+        case atLeast(Int)
+
+        /// ExpressibleByIntegerLiteral constructor
+        public init(integerLiteral value: Int) {
+            self = .exactly(value)
+        }
+
+        /// The human-readable description of the arity
+        public var description: String {
+            switch self {
+            case let .exactly(value):
+                return "\(value) argument\(value == 1 ? "" : "s")"
+            case let .atLeast(value):
+                return "at least \(value) argument\(value == 1 ? "" : "s")"
+            }
+        }
+
+        /// Equatable implementation
+        /// Note: this works more like a contains() function if the
+        /// lhs is a range and the rhs is an exact value. This allows
+        /// foo(x) to match foo(...) in a symbols dictionary
+        public static func == (lhs: Arity, rhs: Arity) -> Bool {
+            switch (lhs, rhs) {
+            case let (.exactly(lhs), .exactly(rhs)),
+                 let (.atLeast(lhs), .atLeast(rhs)):
+                return lhs == rhs
+            case let (.atLeast(min), .exactly(rhs)):
+                return rhs >= min
+            case (.exactly, _),
+                 (.atLeast, _):
+                return false
+            }
+        }
+    }
+
     /// Symbols that make up an expression
     public enum Symbol: CustomStringConvertible, Hashable {
 
@@ -60,7 +103,7 @@ public class Expression: CustomStringConvertible {
         case postfix(String)
 
         /// A function accepting a number of arguments specified by `arity`
-        case function(String, arity: Int)
+        case function(String, arity: Arity)
 
         /// A array of values accessed by index
         case array(String)
@@ -99,12 +142,12 @@ public class Expression: CustomStringConvertible {
             }
         }
 
-        /// Required by the hashable protocol
+        /// Required by the Hashable protocol
         public var hashValue: Int {
             return name.hashValue
         }
 
-        /// Required by the equatable protocol
+        /// Equatable implementation
         public static func == (lhs: Symbol, rhs: Symbol) -> Bool {
             if case let .function(_, lhsarity) = lhs,
                 case let .function(_, rhsarity) = rhs,
@@ -150,7 +193,7 @@ public class Expression: CustomStringConvertible {
             case let .undefinedSymbol(symbol):
                 return "Undefined \(symbol)"
             case let .arityMismatch(symbol):
-                let arity: Int
+                let arity: Arity
                 switch symbol {
                 case .variable:
                     arity = 0
@@ -167,7 +210,7 @@ public class Expression: CustomStringConvertible {
                 }
                 let description = symbol.description
                 return String(description.first!).uppercased() +
-                    "\(description.dropFirst()) expects \(arity) argument\(arity == 1 ? "" : "s")"
+                    "\(description.dropFirst()) expects \(arity)"
             case let .arrayBounds(symbol, index):
                 return "Index \(stringify(index)) out of bounds for \(symbol)"
             }
@@ -478,10 +521,12 @@ public class Expression: CustomStringConvertible {
 
         // functions - arity 2
         symbols[.function("pow", arity: 2)] = { pow($0[0], $0[1]) }
-        symbols[.function("max", arity: 2)] = { max($0[0], $0[1]) }
-        symbols[.function("min", arity: 2)] = { min($0[0], $0[1]) }
         symbols[.function("atan2", arity: 2)] = { atan2($0[0], $0[1]) }
         symbols[.function("mod", arity: 2)] = { fmod($0[0], $0[1]) }
+
+        // functions - variadic
+        symbols[.function("max", arity: .atLeast(2))] = { $0.reduce($0[0]) { max($0, $1) } }
+        symbols[.function("min", arity: .atLeast(2))] = { $0.reduce($0[0]) { min($0, $1) } }
 
         return symbols
     }()
@@ -1311,7 +1356,7 @@ private extension UnicodeScalarView {
                             } while scanCharacter(",")
                         }
                         stack[stack.count - 1] = .symbol(
-                            .function(name, arity: args.count), args, placeholder
+                            .function(name, arity: .exactly(args.count)), args, placeholder
                         )
                     case let last? where last.isOperand:
                         throw Expression.Error.unexpectedToken("(")
