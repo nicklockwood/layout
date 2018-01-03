@@ -9,6 +9,8 @@ public protocol LayoutBacked: class {
 }
 
 extension LayoutBacked {
+
+    /// Default implementation of the layoutNode property
     public weak var layoutNode: LayoutNode? {
         return objc_getAssociatedObject(self, &layoutNodeKey) as? LayoutNode
     }

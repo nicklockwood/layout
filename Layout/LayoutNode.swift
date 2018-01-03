@@ -1276,10 +1276,10 @@ public class LayoutNode: NSObject {
     // MARK: symbols
 
     private func localizedString(forKey key: String) throws -> String {
-        guard let delegate = self.target(for: #selector(LayoutDelegate.layoutNode(_:localizedStringForKey:))) else {
-            throw SymbolError("No layoutNode(_:localizedStringForKey:) implementation found. Unable to look up localized string", for: key)
+        guard let delegate = self.delegate as? LayoutLoading else {
+            throw SymbolError("No layoutString(forKey:) implementation found. Unable to look up localized string for key `\(key)`", for: key)
         }
-        guard let string = delegate.layoutNode?(self, localizedStringForKey: key) else {
+        guard let string = delegate.layoutString(forKey: key) else {
             throw SymbolError("Missing localized string", for: key)
         }
         return string

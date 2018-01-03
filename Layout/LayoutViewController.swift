@@ -63,13 +63,4 @@ extension LayoutViewController: LayoutDelegate {
         // TODO: should we just get rid of the layoutError() method?
         layoutError(error)
     }
-
-    func layoutNode(_: LayoutNode, localizedStringForKey key: String) -> String? {
-        do {
-            return try loader.loadLocalizedStrings()[key]
-        } catch {
-            layoutError(LayoutError(error))
-            return nil
-        }
-    }
 }
