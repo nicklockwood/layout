@@ -2281,14 +2281,27 @@ public class LayoutNode: NSObject {
         guard parent == nil else {
             throw LayoutError.message("The mount() method should only be used on a root node.")
         }
-        try bind(to: viewController)
-        for controller in viewControllers {
-            viewController.addChildViewController(controller)
-        }
-        viewController.view.addSubview(view)
-        performWithoutUpdate {
-            _view?.frame = viewController.view.bounds
-            _view?.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        try performWithoutUpdate {
+            try bind(to: viewController)
+            for controller in viewControllers {
+                viewController.addChildViewController(controller)
+            }
+            if viewControllerClass != nil || viewController.isViewLoaded ||
+                (viewController is UITableViewController && !(viewClass is UITableView.Type)) ||
+                (viewController is UICollectionViewController && !(viewClass is UICollectionView.Type)) {
+                if let existingView = viewController.viewIfLoaded,
+                    (existingView is UITableView && view is UITableView) ||
+                        (existingView is UICollectionView && view is UICollectionView) {
+                    throw LayoutError("Cannot replace existing \(view.classForCoder) with a new instance", for: self)
+                }
+                // Add as subview of view controller's view
+                viewController.view.addSubview(view)
+                _view?.frame = viewController.view.bounds
+                _view?.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+            } else {
+                // Set as view controller's view
+                viewController.view = view
+            }
         }
         update()
         try throwUnhandledError()
@@ -2311,6 +2324,7 @@ public class LayoutNode: NSObject {
             }
         }
         if let viewController = view.viewController {
+            // TODO: should mounting a VC node in a view without a containing VC be an error?
             for controller in viewControllers {
                 viewController.addChildViewController(controller)
             }
