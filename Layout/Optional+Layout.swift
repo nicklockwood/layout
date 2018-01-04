@@ -12,10 +12,10 @@ func unwrap(_ value: Any) throws -> Any {
     guard let optional = value as? _Optional else {
         return value
     }
-    guard let value = optional.value else {
-        throw Expression.Error.message("Unexpected nil value")
+    if let value = optional.value, !(value is NSNull) {
+        return value
     }
-    return value
+    throw Expression.Error.message("Unexpected nil value")
 }
 
 // Unwraps a potentially optional value or returns nil

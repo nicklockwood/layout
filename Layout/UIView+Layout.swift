@@ -264,6 +264,8 @@ extension UIView {
     /// Get symbol value
     @objc open func value(forSymbol name: String) throws -> Any {
         switch name {
+        case "backgroundColor":
+            return backgroundColor ?? .clear
         case "safeAreaInsets":
             return _safeAreaInsets
         case "safeAreaInsets.top":

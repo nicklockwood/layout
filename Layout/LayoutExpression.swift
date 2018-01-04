@@ -869,7 +869,7 @@ struct LayoutExpression {
                 }
                 self.init(
                     evaluate: {
-                        switch try unwrap(expression.evaluate()) {
+                        switch try expression.evaluate() {
                         case let name as String:
                             return try nameToColorAsset(name)
                         case let color:
