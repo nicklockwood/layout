@@ -517,14 +517,14 @@ public class LayoutNode: NSObject {
             }
             return
         }
-        if let delegate = self.target(for: #selector(LayoutDelegate.layoutNode(_:didDetectError:))) {
-            if error.isTransient {
-                _unhandledError = nil
-            }
-            delegate.layoutNode?(self, didDetectError: error)
+        guard let delegate = (delegate as? LayoutLoading) ?? (root._owner as? LayoutLoading) else {
+            LayoutConsole.showError(error)
             return
         }
-        LayoutConsole.showError(error)
+        if error.isTransient {
+            _unhandledError = nil
+        }
+        delegate.layoutError(error)
     }
 
     // Attempt a throwing operation but catch the error and bubble it up the Layout hierarchy

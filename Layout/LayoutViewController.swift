@@ -2,7 +2,7 @@
 
 import UIKit
 
-open class LayoutViewController: UIViewController, LayoutLoading {
+open class LayoutViewController: UIViewController, LayoutLoading, LayoutDelegate {
 
     @objc open var layoutNode: LayoutNode? {
         didSet {
@@ -50,17 +50,5 @@ open class LayoutViewController: UIViewController, LayoutLoading {
 
     open func layoutError(_ error: LayoutError) {
         LayoutConsole.showError(error)
-    }
-}
-
-extension LayoutViewController: LayoutDelegate {
-
-    func layoutNode(_: LayoutNode, didDetectError error: Error) {
-        guard let error = error as? LayoutError else {
-            assertionFailure()
-            return
-        }
-        // TODO: should we just get rid of the layoutError() method?
-        layoutError(error)
     }
 }
