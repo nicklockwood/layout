@@ -244,6 +244,26 @@ class LayoutFrameTests: XCTestCase {
         XCTAssertEqual(node.frame, node.view.frame)
     }
 
+    func testAutosizeCollapsing() throws {
+        let label = UILabel()
+        let node = LayoutNode(
+            state: ["text": "foobar"],
+            expressions: ["width": "100", "height": "auto"],
+            children: [
+                LayoutNode(
+                    view: label,
+                    expressions: ["text": "{text}"]
+                )
+            ]
+        )
+        let container = UIView(frame: CGRect(x: 0, y: 0, width: 100, height: 100))
+        try node.mount(in: container)
+        XCTAssert(node.frame.height > 15)
+        XCTAssertEqual(node.frame.height, label.frame.height)
+        node.setState(["text": ""])
+        XCTAssertEqual(node.frame.height, 0)
+    }
+
     // MARK: AutoLayout
 
     func testAutosizeTextUsingConstraints() {

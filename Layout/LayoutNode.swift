@@ -1940,13 +1940,15 @@ public class LayoutNode: NSObject {
                 size.height = try max(size.height, top + child.cgFloatValue(forSymbol: "height"))
             }
         }
-        // If zero, fill superview
-        let contentInset = try computeContentInset()
-        if size.width <= 0, let width = _view?.superview?.bounds.width {
-            size.width = width - contentInset.left - contentInset.right
-        }
-        if size.height <= 0, let height = _view?.superview?.bounds.height {
-            size.height = height - contentInset.top - contentInset.bottom
+        if children.isEmpty {
+            // If zero-sized, fill superview
+            let contentInset = try computeContentInset()
+            if size.width <= 0, let width = _view?.superview?.bounds.width {
+                size.width = width - contentInset.left - contentInset.right
+            }
+            if size.height <= 0, let height = _view?.superview?.bounds.height {
+                size.height = height - contentInset.top - contentInset.bottom
+            }
         }
         // Check for explicit width / height
         if hasExpression("contentSize.width"), !_evaluating.contains("contentSize.width") {
