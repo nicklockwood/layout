@@ -1,5 +1,10 @@
 # Change Log
 
+## [0.6.10](https://github.com/schibsted/layout/releases/tag/0.6.10) (2018-01-04)
+
+- Localized string lookup in expressions no longer requires you to use LayoutViewController
+- Fixed a bug where auto-sized views would not collapse if all their children were hidden
+
 ## [0.6.9](https://github.com/schibsted/layout/releases/tag/0.6.9) (2018-01-02)
 
 - You can now position views using `center.x` and `center.y` instead of having to calculate the center offset yourself

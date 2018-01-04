@@ -1276,7 +1276,7 @@ public class LayoutNode: NSObject {
     // MARK: symbols
 
     private func localizedString(forKey key: String) throws -> String {
-        guard let delegate = self.delegate as? LayoutLoading else {
+        guard let delegate = (delegate as? LayoutLoading) ?? (root._owner as? LayoutLoading) else {
             throw SymbolError("No layoutString(forKey:) implementation found. Unable to look up localized string for key `\(key)`", for: key)
         }
         guard let string = delegate.layoutString(forKey: key) else {
@@ -1684,7 +1684,7 @@ public class LayoutNode: NSObject {
                 case "parent":
                     switch tail {
                     case "top", "left":
-                        getter = { _ in 0 }
+                        getter = { 0 }
                     case "center.x":
                         getter = { [unowned self] in
                             try (self.parent?.cgFloatValue(forSymbol: "containerSize.width") ??
