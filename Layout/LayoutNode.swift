@@ -2288,6 +2288,7 @@ public class LayoutNode: NSObject {
         viewController.view.addSubview(view)
         performWithoutUpdate {
             _view?.frame = viewController.view.bounds
+            _view?.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         }
         update()
         try throwUnhandledError()

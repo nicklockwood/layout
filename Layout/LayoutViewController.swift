@@ -3,17 +3,6 @@
 import UIKit
 
 open class LayoutViewController: UIViewController, LayoutLoading {
-    open override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-
-        if let layoutNode = layoutNode {
-            layoutNode.performWithoutUpdate {
-                layoutNode.view.frame = view.bounds
-            }
-            layoutNode.update()
-        }
-    }
-
     /// Called immediately after the layoutNode is set. Will not be called
     /// in the event of an error, or if layoutNode is set to nil
     open func layoutDidLoad(_: LayoutNode) {
