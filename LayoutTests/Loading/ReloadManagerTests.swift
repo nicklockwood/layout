@@ -37,16 +37,17 @@ class ReloadManagerTests: XCTestCase {
 
     func testRelease() {
         weak var weakRef: TestController?
+        let initialObserverCount = ReloadManager.observers.count
         autoreleasepool {
             var vc: TestController? = TestController()
             weakRef = vc
             vc?.loadLayout(named: "LayoutDidLoad_Valid.xml", bundle: Bundle(for: type(of: self)))
             ReloadManager.reload(hard: true)
-            XCTAssert(ReloadManager.observers.first === vc)
+            XCTAssert(ReloadManager.observers.contains { $0 === vc })
             XCTAssertNotNil(weakRef)
             vc = nil
         }
         XCTAssertNil(weakRef)
-        XCTAssertTrue(ReloadManager.observers.isEmpty)
+        XCTAssertEqual(ReloadManager.observers.count, initialObserverCount)
     }
 }

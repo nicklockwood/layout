@@ -225,26 +225,11 @@ extension UITableViewController: LayoutBacked {
 }
 
 extension UITableView: LayoutDelegate {
-    func layoutError(_ error: LayoutError) {
-        DispatchQueue.main.async {
-            var responder: UIResponder? = self.next
-            while responder != nil {
-                if let errorHandler = responder as? LayoutLoading {
-                    errorHandler.layoutError(error)
-                    break
-                }
-                responder = responder?.next ?? (responder as? UIViewController)?.parent
-            }
-            print("Layout error: \(error)")
+    public func layoutValue(forKey key: String) throws -> Any? {
+        if let layoutNode = layoutNode {
+            return try layoutNode.value(forParameterOrVariableOrConstant: key)
         }
-    }
-
-    func value(forParameterOrVariableOrConstant name: String) -> Any? {
-        guard let layoutNode = layoutNode,
-            let value = try? layoutNode.value(forParameterOrVariableOrConstant: name) else {
-            return nil
-        }
-        return value
+        return nil
     }
 }
 

@@ -3,15 +3,15 @@
 import UIKit
 
 /// Protocol for views or view controllers that can load and display a LayoutNode
-public protocol LayoutLoading: class {
+public protocol LayoutLoading: LayoutDelegate {
 
     /// The loaded LayoutNode instance
     /// A default implementation of this property is provided for UIView and UIViewControllers
     var layoutNode: LayoutNode? { get set }
 
-    /// Handle errors produced by the layout during an update
-    /// The default implementation displays a red box error alert using the LayoutConsole
-    func layoutError(_ error: LayoutError)
+    /// Called immediately after the layoutNode is set. Will not be called
+    /// in the event of an error, or if layoutNode is set to nil
+    func layoutDidLoad(_ layoutNode: LayoutNode)
 
     /// Fetch a localized string constant for a given key.
     /// These strings are assumed to be constant for the duration of the layout tree's lifecycle
@@ -83,21 +83,65 @@ public extension LayoutLoading {
         }
     }
 
-    /// Default error handler implementation - bubbles error up to the first responder
-    /// that will handle it, or displays LayoutConsole if no handler is found
-    func layoutError(_ error: LayoutError) {
-        DispatchQueue.main.async {
-            var responder = (self as? UIResponder)?.next
-            while responder != nil {
-                if let errorHandler = responder as? LayoutLoading {
-                    errorHandler.layoutError(error)
-                    return
+    // Used by LayoutViewController
+    internal var loader: LayoutLoader {
+        guard let loader = objc_getAssociatedObject(self, &loaderKey) as? LayoutLoader else {
+            let loader = LayoutLoader()
+            objc_setAssociatedObject(self, &loaderKey, loader, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+            return loader
+        }
+        return loader
+    }
+}
+
+public extension LayoutLoading where Self: UIView {
+
+    /// Default layoutNode implementation for views
+    var layoutNode: LayoutNode? {
+        get {
+            return objc_getAssociatedObject(self, &layoutNodeKey) as? LayoutNode
+        }
+        set {
+            objc_setAssociatedObject(self, &layoutNodeKey, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+            layoutNode?.unmount()
+            if let layoutNode = layoutNode {
+                do {
+                    try layoutNode.mount(in: self)
+                    layoutDidLoad(layoutNode)
+                } catch {
+                    layoutError(LayoutError(error, for: layoutNode))
                 }
-                responder = responder?.next ?? (responder as? UIViewController)?.parent
             }
-            LayoutConsole.showError(error)
         }
     }
+}
+
+public extension LayoutLoading where Self: UIViewController {
+
+    /// Default layoutNode implementation for view controllers
+    var layoutNode: LayoutNode? {
+        get {
+            return objc_getAssociatedObject(self, &layoutNodeKey) as? LayoutNode
+        }
+        set {
+            objc_setAssociatedObject(self, &layoutNodeKey, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+            layoutNode?.unmount()
+            if let layoutNode = layoutNode {
+                do {
+                    try layoutNode.mount(in: self)
+                    layoutDidLoad(layoutNode)
+                } catch {
+                    layoutError(LayoutError(error, for: layoutNode))
+                }
+            }
+        }
+    }
+}
+
+public extension LayoutLoading {
+
+    /// Default layoutDidLoad(_:) implementation - does nothing
+    public func layoutDidLoad(_: LayoutNode) {}
 
     /// Default layoutString implementation - bubbles request up to the first responder
     /// that will handle it, or dynamically loads localized string  from Localizable.strings
@@ -115,56 +159,6 @@ public extension LayoutLoading {
         } catch {
             layoutError(LayoutError(error))
             return nil
-        }
-    }
-
-    // Used by LayoutViewController
-    internal var loader: LayoutLoader {
-        guard let loader = objc_getAssociatedObject(self, &loaderKey) as? LayoutLoader else {
-            let loader = LayoutLoader()
-            objc_setAssociatedObject(self, &loaderKey, loader, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
-            return loader
-        }
-        return loader
-    }
-}
-
-/// Default implementation of LayoutLoading for views
-public extension LayoutLoading where Self: UIView {
-    var layoutNode: LayoutNode? {
-        get {
-            return objc_getAssociatedObject(self, &layoutNodeKey) as? LayoutNode
-        }
-        set {
-            objc_setAssociatedObject(self, &layoutNodeKey, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
-            layoutNode?.unmount()
-            if let layoutNode = layoutNode {
-                do {
-                    try layoutNode.mount(in: self)
-                } catch {
-                    layoutError(LayoutError(error, for: layoutNode))
-                }
-            }
-        }
-    }
-}
-
-/// Default implementation of LayoutLoading for view controllers
-public extension LayoutLoading where Self: UIViewController {
-    var layoutNode: LayoutNode? {
-        get {
-            return objc_getAssociatedObject(self, &layoutNodeKey) as? LayoutNode
-        }
-        set {
-            objc_setAssociatedObject(self, &layoutNodeKey, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
-            layoutNode?.unmount()
-            if let layoutNode = layoutNode {
-                do {
-                    try layoutNode.mount(in: self)
-                } catch {
-                    layoutError(LayoutError(error, for: layoutNode))
-                }
-            }
         }
     }
 }

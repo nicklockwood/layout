@@ -517,7 +517,7 @@ public class LayoutNode: NSObject {
             }
             return
         }
-        guard let delegate = (delegate as? LayoutLoading) ?? (root._owner as? LayoutLoading) else {
+        guard let delegate = delegate else {
             LayoutConsole.showError(error)
             return
         }
@@ -1276,7 +1276,7 @@ public class LayoutNode: NSObject {
     // MARK: symbols
 
     private func localizedString(forKey key: String) throws -> String {
-        guard let delegate = (delegate as? LayoutLoading) ?? (root._owner as? LayoutLoading) else {
+        guard let delegate = delegate as? LayoutLoading else {
             throw SymbolError("No layoutString(forKey:) implementation found. Unable to look up localized string for key `\(key)`", for: key)
         }
         guard let string = delegate.layoutString(forKey: key) else {
@@ -1429,7 +1429,7 @@ public class LayoutNode: NSObject {
         return try value(forKeyPath: name, in: _variables) ??
             value(forKeyPath: name, in: constants) ??
             parent?.value(forParameterOrVariableOrConstant: name) ??
-            _delegate?.value?(forParameterOrVariableOrConstant: name)
+            _delegate?.layoutValue(forKey: name)
     }
 
     func value(forParameterOrVariableOrConstant name: String) throws -> Any? {
@@ -2290,6 +2290,7 @@ public class LayoutNode: NSObject {
             _view?.frame = viewController.view.bounds
         }
         update()
+        try throwUnhandledError()
     }
 
     /// Mounts a node inside the specified view, and binds the view as its owner
@@ -2315,6 +2316,7 @@ public class LayoutNode: NSObject {
         }
         _view.map { view.addSubview($0) }
         update()
+        try throwUnhandledError()
     }
 
     /// Unmounts and unbinds the node from its owner
