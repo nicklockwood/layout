@@ -5,10 +5,10 @@ import XCTest
 
 class ReloadManagerTests: XCTestCase {
 
-    private class TestController: LayoutViewController {
+    private class TestController: UIViewController, LayoutLoading {
         var loadCount = 0
 
-        override func layoutDidLoad(_: LayoutNode) {
+        func layoutDidLoad(_: LayoutNode) {
             loadCount += 1
         }
     }

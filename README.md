@@ -197,10 +197,10 @@ The equivalent XML markup for the layout above is:
 
 Most built-in iOS views should already work when used as a Layout XML element. For custom views, you may need to make a few minor changes for full Layout-compatibility. See the [Custom Components](#custom-components) section below for details.
 
-To mount a `LayoutNode` inside a view or view controller, the simplest approach is to subclass `LayoutViewController` and use one of the following three options to load your layout:
+To mount a `LayoutNode` inside a view or view controller, the simplest approach is to create a `UIViewController` subclass and add the `LayoutLoading` protocol. You can then use one of the following three options to load your layout:
 
 ```swift
-class MyViewController: LayoutViewController {
+class MyViewController: UIViewController, LayoutLoading {
 
     public override func viewDidLoad() {
         super.viewDidLoad()
@@ -350,13 +350,13 @@ func setSelected() {
 }
 ```
 
-Note that you can use both constants and state in the same Layout. If a state variable has the same name as a constant, the state variable takes precedence. As with constants, state values can be passed in at the root node of a hierarchy and accessed by any child node. If children in the hierarchy have their own constant or state properties, these will take priority over values set on their parent.
+Note that you can use both constants and state in the same Layout. If a state variable has the same name as a constant, the state variable takes precedence. As with constants, state variables can be passed in at the root node of a hierarchy and accessed by any child node. If children in the hierarchy have their own constants or state variables, these will take priority over values set on their parent.
 
-Although state can be updated dynamically, all state properties referenced in the layout must have been given a value before the `LayoutNode` is first mounted/updated. It's generally a good idea to set default values for all state variables when you first initialize the node.
+Although state can be updated dynamically, all state variables referenced in the layout must have been given a value before the `LayoutNode` is first mounted/updated. It's generally a good idea to set default values for all state variables when you first initialize the node.
 
 Calling `setState()` on a `LayoutNode` after it has been created will trigger an update. The update causes all expressions in that node and its children to be re-evaluated. In future it may be possible to detect if parent nodes are indirectly affected by the state changes of their children and update them too, but currently that is not implemented.
 
-In the example above, we've used a dictionary to store the state values, but `LayoutNode` supports the use of arbitrary objects for state. A really good idea for layouts with complex state requirements is to use a `struct` to store the state. When you set the state using a `struct` or `class`, Layout uses Swift's introspection features to compare changes and determine if an update is necessary.
+In the example above, we've used a dictionary to store the state, but `LayoutNode` supports the use of arbitrary objects for state. A really good idea for layouts with complex state requirements is to use a `struct`. When you set the state using a `struct` or `class`, Layout uses Swift's introspection features to compare changes and determine if an update is necessary.
 
 Internally the `LayoutNode` still just treats the struct as a dictionary of key/value pairs, but you get to take advantage of compile-time type validation when manipulating your state programmatically in the rest of your program:
 
@@ -378,7 +378,7 @@ func setSelected() {
 }
 ```
 
-When using a state dictionary, you do not have to pass every single property each time you set the state. If you are only updating one property, it is fine to pass a dictionary with only that key/value pair. (This is not the case if you are using a struct, but don't worry - this is only a convenience feature, and makes little or no difference to performance.):
+When using a state dictionary, you do not have to pass every single property each time you set the state. If you are only updating a subset of properties, it is fine to pass a dictionary with only those key/value pairs. (This is not the case if you are using a struct, but don't worry - this is only a convenience feature, and makes little or no difference to performance.):
 
 ```swift
 loadLayout(
@@ -441,10 +441,10 @@ In this case, the button will call either the `select(_:)` or `deselect(_:)` met
 
 When creating views inside a Nib or Storyboard, you typically create references to individual views by using properties in your view controller marked with the `@IBOutlet` attribute, and Layout can utilize the same system to let you reference individual views in your hierarchy from code.
 
-To create an outlet binding for a layout node, declare a property of the correct type on your `LayoutViewController`, and then reference it using the `outlet` constructor argument for the `LayoutNode`:
+To create an outlet binding for a layout node, declare a property of the correct type on your view controller, and then reference it using the `outlet` constructor argument for the `LayoutNode`:
 
 ```swift
-class MyViewController: LayoutViewController {
+class MyViewController: UIViewController, LayoutLoading {
 
     @objc var labelNode: LayoutNode? // outlet
 
@@ -498,7 +498,7 @@ Outlets can also be set using an expression instead of a literal value. This is 
 </UIView>
 ```
 
-The type of the parameter in this case must be `String`, and not `UILabel` as you might expect. The reason for this is that the outlet is a KeyPath that references a property of the layout's owner (typically a view controller), not a direct reference to the view itself.
+The type of the parameter in this case must be `String`, and not `UILabel` as you might expect. The reason for this is that the outlet is a keyPath that references a property of the layout's owner (typically a view controller), not a direct reference to the view itself.
 
 **Note:** Outlet expressions must be set using a constant or literal value, and cannot be changed once set. Attempting to set the outlet using a state variable or other dynamic value will result in an error.
 
@@ -507,12 +507,12 @@ The type of the parameter in this case must be `String`, and not `UILabel` as yo
 
 Another commonly-used feature in iOS is the *delegate* pattern. Layout also supports this, but it does so in an implicit way that may be confusing if you aren't expecting it.
 
-When loading a Layout XML file, or a programmatically-created `LayoutNode` hierarchy into a `LayoutViewController`, the views will be scanned for delegate properties and these will be automatically bound to the `LayoutViewController` *if* it conforms to the specified protocol.
+When loading a Layout XML file, or a programmatically-created `LayoutNode` hierarchy into a view controller, the views will be scanned for delegate properties and these will be automatically bound to the controller *if* it conforms to the specified protocol.
 
 So for example, if your layout contains a `UIScrollView`, and your view controller conforms to the `UIScrollViewDelegate` protocol, then the view controller will automatically be attached as the delegate for the view controller:
 
 ```swift
-class MyViewController: LayoutViewController, UITextFieldDelegate {
+class MyViewController: UIViewController, LayoutLoading, UITextFieldDelegate {
     var labelNode: LayoutNode!
 
     public override func viewDidLoad() {
@@ -698,6 +698,8 @@ bottom
 right
 width
 height
+center.x
+center.y
 ```
 
 These are numeric values (measured in screen points) that specify the frame for the view. In addition to the standard operators, all of these properties allow values specified in percentages:
@@ -1332,7 +1334,7 @@ In the unlikely event that you need the literal value of a string expression to 
 
 # Standard Components
 
-Layout has good support for most built-in UIKit views and view controllers. It can automatically create any `UIView` subclass using `init(frame:)`, and can set any property that is compatible with Key Value Coding (KVC), but some views expect extra initializer arguments, or have properties that cannot be set by name at runtime, or which require special treatment for other reasons.
+Layout has good support for most built-in UIKit views and view controllers. It can automatically create almost any `UIView` subclass using `init(frame:)`, and can set any property that is compatible with Key Value Coding (KVC), but some views expect extra initializer arguments, or have properties that cannot be set by name at runtime, or which require special treatment for other reasons.
 
 The following views and view controllers have all been tested and are known to work correctly:
 
@@ -1561,7 +1563,7 @@ You can use a `UITableView` inside a Layout template in much the same way as you
 />
 ```
 
-The tableView's `delegate` and `dataSource` will automatically be bound to the file's owner, which is typically either your `LayoutViewController` subclass, or the first nested view controller that conforms to one or both of the `UITableViewDelegate`/`DataSource` protocols. If you don't want that behavior, you can explicitly set them (see the [Delegates](#delegates) section above).
+The tableView's `delegate` and `dataSource` will automatically be bound to the file's owner, which is typically either your `UIViewController` subclass, or the first nested view controller that conforms to one or both of the `UITableViewDelegate`/`DataSource` protocols. If you don't want that behavior, you can explicitly set them (see the [Delegates](#delegates) section above).
 
 You would define the view controller logic for a Layout-managed table in pretty much the same way as you would if not using Layout:
 
@@ -1869,7 +1871,7 @@ Layout also exposes the `configuration` property of `WKWebView`. This is a read-
 
 ## UITabBarController
 
-For the most part, Layout works best when implemented on a per-screen basis, with one `LayoutViewController` for each screen. There is basic support for defining collection view controllers such as `UITabBarController` however, as demonstrated in the SampleApp.
+For the most part, Layout works best when implemented on a per-screen basis, with one `LayoutLoading` view controller for each screen. There is basic support for defining collection view controllers such as `UITabBarController` however, as demonstrated in the SampleApp.
 
 To define a `UITabBarController`-based layout in XML, nest one or more `UIViewController` nodes inside a `UITabBarController` node, as follows:
 
@@ -2099,7 +2101,7 @@ In the interests of avoiding boilerplate, you should generally use the latter fo
 
 ## Custom Property Types
 
-As mentioned above, Layout uses the Objective-C runtime to automatically detect property names and types for use with expressions. If you are using Swift 4.0 or above, you may need to explicitly annotate your properties with `@objc` for them to work in Layout, as the default behavior is now for properties to not be exposed to the Objective-C runtime.
+As mentioned above, Layout uses the Objective-C runtime to automatically detect property names and types for use with expressions. If you are using Swift 4.0 or above, you will need to explicitly annotate your properties with `@objc` for them to work in Layout, as the default behavior is now for properties to not be exposed to the Objective-C runtime.
 
 Even if you mark your properties with `@objc`, the Objective-C runtime only supports a subset of possible Swift types, and even for Objective-C types, some runtime information is lost. For example, it's currently impossible to automatically detect the valid set of raw values and case names for enum types at runtime.
 
@@ -2314,11 +2316,11 @@ extension MyView {
 
 ## Layout-based Components
 
-If you are creating a library of views that use Layout internally, it's probably overkill wrap each one in its own `LayoutViewController` subclass.
+If you are creating a library of views that use Layout internally, it's probably overkill wrap each one in its own `UIViewController` subclass.
 
-If the consumers of your component library are using `Layout`, then you could expose all your components as xml files and allow them to be composed directly using Layout templates or code, but if you want the library to work well with an ordinary UIKit app then it's better if each component is exposed as a regular `UIView` or `UIViewController` subclass.
+If the consumers of your component library are using Layout, then you could expose all your components as xml files and allow them to be composed directly using Layout templates or code, but if you want the library to work well with an ordinary UIKit app then it's better if each component is exposed as a regular `UIView` subclass.
 
-To implement this, you can make use of the `LayoutLoading` protocol. `LayoutLoading` works in the same way as `LayoutViewController`, providing `loadLayout(...)` and `reloadLayout(...)` methods to load the subviews of your view or view controller using Layout templates.
+To implement this, subclass `UIView` (or `UIControl`, `UIButton`, etc) and add the `LayoutLoading` protocol. You can then use the `loadLayout(...)` methods just as you would with a view controller:
 
 ```swift
 class MyView: UIView, LayoutLoading {
@@ -2342,7 +2344,7 @@ class MyView: UIView, LayoutLoading {
 }
 ```
 
-**Note:** In the above example, the root view defined in the xml will be loaded as a *subview* of MyView, and will be automatically set to the same size. It would therefore probably not make sense for the root view in the xml to also be an instance of `MyView`, unless you want your view structure to be:
+**Note:** In the above example, the root view defined in the xml will be loaded as a *subview* of MyView, and will be automatically set to the same size. It would therefore not make sense for the root view in the xml to also be an instance of `MyView`, unless you want your view structure to be:
 
 ```xml
 <MyView>
@@ -2351,6 +2353,8 @@ class MyView: UIView, LayoutLoading {
     </MyView>
 </MyView>
 ``` 
+
+Attempting to load a view inside itself like this will throw a runtime error, because otherwise there's a danger of creating an infinite loading loop.
 
 If the layout has a dynamic size, you may wish to update the container view's frame whenever the layout frame changes. To implement that, add the following code:
 
@@ -2375,14 +2379,12 @@ class MyView: UIView, LayoutLoading {
 }
 ```
 
-Unlike `LayoutViewController`, `LayoutLoading` is a protocol rather than a base class, so it can be applied on top of any existing `UIView` or `UIViewController` base class that you require.
-
 The default implementation of `LayoutLoading` will bubble errors up the responder chain to the first view or view controller that handles them. If no responder in the chain intercepts the error, it will be displayed in the [Red Box console](#debugging).
 
 
 ## Manual Integration
 
-If you would prefer not to use either the `LayoutViewController` base class or `LayoutLoading` protocol, you can mount a `LayoutNode` directly into a regular view or view controller by using the `mount(in:)` method:
+If you would prefer not to use either the `LayoutLoading` protocol, you can mount a `LayoutNode` into a view or view controller manually by using the `mount(in:)` method:
 
 ```swift
 class MyViewController: UIViewController {
@@ -2428,7 +2430,7 @@ Fortunately, Layout has a nice solution for this: any layout node in your XML fi
 
 The referenced XML is just an ordinary layout file, and can be loaded and used normally, but when loaded using the composition feature it replaces the node that loads it. The attributes of the original node will be merged with the external node once it has loaded.
 
-Loading is synchronous for xml files in the same filesystem location, but for remote URLs, loading is performed asynchronously, so the original node will be displayed first and will be updated once the XML for the external node has loaded.
+Loading is synchronous for local xml files, but for remote URLs loading is performed asynchronously, so the original node will be displayed first and will be updated once the XML for the external node has loaded.
 
 Any children of the original node will be replaced by the contents of the loaded node, so you can insert a placeholder view to be displayed while the real content is loading:
 
@@ -2735,9 +2737,9 @@ When you have a Layout XML file open in Xcode, select the `Editor > Layout > For
 
 > Read the [Custom Property Types](#custom-property-types) section above.
 
-*Q. Do I have to use a `LayoutViewController` to display my layout?*
+*Q. Do I have to use a `UIViewController` subclass load my layout?*
 
-> No. See the [Manual Integration](#manual-integration) section above.
+> No. See the [Advanced Topics](#advanced-topics) section above.
 
 *Q. When I launched my app, Layout asked me to select a source file and I chose the wrong one, now my app isn't working correctly. What do I do?*
 

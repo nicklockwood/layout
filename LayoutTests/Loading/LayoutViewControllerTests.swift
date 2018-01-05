@@ -13,21 +13,12 @@ private func url(forXml name: String) throws -> URL {
 
 class LayoutViewControllerTests: XCTestCase {
 
-    // Test class for layoutDidLoad() backward compatibility test
-    private class BackwardTestLayoutViewController: LayoutViewController {
-        var layoutDidLoadCallCount = 0
-
-        override func layoutDidLoad() {
-            layoutDidLoadCallCount += 1
-        }
-    }
-
     // Test class which overrides layoutDidLoad(_:)
-    private class TestLayoutViewController: BackwardTestLayoutViewController {
+    private class TestLayoutViewController: UIViewController, LayoutLoading {
         var layoutDidLoadLayoutNode: LayoutNode?
         var layoutDidLoadLayoutNodeCallCount = 0
 
-        override func layoutDidLoad(_ layoutNode: LayoutNode) {
+        func layoutDidLoad(_ layoutNode: LayoutNode) {
             layoutDidLoadLayoutNodeCallCount += 1
             layoutDidLoadLayoutNode = layoutNode
         }
@@ -40,7 +31,6 @@ class LayoutViewControllerTests: XCTestCase {
         XCTAssertNotNil(viewController.layoutDidLoadLayoutNode)
         XCTAssertEqual(viewController.layoutNode, viewController.layoutDidLoadLayoutNode)
         XCTAssertEqual(viewController.layoutDidLoadLayoutNodeCallCount, 1)
-        XCTAssertEqual(viewController.layoutDidLoadCallCount, 0)
     }
 
     func testLayoutDidLoadWithInvalidXML() throws {
@@ -49,20 +39,5 @@ class LayoutViewControllerTests: XCTestCase {
 
         XCTAssertNil(viewController.layoutDidLoadLayoutNode)
         XCTAssertEqual(viewController.layoutDidLoadLayoutNodeCallCount, 0)
-        XCTAssertEqual(viewController.layoutDidLoadCallCount, 0)
-    }
-
-    func testCompatibilityLayoutDidLoadWithValidXML() throws {
-        let viewController = BackwardTestLayoutViewController()
-        viewController.loadLayout(withContentsOfURL: try url(forXml: "LayoutDidLoad_Valid"))
-
-        XCTAssertEqual(viewController.layoutDidLoadCallCount, 1)
-    }
-
-    func testCompatibilityLayoutDidLoadWithInvalidXML() throws {
-        let viewController = BackwardTestLayoutViewController()
-        viewController.loadLayout(withContentsOfURL: try url(forXml: "LayoutDidLoad_Invalid"))
-
-        XCTAssertEqual(viewController.layoutDidLoadCallCount, 0)
     }
 }

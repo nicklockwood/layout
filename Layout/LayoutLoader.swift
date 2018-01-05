@@ -337,7 +337,7 @@ class LayoutLoader {
         return [:]
     }
 
-    // MARK: Internal APIs exposed for LayoutViewController
+    // MARK: Internal APIs exposed for LayoutConsole
 
     func setSourceURL(_ sourceURL: URL, for path: String) {
         _setSourceURL(sourceURL, for: path)

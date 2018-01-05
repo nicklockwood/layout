@@ -83,7 +83,7 @@ public extension LayoutLoading {
         }
     }
 
-    // Used by LayoutViewController
+    // Used by LayoutLoading protocol
     internal var loader: LayoutLoader {
         guard let loader = objc_getAssociatedObject(self, &loaderKey) as? LayoutLoader else {
             let loader = LayoutLoader()

@@ -3,6 +3,8 @@
 import UIKit
 import Layout
 
+class PreviewViewController: UIViewController, LayoutLoading {}
+
 class EditViewController: UIViewController {
 
     var textView: UITextView!
@@ -58,7 +60,7 @@ class EditViewController: UIViewController {
     }
 
     func showPreview(animated: Bool) {
-        let previewController = LayoutViewController()
+        let previewController = PreviewViewController()
         previewController.title = "Preview"
         previewController.view.backgroundColor = .white
         do {
