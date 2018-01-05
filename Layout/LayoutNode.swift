@@ -2279,7 +2279,10 @@ public class LayoutNode: NSObject {
     /// Note: thrown error is always a LayoutError
     public func mount(in viewController: UIViewController) throws {
         guard parent == nil else {
-            throw LayoutError.message("The mount() method should only be used on a root node.")
+            throw LayoutError("The mount() method should only be used on a root node.", for: self)
+        }
+        if viewController is LayoutLoading, viewControllerClass == type(of: viewController) {
+            throw LayoutError("Cannot mount \(viewController.classForCoder) inside an instance of itself", for: self)
         }
         try performWithoutUpdate {
             try bind(to: viewController)
@@ -2311,7 +2314,10 @@ public class LayoutNode: NSObject {
     /// Note: thrown error is always a LayoutError
     @nonobjc public func mount(in view: UIView) throws {
         guard parent == nil else {
-            throw LayoutError.message("The mount() method should only be used on a root node.")
+            throw LayoutError("The mount() method should only be used on a root node.", for: self)
+        }
+        if view is LayoutLoading, viewClass == type(of: view) {
+            throw LayoutError("Cannot mount \(view.classForCoder) inside an instance of itself", for: self)
         }
         do {
             try bind(to: view)
