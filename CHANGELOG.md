@@ -1,5 +1,13 @@
 # Change Log
 
+## [0.6.11](https://github.com/schibsted/layout/releases/tag/0.6.11) (2018-01-05)
+
+- Deprecated `LayoutViewController`. You can now get all the same functionality by using the `LayoutLoading` protocol
+- When loading a layout into a `UIViewController`, Layout will set the view directly when possible, instead of adding a subview
+- Fixed infinite loading loop when attempting to load a layout whose root node is the same type as its owner
+- Added a new `LayoutDelegate` protocol, inherited by `LayoutLoading`
+- Added workaround for nil default `backgroundColor` on `UIView`
+
 ## [0.6.10](https://github.com/schibsted/layout/releases/tag/0.6.10) (2018-01-04)
 
 - Localized string lookup in expressions no longer requires you to use LayoutViewController

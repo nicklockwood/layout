@@ -34,7 +34,7 @@ extension LayoutDelegate {
     }
 
     /// Default implementation - returns nothing
-    public func layoutValue(forKey key: String) throws -> Any? {
+    public func layoutValue(forKey _: String) throws -> Any? {
         return nil
     }
 }

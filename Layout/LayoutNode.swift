@@ -2294,7 +2294,7 @@ public class LayoutNode: NSObject {
                 (viewController is UICollectionViewController && !(viewClass is UICollectionView.Type)) {
                 if let existingView = viewController.viewIfLoaded,
                     (existingView is UITableView && view is UITableView) ||
-                        (existingView is UICollectionView && view is UICollectionView) {
+                    (existingView is UICollectionView && view is UICollectionView) {
                     throw LayoutError("Cannot replace existing \(view.classForCoder) with a new instance", for: self)
                 }
                 // Add as subview of view controller's view
@@ -2303,6 +2303,7 @@ public class LayoutNode: NSObject {
                 _view?.autoresizingMask = [.flexibleWidth, .flexibleHeight]
             } else {
                 // Set as view controller's view
+                view.frame = UIScreen.main.bounds
                 viewController.view = view
             }
         }
