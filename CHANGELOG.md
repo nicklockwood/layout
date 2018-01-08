@@ -1,5 +1,10 @@
 # Change Log
 
+## [0.6.12](https://github.com/schibsted/layout/releases/tag/0.6.12) (2018-01-08)
+
+- Fixed safeAreaInsets regression
+- Fixed intermittent bug with UITabBar layout in landscape orientation
+
 ## [0.6.11](https://github.com/schibsted/layout/releases/tag/0.6.11) (2018-01-05)
 
 - Deprecated `LayoutViewController`. You can now get all the same functionality by using the `LayoutLoading` protocol
