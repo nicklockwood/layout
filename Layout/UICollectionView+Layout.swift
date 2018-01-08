@@ -318,7 +318,7 @@ extension UICollectionView {
                 assert(node._view == nil)
                 node._view = cell
                 try node.bind(to: cell) // TODO: find a better solution for binding
-                cell.setLayoutNode(node)
+                cell.layoutNode = node
                 return node
             case let .failure(error):
                 throw error

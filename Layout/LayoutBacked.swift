@@ -8,16 +8,11 @@ public protocol LayoutBacked: class {
     weak var layoutNode: LayoutNode? { get }
 }
 
-extension LayoutBacked {
+extension LayoutBacked where Self: NSObject {
 
     /// Default implementation of the layoutNode property
-    public weak var layoutNode: LayoutNode? {
-        return objc_getAssociatedObject(self, &layoutNodeKey) as? LayoutNode
-    }
-
-    internal func setLayoutNode(_ layoutNode: LayoutNode?) {
-        objc_setAssociatedObject(self, &layoutNodeKey, layoutNode, .OBJC_ASSOCIATION_ASSIGN)
+    public internal(set) weak var layoutNode: LayoutNode? {
+        get { return _layoutNode }
+        set { _setLayoutNode(layoutNode, retained: false) }
     }
 }
-
-private var layoutNodeKey = 0

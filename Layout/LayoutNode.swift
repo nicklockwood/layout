@@ -105,19 +105,24 @@ public class LayoutNode: NSObject {
         if _view == nil {
             if let controllerClass = viewControllerClass {
                 _viewController = try LayoutError.wrap({
-                    try controllerClass.create(with: self)
+                    let controller = try controllerClass.create(with: self)
+                    _view = controller.view
+                    return controller
                 }, for: self)
-                _view = _viewController!.view
             } else {
                 _view = try LayoutError.wrap({
                     try viewClass.create(with: self)
                 }, for: self)
-                assert(_view != nil)
             }
         }
-        if let layoutBacked = (_viewController ?? _view) as? LayoutBacked {
-            layoutBacked.setLayoutNode(self)
-        }
+
+        // Every Layout-managed view and viewController gets a layoutNode reference
+        _viewController?._setLayoutNode(self, retained: false)
+        _view?._setLayoutNode(self, retained: false)
+
+        // TODO: since this only has to be done once per app launch, is there a
+        // better place we can call it?
+        UIView._swizzle()
 
         // AutoLayout support
         _usesAutoLayout = _view!.constraints.contains {
@@ -166,8 +171,6 @@ public class LayoutNode: NSObject {
     private func _stopObservingFrame() {
         if _observingFrame {
             removeObserver(self, forKeyPath: "_view.translatesAutoresizingMaskIntoConstraints")
-            removeObserver(self, forKeyPath: "_view.frame")
-            removeObserver(self, forKeyPath: "_view.bounds")
             _observingFrame = false
         }
     }
@@ -190,7 +193,6 @@ public class LayoutNode: NSObject {
     private func stopObserving() {
         _stopObservingContentSizeCategory()
         _stopObservingFrame()
-        _stopObservingInsets()
     }
 
     // Depends on presence of parent - must be called again if parent is added or removed
@@ -202,21 +204,55 @@ public class LayoutNode: NSObject {
         }
         if !_observingFrame {
             addObserver(self, forKeyPath: "_view.translatesAutoresizingMaskIntoConstraints", options: [.new, .old], context: nil)
-            addObserver(self, forKeyPath: "_view.frame", options: .new, context: nil)
-            addObserver(self, forKeyPath: "_view.bounds", options: .new, context: nil)
             _observingFrame = true
-        }
-        if _observingInsets, !_shouldObserveInsets {
-            _stopObservingInsets()
-        } else if #available(iOS 11.0, *), !_observingInsets, _shouldObserveInsets {
-            addObserver(self, forKeyPath: "_view.safeAreaInsets", options: .new, context: nil)
-            _observingInsets = true
         }
     }
 
     private var _previousBounds = CGRect.zero
     private var _previousSafeAreaInsets: UIEdgeInsets = .zero
     private var _anyChildDependsOnContentOffset: Bool?
+    fileprivate func updateLayout() {
+        guard _setupComplete, _updateLock == 0, _evaluating.isEmpty, let bounds = _view?.bounds else {
+            return
+        }
+        if _shouldObserveInsets, let insets = _view?._safeAreaInsets {
+            // If not yet mounted, safe area insets can't be valid
+            if _view?.window != nil, !insets.isNearlyEqual(to: _previousSafeAreaInsets) {
+                if let parent = parent, parent._updateLock == 0 {
+                    parent.update()
+                } else {
+                    update()
+                }
+                _previousSafeAreaInsets = _view!._safeAreaInsets
+                return
+            }
+            _previousSafeAreaInsets = insets
+        }
+        if !bounds.size.isNearlyEqual(to: _previousBounds.size) {
+            if let parent = parent, parent._updateLock == 0 {
+                parent.update()
+            } else {
+                update()
+            }
+            _previousBounds = _view!.bounds
+            return
+        } else if _view is UIScrollView, !bounds.origin.isNearlyEqual(to: _previousBounds.origin) {
+            if _anyChildDependsOnContentOffset == nil {
+                _anyChildDependsOnContentOffset = anyExpressionDependsOn([
+                    "contentOffset", "contentOffset.x", "contentOffset.y",
+                    "bounds", "bounds.origin", "bounds.origin.x", "bounds.origin.y",
+                    "bounds.x", "bounds.y",
+                ])
+            }
+            if _anyChildDependsOnContentOffset == true {
+                children.forEach { $0.update() }
+                _previousBounds = _view!.bounds
+                return
+            }
+        }
+        _previousBounds = bounds
+    }
+
     public override func observeValue(
         forKeyPath _: String?,
         of _: Any?,
@@ -227,31 +263,6 @@ public class LayoutNode: NSObject {
             return
         }
         switch new {
-        case is CGRect:
-            let bounds = _view!.bounds
-            if !bounds.size.isNearlyEqual(to: _previousBounds.size) {
-                if root._setupComplete, root._updateLock == 0, root._evaluating.isEmpty {
-                    root.update()
-                }
-            } else if _view is UIScrollView, !bounds.origin.isNearlyEqual(to: _previousBounds.origin) {
-                if _anyChildDependsOnContentOffset == nil {
-                    _anyChildDependsOnContentOffset = anyExpressionDependsOn([
-                        "contentOffset", "contentOffset.x", "contentOffset.y",
-                        "bounds", "bounds.origin", "bounds.origin.x", "bounds.origin.y",
-                        "bounds.x", "bounds.y",
-                    ])
-                }
-                if _anyChildDependsOnContentOffset == true {
-                    children.forEach { $0.update() }
-                }
-            }
-            _previousBounds = _view!.bounds
-        case let insets as UIEdgeInsets:
-            if _view?.window != nil, !insets.isNearlyEqual(to: _previousSafeAreaInsets) {
-                // If not yet mounted, safe area insets can't be valid
-                update()
-            }
-            _previousSafeAreaInsets = insets
         case let useAutoresizing as Bool:
             if useAutoresizing != change?[.oldKey] as? Bool {
                 update()
@@ -386,9 +397,8 @@ public class LayoutNode: NSObject {
     }
 
     deinit {
-        if let layoutBacked = (_viewController ?? _view) as? LayoutBacked, layoutBacked.layoutNode == self {
-            layoutBacked.setLayoutNode(nil)
-        }
+        _viewController?._setLayoutNode(nil, retained: false)
+        _view?._setLayoutNode(nil, retained: false)
         stopObserving()
     }
 
@@ -2208,7 +2218,7 @@ public class LayoutNode: NSObject {
 
     // Note: thrown error is always a LayoutError
     private func updateFrame() throws {
-        guard _updateLock == 0, let _view = _view else { return }
+        guard _updateLock == 0, let _view = _view, !(_view is UITabBar) else { return }
         let frame: CGRect
         defer {
             if parent == nil, _previousBounds != _view.bounds {
@@ -2488,6 +2498,41 @@ public class LayoutNode: NSObject {
             }
             throw LayoutError(error, for: self)
         }
+    }
+}
+
+private var layoutNodeKey = 1
+
+extension NSObject {
+    var _layoutNode: LayoutNode? {
+        return objc_getAssociatedObject(self, &layoutNodeKey) as? LayoutNode
+    }
+
+    func _setLayoutNode(_ layoutNode: LayoutNode?, retained: Bool) {
+        objc_setAssociatedObject(
+            self, &layoutNodeKey, layoutNode,
+            retained ? .OBJC_ASSOCIATION_RETAIN_NONATOMIC : .OBJC_ASSOCIATION_ASSIGN
+        )
+    }
+}
+
+private var viewSwizzled = false
+
+extension UIView {
+    fileprivate static func _swizzle() {
+        guard !viewSwizzled else { return }
+        let originalSelector = #selector(layoutSubviews)
+        let swizzledSelector = #selector(layout_layoutSubviews)
+        let originalMethod = class_getInstanceMethod(self, originalSelector)!
+        let swizzledMethod = class_getInstanceMethod(self, swizzledSelector)!
+        method_exchangeImplementations(originalMethod, swizzledMethod)
+        viewSwizzled = true
+    }
+
+    // Swizzled layoutSubviews implementation
+    @objc private func layout_layoutSubviews() {
+        layout_layoutSubviews()
+        _layoutNode?.updateLayout()
     }
 }
 
