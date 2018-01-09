@@ -1609,6 +1609,29 @@ public class LayoutNode: NSObject {
                     try self.cgFloatValue(forSymbol: "top") + self.cgFloatValue(forSymbol: "height")
                 }, for: symbol)
             }
+        case "center.x":
+            getter = { [unowned self] in
+                try SymbolError.wrap({
+                    try self.cgFloatValue(forSymbol: "left") + self.cgFloatValue(forSymbol: "width") *
+                        self.cgFloatValue(forSymbol: "layer.anchorPoint.x")
+                }, for: symbol)
+            }
+        case "center.y":
+            getter = { [unowned self] in
+                try SymbolError.wrap({
+                    try self.cgFloatValue(forSymbol: "top") + self.cgFloatValue(forSymbol: "height") *
+                        self.cgFloatValue(forSymbol: "layer.anchorPoint.y")
+                }, for: symbol)
+            }
+        case "center":
+            getter = { [unowned self] in
+                try SymbolError.wrap({
+                    try CGPoint(
+                        x: self.cgFloatValue(forSymbol: "center.x"),
+                        y: self.cgFloatValue(forSymbol: "center.y")
+                    )
+                }, for: symbol)
+            }
         case "containerSize.width":
             getter = { [unowned self] in
                 if let view = self._view {
@@ -1807,7 +1830,7 @@ public class LayoutNode: NSObject {
                 case "top", "left",
                      "bottom", "right",
                      "width", "height",
-                     "center", "firstBaseline", "lastBaseline",
+                     "firstBaseline", "lastBaseline",
                      "firstBaselineOffset", "lastBaselineOffset",
                      "containerSize", "inferredSize",
                      "contentSize", "inferredContentSize":
