@@ -29,6 +29,11 @@ public struct LayoutConsole {
         }
     }
 
+    // Displays a warning
+    public static func showWarning(_ message: String) {
+        print("Layout warning: \(message)")
+    }
+
     /// Hides the LayoutConsole
     public static func hide() {
         consoleView.hide()
@@ -179,7 +184,7 @@ private class LayoutConsoleView: UIView, LayoutLoading {
             view: UIScrollView(),
             expressions: [
                 "backgroundColor": "\(background)",
-                "contentInset.top": "max(max(safeAreaInsets.top + 10, 30), 50% - contentSize.height / 2)",
+                "contentInset.top": "max(30, safeAreaInsets.top + 10, 50% - contentSize.height / 2)",
                 "contentInset.bottom": "20",
                 "contentInset.left": "safeAreaInsets.left",
                 "contentInset.right": "safeAreaInsets.right",

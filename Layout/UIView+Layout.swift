@@ -153,6 +153,16 @@ extension UIView {
         return [:]
     }
 
+    /// Deprecated symbols
+    /// Key is the symbol name, value is the suggested replacement
+    /// Empty value string indicates no replacement available
+    @objc open class var deprecatedSymbols: [String: String] {
+        return [
+            "topLayoutGuide.length": "safeAreaInsets.top",
+            "bottomLayoutGuide.length": "safeAreaInsets.bottom",
+        ]
+    }
+
     /// The name of the String or NSAttributedString property to use for body text
     /// Return nil to indicate that the view doesn't allow body text
     @objc open class var bodyExpression: String? {

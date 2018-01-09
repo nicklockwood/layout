@@ -1198,6 +1198,9 @@ public class LayoutNode: NSObject {
         case .layout:
             _layoutExpressions[symbol] = expression
         }
+
+        // Check for deprecation
+        handleDeprecation(for: symbol)
     }
 
     private func superExpressions(for key: String) -> [String] {
@@ -1454,6 +1457,34 @@ public class LayoutNode: NSObject {
         self.viewControllerClass.map { $0.cachedExpressionTypes } ?? [:]
     }()
 
+    #if arch(i386) || arch(x86_64)
+
+    private lazy var deprecatedViewSymbols: [String: String] = {
+        return self.viewClass.deprecatedSymbols
+    }()
+
+    private lazy var deprecatedViewControllerSymbols: [String: String] = {
+        return self.viewControllerClass.map { $0.deprecatedSymbols } ?? [:]
+    }()
+
+    private func handleDeprecation(for symbol: String) {
+        if let alternative = deprecatedViewControllerSymbols[symbol] {
+            LayoutConsole.showWarning(
+                "\(_class).\(symbol) is deprecated\(alternative.isEmpty ? "" : ". Use \(alternative) instead")"
+            )
+        } else if let alternative = deprecatedViewSymbols[symbol] {
+            LayoutConsole.showWarning(
+                "\(viewClass).\(symbol) is deprecated\(alternative.isEmpty ? "" : ". Use \(alternative) instead")"
+            )
+        }
+    }
+
+    #else
+
+    private func handleDeprecation(for symbol: String) {}
+
+    #endif
+
     private func value(forSymbol name: String, dependsOn symbol: String) -> Bool {
         var checking = [String]()
         func _value(forSymbol name: String, dependsOn symbol: String) -> Bool {
@@ -1547,6 +1578,7 @@ public class LayoutNode: NSObject {
         if let getter = _getters[symbol] {
             return try getter()
         }
+        handleDeprecation(for: symbol)
         let getter: Getter
         switch symbol {
         case "left":

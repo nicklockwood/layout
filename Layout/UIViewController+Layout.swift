@@ -236,6 +236,15 @@ extension UIViewController {
         return [:]
     }
 
+    /// Deprecated symbols
+    /// Key is the symbol name, value is the suggested replacement
+    /// Empty value string indicates no replacement available
+    @objc open class var deprecatedSymbols: [String: String] {
+        return [
+            "automaticallyAdjustsScrollViewInsets": "UIScrollView.contentInsetAdjustmentBehavior",
+        ]
+    }
+
     /// Called to construct the view
     @objc open class func create(with _: LayoutNode) throws -> UIViewController {
         return self.init()
