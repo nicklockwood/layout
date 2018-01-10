@@ -2006,14 +2006,16 @@ public class LayoutNode: NSObject {
         for child in children where !child.isHidden {
             if !child.widthDependsOnParent {
                 var left: CGFloat = 0
-                if !child.value(forSymbol: "left", dependsOn: "parent.width") {
+                if !child.value(forSymbol: "left", dependsOn: "parent.width"),
+                    !child.value(forSymbol: "top", dependsOn: "parent.containerSize.width") {
                     left = try child.cgFloatValue(forSymbol: "left")
                 }
                 size.width = try max(size.width, left + child.cgFloatValue(forSymbol: "width"))
             }
             if !child.heightDependsOnParent {
                 var top: CGFloat = 0
-                if !child.value(forSymbol: "top", dependsOn: "parent.height") {
+                if !child.value(forSymbol: "top", dependsOn: "parent.height"),
+                    !child.value(forSymbol: "top", dependsOn: "parent.containerSize.height") {
                     top = try child.cgFloatValue(forSymbol: "top")
                 }
                 size.height = try max(size.height, top + child.cgFloatValue(forSymbol: "height"))
