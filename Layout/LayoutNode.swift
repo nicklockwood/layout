@@ -99,16 +99,19 @@ public class LayoutNode: NSObject {
         guard !_setupComplete else { return }
         _setupComplete = true
 
+        assert(Thread.isMainThread)
+
         defer { _updateLock -= 1 }
         _updateLock += 1
 
         if _view == nil {
             if let controllerClass = viewControllerClass {
-                _viewController = try LayoutError.wrap({
-                    let controller = try controllerClass.create(with: self)
-                    _view = controller.view
-                    return controller
+                let viewController = try _viewController ?? LayoutError.wrap({
+                    let viewController = try controllerClass.create(with: self)
+                    _viewController = viewController
+                    return viewController
                 }, for: self)
+                _view = viewController.view
             } else {
                 _view = try LayoutError.wrap({
                     try viewClass.create(with: self)
@@ -367,8 +370,6 @@ public class LayoutNode: NSObject {
         expressions: [String: String] = [:],
         children: [LayoutNode] = []
     ) {
-        assert(Thread.isMainThread)
-
         self.init(
             viewController: type(of: viewController),
             id: id,
@@ -380,7 +381,6 @@ public class LayoutNode: NSObject {
         )
 
         _viewController = viewController
-        _view = viewController.view
     }
 
     /// Create a node for managing a view
@@ -417,8 +417,6 @@ public class LayoutNode: NSObject {
         expressions: [String: String] = [:],
         children: [LayoutNode] = []
     ) {
-        assert(Thread.isMainThread)
-
         self.init(
             view: type(of: view),
             id: id,
