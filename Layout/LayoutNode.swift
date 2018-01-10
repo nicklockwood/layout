@@ -171,6 +171,8 @@ public class LayoutNode: NSObject {
     private func _stopObservingFrame() {
         if _observingFrame {
             removeObserver(self, forKeyPath: "_view.translatesAutoresizingMaskIntoConstraints")
+            removeObserver(self, forKeyPath: "_view.frame")
+            removeObserver(self, forKeyPath: "_view.bounds")
             _observingFrame = false
         }
     }
@@ -204,39 +206,25 @@ public class LayoutNode: NSObject {
         }
         if !_observingFrame {
             addObserver(self, forKeyPath: "_view.translatesAutoresizingMaskIntoConstraints", options: [.new, .old], context: nil)
+            addObserver(self, forKeyPath: "_view.frame", options: .new, context: nil)
+            addObserver(self, forKeyPath: "_view.bounds", options: .new, context: nil)
             _observingFrame = true
         }
     }
 
     private var _previousBounds = CGRect.zero
-    private var _previousSafeAreaInsets: UIEdgeInsets = .zero
+    private var _previousSafeAreaInsets = UIEdgeInsets.zero
     private var _anyChildDependsOnContentOffset: Bool?
     fileprivate func updateLayout() {
-        guard _setupComplete, _updateLock == 0, _evaluating.isEmpty, let bounds = _view?.bounds else {
+        guard _setupComplete, _updateLock == 0, root._updateLock == 0, let view = _view else {
             return
         }
-        if _shouldObserveInsets, let insets = _view?._safeAreaInsets {
-            // If not yet mounted, safe area insets can't be valid
-            if _view?.window != nil, !insets.isNearlyEqual(to: _previousSafeAreaInsets) {
-                if let parent = parent, parent._updateLock == 0 {
-                    parent.update()
-                } else {
-                    update()
-                }
-                _previousSafeAreaInsets = _view!._safeAreaInsets
-                return
-            }
-            _previousSafeAreaInsets = insets
-        }
-        if !bounds.size.isNearlyEqual(to: _previousBounds.size) {
-            if let parent = parent, parent._updateLock == 0 {
-                parent.update()
-            } else {
-                update()
-            }
-            _previousBounds = _view!.bounds
-            return
-        } else if _view is UIScrollView, !bounds.origin.isNearlyEqual(to: _previousBounds.origin) {
+        if _shouldObserveInsets, !view._safeAreaInsets.isNearlyEqual(to: _previousSafeAreaInsets) {
+            _previousSafeAreaInsets = view._safeAreaInsets
+            update()
+        } else if !view.bounds.size.isNearlyEqual(to: _previousBounds.size) {
+            return // Don't update the frame inside layoutSubviews, or we'll create an infinite loop
+        } else if view is UIScrollView, !view.bounds.origin.isNearlyEqual(to: _previousBounds.origin) {
             if _anyChildDependsOnContentOffset == nil {
                 _anyChildDependsOnContentOffset = anyExpressionDependsOn([
                     "contentOffset", "contentOffset.x", "contentOffset.y",
@@ -246,11 +234,9 @@ public class LayoutNode: NSObject {
             }
             if _anyChildDependsOnContentOffset == true {
                 children.forEach { $0.update() }
-                _previousBounds = _view!.bounds
-                return
             }
+            _previousBounds.origin = view.bounds.origin
         }
-        _previousBounds = bounds
     }
 
     public override func observeValue(
@@ -259,10 +245,18 @@ public class LayoutNode: NSObject {
         change: [NSKeyValueChangeKey: Any]?,
         context _: UnsafeMutableRawPointer?
     ) {
-        guard _setupComplete, _updateLock == 0, _evaluating.isEmpty, let new = change?[.newKey] else {
+        guard _setupComplete, _updateLock == 0, _evaluating.isEmpty,
+            let view = _view, let new = change?[.newKey] else {
             return
         }
         switch new {
+        case is CGRect:
+            if !view.bounds.size.isNearlyEqual(to: _previousBounds.size) {
+                if root._setupComplete, root._updateLock == 0, root._evaluating.isEmpty {
+                    root.update()
+                    _previousBounds = view.bounds
+                }
+            }
         case let useAutoresizing as Bool:
             if useAutoresizing != change?[.oldKey] as? Bool {
                 update()
