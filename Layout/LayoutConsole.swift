@@ -299,7 +299,7 @@ private class LayoutWarningView: UIView, LayoutLoading {
                     "backgroundColor": "yellow",
                     "height": "auto + max(5, safeAreaInsets.bottom)",
                     "width": "100%",
-                    "touchUpInside": "hide"
+                    "touchUpInside": "hide",
                 ],
                 children: [
                     LayoutNode(
@@ -312,11 +312,11 @@ private class LayoutWarningView: UIView, LayoutLoading {
                             "height": "auto",
                             "text": "{warning}",
                         ]
-                    )
+                    ),
                 ]
             )
         } else {
-            self.layoutNode?.setState([
+            layoutNode?.setState([
                 "warning": self.warnings.last ?? "",
             ])
         }

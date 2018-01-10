@@ -1466,36 +1466,36 @@ public class LayoutNode: NSObject {
 
     #if arch(i386) || arch(x86_64)
 
-    private lazy var deprecatedViewSymbols: [String: String] = {
-        return self.viewClass.deprecatedSymbols
-    }()
+        private lazy var deprecatedViewSymbols: [String: String] = {
+            self.viewClass.deprecatedSymbols
+        }()
 
-    private lazy var deprecatedViewControllerSymbols: [String: String] = {
-        return self.viewControllerClass.map { $0.deprecatedSymbols } ?? [:]
-    }()
+        private lazy var deprecatedViewControllerSymbols: [String: String] = {
+            self.viewControllerClass.map { $0.deprecatedSymbols } ?? [:]
+        }()
 
-    private func handleDeprecation(for symbol: String) {
-        let cls: AnyClass
-        let alternative: String
-        if let _alternative = deprecatedViewControllerSymbols[symbol] {
-            cls = _class
-            alternative = _alternative
+        private func handleDeprecation(for symbol: String) {
+            let cls: AnyClass
+            let alternative: String
+            if let _alternative = deprecatedViewControllerSymbols[symbol] {
+                cls = _class
+                alternative = _alternative
 
-        } else if let _alternative = deprecatedViewSymbols[symbol] {
-            cls = viewClass
-            alternative = _alternative
-        } else {
-            return
+            } else if let _alternative = deprecatedViewSymbols[symbol] {
+                cls = viewClass
+                alternative = _alternative
+            } else {
+                return
+            }
+            _unhandledWarnings.append(
+                "\(cls).\(symbol) is deprecated\(alternative.isEmpty ? "" : ". Use \(alternative) instead")"
+            )
+            bubbleUnhandledErrors()
         }
-        _unhandledWarnings.append(
-            "\(cls).\(symbol) is deprecated\(alternative.isEmpty ? "" : ". Use \(alternative) instead")"
-        )
-        bubbleUnhandledErrors()
-    }
 
     #else
 
-    private func handleDeprecation(for symbol: String) {}
+        private func handleDeprecation(for _: String) {}
 
     #endif
 

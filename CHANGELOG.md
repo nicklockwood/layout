@@ -1,5 +1,13 @@
 # Change Log
 
+## [0.6.13](https://github.com/schibsted/layout/releases/tag/0.6.13) (2018-01-10)
+
+- Fixed spurious error when trying to use `center.x` or `center.y` inside an expression
+- Fixed a bug where positioning views relative to their parent size would not work if parent was auto-sized
+- Added warnings view to LayoutConsole. Warnings appear as a dimissable bar at the bottom of the screen
+- Fixed intermittent issue where Layout would get stuck in a loading loop after reloading
+- Added a mechanism for marking properties as deprecated
+
 ## [0.6.12](https://github.com/schibsted/layout/releases/tag/0.6.12) (2018-01-08)
 
 - Fixed safeAreaInsets regression

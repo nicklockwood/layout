@@ -256,18 +256,20 @@ You can reload your XML files at any time by pressing Cmd-R in the simulator (no
 
 **Note:** This only works for changes you make to your layout XML files, or in your `Localizable.strings` file, not for Swift code changes in your view controller, or other resources such as images.
 
-The live reloading feature, combined with the gracious handling of errors, means that it should be possible to do most of your interface development without needing to recompile the app.
+The live reloading feature, combined with the graceful handling of errors, means that it should be possible to do most of your interface development without needing to recompile the app.
 
 
 ## Debugging
 
 If the Layout framework throws an error during XML parsing, mounting, or updating, it will display the *Red Box*, which is a full-screen overlay that displays the error message along with a reload button.
 
-Thanks to the [live reloading](#live-reloading) feature, many bugs (e.g. syntax errors or misnamed properties) can be fixed without recompiling the app. Once you have fixed the bug, pressing reload (or Cmd-R) will dismiss the error console and reload the layout XML file.
+For non-critical errors (e.g. using a deprecated API) Layout will display a yellow warning bar at the bottom of the screen, which can be dismissed with a tap.
+
+Thanks to the [live reloading](#live-reloading) feature, many bugs (e.g. syntax errors or misnamed properties) can be fixed without recompiling the app. Once you have fixed the bug, pressing reload (or Cmd-R) will dismiss any warnings or errors and reload the layout XML file.
 
 The Red Box interface is managed by the `LayoutConsole` singleton. This exposes static methods to show and hide the console, along with an `isEnabled` property to enable or disable the console programmatically. By default, the console is enabled for debug builds and disabled for release, but if you need to override this setting at runtime you can do so.
 
-If the `LayoutConsole` is disabled, errors will be printed to the Xcode console instead.
+If the `LayoutConsole` is disabled, errors and warnings will be printed to the Xcode console instead.
 
 
 ## Constants
@@ -2384,7 +2386,7 @@ The default implementation of `LayoutLoading` will bubble errors up the responde
 
 ## Manual Integration
 
-If you would prefer not to use either the `LayoutLoading` protocol, you can mount a `LayoutNode` into a view or view controller manually by using the `mount(in:)` method:
+If you would prefer not to use the `LayoutLoading` protocol, you can mount a `LayoutNode` into a view or view controller manually by using the `mount(in:)` method:
 
 ```swift
 class MyViewController: UIViewController {
