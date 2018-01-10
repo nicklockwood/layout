@@ -333,7 +333,31 @@ public class LayoutNode: NSObject {
         }
     }
 
-    /// Create a node for managing a view controller instance
+    /// Create a node for managing a view controller
+    public convenience init(
+        viewController: UIViewController.Type,
+        id: String? = nil,
+        outlet: String? = nil,
+        state: Any = (),
+        constants: [String: Any]...,
+        expressions: [String: String] = [:],
+        children: [LayoutNode] = []
+    ) {
+        var expressions = expressions
+        if let outlet = outlet {
+            expressions["outlet"] = outlet
+        }
+        try! self.init(
+            class: viewController,
+            id: id,
+            state: state,
+            constants: merge(constants),
+            expressions: expressions,
+            children: children
+        )
+    }
+
+    /// Create a node for managing a specific view controller instance
     public convenience init(
         viewController: UIViewController,
         id: String? = nil,
@@ -345,13 +369,10 @@ public class LayoutNode: NSObject {
     ) {
         assert(Thread.isMainThread)
 
-        var expressions = expressions
-        if let outlet = outlet {
-            expressions["outlet"] = outlet
-        }
-        try! self.init(
-            class: viewController.classForCoder,
+        self.init(
+            viewController: type(of: viewController),
             id: id,
+            outlet: outlet,
             state: state,
             constants: merge(constants),
             expressions: expressions,
@@ -362,9 +383,33 @@ public class LayoutNode: NSObject {
         _view = viewController.view
     }
 
-    /// Create a node for managing a view instance
+    /// Create a node for managing a view
     public convenience init(
-        view: UIView? = nil,
+        view: UIView.Type = UIView.self,
+        id: String? = nil,
+        outlet: String? = nil,
+        state: Any = (),
+        constants: [String: Any]...,
+        expressions: [String: String] = [:],
+        children: [LayoutNode] = []
+    ) {
+        var expressions = expressions
+        if let outlet = outlet {
+            expressions["outlet"] = outlet
+        }
+        try! self.init(
+            class: view,
+            id: id,
+            state: state,
+            constants: merge(constants),
+            expressions: expressions,
+            children: children
+        )
+    }
+
+    /// Create a node for managing a specific view instance
+    public convenience init(
+        view: UIView,
         id: String? = nil,
         outlet: String? = nil,
         state: Any = (),
@@ -374,13 +419,10 @@ public class LayoutNode: NSObject {
     ) {
         assert(Thread.isMainThread)
 
-        var expressions = expressions
-        if let outlet = outlet {
-            expressions["outlet"] = outlet
-        }
-        try! self.init(
-            class: view?.classForCoder ?? UIView.self,
+        self.init(
+            view: type(of: view),
             id: id,
+            outlet: outlet,
             state: state,
             constants: merge(constants),
             expressions: expressions,
