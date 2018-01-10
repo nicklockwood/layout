@@ -5,7 +5,8 @@ import UIKit
 
 /// Singleton for managing the Layout debug console interface
 public struct LayoutConsole {
-    private static var consoleView: LayoutConsoleView = LayoutConsoleView()
+    private static var errorView = LayoutErrorView()
+    private static var warningView = LayoutWarningView()
 
     /// Controls whether error console should be shown.
     /// Enabled for debug builds and disabled for release by default
@@ -25,18 +26,25 @@ public struct LayoutConsole {
             return
         }
         DispatchQueue.main.async {
-            consoleView.showError(error)
+            errorView.showError(error)
         }
     }
 
     // Displays a warning
     public static func showWarning(_ message: String) {
-        print("Layout warning: \(message)")
+        guard isEnabled else {
+            print("Layout warning: \(message)")
+            return
+        }
+        DispatchQueue.main.async {
+            warningView.showWarning(message)
+        }
     }
 
     /// Hides the LayoutConsole
     public static func hide() {
-        consoleView.hide()
+        errorView.hide()
+        warningView.hide()
     }
 }
 
@@ -46,7 +54,7 @@ public struct LayoutConsole {
     private let reloadMessage = "Tap to Reload"
 #endif
 
-private class LayoutConsoleView: UIView, LayoutLoading {
+private class LayoutErrorView: UIView, LayoutLoading {
     private var error: LayoutError?
 
     override func layoutSubviews() {
@@ -237,5 +245,96 @@ private class LayoutConsoleView: UIView, LayoutLoading {
             loader.setSourceURL(matches[sender.tag], for: path)
         }
         ReloadManager.reload(hard: false)
+    }
+}
+
+private class LayoutWarningView: UIView, LayoutLoading {
+    private var warnings = [String]()
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        let bounds = window?.bounds.size ?? .zero
+        layoutNode?.view.frame.size.width = bounds.width
+        let size = layoutNode?.frame.size ?? .zero
+        frame = CGRect(x: 0, y: bounds.height - size.height, width: bounds.width, height: size.height)
+    }
+
+    func layoutError(_ error: LayoutError) {
+        preconditionFailure("Error in LayoutConsoleView: \(error)")
+    }
+
+    func showWarning(_ warning: String) {
+        assert(Thread.isMainThread)
+
+        // Don't show duplicate warnings
+        if !warnings.contains(warning) {
+            warnings.append(warning)
+        }
+
+        // Install and bring to front
+        let app = UIApplication.shared
+        if let window = app.delegate?.window ?? app.keyWindow {
+            if self.window != window {
+                frame = CGRect(x: 0, y: window.bounds.height, width: window.bounds.width, height: 0)
+                autoresizingMask = [.flexibleWidth]
+                window.addSubview(self)
+            }
+            if let errorView = window.subviews.first(where: { $0 is LayoutErrorView }) {
+                window.insertSubview(self, belowSubview: errorView)
+            } else if window.subviews.last != self {
+                alpha = 0
+                window.bringSubview(toFront: self)
+            }
+        }
+
+        // Display warning
+        if layoutNode == nil {
+            layoutNode = LayoutNode(
+                view: UIControl(),
+                state: [
+                    "warning": warnings.last ?? "",
+                ],
+                expressions: [
+                    "top": "0",
+                    "backgroundColor": "yellow",
+                    "height": "auto + max(5, safeAreaInsets.bottom)",
+                    "width": "100%",
+                    "touchUpInside": "hide"
+                ],
+                children: [
+                    LayoutNode(
+                        view: UILabel(),
+                        expressions: [
+                            "top": "5",
+                            "left": "10",
+                            "right": "100% - 10",
+                            "numberOfLines": "0",
+                            "height": "auto",
+                            "text": "{warning}",
+                        ]
+                    )
+                ]
+            )
+        } else {
+            self.layoutNode?.setState([
+                "warning": self.warnings.last ?? "",
+            ])
+        }
+        UIView.animate(withDuration: 0.25) {
+            self.alpha = 1
+        }
+    }
+
+    @objc func hide() {
+        _ = warnings.popLast()
+        UIView.animate(withDuration: 0.25, animations: {
+            if self.warnings.isEmpty {
+                self.alpha = 0
+            } else {
+                self.layoutNode?.setState([
+                    "warning": self.warnings.last ?? "",
+                ])
+            }
+        })
     }
 }

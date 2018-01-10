@@ -506,19 +506,32 @@ public class LayoutNode: NSObject {
         }
     }
 
-    private func bubbleUnhandledError() {
-        guard let error = _unhandledError else {
-            return
+    private var _unhandledWarnings = [String]()
+    private func showUnhandledWarnings() {
+        if !_unhandledWarnings.isEmpty, _view?.window != nil {
+            for warning in _unhandledWarnings {
+                LayoutConsole.showWarning(warning)
+            }
+            _unhandledWarnings.removeAll()
         }
+    }
+
+    private func bubbleUnhandledErrors() {
         if let parent = parent {
-            if parent._unhandledError == nil ||
+            parent._unhandledWarnings += _unhandledWarnings
+            _unhandledWarnings.removeAll()
+            if let error = _unhandledError, parent._unhandledError == nil ||
                 (parent._unhandledError?.isTransient == true && !error.isTransient) {
                 parent._unhandledError = LayoutError(error, for: parent)
                 if error.isTransient {
                     _unhandledError = nil
                 }
-                parent.bubbleUnhandledError()
             }
+            parent.bubbleUnhandledErrors()
+            return
+        }
+        showUnhandledWarnings()
+        guard let error = _unhandledError else {
             return
         }
         guard let delegate = delegate else {
@@ -541,7 +554,7 @@ public class LayoutNode: NSObject {
                 _unhandledError = error
                 // Don't bubble if we're in the middle of evaluating an expression
                 if _evaluating.isEmpty {
-                    bubbleUnhandledError()
+                    bubbleUnhandledErrors()
                 }
             }
             return nil
@@ -621,7 +634,7 @@ public class LayoutNode: NSObject {
                     overrideExpressions()
                 }
                 setUpPositionConstraints()
-                bubbleUnhandledError()
+                bubbleUnhandledErrors()
             }
         }
     }
@@ -1462,15 +1475,22 @@ public class LayoutNode: NSObject {
     }()
 
     private func handleDeprecation(for symbol: String) {
-        if let alternative = deprecatedViewControllerSymbols[symbol] {
-            LayoutConsole.showWarning(
-                "\(_class).\(symbol) is deprecated\(alternative.isEmpty ? "" : ". Use \(alternative) instead")"
-            )
-        } else if let alternative = deprecatedViewSymbols[symbol] {
-            LayoutConsole.showWarning(
-                "\(viewClass).\(symbol) is deprecated\(alternative.isEmpty ? "" : ". Use \(alternative) instead")"
-            )
+        let cls: AnyClass
+        let alternative: String
+        if let _alternative = deprecatedViewControllerSymbols[symbol] {
+            cls = _class
+            alternative = _alternative
+
+        } else if let _alternative = deprecatedViewSymbols[symbol] {
+            cls = viewClass
+            alternative = _alternative
+        } else {
+            return
         }
+        _unhandledWarnings.append(
+            "\(cls).\(symbol) is deprecated\(alternative.isEmpty ? "" : ". Use \(alternative) instead")"
+        )
+        bubbleUnhandledErrors()
     }
 
     #else
@@ -2324,6 +2344,7 @@ public class LayoutNode: NSObject {
             try updateValues(animated: animated)
             try updateFrame()
         }
+        showUnhandledWarnings()
     }
 
     /// Re-evaluates all expressions for the node and its children

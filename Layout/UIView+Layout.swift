@@ -194,10 +194,14 @@ extension UIView {
     }
 
     var _safeAreaInsets: UIEdgeInsets {
-        if #available(iOS 11.0, *), let viewController = viewController {
-            // This is the root view of a controller, so we can use the inset value directly, as per
-            // https://developer.apple.com/documentation/uikit/uiview/2891103-safeareainsets
-            return viewController.view.safeAreaInsets
+        if #available(iOS 11.0, *) {
+            if let viewController = viewController {
+                // This is the root view of a controller, so we can use the inset value directly, as per
+                // https://developer.apple.com/documentation/uikit/uiview/2891103-safeareainsets
+                return viewController.view.safeAreaInsets
+            } else if let window = window {
+                return window.safeAreaInsets
+            }
         }
         return UIEdgeInsets(
             top: _layoutGuideController?.topLayoutGuide.length ?? 0,
