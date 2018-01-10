@@ -2371,23 +2371,14 @@ public class LayoutNode: NSObject {
             for controller in viewControllers {
                 viewController.addChildViewController(controller)
             }
-            if viewControllerClass != nil || viewController.isViewLoaded ||
-                (viewController is UITableViewController && !(viewClass is UITableView.Type)) ||
-                (viewController is UICollectionViewController && !(viewClass is UICollectionView.Type)) {
-                if let existingView = viewController.viewIfLoaded,
-                    (existingView is UITableView && view is UITableView) ||
-                    (existingView is UICollectionView && view is UICollectionView) {
-                    throw LayoutError("Cannot replace existing \(view.classForCoder) with a new instance", for: self)
-                }
-                // Add as subview of view controller's view
-                viewController.view.addSubview(view)
-                _view?.frame = viewController.view.bounds
-                _view?.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-            } else {
-                // Set as view controller's view
-                view.frame = UIScreen.main.bounds
-                viewController.view = view
+            if (viewController is UITableViewController && view is UITableView) ||
+                (viewController is UICollectionViewController && view is UICollectionView) {
+                throw LayoutError("Cannot replace existing \(view.classForCoder) with a new instance", for: self)
             }
+            // Add as subview of view controller's view
+            viewController.view.addSubview(view)
+            _view?.frame = viewController.view.bounds
+            _view?.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         }
         update()
         try throwUnhandledError()
