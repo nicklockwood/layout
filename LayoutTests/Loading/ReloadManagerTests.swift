@@ -35,7 +35,7 @@ class ReloadManagerTests: XCTestCase {
         XCTAssertEqual(vc.loadCount, 2)
     }
 
-    func testRelease() {
+    func testObserverDoesNotRetainView() {
         weak var weakRef: TestController?
         let initialObserverCount = ReloadManager.observers.count
         autoreleasepool {
@@ -49,5 +49,19 @@ class ReloadManagerTests: XCTestCase {
         }
         XCTAssertNil(weakRef)
         XCTAssertEqual(ReloadManager.observers.count, initialObserverCount)
+    }
+
+    func testViewReleasedAfterReload() {
+        weak var view: UIView?
+        let vc = TestController()
+        autoreleasepool {
+            vc.loadLayout(named: "LayoutDidLoad_Valid.xml", bundle: Bundle(for: type(of: self)))
+            view = vc.layoutNode?.view
+            XCTAssertNotNil(view)
+            vc.reloadLayout()
+        }
+        XCTAssertNotNil(vc.layoutNode?.view)
+        XCTAssertNil(view)
+
     }
 }

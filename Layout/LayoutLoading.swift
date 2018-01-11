@@ -102,6 +102,7 @@ public extension LayoutLoading where Self: UIView {
             return objc_getAssociatedObject(self, &layoutNodeKey) as? LayoutNode
         }
         set {
+            layoutNode?.unmount()
             objc_setAssociatedObject(self, &layoutNodeKey, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
             layoutNode?.unmount()
             if let layoutNode = layoutNode {
@@ -124,6 +125,7 @@ public extension LayoutLoading where Self: UIViewController {
             return objc_getAssociatedObject(self, &layoutNodeKey) as? LayoutNode
         }
         set {
+            layoutNode?.unmount()
             objc_setAssociatedObject(self, &layoutNodeKey, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
             layoutNode?.unmount()
             if let layoutNode = layoutNode {
