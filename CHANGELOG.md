@@ -1,5 +1,12 @@
 # Change Log
 
+## [0.6.14](https://github.com/schibsted/layout/releases/tag/0.6.14) (2018-01-11)
+
+- Fixed longstanding bug where reloading failed to remove the old layout views/controllers from the hierarchy
+- It is now safe to create LayoutNode instance on a background thread (though most methods/properties must be accessed from main thread)
+- Layout will no longer directly set the `UIViewController` view (introduced in 0.6.11) as this caused issues with reloading
+- You can now create LayoutNodes using view/controller classes instead of instances
+
 ## [0.6.13](https://github.com/schibsted/layout/releases/tag/0.6.13) (2018-01-10)
 
 - Fixed spurious error when trying to use `center.x` or `center.y` inside an expression

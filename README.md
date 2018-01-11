@@ -152,7 +152,7 @@ The primary API exposed by Layout is the `LayoutNode` class. Create a layout nod
 
 ```swift
 let node = LayoutNode(
-    view: UIView(),
+    view: UIView.self,
     expressions: [
         "width": "100%",
         "height": "100%",
@@ -160,7 +160,7 @@ let node = LayoutNode(
     ],
     children: [
         LayoutNode(
-            view: UILabel(),
+            view: UILabel.self,
             expressions: [
                 "width": "100%",
                 "top": "50% - height / 2",
@@ -454,10 +454,10 @@ class MyViewController: UIViewController, LayoutLoading {
         super.viewDidLoad()
 
         self.layoutNode = LayoutNode(
-            view: UIView(),
+            view: UIView.self,
             children: [
                 LayoutNode(
-                    view: UILabel(),
+                    view: UILabel.self,
                     outlet: #keyPath(self.labelNode),
                     expressions: [ ... ]
                 )
@@ -521,10 +521,10 @@ class MyViewController: UIViewController, LayoutLoading, UITextFieldDelegate {
         super.viewDidLoad()
 
         self.layoutNode = LayoutNode(
-            view: UIView()
+            view: UIView.self,
             children: [
                 LayoutNode(
-                    view: UITextField(), // delegate is automatically bound to MyViewController
+                    view: UITextField.self, // delegate is automatically bound to MyViewController
                     expressions: [ ... ]
                 )
             ]
@@ -554,13 +554,13 @@ You can also set the delegate to a specific object by passing a reference to it 
 
 ```swift
 self.layoutNode = LayoutNode(
-    view: UIView()
+    view: UIView.self,
     constants: [
         "fieldDelegate": someDelegate
     ],
     children: [
         LayoutNode(
-            view: UITextField(),
+            view: UITextField.self,
             expressions: [
                 "delegate": "fieldDelegate"
             ]
@@ -882,7 +882,7 @@ A neat extra feature built in to attributed string expressions is support for in
 
 ```swift
 LayoutNode(
-    view: UILabel(),
+    view: UILabel.self,
     expressions: [
         "text": "I <i>can't believe</i> this <b>actually works!</b>"
     ]

@@ -13,6 +13,8 @@ class ReloadManagerTests: XCTestCase {
         }
     }
 
+    private class TestView: UIView, LayoutLoading {}
+
     func testReload() {
         let vc = TestController()
         vc.loadLayout(named: "LayoutDidLoad_Valid.xml", bundle: Bundle(for: type(of: self)))
@@ -53,6 +55,19 @@ class ReloadManagerTests: XCTestCase {
 
     func testViewReleasedAfterReload() {
         weak var view: UIView?
+        let container = TestView()
+        autoreleasepool {
+            container.loadLayout(named: "LayoutDidLoad_Valid.xml", bundle: Bundle(for: type(of: self)))
+            view = container.layoutNode?.view
+            XCTAssertNotNil(view)
+            container.reloadLayout()
+        }
+        XCTAssertNotNil(container.layoutNode?.view)
+        XCTAssertNil(view)
+    }
+
+    func testVCViewReleasedAfterReload() {
+        weak var view: UIView?
         let vc = TestController()
         autoreleasepool {
             vc.loadLayout(named: "LayoutDidLoad_Valid.xml", bundle: Bundle(for: type(of: self)))
@@ -62,6 +77,5 @@ class ReloadManagerTests: XCTestCase {
         }
         XCTAssertNotNil(vc.layoutNode?.view)
         XCTAssertNil(view)
-
     }
 }

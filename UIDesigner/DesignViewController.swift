@@ -444,7 +444,7 @@ class DesignViewController: UIViewController, UIToolbarDelegate, EditViewControl
         }
         // TODO: update once class-based init is public
         let newNode: LayoutNode
-        if let viewController = (cls as? UIViewController.Type)?.init() {
+        if let viewController = cls as? UIViewController.Type {
             newNode = LayoutNode(
                 viewController: viewController,
                 expressions: expressions,
@@ -452,7 +452,7 @@ class DesignViewController: UIViewController, UIToolbarDelegate, EditViewControl
             )
         } else {
             newNode = LayoutNode(
-                view: (cls as? UIView.Type)?.init(),
+                view: (cls as? UIView.Type) ?? UIView.self,
                 expressions: expressions,
                 children: deepCopyChildren(of: node)
             )

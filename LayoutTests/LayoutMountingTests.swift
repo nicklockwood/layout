@@ -22,7 +22,7 @@ class LayoutMountingTests: XCTestCase {
         let node = LayoutNode()
         let vc = UIViewController()
         try node.mount(in: vc)
-        XCTAssertEqual(vc.view, node.view)
+        XCTAssertNotEqual(vc.view, node.view)
     }
 
     func testMountInitializedViewNodeInUninitializedViewController() throws {
@@ -30,7 +30,7 @@ class LayoutMountingTests: XCTestCase {
         _ = node.view // Initialize node
         let vc = UIViewController()
         try node.mount(in: vc)
-        XCTAssertEqual(vc.view, node.view)
+        XCTAssertNotEqual(vc.view, node.view)
     }
 
     func testMountInitializedViewNodeInInitializedViewController() throws {
@@ -45,14 +45,14 @@ class LayoutMountingTests: XCTestCase {
     // MARK: mounting view in view
 
     func testMountViewNodeInViewOfSameType() throws {
-        let node = try LayoutNode(class: UIView.self)
+        let node = LayoutNode(view: UIView.self)
         let view = UIView()
         try node.mount(in: view)
         XCTAssertNotEqual(view, node.view)
     }
 
     func testMountLayoutLoadingViewNodeInViewOfSameType() throws {
-        let node = try LayoutNode(class: TestView.self)
+        let node = LayoutNode(view: TestView.self)
         let view = TestView()
         XCTAssertThrowsError(try node.mount(in: view)) { error in
             XCTAssert("\(error)".contains(NSStringFromClass(TestView.self)))
@@ -62,14 +62,14 @@ class LayoutMountingTests: XCTestCase {
     // MARK: mounting view controller in view controller
 
     func testMountUninitializedViewControllerNodeInUninitializedViewController() throws {
-        let node = try LayoutNode(class: UIViewController.self)
+        let node = LayoutNode(viewController: UIViewController.self)
         let vc = UIViewController()
         try node.mount(in: vc)
         XCTAssertNotEqual(vc.view, node.view)
     }
 
     func testMountViewControllerNodeInViewControllerOfSameType() throws {
-        let node = try LayoutNode(class: UIViewController.self)
+        let node = LayoutNode(viewController: UIViewController.self)
         let vc = UIViewController()
         try node.mount(in: vc)
         XCTAssertNotEqual(node.viewController, vc)
@@ -77,7 +77,7 @@ class LayoutMountingTests: XCTestCase {
     }
 
     func testMountLayoutLoadingViewControllerNodeInViewControllerOfSameType() throws {
-        let node = try LayoutNode(class: TestViewController.self)
+        let node = LayoutNode(viewController: TestViewController.self)
         let vc = TestViewController()
         XCTAssertThrowsError(try node.mount(in: vc)) { error in
             XCTAssert("\(error)".contains(NSStringFromClass(TestViewController.self)))
@@ -87,14 +87,14 @@ class LayoutMountingTests: XCTestCase {
     // MARK: UITableViewController
 
     func testMountUninitializedViewInUninitializedTableViewController() throws {
-        let node = try LayoutNode(class: UIView.self)
+        let node = LayoutNode(view: UIView.self)
         let vc = UITableViewController()
         try node.mount(in: vc)
         XCTAssertNotEqual(vc.view, node.view)
     }
 
     func testMountInitializedViewInUninitializedTableViewController() throws {
-        let node = try LayoutNode(class: UIView.self)
+        let node = LayoutNode(view: UIView.self)
         _ = node.view // Initialize node
         let vc = UITableViewController()
         try node.mount(in: vc)
@@ -102,7 +102,7 @@ class LayoutMountingTests: XCTestCase {
     }
 
     func testMountInitializedViewInInitializedTableViewController() throws {
-        let node = try LayoutNode(class: UIView.self)
+        let node = LayoutNode(view: UIView.self)
         _ = node.view // Initialize node
         let vc = UITableViewController()
         _ = vc.view // Initialize VC
@@ -110,23 +110,25 @@ class LayoutMountingTests: XCTestCase {
         XCTAssertNotEqual(vc.view, node.view)
     }
 
-    func testMountUninitializedUITableViewInUninitializedTableViewController() throws {
-        let node = try LayoutNode(class: UITableView.self)
+    func testMountUninitializedUITableViewInUninitializedTableViewController() {
+        let node = LayoutNode(view: UITableView.self)
         let vc = UITableViewController()
-        try node.mount(in: vc)
-        XCTAssertEqual(vc.view, node.view)
+        XCTAssertThrowsError(try node.mount(in: vc)) { error in
+            XCTAssert("\(error)".contains("UITableView"))
+        }
     }
 
-    func testMountInitializedUITableViewInUninitializedTableViewController() throws {
-        let node = try LayoutNode(class: UITableView.self)
+    func testMountInitializedUITableViewInUninitializedTableViewController() {
+        let node = LayoutNode(view: UITableView.self)
         _ = node.view // Initialize node
         let vc = UITableViewController()
-        try node.mount(in: vc)
-        XCTAssertEqual(vc.view, node.view)
+        XCTAssertThrowsError(try node.mount(in: vc)) { error in
+            XCTAssert("\(error)".contains("UITableView"))
+        }
     }
 
-    func testMountUninitializedUITableViewInInitializedTableViewController() throws {
-        let node = try LayoutNode(class: UITableView.self)
+    func testMountUninitializedUITableViewInInitializedTableViewController() {
+        let node = LayoutNode(view: UITableView.self)
         let vc = UITableViewController()
         _ = vc.view // Initialize VC
         XCTAssertThrowsError(try node.mount(in: vc)) { error in
@@ -134,8 +136,8 @@ class LayoutMountingTests: XCTestCase {
         }
     }
 
-    func testMountInitializedUITableViewInInitializedTableViewController() throws {
-        let node = try LayoutNode(class: UITableView.self)
+    func testMountInitializedUITableViewInInitializedTableViewController() {
+        let node = LayoutNode(view: UITableView.self)
         _ = node.view // Initialize node
         let vc = UITableViewController()
         _ = vc.view // Initialize VC
