@@ -47,14 +47,6 @@ class OptionalExpressionTests: XCTestCase {
         XCTAssertEqual(try expression?.evaluate() as? Double, 5)
     }
 
-    func testNullCoalescingErrorWithNonOptional() {
-        let node = LayoutNode(constants: ["foo": 7])
-        let expression = LayoutExpression(doubleExpression: "foo ?? 5", for: node)
-        XCTAssertThrowsError(try expression?.evaluate()) { error in
-            XCTAssert("\(error)".lowercased().contains("optional"))
-        }
-    }
-
     func testNullStringExpression() {
         let null: String? = nil
         let node = LayoutNode(constants: ["foo": null as Any])

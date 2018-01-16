@@ -2,20 +2,6 @@
 
 import UIKit
 
-struct IntOptionSet: OptionSet {
-    let rawValue: Int
-    init(rawValue: Int) {
-        self.rawValue = rawValue
-    }
-}
-
-struct UIntOptionSet: OptionSet {
-    let rawValue: UInt
-    init(rawValue: UInt) {
-        self.rawValue = rawValue
-    }
-}
-
 // Convert any object to a string
 func stringify(_ value: Any) throws -> String {
     switch try unwrap(value) {
@@ -95,6 +81,57 @@ func urlFromString(_ path: String, relativeTo baseURL: URL? = nil) -> URL {
     }
 }
 
+// MARK: Optionals
+
+// Unwraps a potentially optional value or throws if nil
+func unwrap(_ value: Any) throws -> Any {
+    switch value {
+    case let optional as _Optional:
+        guard let value = optional.value else {
+            fallthrough
+        }
+        return try unwrap(value)
+    case is NSNull:
+        throw AnyExpression.Error.message("Unexpected nil value")
+    default:
+        return value
+    }
+}
+
+// Unwraps a potentially optional value or returns nil
+func optionalValue(of value: Any) -> Any? {
+    guard let optional = value as? _Optional else {
+        return value is NSNull ? nil : value
+    }
+    return optional.value
+}
+
+// Test if a value is nil
+func isNil(_ value: Any) -> Bool {
+    if let optional = value as? _Optional {
+        guard let value = optional.value else {
+            return true
+        }
+        return isNil(value)
+    }
+    return value is NSNull
+}
+
+// Used to test if a value is Optional
+private protocol _Optional {
+    var value: Any? { get }
+}
+
+extension Optional: _Optional {
+    fileprivate var value: Any? { return self }
+}
+
+extension ImplicitlyUnwrappedOptional: _Optional {
+    fileprivate var value: Any? { return self }
+}
+
+// MARK: Approximate equality
+
 private let precision: CGFloat = 0.001
 
 extension CGPoint {
@@ -122,10 +159,24 @@ extension UIEdgeInsets {
     }
 }
 
+// MARK: Backwards compatibility
+
+struct IntOptionSet: OptionSet {
+    let rawValue: Int
+    init(rawValue: Int) {
+        self.rawValue = rawValue
+    }
+}
+
+struct UIntOptionSet: OptionSet {
+    let rawValue: UInt
+    init(rawValue: UInt) {
+        self.rawValue = rawValue
+    }
+}
+
 #if swift(>=4)
 #else
-
-    // Swift 4 compatibility helpers
 
     extension NSAttributedString {
         struct DocumentType {

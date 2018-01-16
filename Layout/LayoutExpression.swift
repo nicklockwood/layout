@@ -174,7 +174,7 @@ struct LayoutExpression {
 
     private init?(percentageExpression: String,
                   for prop: String, in node: LayoutNode,
-                  symbols: [Expression.Symbol: Expression.Symbol.Evaluator] = [:]) {
+                  symbols: [Expression.Symbol: Expression.SymbolEvaluator] = [:]) {
 
         var symbols = symbols
         symbols[.postfix("%")] = { [unowned node] args in
@@ -258,7 +258,7 @@ struct LayoutExpression {
                   type: RuntimeType,
                   nullable: Bool = false,
                   symbols: [AnyExpression.Symbol: AnyExpression.SymbolEvaluator] = [:],
-                  numericSymbols: [AnyExpression.Symbol: Expression.Symbol.Evaluator] = [:],
+                  numericSymbols: [AnyExpression.Symbol: Expression.SymbolEvaluator] = [:],
                   lookup: @escaping (String) -> Any? = { _ in nil },
                   for node: LayoutNode) {
         do {
@@ -282,7 +282,7 @@ struct LayoutExpression {
                   type: RuntimeType,
                   nullable: Bool,
                   symbols: [AnyExpression.Symbol: AnyExpression.SymbolEvaluator] = [:],
-                  numericSymbols: [AnyExpression.Symbol: Expression.Symbol.Evaluator] = [:],
+                  numericSymbols: [Expression.Symbol: Expression.SymbolEvaluator] = [:],
                   lookup: @escaping (String) -> Any? = { _ in nil },
                   macroReferences: [String] = [],
                   for node: LayoutNode) {
@@ -463,20 +463,18 @@ struct LayoutExpression {
             }
         }
         let evaluator: AnyExpression.Evaluator? = numericSymbols.isEmpty ? nil : { symbol, anyArgs in
-            guard let fn = numericSymbols[symbol] else { return nil }
-            var args = [Double]()
-            for arg in anyArgs {
-                if let doubleValue = arg as? Double {
-                    args.append(doubleValue)
-                } else if let cgFloatValue = arg as? CGFloat {
-                    args.append(Double(cgFloatValue))
-                } else if let numberValue = arg as? NSNumber {
-                    args.append(Double(truncating: numberValue))
-                } else {
-                    return nil
+            return try numericSymbols[symbol]?(anyArgs.map {
+                switch $0 {
+                case let doubleValue as Double:
+                    return doubleValue
+                case let cgFloatValue as CGFloat:
+                    return Double(cgFloatValue)
+                case let numberValue as NSNumber:
+                    return Double(truncating: numberValue)
+                default:
+                    throw Expression.Error.message("Type mismatch")
                 }
-            }
-            return try fn(args)
+            })
         }
         let expression = AnyExpression(
             parsedExpression.expression,
@@ -487,7 +485,7 @@ struct LayoutExpression {
         )
         self.init(
             evaluate: {
-                let anyValue = try expression.evaluate()
+                let anyValue: Any = try expression.evaluate()
                 if nullable, optionalValue(of: anyValue) == nil {
                     return anyValue
                 }
@@ -513,7 +511,7 @@ struct LayoutExpression {
 
     private init?(interpolatedStringExpression expression: String,
                   symbols: [AnyExpression.Symbol: AnyExpression.SymbolEvaluator] = [:],
-                  numericSymbols: [AnyExpression.Symbol: Expression.Symbol.Evaluator] = [:],
+                  numericSymbols: [AnyExpression.Symbol: Expression.SymbolEvaluator] = [:],
                   lookup: @escaping (String) -> Any? = { _ in nil },
                   for node: LayoutNode) {
 
