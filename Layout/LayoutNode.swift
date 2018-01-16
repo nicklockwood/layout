@@ -183,7 +183,7 @@ public class LayoutNode: NSObject {
     private var _observingInsets = false
     private var _shouldObserveInsets: Bool {
         guard let viewControllerClass = viewControllerClass else {
-            return false
+            return parent == nil
         }
         return !(viewControllerClass is UITabBarController.Type) &&
             !(viewControllerClass is UINavigationController.Type)
