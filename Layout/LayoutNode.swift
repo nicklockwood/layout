@@ -2474,11 +2474,10 @@ public class LayoutNode: NSObject {
     /// Binds the node to the specified owner but doesn't attach the view or view controller(s)
     /// Note: thrown error is always a LayoutError
     public func bind(to owner: NSObject) throws {
-        var outlets = Set<String>()
-        try _bind(to: owner, with: &outlets)
+        try _bind(to: owner, with: NSMutableSet())
     }
 
-    private func _bind(to owner: NSObject, with outlets: inout Set<String>) throws {
+    private func _bind(to owner: NSObject, with viewsAndOutlets: NSMutableSet) throws {
         guard _owner == nil || _owner == owner || _owner == _viewController else {
             throw LayoutError("Cannot re-bind an already bound node.", for: self)
         }
@@ -2506,6 +2505,36 @@ public class LayoutNode: NSObject {
                 try completeSetup()
             }
         }
+
+        #if arch(i386) || arch(x86_64)
+
+            // Check if this view controller instance has already been used
+            if let controller = viewController {
+                if viewsAndOutlets.contains(controller) {
+                    throw LayoutError("Duplicate \(controller.classForCoder) instance in Layout hierachy", for: self)
+                } else {
+                    viewsAndOutlets.add(controller)
+                }
+            }
+
+            // Check if view instance has already been used
+            if viewsAndOutlets.contains(view) {
+                throw LayoutError("Duplicate \(view.classForCoder) instance in Layout hierachy", for: self)
+            } else {
+                viewsAndOutlets.add(view)
+            }
+
+            // Check if an outlet with this name has already been bound
+            if let outlet = outlet {
+                if viewsAndOutlets.contains(outlet) {
+                    throw LayoutError("Duplicate outlet reference '\(outlet)'", for: self)
+                } else {
+                    viewsAndOutlets.add(outlet)
+                }
+            }
+
+        #endif
+
         if let outlet = outlet {
             guard let type = Swift.type(of: owner).allPropertyTypes()[outlet] else {
                 let mirror = Mirror(reflecting: owner)
@@ -2544,15 +2573,6 @@ public class LayoutNode: NSObject {
             if !didMatch {
                 throw LayoutError("outlet \(outlet) of \(owner.classForCoder) is not a \(expectedType)", for: self)
             }
-
-            #if arch(i386) || arch(x86_64)
-                // Check if an outlet with this name has already been bound
-                if outlets.contains(outlet) {
-                    throw LayoutError("Duplicate outlet reference '\(outlet)'", for: self)
-                } else {
-                    outlets.insert(outlet)
-                }
-            #endif
         }
         for (name, type) in viewExpressionTypes where expressions[name] == nil {
             guard case .protocol = type.type, type.matches(owner),
@@ -2566,7 +2586,7 @@ public class LayoutNode: NSObject {
         }
         try bindActions()
         for child in children {
-            try LayoutError.wrap({ try child._bind(to: owner, with: &outlets) }, for: self)
+            try LayoutError.wrap({ try child._bind(to: owner, with: viewsAndOutlets) }, for: self)
         }
         try throwUnhandledError()
     }

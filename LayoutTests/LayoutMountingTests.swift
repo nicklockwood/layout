@@ -148,7 +148,7 @@ class LayoutMountingTests: XCTestCase {
         }
     }
 
-    // MARK: Duplicate outlets
+    // MARK: Duplicate views and outlets
 
     func testDuplicateOutletError() {
         let node = LayoutNode(children: [
@@ -158,6 +158,18 @@ class LayoutMountingTests: XCTestCase {
         let vc = TestViewController()
         XCTAssertThrowsError(try node.mount(in: vc)) { error in
             XCTAssert("\(error)".contains("outlet"))
+        }
+    }
+
+    func testDuplicateViewError() {
+        let view = UIView()
+        let node = LayoutNode(children: [
+            LayoutNode(view: view),
+            LayoutNode(view: view),
+        ])
+        let vc = TestViewController()
+        XCTAssertThrowsError(try node.mount(in: vc)) { error in
+            XCTAssert("\(error)".contains("UIView"))
         }
     }
 }
