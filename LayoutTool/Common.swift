@@ -330,6 +330,7 @@ func validateLayoutExpression(_ parsedExpression: ParsedLayoutExpression) throws
         throw error
     }
     let keys = Set(Expression.mathSymbols.keys).union(Expression.boolSymbols.keys).union([
+        .infix("??"),
         .postfix("%"),
         .function("rgb", arity: 3),
         .function("rgba", arity: 4),
