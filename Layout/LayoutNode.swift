@@ -2474,6 +2474,11 @@ public class LayoutNode: NSObject {
     /// Binds the node to the specified owner but doesn't attach the view or view controller(s)
     /// Note: thrown error is always a LayoutError
     public func bind(to owner: NSObject) throws {
+        var outlets = Set<String>()
+        try _bind(to: owner, with: &outlets)
+    }
+
+    private func _bind(to owner: NSObject, with outlets: inout Set<String>) throws {
         guard _owner == nil || _owner == owner || _owner == _viewController else {
             throw LayoutError("Cannot re-bind an already bound node.", for: self)
         }
@@ -2539,12 +2544,21 @@ public class LayoutNode: NSObject {
             if !didMatch {
                 throw LayoutError("outlet \(outlet) of \(owner.classForCoder) is not a \(expectedType)", for: self)
             }
+
+            #if arch(i386) || arch(x86_64)
+                // Check if an outlet with this name has already been bound
+                if outlets.contains(outlet) {
+                    throw LayoutError("Duplicate outlet reference '\(outlet)'", for: self)
+                } else {
+                    outlets.insert(outlet)
+                }
+            #endif
         }
         for (name, type) in viewExpressionTypes where expressions[name] == nil {
             guard case .protocol = type.type, type.matches(owner),
                 name == "delegate" || name == "dataSource" ||
-                name.hasSuffix("Delegate") || name.hasSuffix("DataSource") else {
-                continue
+                    name.hasSuffix("Delegate") || name.hasSuffix("DataSource") else {
+                        continue
             }
             try LayoutError.wrap({
                 try self._view?.setValue(owner, forExpression: name)
@@ -2552,7 +2566,7 @@ public class LayoutNode: NSObject {
         }
         try bindActions()
         for child in children {
-            try LayoutError.wrap({ try child.bind(to: owner) }, for: self)
+            try LayoutError.wrap({ try child._bind(to: owner, with: &outlets) }, for: self)
         }
         try throwUnhandledError()
     }
