@@ -1,5 +1,11 @@
 # Change Log
 
+## [0.6.15](https://github.com/schibsted/layout/releases/tag/0.6.15) (2018-01-19)
+
+- Fixed bug where safe area insets would not be updated correctly in some cases
+- Duplicate instances of the same view or view controller in a LayoutNode hierarchy will now throw an error
+- Duplicate outlet names in a LayoutNode hierarchy will now throw an error
+
 ## [0.6.14](https://github.com/schibsted/layout/releases/tag/0.6.14) (2018-01-11)
 
 - Fixed longstanding bug where reloading failed to remove the old layout views/controllers from the hierarchy

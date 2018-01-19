@@ -2577,8 +2577,8 @@ public class LayoutNode: NSObject {
         for (name, type) in viewExpressionTypes where expressions[name] == nil {
             guard case .protocol = type.type, type.matches(owner),
                 name == "delegate" || name == "dataSource" ||
-                    name.hasSuffix("Delegate") || name.hasSuffix("DataSource") else {
-                        continue
+                name.hasSuffix("Delegate") || name.hasSuffix("DataSource") else {
+                continue
             }
             try LayoutError.wrap({
                 try self._view?.setValue(owner, forExpression: name)
