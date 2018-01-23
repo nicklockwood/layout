@@ -174,16 +174,22 @@ struct LayoutExpression {
 
     private init?(percentageExpression: String,
                   for prop: String, in node: LayoutNode,
-                  symbols: [Expression.Symbol: Expression.SymbolEvaluator] = [:]) {
+                  impureSymbols: (AnyExpression.Symbol) -> AnyExpression.SymbolEvaluator? = { _ in nil }) {
 
-        var symbols = symbols
-        symbols[.postfix("%")] = { [unowned node] args in
-            try node.doubleValue(forSymbol: prop) / 100 * args[0]
-        }
         guard let expression = LayoutExpression(
             anyExpression: percentageExpression,
             type: .cgFloat,
-            numericSymbols: symbols,
+            impureSymbols: { symbol in
+                if case .postfix("%") = symbol {
+                    return { anyArgs in
+                        guard let value = anyArgs[0] as? Double else {
+                            throw Expression.Error.message("Type mismatch")
+                        }
+                        return try node.doubleValue(forSymbol: prop) / 100 * value
+                    }
+                }
+                return impureSymbols(symbol)
+            },
             for: node
         ) else {
             return nil
@@ -207,9 +213,12 @@ struct LayoutExpression {
         guard let expression = LayoutExpression(
             percentageExpression: sizeExpression,
             for: "parent.containerSize.\(prop)", in: node,
-            symbols: [.variable("auto"): { [unowned node] _ in
-                try node.doubleValue(forSymbol: sizeProp)
-            }]
+            impureSymbols: { symbol in
+                if case .variable("auto") = symbol {
+                    return { _ in try node.doubleValue(forSymbol: sizeProp) }
+                }
+                return nil
+            }
         ) else {
             return nil
         }
@@ -232,9 +241,12 @@ struct LayoutExpression {
         guard let expression = LayoutExpression(
             percentageExpression: contentSizeExpression,
             for: "containerSize.\(prop)", in: node,
-            symbols: [.variable("auto"): { [unowned node] _ in
-                try node.doubleValue(forSymbol: sizeProp)
-            }]
+            impureSymbols: { symbol in
+                if case .variable("auto") = symbol {
+                    return { _ in try node.doubleValue(forSymbol: sizeProp) }
+                }
+                return nil
+            }
         ) else {
             return nil
         }
@@ -252,23 +264,21 @@ struct LayoutExpression {
         self.init(contentSizeExpression: contentHeightExpression, for: "height", in: node)
     }
 
-    // symbols are assumed to be pure - i.e. they will always return the same value
-    // numericSymbols are assumed to be impure - i.e. they won't always return the same value
     private init?(anyExpression: String,
                   type: RuntimeType,
                   nullable: Bool = false,
-                  symbols: [AnyExpression.Symbol: AnyExpression.SymbolEvaluator] = [:],
-                  numericSymbols: [AnyExpression.Symbol: Expression.SymbolEvaluator] = [:],
-                  lookup: @escaping (String) -> Any? = { _ in nil },
+                  constants: @escaping (String) -> Any? = { _ in nil },
+                  pureSymbols: (AnyExpression.Symbol) -> AnyExpression.SymbolEvaluator? = { _ in nil },
+                  impureSymbols: (AnyExpression.Symbol) -> AnyExpression.SymbolEvaluator? = { _ in nil },
                   for node: LayoutNode) {
         do {
             self.init(
                 anyExpression: try parseExpression(anyExpression),
                 type: type,
                 nullable: nullable,
-                symbols: symbols,
-                numericSymbols: numericSymbols,
-                lookup: lookup,
+                constants: constants,
+                pureSymbols: pureSymbols,
+                impureSymbols: impureSymbols,
                 for: node
             )
         } catch {
@@ -276,17 +286,18 @@ struct LayoutExpression {
         }
     }
 
-    // symbols are assumed to be pure - i.e. they will always return the same value
-    // numericSymbols are assumed to be impure - i.e. they won't always return the same value
     private init?(anyExpression parsedExpression: ParsedLayoutExpression,
                   type: RuntimeType,
                   nullable: Bool,
-                  symbols: [AnyExpression.Symbol: AnyExpression.SymbolEvaluator] = [:],
-                  numericSymbols: [Expression.Symbol: Expression.SymbolEvaluator] = [:],
-                  lookup: @escaping (String) -> Any? = { _ in nil },
+                  constants: @escaping (String) -> Any? = { _ in nil },
+                  pureSymbols: (AnyExpression.Symbol) -> AnyExpression.SymbolEvaluator? = { _ in nil },
+                  impureSymbols: (AnyExpression.Symbol) -> AnyExpression.SymbolEvaluator? = { _ in nil },
                   macroReferences: [String] = [],
                   for node: LayoutNode) {
 
+        if parsedExpression.isEmpty {
+            return nil
+        }
         func staticConstant(for key: String) throws -> Any? {
             var tail = key
             var head = ""
@@ -305,12 +316,9 @@ struct LayoutExpression {
                 return values[tail]
             case let .options(_, values):
                 return values[tail]
-            case let .any(type):
-                guard let cls = type as? NSObject.Type else {
-                    fallthrough
-                }
+            case let .any(type as NSObject.Type):
                 if !tail.isEmpty {
-                    guard cls.responds(to: Selector(tail)) else {
+                    guard type.responds(to: Selector(tail)) else {
                         var suffix = head.components(separatedBy: ".").last!
                         for prefix in ["UI", "NS"] {
                             if suffix.hasPrefix(prefix) {
@@ -319,21 +327,20 @@ struct LayoutExpression {
                             }
                         }
                         let newTail = tail + suffix
-                        guard cls.responds(to: Selector(newTail)) else {
+                        guard type.responds(to: Selector(newTail)) else {
                             throw SymbolError("Cannot access static property `\(tail)` of class \(head)", for: key)
                         }
-                        return cls.value(forKeyPath: newTail)
+                        return type.value(forKeyPath: newTail)
                     }
-                    return cls.value(forKeyPath: tail)
+                    return type.value(forKeyPath: tail)
                 }
-                return cls
+                return type
             default:
-                break
+                if !tail.isEmpty {
+                    throw SymbolError("Cannot access static property `\(tail)` of type \(head)", for: key)
+                }
+                throw SymbolError("Unsupported type \(type)", for: key)
             }
-            if !tail.isEmpty {
-                throw SymbolError("Cannot access static property `\(tail)` of type \(head)", for: key)
-            }
-            throw SymbolError("Unsupported type \(type)", for: key)
         }
         func arrayHander(
             for evaluator: @escaping AnyExpression.SymbolEvaluator,
@@ -352,136 +359,121 @@ struct LayoutExpression {
                 return array[index]
             }
         }
-        if parsedExpression.isEmpty {
-            return nil
-        }
-        var constants = [String: Any]()
-        var symbols = symbols
+        var allConstants = [String: Any]()
         var macroSymbols = [String: Set<String>]()
-        for symbol in parsedExpression.symbols where symbols[symbol] == nil &&
-            numericSymbols[symbol] == nil && !ignoredSymbols.contains(symbol) {
-            switch symbol {
-            case let .variable(name) where !"'\"".contains(name.first ?? " "),
-                 let .array(name):
-                var key = name
-                let isArray = (symbol == .array(name))
-                if key.count >= 2, key.first == "`", key.last == "`" {
-                    key = String(key.dropFirst().dropLast())
-                }
-                let macro = node.expression(forMacro: key)
-                let circular = (macro != nil) ? macroReferences.contains(key) : false
-                do {
-                    if let macro = macro, !circular {
-                        guard let macroExpression = LayoutExpression(
-                            anyExpression: try parseExpression(macro),
-                            type: .any,
-                            nullable: nullable,
-                            symbols: symbols,
-                            numericSymbols: numericSymbols,
-                            lookup: lookup,
-                            macroReferences: macroReferences + [key],
-                            for: node
-                        ) else {
-                            symbols[symbol] = { _ in
-                                throw SymbolError("Empty expression for `\(key)` macro", for: key)
-                            }
-                            continue
-                        }
-                        macroSymbols[key] = macroExpression.symbols
-                        let evaluator: AnyExpression.SymbolEvaluator = { _ in
-                            try SymbolError.wrap(macroExpression.evaluate, for: key)
-                        }
-                        if isArray {
-                            symbols[symbol] = arrayHander(for: evaluator, key: key)
-                        } else {
-                            symbols[symbol] = evaluator
-                        }
-                    } else if let value = try lookup(key) ?? node.constantValue(forSymbol: key) ??
-                        staticConstant(for: key) {
-                        constants[name] = value
-                    } else if circular {
-                        let evaluator: AnyExpression.SymbolEvaluator = { [unowned node] _ in
-                            do {
-                                return try node.value(forSymbol: key)
-                            } catch {
-                                throw SymbolError("Macro `\(key)` references a nonexistent symbol of the same name (macros cannot reference themselves)", for: key)
-                            }
-                        }
-                        if isArray {
-                            symbols[symbol] = arrayHander(for: evaluator, key: key)
-                        } else {
-                            symbols[symbol] = evaluator
-                        }
-                    } else {
-                        let evaluator: AnyExpression.SymbolEvaluator = { [unowned node] _ in
-                            try node.value(forSymbol: key)
-                        }
-                        if isArray {
-                            symbols[symbol] = arrayHander(for: evaluator, key: key)
-                        } else {
-                            symbols[symbol] = evaluator
-                        }
-                    }
-                } catch {
-                    symbols[symbol] = { _ in throw error }
-                }
-            case let .function(name, .exactly(arity)):
-                var key = name
-                if key.count >= 2, key.first == "`", key.last == "`" {
-                    key = String(key.dropFirst().dropLast())
-                }
-                do {
-                    guard let value = (try lookup(key) ?? node.constantValue(forSymbol: key)) as? String else {
-                        break
-                    }
-                    let formatString = try FormatString(value)
-                    let types = formatString.types.map { RuntimeType($0) }
-                    if arity > types.count {
-                        // TODO: this should probably be a warning, since there are legitimate cases where this
-                        // might arise - e.g. if a string doesn't use a param in one locale but does in others
-                        throw SymbolError("Too many arguments (\(arity)) for format string '\(value)' for key `\(key)`", for: key)
-                    } else if arity < types.count {
-                        throw SymbolError("Too few arguments (\(arity)) for format string '\(value)' for key `\(key)`", for: key)
-                    }
-                    symbols[symbol] = {
-                        do {
-                            let args = zip(types, $0).map { type, value in type.cast(value) ?? value }
-                            return try formatString.print(arguments: args)
-                        } catch {
-                            throw SymbolError("\(error)", for: key)
-                        }
-                    }
-                } catch {
-                    symbols[symbol] = { _ in throw SymbolError("\(error)", for: key) }
-                }
-            case .infix(",") where symbols[symbol] == nil:
-                symbols[symbol] = { args in
-                    args.flatMap { $0 as? [Any] ?? [$0] }
-                }
-            default:
-                break
-            }
-        }
-        let evaluator: AnyExpression.Evaluator? = numericSymbols.isEmpty ? nil : { symbol, anyArgs in
-            return try numericSymbols[symbol]?(anyArgs.map {
-                switch $0 {
-                case let doubleValue as Double:
-                    return doubleValue
-                case let cgFloatValue as CGFloat:
-                    return Double(cgFloatValue)
-                case let numberValue as NSNumber:
-                    return Double(truncating: numberValue)
-                default:
-                    throw Expression.Error.message("Type mismatch")
-                }
-            })
-        }
         let expression = AnyExpression(
             parsedExpression.expression,
-            options: [.boolSymbols, .pureSymbols],
-            constants: constants,
-            symbols: symbols,
-            evaluator: evaluator
+            impureSymbols: { symbol in
+                if let fn = impureSymbols(symbol) {
+                    return fn
+                }
+                switch symbol {
+                case let .variable(name) where !"'\"".contains(name.first ?? " "), let .array(name):
+                    var key = name
+                    let isArray = (symbol == .array(name))
+                    if key.first == "`", key.last == "`" {
+                        key = String(key.dropFirst().dropLast())
+                    }
+                    let macro = node.expression(forMacro: key)
+                    let circular = (macro != nil) ? macroReferences.contains(key) : false
+                    do {
+                        if let macro = macro, !circular {
+                            guard let macroExpression = LayoutExpression(
+                                anyExpression: try parseExpression(macro),
+                                type: .any,
+                                nullable: nullable,
+                                constants: constants,
+                                pureSymbols: pureSymbols,
+                                impureSymbols: impureSymbols,
+                                macroReferences: macroReferences + [key],
+                                for: node
+                            ) else {
+                                return { _ in throw SymbolError("Empty expression for `\(key)` macro", for: key) }
+                            }
+                            macroSymbols[key] = macroExpression.symbols
+                            let evaluator: AnyExpression.SymbolEvaluator = { _ in
+                                try SymbolError.wrap(macroExpression.evaluate, for: key)
+                            }
+                            return isArray ? arrayHander(for: evaluator, key: key) : evaluator
+                        } else if let value = try constants(key) ?? node.constantValue(forSymbol: key) ?? staticConstant(for: key) {
+                            allConstants[key] = value
+                            return nil
+                        } else if circular {
+                            let evaluator: AnyExpression.SymbolEvaluator = { [unowned node] _ in
+                                do {
+                                    return try node.value(forSymbol: key)
+                                } catch {
+                                    throw SymbolError("Macro `\(key)` references a nonexistent symbol of the same name (macros cannot reference themselves)", for: key)
+                                }
+                            }
+                            return isArray ? arrayHander(for: evaluator, key: key) : evaluator
+                        } else if ignoredSymbols.contains(symbol) || pureSymbols(symbol) != nil {
+                            return nil
+                        } else {
+                            let evaluator: AnyExpression.SymbolEvaluator = { [unowned node] _ in
+                                try node.value(forSymbol: key)
+                            }
+                            return isArray ? arrayHander(for: evaluator, key: key) : evaluator
+                        }
+                    } catch {
+                        return { _ in throw error }
+                    }
+                default:
+                    return nil
+                }
+            },
+            pureSymbols: { symbol in
+                if let fn = pureSymbols(symbol) {
+                    return fn
+                }
+                switch symbol {
+                case let .variable(name):
+                    return allConstants[name].map { value in
+                        { _ in value }
+                    }
+                case let .array(name):
+                    return allConstants[name].map { value in
+                        arrayHander(for: { _ in value }, key: name)
+                    }
+                case let .function(name, .exactly(arity)):
+                    var key = name
+                    if key.count >= 2, key.first == "`", key.last == "`" {
+                        key = String(key.dropFirst().dropLast())
+                    }
+                    do {
+                        guard let value = (try constants(key) ?? node.constantValue(forSymbol: key)) as? String else {
+                            return nil
+                        }
+                        let formatString = try FormatString(value)
+                        let types = formatString.types.map { RuntimeType($0) }
+                        if arity > types.count {
+                            // TODO: this should probably be a warning, since there are legitimate cases where this
+                            // might arise - e.g. if a string doesn't use a param in one locale but does in others
+                            throw SymbolError("Too many arguments (\(arity)) for format string '\(value)' for key `\(key)`", for: key)
+                        } else if arity < types.count {
+                            throw SymbolError("Too few arguments (\(arity)) for format string '\(value)' for key `\(key)`", for: key)
+                        }
+                        return { args in
+                            let args = zip(types, args).map { type, value in
+                                type.cast(value) ?? value
+                            }
+                            do {
+                                return try formatString.print(arguments: args)
+                            } catch {
+                                throw SymbolError("\(error)", for: key)
+                            }
+                        }
+                    } catch {
+                        return { _ in throw SymbolError("\(error)", for: key) }
+                    }
+                case .infix(","):
+                    return { args in
+                        args.flatMap { $0 as? [Any] ?? [$0] }
+                    }
+                default:
+                    return nil
+                }
+            }
         )
         self.init(
             evaluate: {
@@ -509,12 +501,7 @@ struct LayoutExpression {
         )
     }
 
-    private init?(interpolatedStringExpression expression: String,
-                  symbols: [AnyExpression.Symbol: AnyExpression.SymbolEvaluator] = [:],
-                  numericSymbols: [AnyExpression.Symbol: Expression.SymbolEvaluator] = [:],
-                  lookup: @escaping (String) -> Any? = { _ in nil },
-                  for node: LayoutNode) {
-
+    private init?(interpolatedStringExpression expression: String, for node: LayoutNode) {
         enum ExpressionPart {
             case string(String)
             case expression(() throws -> Any)
@@ -529,9 +516,6 @@ struct LayoutExpression {
                         anyExpression: parsedExpression,
                         type: .any,
                         nullable: true,
-                        symbols: symbols,
-                        numericSymbols: numericSymbols,
-                        lookup: lookup,
                         for: node
                     ) else {
                         return nil
@@ -859,8 +843,12 @@ struct LayoutExpression {
                     anyExpression: parsedExpression,
                     type: .any,
                     nullable: false,
-                    symbols: colorSymbols,
-                    lookup: colorLookup,
+                    pureSymbols: { symbol in
+                        if case let .variable(name) = symbol, let color = colorLookup(name) {
+                            return { _ in color }
+                        }
+                        return colorSymbols[symbol]
+                    },
                     for: node
                 ) else {
                     return nil
@@ -1020,7 +1008,7 @@ struct LayoutExpression {
         self.init(
             anyExpression: enumExpression,
             type: type,
-            lookup: { name in values[name] },
+            constants: { name in values[name] },
             for: node
         )
     }
@@ -1030,7 +1018,7 @@ struct LayoutExpression {
         self.init(
             anyExpression: optionsExpression,
             type: type,
-            lookup: { name in values[name] },
+            constants: { name in values[name] },
             for: node
         )
     }
@@ -1110,7 +1098,7 @@ struct LayoutExpression {
         self.init(
             anyExpression: classExpression,
             type: RuntimeType(class: `class`),
-            lookup: { name in classFromString(name) },
+            constants: classFromString,
             for: node
         )
     }
