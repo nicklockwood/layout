@@ -2,7 +2,7 @@
 //  Expression.swift
 //  Expression
 //
-//  Version 0.11.2
+//  Version 0.11.3
 //
 //  Created by Nick Lockwood on 15/09/2016.
 //  Copyright © 2016 Nick Lockwood. All rights reserved.
@@ -332,7 +332,10 @@ public final class Expression: CustomStringConvertible {
                     // Rewrite expression to skip custom evaluator
                     pureSymbols[symbol] = customEvaluator(for: symbol, optimizing: false)
                     impureSymbols.removeValue(forKey: symbol)
-                    self.root = self.root.optimized(withSymbols: impureSymbols, pureSymbols: pureSymbols)
+                    self.root = self.root.optimized(
+                        withImpureSymbols: { impureSymbols[$0] },
+                        pureSymbols: { pureSymbols[$0] }
+                    )
                     return try fn(args)
                 } : fn
             }()
@@ -400,7 +403,25 @@ public final class Expression: CustomStringConvertible {
             }
             pureSymbols.removeAll()
         }
-        root = root.optimized(withSymbols: impureSymbols, pureSymbols: pureSymbols)
+        root = root.optimized(
+            withImpureSymbols: { impureSymbols[$0] },
+            pureSymbols: { pureSymbols[$0] }
+        )
+    }
+
+    /// Alternative constructor for advanced usage
+    /// Allows for dynamic symbol lookup or generation without any performance overhead
+    /// Note that both math and boolean symbols are enabled by default - to disable them
+    /// return `{ _ in throw Expression.Error.undefinedSymbol(symbol) }` from your lookup function
+    public init(
+        _ expression: ParsedExpression,
+        impureSymbols: (Symbol) -> SymbolEvaluator?,
+        pureSymbols: (Symbol) -> SymbolEvaluator?
+    ) {
+        root = expression.root.optimized(
+            withImpureSymbols: impureSymbols,
+            pureSymbols: { pureSymbols($0) ?? Expression.mathSymbols[$0] ?? Expression.boolSymbols[$0] }
+        )
     }
 
     /// Verify that the string is a valid identifier
@@ -505,7 +526,7 @@ public final class Expression: CustomStringConvertible {
 
     /// Standard math symbols
     public static let mathSymbols: [Symbol: SymbolEvaluator] = {
-        var symbols: [Symbol: ([Double]) -> Double] = [:]
+        var symbols: [Symbol: SymbolEvaluator] = [:]
 
         // constants
         symbols[.variable("pi")] = { _ in .pi }
@@ -547,7 +568,7 @@ public final class Expression: CustomStringConvertible {
 
     /// Standard boolean symbols
     public static let boolSymbols: [Symbol: SymbolEvaluator] = {
-        var symbols: [Symbol: ([Double]) -> Double] = [:]
+        var symbols: [Symbol: SymbolEvaluator] = [:]
 
         // boolean constants
         symbols[.variable("true")] = { _ in 1 }
@@ -720,15 +741,24 @@ private enum Subexpression: CustomStringConvertible {
         }
     }
 
-    func optimized(withSymbols impureSymbols: [Expression.Symbol: Expression.SymbolEvaluator],
-                   pureSymbols: [Expression.Symbol: Expression.SymbolEvaluator]) -> Subexpression {
+    func optimized(
+        withImpureSymbols impureSymbols: (Expression.Symbol) -> Expression.SymbolEvaluator?,
+        pureSymbols: (Expression.Symbol) -> Expression.SymbolEvaluator?
+    ) -> Subexpression {
 
         guard case .symbol(let symbol, var args, _) = self else {
             return self
         }
-        args = args.map { $0.optimized(withSymbols: impureSymbols, pureSymbols: pureSymbols) }
-        guard let fn = pureSymbols[symbol] else {
-            return .symbol(symbol, args, impureSymbols[symbol]!)
+        args = args.map {
+            $0.optimized(withImpureSymbols: impureSymbols, pureSymbols: pureSymbols)
+        }
+        if let fn = impureSymbols(symbol) {
+            return .symbol(symbol, args, fn)
+        }
+        guard let fn = pureSymbols(symbol) else {
+            return .symbol(symbol, args, { _ in
+                throw Expression.Error.undefinedSymbol(symbol)
+            })
         }
         var argValues = [Double]()
         for arg in args {
