@@ -2,7 +2,7 @@
 //  Expression.swift
 //  Expression
 //
-//  Version 0.11.3
+//  Version 0.12.0
 //
 //  Created by Nick Lockwood on 15/09/2016.
 //  Copyright © 2016 Nick Lockwood. All rights reserved.
@@ -37,12 +37,7 @@ import Foundation
 /// Reusing the same Expression instance for multiple evaluations is more efficient
 /// than creating a new one each time you wish to evaluate an expression string.
 public final class Expression: CustomStringConvertible {
-    private var root: Subexpression
-
-    /// Function prototype for evaluating an expression
-    /// Return nil for an unrecognized symbol, or throw an error if the symbol is recognized
-    /// but there is some other problem (e.g. wrong number of arguments for a function)
-    public typealias Evaluator = (_ symbol: Symbol, _ args: [Double]) throws -> Double?
+    private let root: Subexpression
 
     /// Evaluator for individual symbols
     public typealias SymbolEvaluator = (_ args: [Double]) throws -> Double
@@ -110,10 +105,6 @@ public final class Expression: CustomStringConvertible {
 
         /// A array of values accessed by index
         case array(String)
-
-        /// Evaluator for individual symbols
-        @available(*, deprecated, message: "Use SymbolEvaluator instead")
-        public typealias Evaluator = SymbolEvaluator
 
         /// The human-readable name of the symbol
         public var name: String {
@@ -247,10 +238,7 @@ public final class Expression: CustomStringConvertible {
     public struct Options: OptionSet {
 
         /// Disable optimizations such as constant substitution
-        public static let noOptimize = Options(rawValue: 1 << 0)
-
-        /// Disable deferred optimizations (mutating expression after first evaluation)
-        public static let noDeferredOptimize = Options(rawValue: 1 << 1)
+        public static let noOptimize = Options(rawValue: 1 << 1)
 
         /// Enable standard boolean operators and constants
         public static let boolSymbols = Options(rawValue: 1 << 2)
@@ -275,40 +263,34 @@ public final class Expression: CustomStringConvertible {
     /// - A dictionary of constants for simple static values
     /// - A dictionary of arrays for static collections of related values
     /// - A dictionary of symbols, for implementing custom functions and operators
-    /// - A custom evaluator function for more complex symbol processing
     public convenience init(
         _ expression: String,
         options: Options = [],
         constants: [String: Double] = [:],
         arrays: [String: [Double]] = [:],
-        symbols: [Symbol: SymbolEvaluator] = [:],
-        evaluator: Evaluator? = nil
+        symbols: [Symbol: SymbolEvaluator] = [:]
     ) {
         self.init(
             Expression.parse(expression),
             options: options,
             constants: constants,
             arrays: arrays,
-            symbols: symbols,
-            evaluator: evaluator
+            symbols: symbols
         )
     }
 
     /// Alternative constructor that accepts a pre-parsed expression
-    public init(
+    public convenience init(
         _ expression: ParsedExpression,
         options: Options = [],
         constants: [String: Double] = [:],
         arrays: [String: [Double]] = [:],
-        symbols: [Symbol: SymbolEvaluator] = [:],
-        evaluator: Evaluator? = nil
+        symbols: [Symbol: SymbolEvaluator] = [:]
     ) {
-        root = expression.root
-
-        // Symbols
+        // Options
         let boolSymbols = options.contains(.boolSymbols) ? Expression.boolSymbols : [:]
-        var impureSymbols = Dictionary<Symbol, SymbolEvaluator>()
-        var pureSymbols = Dictionary<Symbol, SymbolEvaluator>()
+        let shouldOptimize = !options.contains(.noOptimize)
+        let pureSymbols = options.contains(.pureSymbols)
 
         // Evaluators
         func symbolEvaluator(for symbol: Symbol) -> SymbolEvaluator? {
@@ -320,92 +302,65 @@ public final class Expression: CustomStringConvertible {
             }
             return nil
         }
-        func customEvaluator(for symbol: Symbol, optimizing: Bool) -> SymbolEvaluator? {
-            guard let evaluator = evaluator else {
-                return nil
-            }
-            let fallback: SymbolEvaluator = {
-                guard let fn = defaultEvaluator(for: symbol) else {
-                    return errorHandler(for: symbol)
-                }
-                return optimizing ? { [unowned self] args in
-                    // Rewrite expression to skip custom evaluator
-                    pureSymbols[symbol] = customEvaluator(for: symbol, optimizing: false)
-                    impureSymbols.removeValue(forKey: symbol)
-                    self.root = self.root.optimized(
-                        withImpureSymbols: { impureSymbols[$0] },
-                        pureSymbols: { pureSymbols[$0] }
-                    )
-                    return try fn(args)
-                } : fn
-            }()
-            return { args in
-                // Try custom evaluator
-                if let value = try evaluator(symbol, args) {
-                    return value
-                }
-                // Special case for ternary
-                if args.count == 3, boolSymbols.isEmpty, case .infix("?:") = symbol,
-                    let lhs = try evaluator(.infix("?"), [args[0], args[1]]),
-                    let value = try evaluator(.infix(":"), [lhs, args[2]]) {
-                    return value
-                }
-                // Try default evaluator
-                return try fallback(args)
-            }
-        }
-        func defaultEvaluator(for symbol: Symbol) -> SymbolEvaluator? {
+        func defaultEvaluator(for symbol: Symbol) -> SymbolEvaluator {
             // Check default symbols
-            return Expression.mathSymbols[symbol] ?? boolSymbols[symbol]
-        }
-        func errorHandler(for symbol: Symbol) -> SymbolEvaluator {
+            if let fn = Expression.mathSymbols[symbol] ?? boolSymbols[symbol] {
+                return fn
+            }
             // Check for arity mismatch
             if case let .function(called, arity) = symbol {
                 let keys = Set(Expression.mathSymbols.keys).union(boolSymbols.keys).union(symbols.keys)
-                for case let .function(name, requiredArity) in keys
-                    where name == called && arity != requiredArity {
-                    return { _ in throw Error.arityMismatch(.function(called, arity: requiredArity)) }
+                for case let .function(name, expected) in keys where name == called && arity != expected {
+                    return { _ in throw Error.arityMismatch(.function(called, arity: expected)) }
                 }
             }
             // Not found
             return { _ in throw Error.undefinedSymbol(symbol) }
         }
-
-        // Resolve symbols and optimize expression
-        let deferredOptimize = !options.contains(.noOptimize) && !options.contains(.noDeferredOptimize)
-        for symbol in root.symbols {
-            if case let .variable(name) = symbol, let value = constants[name] {
-                pureSymbols[symbol] = { _ in value }
-            } else if case let .array(name) = symbol, let array = arrays[name] {
-                pureSymbols[symbol] = { args in
-                    guard let index = Int(exactly: floor(args[0])), array.indices.contains(index) else {
-                        throw Error.arrayBounds(symbol, args[0])
+        func pureEvaluator(for symbol: Symbol) -> SymbolEvaluator {
+            switch symbol {
+            case let .variable(name):
+                if let constant = constants[name] {
+                    return { _ in constant }
+                }
+            case let .array(name):
+                if let array = arrays[name] {
+                    return { args in
+                        guard let index = Int(exactly: floor(args[0])),
+                            array.indices.contains(index) else {
+                            throw Error.arrayBounds(symbol, args[0])
+                        }
+                        return array[index]
                     }
-                    return array[index]
                 }
-            } else if let fn = symbolEvaluator(for: symbol) {
-                if case .variable = symbol {
-                    impureSymbols[symbol] = fn
-                } else if options.contains(.pureSymbols) {
-                    pureSymbols[symbol] = fn
-                } else {
-                    impureSymbols[symbol] = fn
+            default:
+                if let fn = symbolEvaluator(for: symbol) {
+                    return fn
                 }
-            } else if let fn = customEvaluator(for: symbol, optimizing: deferredOptimize) {
-                impureSymbols[symbol] = fn
-            } else {
-                pureSymbols[symbol] = defaultEvaluator(for: symbol) ?? errorHandler(for: symbol)
             }
+            return defaultEvaluator(for: symbol)
         }
-        if options.contains(.noOptimize) {
-            for (symbol, evaluator) in pureSymbols {
-                impureSymbols[symbol] = evaluator
-            }
-            pureSymbols.removeAll()
-        }
-        root = root.optimized(
-            withImpureSymbols: { impureSymbols[$0] },
-            pureSymbols: { pureSymbols[$0] }
+
+        self.init(
+            expression,
+            impureSymbols: { symbol in
+                switch symbol {
+                case let .variable(name):
+                    if constants[name] == nil, let fn = symbols[symbol] {
+                        return fn
+                    }
+                case let .array(name):
+                    if arrays[name] == nil, let fn = symbols[symbol] {
+                        return fn
+                    }
+                default:
+                    if !pureSymbols, let fn = symbolEvaluator(for: symbol) {
+                        return fn
+                    }
+                }
+                return shouldOptimize ? nil : pureEvaluator(for: symbol)
+            },
+            pureSymbols: pureEvaluator
         )
     }
 
@@ -416,12 +371,29 @@ public final class Expression: CustomStringConvertible {
     public init(
         _ expression: ParsedExpression,
         impureSymbols: (Symbol) -> SymbolEvaluator?,
-        pureSymbols: (Symbol) -> SymbolEvaluator?
+        pureSymbols: (Symbol) -> SymbolEvaluator? = { _ in nil }
     ) {
         root = expression.root.optimized(
             withImpureSymbols: impureSymbols,
-            pureSymbols: { pureSymbols($0) ?? Expression.mathSymbols[$0] ?? Expression.boolSymbols[$0] }
+            pureSymbols: {
+                if let fn = pureSymbols($0) ?? Expression.mathSymbols[$0] ?? Expression.boolSymbols[$0] {
+                    return fn
+                }
+                // Check for arity mismatch
+                if case let .function(called, arity) = $0 {
+                    let keys = Set(Expression.mathSymbols.keys).union(Expression.boolSymbols.keys)
+                    for case let .function(name, expected) in keys where name == called && arity != expected {
+                        return { _ in throw Error.arityMismatch(.function(called, arity: expected)) }
+                    }
+                }
+                return nil
+            }
         )
+    }
+
+    /// Alternative constructor with only pure symbols
+    public convenience init(_ expression: ParsedExpression, pureSymbols: (Symbol) -> SymbolEvaluator?) {
+        self.init(expression, impureSymbols: { _ in nil }, pureSymbols: pureSymbols)
     }
 
     /// Verify that the string is a valid identifier
@@ -488,6 +460,7 @@ public final class Expression: CustomStringConvertible {
         _ input: inout Substring.UnicodeScalarView,
         upTo delimiters: String...
     ) -> ParsedExpression {
+
         var unicodeScalarView = UnicodeScalarView(input)
         let start = unicodeScalarView
         var subexpression: Subexpression
