@@ -182,11 +182,7 @@ public class LayoutNode: NSObject {
 
     private var _observingInsets = false
     private var _shouldObserveInsets: Bool {
-        guard let viewControllerClass = viewControllerClass else {
-            return parent == nil
-        }
-        return !(viewControllerClass is UITabBarController.Type) &&
-            !(viewControllerClass is UINavigationController.Type)
+        return viewControllerClass != nil || parent == nil
     }
     private func _stopObservingInsets() {
         if #available(iOS 11.0, *), _observingInsets {
@@ -219,7 +215,7 @@ public class LayoutNode: NSObject {
     private var _previousSafeAreaInsets = UIEdgeInsets.zero
     private var _anyChildDependsOnContentOffset: Bool?
     fileprivate func updateLayout() {
-        guard _setupComplete, _updateLock == 0, root._updateLock == 0, let view = _view else {
+        guard _setupComplete, _updateLock == 0, let view = _view else {
             return
         }
         if _shouldObserveInsets, !view._safeAreaInsets.isNearlyEqual(to: _previousSafeAreaInsets) {
