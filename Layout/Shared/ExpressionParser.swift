@@ -55,9 +55,12 @@ func parseExpression(_ expression: String) throws -> ParsedLayoutExpression {
             throw Expression.Error.message("Missing `}`")
         }
         characters.removeFirst()
+        if let trailingComment = characters.readComment() {
+            comment = comment.map { $0 + " // " + trailingComment } ?? trailingComment
+        }
     default:
         parsedExpression = Expression.parse(&characters, upTo: "//")
-        comment = characters.readComment(upTo: nil)
+        comment = characters.readComment()
     }
     if let error = parsedExpression.error, error != .unexpectedToken("") {
         throw error
@@ -82,7 +85,7 @@ func parseStringExpression(_ expression: String) throws -> [ParsedExpressionPart
     var parts = [ParsedExpressionPart]()
     var string = ""
     var characters = String.UnicodeScalarView.SubSequence(expression.unicodeScalars)
-    if let comment = characters.readComment(upTo: nil) {
+    if let comment = characters.readComment() {
         return [.comment(comment)]
     } else {
         while let char = characters.first {
@@ -129,7 +132,7 @@ private extension String.UnicodeScalarView.SubSequence {
         }
     }
 
-    mutating func readComment(upTo delimiter: UnicodeScalar?) -> String? {
+    mutating func readComment(upTo delimiter: UnicodeScalar? = nil) -> String? {
         let start = self
         skipWhitespace()
         guard popFirst() == "/", popFirst() == "/" else {
