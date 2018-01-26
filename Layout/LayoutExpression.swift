@@ -359,6 +359,12 @@ struct LayoutExpression {
                 return array[index]
             }
         }
+        func unescapedName(_ name: String) -> String {
+            if name.first == "`" {
+                return String(name.dropFirst().dropLast())
+            }
+            return name
+        }
         var allConstants = [String: Any]()
         var macroSymbols = [String: Set<String>]()
         let expression = AnyExpression(
@@ -369,11 +375,8 @@ struct LayoutExpression {
                 }
                 switch symbol {
                 case let .variable(name) where !"'\"".contains(name.first ?? " "), let .array(name):
-                    var key = name
                     let isArray = (symbol == .array(name))
-                    if key.first == "`", key.last == "`" {
-                        key = String(key.dropFirst().dropLast())
-                    }
+                    let key = unescapedName(name)
                     let macro = node.expression(forMacro: key)
                     let circular = (macro != nil) ? macroReferences.contains(key) : false
                     do {
@@ -396,7 +399,7 @@ struct LayoutExpression {
                             }
                             return isArray ? arrayHander(for: evaluator, key: key) : evaluator
                         } else if let value = try constants(key) ?? node.constantValue(forSymbol: key) ?? staticConstant(for: key) {
-                            allConstants[key] = value
+                            allConstants[name] = value
                             return nil
                         } else if circular {
                             let evaluator: AnyExpression.SymbolEvaluator = { [unowned node] _ in
@@ -436,10 +439,7 @@ struct LayoutExpression {
                         arrayHander(for: { _ in value }, key: name)
                     }
                 case let .function(name, .exactly(arity)):
-                    var key = name
-                    if key.count >= 2, key.first == "`", key.last == "`" {
-                        key = String(key.dropFirst().dropLast())
-                    }
+                    let key = unescapedName(name)
                     do {
                         guard let value = (try constants(key) ?? node.constantValue(forSymbol: key)) as? String else {
                             return nil

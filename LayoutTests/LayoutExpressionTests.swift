@@ -291,8 +291,11 @@ class LayoutExpressionTests: XCTestCase {
         XCTAssertEqual(expression.description, "// {4 + 5}")
     }
 
+    // MARK: String expression comments
+
     func testParseStringExpressionWithComment() throws {
-        let parts = try parseStringExpression("foo {4 + 5 // hello } bar")
+        let expression = "foo {4 + 5 // hello } bar"
+        let parts = try parseStringExpression(expression)
         guard parts.count == 3 else {
             XCTFail()
             return
@@ -301,21 +304,52 @@ class LayoutExpressionTests: XCTestCase {
             XCTFail()
             return
         }
-        guard case let .expression(expression) = parts[1] else {
+        guard case let .expression(exp) = parts[1] else {
             XCTFail()
             return
         }
-        XCTAssertEqual(expression.symbols, [.infix("+")])
-        XCTAssertEqual(expression.description, "4 + 5 // hello")
-        XCTAssertNil(expression.error)
+        XCTAssertEqual(exp.symbols, [.infix("+")])
+        XCTAssertEqual(exp.description, "4 + 5 // hello")
+        XCTAssertNil(exp.error)
         guard case .string(" bar") = parts[2] else {
             XCTFail()
             return
         }
+        guard let layoutExpression = LayoutExpression(stringExpression: expression, for: LayoutNode()) else {
+            XCTFail()
+            return
+        }
+        XCTAssertEqual(try layoutExpression.evaluate() as? String, "foo 9 bar")
+    }
+
+    func testParseStringExpressionWithCommentedOutClause() throws {
+        let expression = "foo {// 4 + 5} bar"
+        let parts = try parseStringExpression(expression)
+        guard parts.count == 3 else {
+            XCTFail()
+            return
+        }
+        guard case .string("foo ") = parts[0] else {
+            XCTFail()
+            return
+        }
+        guard case let .expression(exp) = parts[1] else {
+            XCTFail()
+            return
+        }
+        XCTAssertEqual(exp.symbols, [])
+        XCTAssertEqual(exp.description, "// 4 + 5")
+        XCTAssertTrue(exp.isEmpty)
+        guard let layoutExpression = LayoutExpression(stringExpression: expression, for: LayoutNode()) else {
+            XCTFail()
+            return
+        }
+        XCTAssertEqual(try layoutExpression.evaluate() as? String, "foo  bar")
     }
 
     func testCommentedOutStringExpression() throws {
-        let parts = try parseStringExpression(" //hello {'world'}")
+        let expression = " //hello {'world'}"
+        let parts = try parseStringExpression(expression)
         guard parts.count == 1 else {
             XCTFail()
             return
@@ -325,13 +359,11 @@ class LayoutExpressionTests: XCTestCase {
             return
         }
         XCTAssertEqual(comment, "hello {'world'}")
+        XCTAssertEqual(parts.description, "// hello {'world'}")
+        XCTAssertNil(LayoutExpression(stringExpression: expression, for: LayoutNode()))
     }
 
-    func testCommentedOutBoolExpression() {
-        let node = LayoutNode()
-        let expression = LayoutExpression(boolExpression: "// false", for: node)
-        XCTAssertNil(expression)
-    }
+    // MARK: Image and color expression comments
 
     func testCommentedOutColorExpression() {
         let node = LayoutNode()
@@ -343,13 +375,6 @@ class LayoutExpressionTests: XCTestCase {
         let node = LayoutNode()
         let expression = LayoutExpression(imageExpression: "// MyImage.png", for: node)
         XCTAssertNil(expression)
-    }
-
-    func testBoolExpressionWithComment() {
-        let node = LayoutNode()
-        let expression = LayoutExpression(boolExpression: "false // comment", for: node)
-        XCTAssertNotNil(expression)
-        XCTAssertEqual(try expression?.evaluate() as? Bool, false)
     }
 
     func testColorExpressionWithComment() {

@@ -84,7 +84,7 @@ class FormatterTests: XCTestCase {
         XCTAssertEqual(try format(input), output)
     }
 
-    // MARK: Text
+    // MARK: Body text
 
     func testShortTextNode() {
         let input = "<Foo>\n    bar\n</Foo>"
@@ -282,6 +282,12 @@ class FormatterTests: XCTestCase {
         XCTAssertEqual(try format(input), output)
     }
 
+    func testFormatTextAttribute() {
+        let input = "<Foo text=\" foo ( bar ) \"/>"
+        let output = "<Foo text=\" foo ( bar ) \"/>\n"
+        XCTAssertEqual(try format(input), output)
+    }
+
     // MARK: Expression comments
 
     func testExpressionWithComment() {
@@ -321,14 +327,20 @@ class FormatterTests: XCTestCase {
     }
 
     func testCommentedOutStringExpression() {
+        let input = "<Foo text=\" //hello world\"/>"
+        let output = "<Foo text=\"// hello world\"/>\n"
+        XCTAssertEqual(try format(input), output)
+    }
+
+    func testCommentedOutStringExpressionClause() {
         let input = "<Foo text=\"{ //10-5* 4 }\"/>"
         let output = "<Foo text=\"{// 10-5* 4}\"/>\n"
         XCTAssertEqual(try format(input), output)
     }
 
-    func testCommentedOutStringExpression2() {
-        let input = "<Foo text=\" //hello world\"/>"
-        let output = "<Foo text=\"// hello world\"/>\n"
+    func testCommentedOutStringExpressionClause2() {
+        let input = "<Foo text=\"foo { //10-5* 4 }bar\"/>"
+        let output = "<Foo text=\"foo {// 10-5* 4}bar\"/>\n"
         XCTAssertEqual(try format(input), output)
     }
 

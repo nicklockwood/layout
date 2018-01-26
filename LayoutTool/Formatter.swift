@@ -125,7 +125,7 @@ private let attributeWrap = 2
 extension XMLNode {
     private func formatAttribute(key: String, value: String) throws -> String {
         do {
-            var description = value
+            let description: String
             if attributeIsString(key, inNode: self) ?? true {
                 // We have to treat everying we aren't sure about as a string expression, because if
                 // we attempt to format text outside of {...} as an expression, it will get messed up
@@ -138,7 +138,7 @@ extension XMLNode {
                         try validateLayoutExpression(expression)
                     }
                 }
-                description = parts.map { $0.description }.joined()
+                description = parts.description
             } else {
                 let expression = try parseExpression(value)
                 try validateLayoutExpression(expression)

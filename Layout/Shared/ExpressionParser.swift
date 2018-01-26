@@ -30,10 +30,27 @@ struct ParsedLayoutExpression: CustomStringConvertible {
     var error: Expression.Error? { return expression.error }
 }
 
-enum ParsedExpressionPart {
+enum ParsedExpressionPart: CustomStringConvertible {
     case string(String)
-    case comment(String)
+    case comment(String) // Should only ever appear as the first part
     case expression(ParsedLayoutExpression)
+
+    var description: String {
+        switch self {
+        case let .string(string):
+            return string
+        case let .comment(comment):
+            return "// \(comment)"
+        case let .expression(expression):
+            return "{\(expression)}"
+        }
+    }
+}
+
+extension Array where Element == ParsedExpressionPart {
+    var description: String {
+        return map { $0.description }.joined()
+    }
 }
 
 // NOTE: it is not safe to access this concurrently from multiple threads due to cache
