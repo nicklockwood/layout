@@ -1,5 +1,12 @@
 # Change Log
 
+## [0.6.16](https://github.com/schibsted/layout/releases/tag/0.6.16) (2018-01-29)
+
+- Improved resolution logic when referencing image or color assets in bundles other than the main bundle
+- Fixed top/bottom layout guide not updating correctly on iOS 9 and 10
+- Fixed some edge cases when parsing expression comments and improved test coverage
+- Updated Expression library to version 0.12.0
+
 ## [0.6.15](https://github.com/schibsted/layout/releases/tag/0.6.15) (2018-01-19)
 
 - Fixed bug where safe area insets would not be updated correctly in some cases

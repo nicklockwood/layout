@@ -99,7 +99,7 @@ private func stringToAsset(_ string: String) throws -> (name: String, bundle: Bu
         let nameOrIdentifier = identifier.contains(".") ? "identifier" : "name"
         return "\(nameOrIdentifier) \(identifier)"
     }
-    
+
     var match: Bundle?
     for framework in Bundle.allFrameworks {
         let name = framework.infoDictionary?[kCFBundleNameKey as String] as? String
@@ -112,8 +112,8 @@ private func stringToAsset(_ string: String) throws -> (name: String, bundle: Bu
         // This is a common structure for bundled resources when using Cocoapods modules
         if let name = name,
             let bundle = framework.url(forResource: name, withExtension: "bundle").flatMap({
-            Bundle(url: $0)
-        }) {
+                Bundle(url: $0)
+            }) {
             _bundle = bundle
         }
 
@@ -142,7 +142,7 @@ private func stringToAsset(_ string: String) throws -> (name: String, bundle: Bu
             return (parts[1], match, nil)
         #endif
     }
-    if let match = match ?? Bundle(identifier: identifier) {
+    if let match = match {
         return (parts[1], match, nil)
     }
     throw Expression.Error.message("Could not locate bundle with \(bundleDescription(identifier))")

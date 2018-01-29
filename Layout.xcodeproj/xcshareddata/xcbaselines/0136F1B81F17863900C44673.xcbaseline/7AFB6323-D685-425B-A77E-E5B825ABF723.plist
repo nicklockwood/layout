@@ -11,9 +11,9 @@
 				<key>com.apple.XCTPerformanceMetric_WallClockTime</key>
 				<dict>
 					<key>baselineAverage</key>
-					<real>0.19565</real>
+					<real>0.22835</real>
 					<key>baselineIntegrationDisplayName</key>
-					<string>19 Jan 2018, 08:28:35</string>
+					<string>29 Jan 2018, 16:53:20</string>
 				</dict>
 			</dict>
 			<key>testAutoLayoutCreation()</key>
@@ -21,9 +21,9 @@
 				<key>com.apple.XCTPerformanceMetric_WallClockTime</key>
 				<dict>
 					<key>baselineAverage</key>
-					<real>0.051884</real>
+					<real>0.076659</real>
 					<key>baselineIntegrationDisplayName</key>
-					<string>19 Jan 2018, 08:28:35</string>
+					<string>29 Jan 2018, 16:53:20</string>
 				</dict>
 			</dict>
 			<key>testAutoLayoutMount()</key>
@@ -31,9 +31,9 @@
 				<key>com.apple.XCTPerformanceMetric_WallClockTime</key>
 				<dict>
 					<key>baselineAverage</key>
-					<real>0.0138</real>
+					<real>0.015346</real>
 					<key>baselineIntegrationDisplayName</key>
-					<string>19 Jan 2018, 08:28:35</string>
+					<string>29 Jan 2018, 16:53:20</string>
 				</dict>
 			</dict>
 			<key>testAutoLayoutUpdate()</key>
@@ -41,9 +41,9 @@
 				<key>com.apple.XCTPerformanceMetric_WallClockTime</key>
 				<dict>
 					<key>baselineAverage</key>
-					<real>0.08059</real>
+					<real>0.094586</real>
 					<key>baselineIntegrationDisplayName</key>
-					<string>19 Jan 2018, 08:28:35</string>
+					<string>29 Jan 2018, 16:53:20</string>
 				</dict>
 			</dict>
 			<key>testCreateAndMount()</key>
@@ -51,9 +51,9 @@
 				<key>com.apple.XCTPerformanceMetric_WallClockTime</key>
 				<dict>
 					<key>baselineAverage</key>
-					<real>0.20225</real>
+					<real>0.24365</real>
 					<key>baselineIntegrationDisplayName</key>
-					<string>19 Jan 2018, 08:28:35</string>
+					<string>29 Jan 2018, 16:53:20</string>
 				</dict>
 			</dict>
 			<key>testCreation()</key>
@@ -61,9 +61,9 @@
 				<key>com.apple.XCTPerformanceMetric_WallClockTime</key>
 				<dict>
 					<key>baselineAverage</key>
-					<real>0.0053577</real>
+					<real>0.005801</real>
 					<key>baselineIntegrationDisplayName</key>
-					<string>19 Jan 2018, 08:28:35</string>
+					<string>29 Jan 2018, 16:53:20</string>
 				</dict>
 			</dict>
 			<key>testMount()</key>
@@ -71,9 +71,9 @@
 				<key>com.apple.XCTPerformanceMetric_WallClockTime</key>
 				<dict>
 					<key>baselineAverage</key>
-					<real>0.16044</real>
+					<real>0.15977</real>
 					<key>baselineIntegrationDisplayName</key>
-					<string>19 Jan 2018, 08:28:35</string>
+					<string>29 Jan 2018, 16:53:20</string>
 				</dict>
 			</dict>
 			<key>testParseAndLoadAndMount()</key>
@@ -81,9 +81,9 @@
 				<key>com.apple.XCTPerformanceMetric_WallClockTime</key>
 				<dict>
 					<key>baselineAverage</key>
-					<real>0.23862</real>
+					<real>0.22356</real>
 					<key>baselineIntegrationDisplayName</key>
-					<string>19 Jan 2018, 08:28:35</string>
+					<string>29 Jan 2018, 16:53:20</string>
 				</dict>
 			</dict>
 			<key>testParseAndLoadXML()</key>
@@ -91,9 +91,9 @@
 				<key>com.apple.XCTPerformanceMetric_WallClockTime</key>
 				<dict>
 					<key>baselineAverage</key>
-					<real>0.0070708</real>
+					<real>0.0073454</real>
 					<key>baselineIntegrationDisplayName</key>
-					<string>19 Jan 2018, 08:28:35</string>
+					<string>29 Jan 2018, 16:53:20</string>
 				</dict>
 			</dict>
 			<key>testParseXML()</key>
@@ -101,9 +101,9 @@
 				<key>com.apple.XCTPerformanceMetric_WallClockTime</key>
 				<dict>
 					<key>baselineAverage</key>
-					<real>0.0066935</real>
+					<real>0.0070513</real>
 					<key>baselineIntegrationDisplayName</key>
-					<string>19 Jan 2018, 08:28:35</string>
+					<string>29 Jan 2018, 16:53:20</string>
 				</dict>
 			</dict>
 			<key>testUpdate()</key>
@@ -111,9 +111,9 @@
 				<key>com.apple.XCTPerformanceMetric_WallClockTime</key>
 				<dict>
 					<key>baselineAverage</key>
-					<real>0.037506</real>
+					<real>0.038542</real>
 					<key>baselineIntegrationDisplayName</key>
-					<string>19 Jan 2018, 08:28:35</string>
+					<string>29 Jan 2018, 16:53:20</string>
 				</dict>
 			</dict>
 		</dict>
