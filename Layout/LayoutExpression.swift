@@ -94,13 +94,58 @@ private func stringToAsset(_ string: String) throws -> (name: String, bundle: Bu
     if parts.count > 2 {
         throw Expression.Error.message("Invalid XCAsset name format: \(string)")
     }
-    guard let bundle = Bundle(identifier: identifier) ?? Bundle.allBundles.first(where: {
-        $0.infoDictionary?[kCFBundleNameKey as String] as? String == identifier
-    }) else {
+
+    func bundleDescription(_ identifier: String) -> String {
         let nameOrIdentifier = identifier.contains(".") ? "identifier" : "name"
-        throw Expression.Error.message("Could not locate bundle with \(nameOrIdentifier) \(identifier)")
+        return "\(nameOrIdentifier) \(identifier)"
     }
-    return (parts[1], bundle, nil)
+    
+    var match: Bundle?
+    for framework in Bundle.allFrameworks {
+        let name = framework.infoDictionary?[kCFBundleNameKey as String] as? String
+        guard framework.bundleIdentifier == identifier || name == identifier else {
+            continue
+        }
+
+        var _bundle = framework
+        // Check for a resource bundle with the same name/identifier as the framework
+        // This is a common structure for bundled resources when using Cocoapods modules
+        if let name = name,
+            let bundle = framework.url(forResource: name, withExtension: "bundle").flatMap({
+            Bundle(url: $0)
+        }) {
+            _bundle = bundle
+        }
+
+        #if arch(i386) || arch(x86_64)
+            if match != nil, match != framework {
+                throw Expression.Error.message("Multiple matches for bundle with \(bundleDescription(identifier))")
+            }
+            match = _bundle
+        #else
+            return (parts[1], _bundle, nil)
+        #endif
+    }
+    for _bundle in Bundle.allBundles {
+        let name = _bundle.infoDictionary?[kCFBundleNameKey as String] as? String
+        guard _bundle.bundleIdentifier == identifier || name == identifier else {
+            continue
+        }
+
+        #if arch(i386) || arch(x86_64)
+            if match != nil, match != _bundle {
+                throw Expression.Error.message("Multiple matches for bundle with \(bundleDescription(identifier))")
+            }
+            match = _bundle
+        #else
+            match = _bundle
+            return (parts[1], match, nil)
+        #endif
+    }
+    if let match = match ?? Bundle(identifier: identifier) {
+        return (parts[1], match, nil)
+    }
+    throw Expression.Error.message("Could not locate bundle with \(bundleDescription(identifier))")
 }
 
 private var _colorAssetCache = [String: UIColor]()
@@ -108,18 +153,18 @@ func stringToColorAsset(_ string: String) throws -> UIColor? {
     if let color = _colorAssetCache[string] {
         return color
     }
-    let asset = try stringToAsset(string)
+    let (name, bundle, traits) = try stringToAsset(string)
     if #available(iOS 11.0, *) {
-        if let color = UIColor(named: asset.name, in: asset.bundle, compatibleWith: asset.traits) {
+        if let color = UIColor(named: name, in: bundle, compatibleWith: traits) {
             _colorAssetCache[string] = color
             return color
         }
-        if let bundle = asset.bundle {
-            throw Expression.Error.message("Color named `\(asset.name)` not found in bundle \(bundle.bundleIdentifier ?? "<unknown>")")
+        if let bundle = bundle {
+            throw Expression.Error.message("Color named `\(name)` not found in bundle \(bundle.bundleIdentifier ?? "<unknown>")")
         }
         return nil
     }
-    if asset.bundle != nil {
+    if bundle != nil {
         throw Expression.Error.message("Named colors are only supported in iOS 11 and above")
     }
     return nil
@@ -883,7 +928,7 @@ struct LayoutExpression {
     init?(imageExpression: String, type: RuntimeType = .uiImage, for node: LayoutNode) {
         func nameToImageAsset(_ name: String) throws -> Any {
             guard let image = try stringToImageAsset(name) else {
-                throw Expression.Error.message("Invalid image name `\(name)`")
+                throw Expression.Error.message("Image named `\(name)` not found in main bundle")
             }
             return try cast(image, as: type)
         }
@@ -918,7 +963,17 @@ struct LayoutExpression {
                 }
                 self.init(
                     evaluate: {
-                        let anyValue = try expression.evaluate()
+                        let anyValue: Any
+                        do {
+                            anyValue = try expression.evaluate()
+                        } catch let error as SymbolError {
+                            // TODO: find a less stringly-typed solution for this
+                            if imageExpression.description == error.symbol,
+                                "\(error)".contains("Unknown property") {
+                                throw Expression.Error.message("Image named `\(error.symbol)` not found in main bundle")
+                            }
+                            throw error
+                        }
                         if isNil(anyValue) {
                             // Explicitly allow empty images
                             return UIImage()

@@ -1129,13 +1129,19 @@ Finally, in iOS 11 and above, you can define named colors as XCAssets and then r
 <UIView backgroundColor="color-number-{level}"/>
 ```
 
-For color assets defined in a different bundle, you can prefix the color name with the bundle name (or fully-qualified bundle identifier) followed by a colon. For example:
+For color assets defined in a framework or standalone bundle, you can prefix the color name with the bundle name (or fully-qualified bundle identifier) followed by a colon. For example:
 
 ```xml
 <UIView backgroundColor="com.example.MyBundle:MyColor"/>
 
 <UIView backgroundColor="MyBundle:MyColor"/>
 ```
+
+You can also reference a `Bundle` instance stored in a constant or variable:
+
+```xml
+<UIImageView image="{bundle}:MyColor"/>
+
 
 **Note:** There is no need to use quotes around the color asset name, even if it contains spaces or other punctuation. Layout will interpret invalid color asset names as expressions. You can use `{ ... }` braces to disambiguate between asset names and constant or variable names if necessary.
 
@@ -1152,12 +1158,14 @@ Static images can be specified by name or via a constant or state variable. As w
 <UIImageView image="image_{index}.png"/>
 ``` 
 
-As with color assets, image assets defined in a different bundle can be referenced by prefixing with the bundle name or identifier followed by a colon:
+As with color assets, image assets defined in a framework or standalone bundle can be referenced by prefixing with a bundle name/identifier or constant followed by a colon:
 
 ```xml
-<UIImageView image="com.example.MyBundle:MyImage.png"/>
+<UIImageView image="com.example.MyBundle:MyImage"/>
 
-<UIImageView image="MyBundle:MyImage.png"/>
+<UIImageView image="MyBundle:MyImage"/>
+
+<UIImageView image="{bundle}:MyImage"/>
 ```
 
 

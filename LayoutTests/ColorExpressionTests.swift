@@ -100,7 +100,7 @@ class ColorExpressionTests: XCTestCase {
         XCTAssertEqual(try expression?.evaluate() as? UIColor, expected)
     }
 
-    func testNamedColor() {
+    func testNamedColorAsset() {
         let node = LayoutNode()
         let expression = LayoutExpression(colorExpression: "com.LayoutTests:MyColor", for: node)
         XCTAssertThrowsError(try expression?.evaluate() as? UIColor) { error in

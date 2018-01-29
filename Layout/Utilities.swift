@@ -6,17 +6,14 @@ import UIKit
 func stringify(_ value: Any) throws -> String {
     switch try unwrap(value) {
     case let bool as Bool:
-        return bool ? "true" : "false"
+        return bool.description
     case let number as NSNumber:
-        if let int = Int64(exactly: number) {
-            return "\(int)"
-        }
-        if let uint = UInt64(exactly: number) {
-            return "\(uint)"
-        }
-        return "\(number)"
-    case let value as NSAttributedString:
-        return value.string
+        return Int64(exactly: number)?.description ??
+            UInt64(exactly: number)?.description ?? number.description
+    case let string as NSAttributedString:
+        return string.string
+    case let bundle as Bundle:
+        return bundle.bundleIdentifier ?? bundle.bundleURL.absoluteString
     case let value:
         return "\(value)"
     }
