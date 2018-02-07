@@ -287,7 +287,7 @@ public class LayoutNode: NSObject {
             throw LayoutError.message("\(`class`) is not a subclass of UIView or UIViewController")
         }
         _class = `class`
-        _state = try! unwrap(state)
+        _state = AnyExpression.unwrap(state)!
         self.id = id
         self.constants = merge(constants)
         self.expressions = expressions
@@ -616,7 +616,7 @@ public class LayoutNode: NSObject {
             _state = oldState
         } else {
             let oldState = _state
-            _state = try! unwrap(newState)
+            _state = AnyExpression.unwrap(newState)!
             let oldType = type(of: oldState)
             assert(oldType == Void.self || oldType == type(of: _state), "Cannot change type of state after initialization")
             equal = areEqual(oldState, _state)

@@ -294,7 +294,7 @@ extension NSObject {
             }
             throw SymbolError("Unknown property `\(key)` of \(classForCoder)", for: key)
         }
-        setValue(isNil(value) ? nil : value, forKey: key)
+        setValue(value, forKey: key)
         return true
     }
 

@@ -594,6 +594,15 @@ class LayoutExpressionTests: XCTestCase {
         XCTAssertEqual(try expression?.evaluate() as! Double, 2)
     }
 
+    func testArrayMacro2() {
+        let layout = makeLayout(macros: ["ITEMS": "[1,2,3]"])
+        let node = try! LayoutNode(layout: layout)
+        node.update()
+        let expression = LayoutExpression(doubleExpression: "ITEMS[1]", for: node)
+        XCTAssertEqual(expression?.isConstant, true)
+        XCTAssertEqual(try expression?.evaluate() as! Double, 2)
+    }
+
     func testArrayConstant() {
         let node = LayoutNode(constants: ["items": ["foo", "bar", "baz"]])
         node.update()

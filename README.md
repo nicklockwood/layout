@@ -1137,7 +1137,7 @@ For color assets defined in a framework or standalone bundle, you can prefix the
 <UIView backgroundColor="MyBundle:MyColor"/>
 ```
 
-You can also reference a `Bundle` instance stored in a constant or variable:
+You can also reference a `Bundle`/`NSBundle` instance stored in a constant or variable:
 
 ```xml
 <UIImageView image="{bundle}:MyColor"/>

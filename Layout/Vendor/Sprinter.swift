@@ -2,7 +2,7 @@
 //  Sprinter.swift
 //  Sprinter
 //
-//  Version 0.2.0
+//  Version 0.2.1
 //
 //  Created by Nick Lockwood on 20/11/2017.
 //  Copyright © 2017 Nick Lockwood. All rights reserved.
@@ -484,7 +484,11 @@ public struct FormatString {
         case argumentMismatch(Int, Any.Type, Any.Type)
         case missingArgument(Int)
 
-        public var errorDescription: String {
+        public var errorDescription: String? {
+            return description
+        }
+
+        public var description: String {
             switch self {
             case .unexpectedEndOfString:
                 return "Format string ended unexpectedly"
@@ -505,10 +509,6 @@ public struct FormatString {
             case let .missingArgument(index):
                 return "Missing argument #\(index)"
             }
-        }
-
-        public var description: String {
-            return errorDescription
         }
 
         public static func ==(lhs: Error, rhs: Error) -> Bool {
@@ -547,11 +547,11 @@ public struct FormatString {
 
     // Just the placeholder values - useful for testing
     var placeholders: [Placeholder] {
-        return tokens.flatMap {
-            if case let .placeholder(placeholder) = $0 {
-                return placeholder
+        return tokens.flatMap { (token: Token) -> [Placeholder] in
+            if case let .placeholder(placeholder) = token {
+                return [placeholder]
             }
-            return nil
+            return []
         }
     }
 

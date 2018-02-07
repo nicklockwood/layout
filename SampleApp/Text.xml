@@ -75,5 +75,12 @@
             top="SPACING"
             width="100%"
         />
+        <UILabel
+            backgroundColor="#0001"
+            numberOfLines="0"
+            text="This label contains text that has been { uppercased('uppercased') } using a custom callback function"
+            top="SPACING"
+            width="100%"
+        />
     </UIScrollView>
 </UIViewController>

@@ -2,7 +2,7 @@
 //  AnyExpression.swift
 //  Expression
 //
-//  Version 0.12.0
+//  Version 0.12.6
 //
 //  Created by Nick Lockwood on 18/04/2017.
 //  Copyright © 2017 Nick Lockwood. All rights reserved.
@@ -85,10 +85,33 @@ public struct AnyExpression: CustomStringConvertible {
             options: options,
             impureSymbols: { symbol in
                 switch symbol {
-                case let .variable(name), let .array(name):
+                case let .variable(name):
                     if constants[name] == nil, let fn = symbols[symbol] {
                         return fn
                     }
+                case let .array(name):
+                    if !(constants[name].map(AnyExpression.isSubscriptable) ?? false),
+                        let fn = symbols[symbol] {
+                        return fn
+                    }
+                case let .function(name, _): // TODO: could operators work this way too?
+                    if let fn = constants[name] {
+                        if let fn = fn as? SymbolEvaluator {
+                            return fn
+                        }
+                        if let fn = fn as? Expression.SymbolEvaluator {
+                            return { args in
+                                try fn(args.map {
+                                    guard let doubleValue = ($0 as? NSNumber)
+                                        .flatMap(Double.init(truncating:)) else {
+                                        throw Error.typeMismatch(symbol, args)
+                                    }
+                                    return doubleValue
+                                })
+                            }
+                        }
+                    }
+                    fallthrough
                 default:
                     if !pureSymbols, let fn = symbols[symbol] {
                         return fn
@@ -103,17 +126,10 @@ public struct AnyExpression: CustomStringConvertible {
                         return { _ in value }
                     }
                 case let .array(name):
-                    if let array = constants[name] as? [Any] {
-                        return { args in
-                            guard let number = args[0] as? NSNumber else {
-                                try AnyExpression.throwTypeMismatch(symbol, args)
-                            }
-                            guard let index = Int(exactly: number), array.indices.contains(index) else {
-                                throw Error.arrayBounds(symbol, Double(truncating: number))
-                            }
-                            return array[index]
-                        }
+                    guard let value = constants[name] else {
+                        return nil
                     }
+                    return AnyExpression.arrayEvaluator(for: symbol, value)
                 default:
                     return symbols[symbol]
                 }
@@ -154,10 +170,20 @@ public struct AnyExpression: CustomStringConvertible {
         let box = NanBox()
 
         func loadNumber(_ arg: Double) -> Double? {
-            return box.loadIfStored(arg).map { ($0 as? NSNumber).map { Double(truncating: $0) } } ?? arg
+            return box.loadIfStored(arg).map {
+                ($0 as? NSNumber).map(Double.init(truncating:))
+            } ?? arg
+        }
+        func argsToDouble(_ args: [Double], for symbol: Symbol) throws -> [Double] {
+            return try args.map {
+                guard let doubleValue = loadNumber($0) else {
+                    throw Error.typeMismatch(symbol, args.map(box.load))
+                }
+                return doubleValue
+            }
         }
         func equalArgs(_ lhs: Double, _ rhs: Double) throws -> Bool {
-            switch (AnyExpression.safeUnwrap(box.load(lhs)), AnyExpression.safeUnwrap(box.load(rhs))) {
+            switch (AnyExpression.unwrap(box.load(lhs)), AnyExpression.unwrap(box.load(rhs))) {
             case (nil, nil):
                 return true
             case (nil, _), (_, nil):
@@ -185,13 +211,14 @@ public struct AnyExpression: CustomStringConvertible {
                       rhs as (AnyHashable, AnyHashable, AnyHashable, AnyHashable, AnyHashable, AnyHashable)):
                 return lhs == rhs
             case let (lhs?, rhs?):
-                if type(of: lhs) == type(of: rhs) {
-                    throw Error.message(
-                        "\(Symbol.infix("==")) can only be used with arguments that implement Hashable"
-                    )
-                }
-                try AnyExpression.throwTypeMismatch(.infix("=="), [lhs, rhs])
+                throw Error.typeMismatch(.infix("=="), [lhs, rhs])
             }
+        }
+        func unwrapString(_ name: String) -> String? {
+            guard name.count >= 2, "'\"".contains(name.first!) else {
+                return nil
+            }
+            return String(name.dropFirst().dropLast())
         }
 
         // Set description based on the parsed expression, prior to
@@ -204,47 +231,43 @@ public struct AnyExpression: CustomStringConvertible {
         let shouldOptimize = !options.contains(.noOptimize)
 
         // Evaluators
-        func defaultEvaluator(for symbol: Symbol) -> Expression.SymbolEvaluator {
-            if let fn = Expression.mathSymbols[symbol] {
+        func defaultEvaluator(for symbol: Symbol) -> Expression.SymbolEvaluator? {
+            if let fn = AnyExpression.standardSymbols[symbol] {
+                return fn
+            } else if let fn = Expression.mathSymbols[symbol] {
                 switch symbol {
                 case .infix("+"):
                     return { args in
                         switch (box.load(args[0]), box.load(args[1])) {
-                        case let (lhs as String, rhs):
-                            return try box.store("\(lhs)\(AnyExpression.stringify(rhs))")
-                        case let (lhs, rhs as String):
-                            return try box.store("\(AnyExpression.stringify(lhs))\(rhs)")
                         case let (lhs as Double, rhs as Double):
                             return lhs + rhs
+                        case let (lhs as _String, any):
+                            guard let rhs = AnyExpression.unwrap(any) else {
+                                throw Error.typeMismatch(symbol, [lhs, any])
+                            }
+                            return box.store("\(lhs)\(AnyExpression.stringify(rhs))")
+                        case let (any, rhs as _String):
+                            guard let lhs = AnyExpression.unwrap(any) else {
+                                throw Error.typeMismatch(symbol, [any, rhs])
+                            }
+                            return box.store("\(AnyExpression.stringify(lhs))\(rhs)")
+                        case let (lhs as _Array, rhs as _Array):
+                            return box.store(lhs.values + rhs.values)
                         case let (lhs as NSNumber, rhs as NSNumber):
                             return Double(truncating: lhs) + Double(truncating: rhs)
                         case let (lhs, rhs):
-                            _ = try AnyExpression.unwrap(lhs)
-                            _ = try AnyExpression.unwrap(rhs)
-                            try AnyExpression.throwTypeMismatch(symbol, [lhs, rhs])
+                            throw Error.typeMismatch(symbol, [lhs, rhs])
                         }
                     }
-                case .variable, .function(_, arity: 0):
-                    return fn
                 default:
                     return { args in
                         // We potentially lose precision by converting all numbers to doubles
                         // TODO: find alternative approach that doesn't lose precision
-                        try fn(args.map {
-                            guard let doubleValue = loadNumber($0) else {
-                                _ = try AnyExpression.unwrap(box.load($0))
-                                try AnyExpression.throwTypeMismatch(symbol, args.map(box.load))
-                            }
-                            return doubleValue
-                        })
+                        try fn(argsToDouble(args, for: symbol))
                     }
                 }
             } else if let fn = boolSymbols[symbol] {
                 switch symbol {
-                case .variable("false"):
-                    return { _ in NanBox.falseValue }
-                case .variable("true"):
-                    return { _ in NanBox.trueValue }
                 case .infix("=="):
                     return { try equalArgs($0[0], $0[1]) ? NanBox.trueValue : NanBox.falseValue }
                 case .infix("!="):
@@ -254,40 +277,101 @@ public struct AnyExpression: CustomStringConvertible {
                         guard args.count == 3 else {
                             throw Error.undefinedSymbol(symbol)
                         }
-                        if let number = loadNumber(args[0]) {
-                            return number != 0 ? args[1] : args[2]
+                        guard let doubleValue = loadNumber(args[0]) else {
+                            throw Error.typeMismatch(symbol, args.map(box.load))
                         }
-                        try AnyExpression.throwTypeMismatch(symbol, args.map(box.load))
+                        return doubleValue != 0 ? args[1] : args[2]
                     }
                 default:
                     return { args in
-                        // TODO: find alternative approach that doesn't lose precision
-                        try box.store(fn(args.map {
-                            guard let doubleValue = loadNumber($0) else {
-                                _ = try AnyExpression.unwrap(box.load($0))
-                                try AnyExpression.throwTypeMismatch(symbol, args.map(box.load))
-                            }
-                            return doubleValue
-                        }) != 0)
+                        try fn(argsToDouble(args, for: symbol)) == 0 ?
+                            NanBox.falseValue : NanBox.trueValue
                     }
                 }
             } else {
                 switch symbol {
-                case .variable("nil"):
-                    return { _ in NanBox.nilValue }
-                case .infix("??"):
+                case .infix("[]"):
                     return { args in
-                        let lhs = box.load(args[0])
-                        return AnyExpression.isNil(lhs) ? args[1] : args[0]
+                        let fn = AnyExpression.arrayEvaluator(for: symbol, box.load(args[0]))
+                        return try box.store(fn([box.load(args[1])]))
                     }
+                case .infix("..."):
+                    return { args in
+                        switch (box.load(args[0]), box.load(args[1])) {
+                        case let (lhs as NSNumber, rhs as NSNumber):
+                            let lhs = Int(truncating: lhs), rhs = Int(truncating: rhs)
+                            guard lhs <= rhs else { throw Error.invalidRange(lhs, rhs) }
+                            return box.store(lhs ... rhs)
+                        case let (lhs as String.Index, rhs as String.Index):
+                            guard lhs <= rhs else { throw Error.invalidRange(lhs, rhs) }
+                            return box.store(lhs ... rhs)
+                        case let (lhs, rhs):
+                            throw Error.typeMismatch(symbol, [lhs, rhs])
+                        }
+                    }
+                case .postfix("..."):
+                    return { args in
+                        switch box.load(args[0]) {
+                        case let index as NSNumber:
+                            return box.store(Int(truncating: index)...)
+                        case let index as String.Index:
+                            return box.store(index...)
+                        case let index:
+                            throw Error.typeMismatch(symbol, [index])
+                        }
+                    }
+                case .prefix("..."):
+                    return { args in
+                        switch box.load(args[0]) {
+                        case let index as NSNumber:
+                            return box.store(...Int(truncating: index))
+                        case let index as String.Index:
+                            return box.store(...index)
+                        case let index:
+                            throw Error.typeMismatch(symbol, [index])
+                        }
+                    }
+                case .infix("..<"):
+                    return { args in
+                        switch (box.load(args[0]), box.load(args[1])) {
+                        case let (lhs as NSNumber, rhs as NSNumber):
+                            let lhs = Int(truncating: lhs), rhs = Int(truncating: rhs)
+                            guard lhs < rhs else { throw Error.invalidRange(lhs, rhs) }
+                            return box.store(lhs ..< rhs)
+                        case let (lhs as String.Index, rhs as String.Index):
+                            guard lhs < rhs else { throw Error.invalidRange(lhs, rhs) }
+                            return box.store(lhs ..< rhs)
+                        case let (lhs, rhs):
+                            throw Error.typeMismatch(symbol, [lhs, rhs])
+                        }
+                    }
+                case .prefix("..<"):
+                    return { args in
+                        switch box.load(args[0]) {
+                        case let index as NSNumber:
+                            return box.store(..<Int(truncating: index))
+                        case let index as String.Index:
+                            return box.store(..<index)
+                        case let index:
+                            throw Error.typeMismatch(symbol, [index])
+                        }
+                    }
+                case .function("[]", _):
+                    return { box.store($0.map(box.load)) }
                 case let .variable(name):
-                    guard name.count >= 2, "'\"".contains(name.first!) else {
+                    guard let string = unwrapString(name) else {
                         return { _ in throw Error.undefinedSymbol(symbol) }
                     }
-                    let stringRef = box.store(String(name.dropFirst().dropLast()))
+                    let stringRef = box.store(string)
                     return { _ in stringRef }
+                case let .array(name):
+                    guard let string = unwrapString(name) else {
+                        return { _ in throw Error.undefinedSymbol(symbol) }
+                    }
+                    let fn = AnyExpression.arrayEvaluator(for: symbol, string)
+                    return { try box.store(fn([box.load($0[0])])) }
                 default:
-                    return { _ in throw Error.undefinedSymbol(symbol) }
+                    return nil
                 }
             }
         }
@@ -298,6 +382,22 @@ public struct AnyExpression: CustomStringConvertible {
             impureSymbols: { symbol in
                 if let fn = impureSymbols(symbol) {
                     return { try box.store(fn($0.map(box.load))) }
+                } else if case let .array(name) = symbol, let fn = impureSymbols(.variable(name)) {
+                    return { args in
+                        let fn = AnyExpression.arrayEvaluator(for: symbol, try fn([]))
+                        return try box.store(fn(args.map(box.load)))
+                    }
+                } else if case .infix("()") = symbol {
+                    return { args in
+                        switch box.load(args[0]) {
+                        case let fn as SymbolEvaluator:
+                            return try box.store(fn(args.dropFirst().map(box.load)))
+                        case let fn as Expression.SymbolEvaluator:
+                            return try fn(argsToDouble(Array(args.dropFirst()), for: symbol))
+                        default:
+                            throw Error.typeMismatch(symbol, args.map(box.load))
+                        }
+                    }
                 }
                 if !shouldOptimize {
                     if let fn = pureSymbols(symbol) {
@@ -320,8 +420,27 @@ public struct AnyExpression: CustomStringConvertible {
                     default:
                         return { try box.store(fn($0.map(box.load))) }
                     }
+                } else if case let .array(name) = symbol, let fn = pureSymbols(.variable(name)) {
+                    let evaluator: SymbolEvaluator
+                    do {
+                        evaluator = try AnyExpression.arrayEvaluator(for: symbol, fn([]))
+                    } catch {
+                        return { _ in throw error }
+                    }
+                    return { try box.store(evaluator($0.map(box.load))) }
                 }
-                return defaultEvaluator(for: symbol)
+                guard let fn = defaultEvaluator(for: symbol) else {
+                    if case let .function(name, _) = symbol {
+                        for i in 0 ... 10 {
+                            let symbol = Symbol.function(name, arity: .exactly(i))
+                            if impureSymbols(symbol) ?? pureSymbols(symbol) != nil {
+                                return { _ in throw Error.arityMismatch(symbol) }
+                            }
+                        }
+                    }
+                    return Expression.errorEvaluator(for: symbol)
+                }
+                return fn
             }
         )
 
@@ -330,6 +449,7 @@ public struct AnyExpression: CustomStringConvertible {
         let literals = box.values
 
         // Evaluation isn't thread-safe due to shared values
+        // so we use objc_sync_enter/exit to prevent re-entrancy
         evaluator = {
             objc_sync_enter(box)
             defer {
@@ -344,8 +464,27 @@ public struct AnyExpression: CustomStringConvertible {
 
     /// Evaluate the expression
     public func evaluate<T>() throws -> T {
-        guard let value: T = try AnyExpression.cast(evaluator()) else {
-            throw Error.message("Unexpected nil return value")
+        let anyValue = try evaluator()
+        guard let value: T = AnyExpression.cast(anyValue) else {
+            switch T.self {
+            case _ where AnyExpression.isNil(anyValue):
+                break // Fall through
+            case is _String.Type, is String?.Type, is Substring?.Type:
+                // TODO: should we stringify any type like this?
+                return (AnyExpression.cast(AnyExpression.stringify(anyValue)) as T?)!
+            case is Bool.Type, is Bool?.Type:
+                // TODO: should we boolify numeric types like this?
+                if let value = AnyExpression.cast(anyValue) as Double? {
+                    return (value != 0) as! T
+                }
+            default:
+                // TODO: should we numberify Bool values like this?
+                if let boolValue = anyValue as? Bool,
+                    let value: T = AnyExpression.cast(boolValue ? 1 : 0) {
+                    return value
+                }
+            }
+            throw Error.resultTypeMismatch(T.self, anyValue)
         }
         return value
     }
@@ -358,9 +497,164 @@ public struct AnyExpression: CustomStringConvertible {
     public var description: String { return describer() }
 }
 
-// Private API
-private extension AnyExpression {
+// MARK: Internal API
 
+extension AnyExpression.Error {
+    /// Standard error message for mismatched argument types
+    static func typeMismatch(_ symbol: AnyExpression.Symbol, _ args: [Any]) -> AnyExpression.Error {
+        let types = args.map {
+            AnyExpression.stringify(AnyExpression.isNil($0) ? $0 : type(of: $0))
+        }
+        switch symbol {
+        case .infix("[]") where types.count == 2:
+            if AnyExpression.isSubscriptable(args[0]) {
+                return .message("Attempted to subscript \(types[0]) with incompatible index type \(types[1])")
+            } else {
+                return .message("Attempted to subscript \(types[0]) value")
+            }
+        case .array where types.count == 2:
+            if AnyExpression.isSubscriptable(args[0]) {
+                fallthrough
+            } else {
+                return .message("Attempted to subscript \(types[0]) value \(symbol.escapedName)")
+            }
+        case .array where !types.isEmpty:
+            return .message("Attempted to subscript \(symbol.escapedName) with incompatible index type \(types.last!)")
+        case .infix("()") where !types.isEmpty:
+            switch type(of: args[0]) {
+            case is Expression.SymbolEvaluator.Type, is AnyExpression.SymbolEvaluator.Type:
+                return .message("Attempted to call function with incompatible arguments (\(types.dropFirst().joined(separator: ", ")))")
+            case _ where types[0].contains("->"):
+                return .message("Attempted to call non SymbolEvaluator function type \(types[0])")
+            default:
+                return .message("Attempted to call non function type \(types[0])")
+            }
+        case .infix("==") where types.count == 2 && types[0] == types[1]:
+            return .message("Arguments for \(symbol) must conform to the Hashable protocol")
+        case _ where types.count == 1:
+            return .message("Argument of type \(types[0]) is not compatible with \(symbol)")
+        default:
+            return .message("Arguments of type (\(types.joined(separator: ", "))) are not compatible with \(symbol)")
+        }
+    }
+
+    /// Standard error message for subscripting outside of a string's bounds
+    static func stringBounds(_ string: String, _ index: Int) -> AnyExpression.Error {
+        let escapedString = Expression.Symbol.variable("'\(string)'").escapedName
+        return .message("Character index \(index) out of bounds for string \(escapedString)")
+    }
+
+    static func stringBounds(_ string: Substring, _ index: String.Index) -> AnyExpression.Error {
+        var _string = string
+        while index > _string.endIndex {
+            // Double the length until it fits
+            // TODO: is there a better solution for this?
+            _string += _string
+        }
+        let offset = _string.distance(from: _string.startIndex, to: index)
+        return stringBounds(String(string), offset)
+    }
+
+    /// Standard error message for invalid range
+    static func invalidRange<T: Comparable>(_ lhs: T, _ rhs: T) -> AnyExpression.Error {
+        return .message("Cannot form range with upperBound \(lhs > rhs ? "<" : "<=") lowerBound")
+    }
+
+    /// Standard error message for mismatched return type
+    static func resultTypeMismatch(_ type: Any.Type, _ value: Any) -> AnyExpression.Error {
+        let valueType = AnyExpression.stringify(AnyExpression.unwrap(value).map { Swift.type(of: $0) } as Any)
+        return .message("Result type \(valueType) is not compatible with expected type \(AnyExpression.stringify(type))")
+    }
+}
+
+extension AnyExpression {
+    // Cast a value to the specified type
+    static func cast<T>(_ anyValue: Any) -> T? {
+        if let value = anyValue as? T {
+            return value
+        }
+        var type: Any.Type = T.self
+        if let optionalType = type as? _Optional.Type {
+            type = optionalType.wrappedType
+        }
+        switch type {
+        case let numericType as _Numeric.Type:
+            if anyValue is Bool { return nil }
+            return (anyValue as? NSNumber).map { numericType.init(truncating: $0) } as? T
+        case let arrayType as _Array.Type:
+            return arrayType.cast(anyValue) as? T
+        case is String.Type:
+            return (anyValue as? _String).map { String($0.substring) } as? T
+        case is Substring.Type:
+            return (anyValue as? _String)?.substring as? T
+        default:
+            return nil
+        }
+    }
+
+    // Convert any value to a printable string
+    static func stringify(_ value: Any) -> String {
+        switch value {
+        case let bool as Bool:
+            return bool ? "true" : "false"
+        case let number as NSNumber:
+            if let int = Int64(exactly: number) {
+                return "\(int)"
+            }
+            if let uint = UInt64(exactly: number) {
+                return "\(uint)"
+            }
+            return "\(number)"
+        case is Any.Type:
+            let typeName = "\(value)"
+            #if !swift(>=3.3) || (swift(>=4) && !swift(>=4.1))
+                // Fix mangled private class names on Swift 4 and earlier
+                if typeName.hasPrefix("("), let range = typeName.range(of: " in") {
+                    let range = typeName.index(after: typeName.startIndex) ..< range.lowerBound
+                    return String(typeName[range])
+                }
+            #endif
+            return typeName
+        case let value:
+            return unwrap(value).map { "\($0)" } ?? "nil"
+        }
+    }
+
+    // Unwraps a potentially optional value
+    static func unwrap(_ value: Any) -> Any? {
+        switch value {
+        case let optional as _Optional:
+            guard let value = optional.value else {
+                fallthrough
+            }
+            return unwrap(value)
+        case is NSNull:
+            return nil
+        default:
+            return value
+        }
+    }
+
+    // Test if a value is nil
+    static func isNil(_ value: Any) -> Bool {
+        if let optional = value as? _Optional {
+            guard let value = optional.value else {
+                return true
+            }
+            return isNil(value)
+        }
+        return value is NSNull
+    }
+
+    // Test if a value supports subscripting
+    static func isSubscriptable(_ value: Any) -> Bool {
+        return value is _Array || value is _Dictionary || value is _String
+    }
+}
+
+// MARK: Private API
+
+private extension AnyExpression {
     // Value storage
     final class NanBox {
         private static let mask = (-Double.nan).bitPattern
@@ -407,7 +701,7 @@ private extension AnyExpression {
                     break
                 }
                 return Double(truncating: numberValue)
-            case _ where isNil(value):
+            case _ where AnyExpression.isNil(value):
                 return NanBox.nilValue
             default:
                 break
@@ -440,102 +734,389 @@ private extension AnyExpression {
         }
     }
 
-    // Throw a type mismatch error
-    static func throwTypeMismatch(_ symbol: Symbol, _ args: [Any]) throws -> Never {
-        throw Error.message("\(symbol) cannot be used with arguments of type (\(args.map { "\(type(of: $0))" }.joined(separator: ", ")))")
-    }
+    // Standard symbols
+    static let standardSymbols: [Symbol: Expression.SymbolEvaluator] = [
+        // Math symbols
+        .variable("pi"): { _ in .pi },
+        // Boolean symbols
+        .variable("true"): { _ in NanBox.trueValue },
+        .variable("false"): { _ in NanBox.falseValue },
+        // Optionals
+        .variable("nil"): { _ in NanBox.nilValue },
+        .infix("??"): { $0[0].bitPattern == NanBox.nilValue.bitPattern ? $0[1] : $0[0] },
+    ]
 
-    // Convert any object to a string
-    static func stringify(_ value: Any) throws -> String {
-        switch try unwrap(value) {
-        case let bool as Bool:
-            return bool ? "true" : "false"
-        case let number as NSNumber:
-            if let int = Int64(exactly: number) {
-                return "\(int)"
-            }
-            if let uint = UInt64(exactly: number) {
-                return "\(uint)"
-            }
-            return "\(number)"
-        case let value:
-            return "\(value)"
-        }
-    }
-
-    // Cast a value
-    static func cast<T>(_ anyValue: Any) throws -> T? {
-        if let value = anyValue as? T {
-            return value
-        }
-        switch T.self {
-        case is Double.Type, is Optional<Double>.Type:
-            if let value = anyValue as? NSNumber {
-                return Double(truncating: value) as? T
-            }
-        case is Int.Type, is Optional<Int>.Type:
-            if let value = anyValue as? NSNumber {
-                return Int(truncating: value) as? T
-            }
-        case is Bool.Type, is Optional<Bool>.Type:
-            if let value = anyValue as? NSNumber {
-                return (Double(truncating: value) != 0) as? T
-            }
-        case is String.Type:
-            return try stringify(anyValue) as? T
-        default:
-            break
-        }
-        if isNil(anyValue) {
-            return nil
-        }
-        throw AnyExpression.Error.message("Return type mismatch: \(type(of: anyValue)) is not compatible with \(T.self)")
-    }
-
-    // Unwraps a potentially optional value
-    static func safeUnwrap(_ value: Any) -> Any? {
+    // Array evaluator
+    static func arrayEvaluator(for symbol: Symbol, _ value: Any) -> SymbolEvaluator {
         switch value {
-        case let optional as _Optional:
-            guard let value = optional.value else {
-                fallthrough
+        case let array as _Array:
+            return { args in
+                switch args[0] {
+                case let index as NSNumber:
+                    guard let value = array.value(at: Int(truncating: index)) else {
+                        throw Error.arrayBounds(symbol, Double(truncating: index))
+                    }
+                    return value
+                case let range as _Range:
+                    return try range.slice(of: array, for: symbol)
+                case let index:
+                    throw Error.typeMismatch(symbol, [array, index])
+                }
             }
-            return safeUnwrap(value)
-        case is NSNull:
-            return nil
-        default:
-            return value
+        case let dictionary as _Dictionary:
+            return { args in
+                guard let value = dictionary.value(for: args[0]) else {
+                    throw Error.typeMismatch(symbol, [dictionary, args[0]])
+                }
+                return value
+            }
+        case let string as _String:
+            return { args in
+                switch args[0] {
+                case let offset as NSNumber:
+                    let substring = string.substring
+                    let offset = Int(truncating: offset)
+                    guard (0 ..< substring.count).contains(offset) else {
+                        throw Error.stringBounds(String(substring), offset)
+                    }
+                    return substring[substring.index(substring.startIndex, offsetBy: offset)]
+                case let index as String.Index:
+                    let substring = string.substring
+                    guard substring.indices.contains(index) else {
+                        throw Error.stringBounds(substring, index)
+                    }
+                    return substring[index]
+                case let range as _Range:
+                    return try range.slice(of: string, for: symbol)
+                case let index:
+                    throw Error.typeMismatch(symbol, [string, index])
+                }
+            }
+        case let value:
+            return { throw Error.typeMismatch(symbol, [value] + $0) }
         }
     }
 
-    // Unwraps a potentially optional value or throws if nil
-    static func unwrap(_ value: Any) throws -> Any {
-        guard let value = safeUnwrap(value) else {
-            throw AnyExpression.Error.message("Unexpected nil value")
+    // Cast an array
+    static func arrayCast<T>(_ anyValue: Any) -> [T]? {
+        guard let array = (anyValue as? _Array).map({ $0.values }) else {
+            return nil
+        }
+        var value = [T]()
+        for element in array {
+            guard let element: T = cast(element) else {
+                return nil
+            }
+            value.append(element)
         }
         return value
     }
+}
 
-    // Test if a value is nil
-    static func isNil(_ value: Any) -> Bool {
-        if let optional = value as? _Optional {
-            guard let value = optional.value else {
-                return true
-            }
-            return isNil(value)
+// Used for casting numeric values
+private protocol _Numeric {
+    init(truncating: NSNumber)
+}
+
+extension Int: _Numeric {}
+extension Int8: _Numeric {}
+extension Int16: _Numeric {}
+extension Int32: _Numeric {}
+extension Int64: _Numeric {}
+
+extension UInt: _Numeric {}
+extension UInt8: _Numeric {}
+extension UInt16: _Numeric {}
+extension UInt32: _Numeric {}
+extension UInt64: _Numeric {}
+
+extension Double: _Numeric {}
+extension Float: _Numeric {}
+
+// Used for subscripting
+private protocol _Range {
+    func slice(of array: _Array, for symbol: Expression.Symbol) throws -> ArraySlice<Any>
+    func slice(of string: _String, for symbol: Expression.Symbol) throws -> Substring
+}
+
+extension ClosedRange: _Range {
+    fileprivate func slice(of array: _Array, for symbol: Expression.Symbol) throws -> ArraySlice<Any> {
+        guard let range = self as? ClosedRange<Int> else {
+            throw AnyExpression.Error.typeMismatch(symbol, [array, self])
         }
-        return value is NSNull
+        let values = array.values
+        guard values.indices.contains(range.lowerBound) else {
+            throw AnyExpression.Error.arrayBounds(symbol, Double(range.lowerBound))
+        }
+        guard range.upperBound < values.count else {
+            throw AnyExpression.Error.arrayBounds(symbol, Double(range.upperBound))
+        }
+        return array.values[range]
+    }
+
+    fileprivate func slice(of string: _String, for symbol: Expression.Symbol) throws -> Substring {
+        let substring = string.substring
+        switch self {
+        case let range as ClosedRange<Int>:
+            guard range.lowerBound >= 0, range.lowerBound < substring.count else {
+                throw AnyExpression.Error.stringBounds(String(substring), range.lowerBound)
+            }
+            guard range.upperBound < substring.count else {
+                throw AnyExpression.Error.stringBounds(String(substring), range.upperBound)
+            }
+            let startIndex = substring.index(substring.startIndex, offsetBy: range.lowerBound)
+            let endIndex = substring.index(startIndex, offsetBy: range.count - 1)
+            return try (startIndex ... endIndex).slice(of: substring, for: symbol)
+        case let range:
+            let range = range as! ClosedRange<String.Index>
+            guard substring.indices.contains(range.lowerBound) else {
+                throw AnyExpression.Error.stringBounds(substring, range.lowerBound)
+            }
+            guard range.upperBound < substring.endIndex else {
+                throw AnyExpression.Error.stringBounds(substring, range.upperBound)
+            }
+            return substring[range]
+        }
+    }
+}
+
+extension CountableClosedRange: _Range {
+    fileprivate func slice(of array: _Array, for symbol: Expression.Symbol) throws -> ArraySlice<Any> {
+        return try ClosedRange(self).slice(of: array, for: symbol)
+    }
+
+    fileprivate func slice(of string: _String, for symbol: Expression.Symbol) throws -> Substring {
+        return try ClosedRange(self).slice(of: string, for: symbol)
+    }
+}
+
+extension Range: _Range {
+    fileprivate func slice(of array: _Array, for symbol: Expression.Symbol) throws -> ArraySlice<Any> {
+        guard let range = self as? Range<Int> else {
+            throw AnyExpression.Error.typeMismatch(symbol, [array, self])
+        }
+        return try (range.lowerBound ... range.upperBound - 1).slice(of: array, for: symbol)
+    }
+
+    fileprivate func slice(of string: _String, for symbol: Expression.Symbol) throws -> Substring {
+        switch self {
+        case let range as Range<Int>:
+            return try (range.lowerBound ... range.upperBound - 1).slice(of: string, for: symbol)
+        case let range:
+            let range = range as! Range<String.Index>
+            let substring = string.substring
+            guard substring.indices.contains(range.lowerBound) else {
+                throw AnyExpression.Error.stringBounds(substring, range.lowerBound)
+            }
+            guard range.upperBound > substring.startIndex, range.upperBound <= substring.endIndex else {
+                throw AnyExpression.Error.stringBounds(substring, range.upperBound)
+            }
+            let endIndex = substring.index(before: range.upperBound)
+            return try (range.lowerBound ... endIndex).slice(of: substring, for: symbol)
+        }
+    }
+}
+
+extension CountableRange: _Range {
+    fileprivate func slice(of array: _Array, for symbol: Expression.Symbol) throws -> ArraySlice<Any> {
+        return try Range(self).slice(of: array, for: symbol)
+    }
+
+    fileprivate func slice(of string: _String, for symbol: Expression.Symbol) throws -> Substring {
+        return try Range(self).slice(of: string, for: symbol)
+    }
+}
+
+extension PartialRangeThrough: _Range {
+    fileprivate func slice(of array: _Array, for symbol: Expression.Symbol) throws -> ArraySlice<Any> {
+        guard let range = self as? PartialRangeThrough<Int> else {
+            throw AnyExpression.Error.typeMismatch(symbol, [array, self])
+        }
+        let array = array.values
+        guard range.upperBound >= 0 else {
+            throw AnyExpression.Error.arrayBounds(symbol, Double(range.upperBound))
+        }
+        return try Range(0 ... range.upperBound).slice(of: array, for: symbol)
+    }
+
+    fileprivate func slice(of string: _String, for symbol: Expression.Symbol) throws -> Substring {
+        let substring = string.substring
+        switch self {
+        case let range as PartialRangeThrough<Int>:
+            guard range.upperBound >= 0 else {
+                throw AnyExpression.Error.stringBounds(String(substring), range.upperBound)
+            }
+            return try (0 ... range.upperBound).slice(of: string, for: symbol)
+        case let range:
+            let range = range as! PartialRangeThrough<String.Index>
+            guard range.upperBound >= substring.startIndex else {
+                throw AnyExpression.Error.stringBounds(substring, range.upperBound)
+            }
+            return try (substring.startIndex ... range.upperBound).slice(of: string, for: symbol)
+        }
+    }
+}
+
+extension PartialRangeUpTo: _Range {
+    fileprivate func slice(of array: _Array, for symbol: Expression.Symbol) throws -> ArraySlice<Any> {
+        guard let range = self as? PartialRangeUpTo<Int> else {
+            throw AnyExpression.Error.typeMismatch(symbol, [array, self])
+        }
+        let array = array.values
+        guard range.upperBound > 0 else {
+            throw AnyExpression.Error.arrayBounds(symbol, Double(range.upperBound))
+        }
+        return try Range(0 ..< range.upperBound).slice(of: array, for: symbol)
+    }
+
+    fileprivate func slice(of string: _String, for symbol: Expression.Symbol) throws -> Substring {
+        let substring = string.substring
+        switch self {
+        case let range as PartialRangeUpTo<Int>:
+            guard range.upperBound > 0 else {
+                throw AnyExpression.Error.stringBounds(String(substring), range.upperBound)
+            }
+            return try (0 ..< range.upperBound).slice(of: string, for: symbol)
+        case let range:
+            let range = range as! PartialRangeUpTo<String.Index>
+            guard range.upperBound > substring.startIndex else {
+                throw AnyExpression.Error.stringBounds(substring, range.upperBound)
+            }
+            return try (substring.startIndex ..< range.upperBound).slice(of: string, for: symbol)
+        }
+    }
+}
+
+extension PartialRangeFrom: _Range {
+    fileprivate func slice(of array: _Array, for symbol: Expression.Symbol) throws -> ArraySlice<Any> {
+        guard let range = self as? PartialRangeFrom<Int> else {
+            throw AnyExpression.Error.typeMismatch(symbol, [array, self])
+        }
+        let array = array.values
+        guard range.lowerBound < array.count else {
+            throw AnyExpression.Error.arrayBounds(symbol, Double(range.lowerBound))
+        }
+        return try Range(range.lowerBound ..< array.endIndex).slice(of: array, for: symbol)
+    }
+
+    fileprivate func slice(of string: _String, for symbol: Expression.Symbol) throws -> Substring {
+        let substring = string.substring
+        switch self {
+        case let range as PartialRangeFrom<Int>:
+            guard range.lowerBound < substring.count else {
+                throw AnyExpression.Error.stringBounds(String(substring), range.lowerBound)
+            }
+            return try (range.lowerBound ..< substring.count).slice(of: string, for: symbol)
+        case let range:
+            let range = range as! PartialRangeFrom<String.Index>
+            guard range.lowerBound < substring.endIndex else {
+                throw AnyExpression.Error.stringBounds(substring, range.lowerBound)
+            }
+            return try (range.lowerBound ..< substring.endIndex).slice(of: string, for: symbol)
+        }
+    }
+}
+
+extension CountablePartialRangeFrom: _Range {
+    fileprivate func slice(of array: _Array, for symbol: Expression.Symbol) throws -> ArraySlice<Any> {
+        return try PartialRangeFrom(lowerBound).slice(of: array, for: symbol)
+    }
+
+    fileprivate func slice(of string: _String, for symbol: Expression.Symbol) throws -> Substring {
+        return try PartialRangeFrom(lowerBound).slice(of: string, for: symbol)
+    }
+}
+
+// Used for string values
+private protocol _String {
+    var substring: Substring { get }
+}
+
+extension String: _String {
+    var substring: Substring {
+        return Substring(self)
+    }
+}
+
+extension Substring: _String {
+    var substring: Substring {
+        return self
+    }
+}
+
+extension NSString: _String {
+    var substring: Substring {
+        return Substring(self as String)
+    }
+}
+
+// Used for array values
+private protocol _Array {
+    var values: [Any] { get }
+    func value(at index: Int) -> Any?
+    static func cast(_ value: Any) -> Any?
+}
+
+extension Array: _Array {
+    fileprivate var values: [Any] {
+        return self
+    }
+
+    fileprivate func value(at index: Int) -> Any? {
+        guard indices.contains(index) else {
+            return nil // Out of bounds
+        }
+        return self[index]
+    }
+
+    fileprivate static func cast(_ value: Any) -> Any? {
+        return AnyExpression.arrayCast(value) as [Element]?
+    }
+}
+
+extension ArraySlice: _Array {
+    fileprivate var values: [Any] {
+        return Array(self)
+    }
+
+    fileprivate func value(at index: Int) -> Any? {
+        guard indices.contains(index) else {
+            return nil // Out of bounds
+        }
+        return self[index]
+    }
+
+    static func cast(_ value: Any) -> Any? {
+        return (AnyExpression.arrayCast(value) as [Element]?).map(self.init)
+    }
+}
+
+// Used for dictionary values
+private protocol _Dictionary {
+    func value(for key: Any) -> Any?
+}
+
+extension Dictionary: _Dictionary {
+    func value(for key: Any) -> Any? {
+        guard let key = AnyExpression.cast(key) as Key? else {
+            return nil // Type mismatch
+        }
+        return self[key] as Any
     }
 }
 
 // Used to test if a value is Optional
 private protocol _Optional {
     var value: Any? { get }
+    static var wrappedType: Any.Type { get }
 }
 
 extension Optional: _Optional {
     fileprivate var value: Any? { return self }
+    fileprivate static var wrappedType: Any.Type { return Wrapped.self }
 }
 
 extension ImplicitlyUnwrappedOptional: _Optional {
     fileprivate var value: Any? { return self }
+    fileprivate static var wrappedType: Any.Type { return Wrapped.self }
 }

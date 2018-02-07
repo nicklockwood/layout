@@ -367,7 +367,7 @@ public class RuntimeType: NSObject {
     }
 
     public func cast(_ value: Any) -> Any? {
-        guard let value = optionalValue(of: value) else {
+        guard let value = AnyExpression.unwrap(value) else {
             return nil
         }
         if let caster = caster {

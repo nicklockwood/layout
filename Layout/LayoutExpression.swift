@@ -34,6 +34,26 @@ private func cast(_ anyValue: Any, as type: RuntimeType) throws -> Any {
     return value
 }
 
+private func stringify(_ value: Any) throws -> String {
+    switch try unwrap(value) {
+    case let bundle as Bundle:
+        return bundle.bundleIdentifier ?? bundle.bundleURL.absoluteString
+    case let value:
+        return AnyExpression.stringify(value)
+    }
+}
+
+private func isNil(_ value: Any) -> Bool {
+    return AnyExpression.isNil(value)
+}
+
+private func unwrap(_ value: Any) throws -> Any {
+    guard let value = AnyExpression.unwrap(value) else {
+        throw AnyExpression.Error.message("Unexpected nil value")
+    }
+    return value
+}
+
 private var _colorCache = [String: UIColor]()
 private let colorLookup = { (string: String) -> Any? in
     if let color = _colorCache[string] {
@@ -387,23 +407,6 @@ struct LayoutExpression {
                 throw SymbolError("Unsupported type \(type)", for: key)
             }
         }
-        func arrayHander(
-            for evaluator: @escaping AnyExpression.SymbolEvaluator,
-            key: String
-        ) -> AnyExpression.SymbolEvaluator {
-            return { args in
-                guard let array = try evaluator([]) as? [Any] else {
-                    throw SymbolError("Property \(key) is not an array", for: key)
-                }
-                guard let index = (args[0] as? NSNumber).flatMap({ Int(exactly: $0) }) else {
-                    throw SymbolError("Invalid array index \(args[0])", for: key)
-                }
-                guard array.indices.contains(index) else {
-                    throw SymbolError(Expression.Error.arrayBounds(.array(key), Double(index)), for: key)
-                }
-                return array[index]
-            }
-        }
         func unescapedName(_ name: String) -> String {
             if name.first == "`" {
                 return String(name.dropFirst().dropLast())
@@ -419,8 +422,8 @@ struct LayoutExpression {
                     return fn
                 }
                 switch symbol {
-                case let .variable(name) where !"'\"".contains(name.first ?? " "), let .array(name):
-                    let isArray = (symbol == .array(name))
+                case let .variable(name), let .array(name):
+                    if "'\"".contains(name.first ?? " ") { return nil }
                     let key = unescapedName(name)
                     let macro = node.expression(forMacro: key)
                     let circular = (macro != nil) ? macroReferences.contains(key) : false
@@ -439,30 +442,41 @@ struct LayoutExpression {
                                 return { _ in throw SymbolError("Empty expression for `\(key)` macro", for: key) }
                             }
                             macroSymbols[key] = macroExpression.symbols
-                            let evaluator: AnyExpression.SymbolEvaluator = { _ in
+                            return { _ in
                                 try SymbolError.wrap(macroExpression.evaluate, for: key)
                             }
-                            return isArray ? arrayHander(for: evaluator, key: key) : evaluator
                         } else if let value = try constants(key) ?? node.constantValue(forSymbol: key) ?? staticConstant(for: key) {
                             allConstants[name] = value
                             return nil
                         } else if circular {
-                            let evaluator: AnyExpression.SymbolEvaluator = { [unowned node] _ in
+                            return { [unowned node] _ in
                                 do {
                                     return try node.value(forSymbol: key)
                                 } catch {
                                     throw SymbolError("Macro `\(key)` references a nonexistent symbol of the same name (macros cannot reference themselves)", for: key)
                                 }
                             }
-                            return isArray ? arrayHander(for: evaluator, key: key) : evaluator
                         } else if ignoredSymbols.contains(symbol) || pureSymbols(symbol) != nil {
                             return nil
                         } else {
-                            let evaluator: AnyExpression.SymbolEvaluator = { [unowned node] _ in
+                            return { [unowned node] _ in
                                 try node.value(forSymbol: key)
                             }
-                            return isArray ? arrayHander(for: evaluator, key: key) : evaluator
                         }
+                    } catch {
+                        return { _ in throw error }
+                    }
+                case let .function(name, _):
+                    let key = unescapedName(name)
+                    do {
+                        guard let value = (try constants(key) ?? node.constantValue(forSymbol: key)) else {
+                            return nil
+                        }
+                        guard let fn = value as? AnyExpression.SymbolEvaluator else {
+                            allConstants[name] = value
+                            return nil
+                        }
+                        return { args in try SymbolError.wrap({ try fn(args) }, for: key) }
                     } catch {
                         return { _ in throw error }
                     }
@@ -475,28 +489,24 @@ struct LayoutExpression {
                     return fn
                 }
                 switch symbol {
-                case let .variable(name):
+                case let .variable(name), let .array(name):
                     return allConstants[name].map { value in
                         { _ in value }
                     }
-                case let .array(name):
-                    return allConstants[name].map { value in
-                        arrayHander(for: { _ in value }, key: name)
-                    }
                 case let .function(name, .exactly(arity)):
+                    guard let string = allConstants[name] as? String else {
+                        return nil
+                    }
                     let key = unescapedName(name)
                     do {
-                        guard let value = (try constants(key) ?? node.constantValue(forSymbol: key)) as? String else {
-                            return nil
-                        }
-                        let formatString = try FormatString(value)
+                        let formatString = try FormatString(string)
                         let types = formatString.types.map { RuntimeType($0) }
                         if arity > types.count {
                             // TODO: this should probably be a warning, since there are legitimate cases where this
                             // might arise - e.g. if a string doesn't use a param in one locale but does in others
-                            throw SymbolError("Too many arguments (\(arity)) for format string '\(value)' for key `\(key)`", for: key)
+                            throw SymbolError("Too many arguments (\(arity)) for format string '\(string)' for key `\(key)`", for: key)
                         } else if arity < types.count {
-                            throw SymbolError("Too few arguments (\(arity)) for format string '\(value)' for key `\(key)`", for: key)
+                            throw SymbolError("Too few arguments (\(arity)) for format string '\(string)' for key `\(key)`", for: key)
                         }
                         return { args in
                             let args = zip(types, args).map { type, value in
@@ -523,7 +533,7 @@ struct LayoutExpression {
         self.init(
             evaluate: {
                 let anyValue: Any = try expression.evaluate()
-                if nullable, optionalValue(of: anyValue) == nil {
+                if nullable, isNil(anyValue) {
                     return anyValue
                 }
                 return try cast(anyValue, as: type)

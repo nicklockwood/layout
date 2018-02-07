@@ -33,6 +33,12 @@ class ExamplesViewController: UIViewController, LayoutLoading, UITabBarControlle
                     string: "attributed string",
                     attributes: [foregroundColorKey: UIColor.red]
                 ),
+                "uppercased": { (args: [Any]) throws -> Any in
+                    guard let string = args.first as? String else {
+                        throw LayoutError.message("uppercased() function expects a String argument")
+                    }
+                    return string.uppercased()
+                }
             ]
         )
     }

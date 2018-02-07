@@ -30,7 +30,7 @@ Types of PR:
 
 * Major code changes - significant refactors or new functionality should usually be raised as an issue first to avoid wasted effort on a PR that's unlikely to land. This is mainly for your own sake, not ours, so if you prefer to make suggestions in code form then that's fine too. As with fixes, PRs should be made against **develop** if they are purely additive, or against **breaking** if they break existing public APIs.
 
-* Tooling changes - LayoutTool's version number is kept in sync withthe Layout framework. The code for LayoutTool is not part of the public API, so code changes can all be made against **develop**, however the semver rules apply to the command-line interface for LayoutTool, so if your change breaks an existing command-line argument, it should be made against **breaking**.
+* Tooling changes - LayoutTool's version number is kept in sync with the Layout framework. The code for LayoutTool is not part of the public API, so code changes can all be made against **develop**, however the semver rules apply to the command-line interface for LayoutTool, so if your change breaks an existing command-line argument, it should be made against **breaking**.
 
 ## Copyright and Licensing
 
