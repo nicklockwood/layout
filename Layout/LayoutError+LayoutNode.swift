@@ -65,7 +65,7 @@ func bestMatches(for symbol: String, in suggestions: [String]) -> [String] {
     let lowercasedSymbol = symbol.lowercased()
     // Sort suggestions by Levenshtein distance
     return suggestions
-        .flatMap { (string) -> (String, Int)? in
+        .compactMap { (string) -> (String, Int)? in
             let lowercaseString = string.lowercased()
             // Eliminate keypaths unless symbol itself is a keypath or is part of result
             guard !lowercaseString.contains(".") || symbol.contains(".") ||

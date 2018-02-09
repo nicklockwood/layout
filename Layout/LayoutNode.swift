@@ -1001,10 +1001,10 @@ public class LayoutNode: NSObject {
         expressions += _parameters.keys
         if let controllerClass = viewControllerClass {
             expressions +=
-                Array(controllerClass.expressionTypes.flatMap { $0.value.isAvailable ? $0.key : nil }) +
-                Array(UIView.expressionTypes.flatMap { $0.value.isAvailable ? $0.key : nil })
+                Array(controllerClass.expressionTypes.compactMap { $0.value.isAvailable ? $0.key : nil }) +
+                Array(UIView.expressionTypes.compactMap { $0.value.isAvailable ? $0.key : nil })
         } else {
-            expressions += Array(viewClass.expressionTypes.flatMap { $0.value.isAvailable ? $0.key : nil })
+            expressions += Array(viewClass.expressionTypes.compactMap { $0.value.isAvailable ? $0.key : nil })
         }
         return expressions
     }
@@ -1042,7 +1042,7 @@ public class LayoutNode: NSObject {
             }
         }
         func validKeys(in types: [String: RuntimeType]) -> [String] {
-            return types.flatMap { $0.key != name && $0.value == type ? $0.key : nil }
+            return types.compactMap { $0.key != name && $0.value == type ? $0.key : nil }
         }
         if let controllerClass = viewControllerClass {
             symbols += validKeys(in: controllerClass.expressionTypes)

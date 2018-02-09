@@ -162,7 +162,11 @@ extension NSObject {
                 }
                 addProperty(name, type)
             }
-            ctype.deallocate(capacity: maxChars)
+            #if swift(>=4.1)
+                ctype.deallocate()
+            #else
+                ctype.deallocate(capacity: maxChars)
+            #endif
         }
         // Accessibility properties (TODO: find a way to automate this)
         if conforms(to: UIAccessibilityIdentification.self) ||

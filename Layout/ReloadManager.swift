@@ -12,7 +12,7 @@ class ReloadManager {
 
     // Useful for testing
     static var observers: [LayoutLoading] {
-        return boxes.flatMap { $0.observer }
+        return boxes.compactMap { $0.observer }
     }
 
     static func addObserver(_ observer: LayoutLoading) {

@@ -564,7 +564,7 @@ struct LayoutExpression {
 
         do {
             var expressionSymbols = Set<String>()
-            let parts: [ExpressionPart] = try parseStringExpression(expression).flatMap { part in
+            let parts: [ExpressionPart] = try parseStringExpression(expression).compactMap { part in
                 switch part {
                 case let .expression(parsedExpression):
                     guard let expression = LayoutExpression(
