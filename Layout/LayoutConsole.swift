@@ -130,7 +130,7 @@ private class LayoutErrorView: UIView, LayoutLoading {
                 )
             }
         default:
-            background = "red"
+            background = "#D32F2F"
             let suggestions = error.suggestions
             if suggestions.count == 1 {
                 message += "\n\nDid you mean `\(suggestions[0])`?"
