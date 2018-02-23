@@ -10,7 +10,6 @@ private let queue = DispatchQueue(label: "com.Layout.LayoutLoader")
 private var reloadLock = 0
 
 private extension Layout {
-
     /// Merges the contents of the specified layout into this one
     /// Will fail if the layout class is not a subclass of this one
     func merged(with layout: Layout) throws -> Layout {

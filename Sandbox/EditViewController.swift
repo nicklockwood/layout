@@ -6,7 +6,6 @@ import Layout
 class PreviewViewController: UIViewController, LayoutLoading {}
 
 class EditViewController: UIViewController {
-
     var textView: UITextView!
 
     override func viewDidLoad() {

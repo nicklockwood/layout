@@ -39,6 +39,7 @@
     - [Enums](#enums)
     - [OptionSets](#optionsets)
     - [Arrays](#arrays)
+    - [Functions](#functions)
     - [Optionals](#optionals)
     - [Comments](#comments)
 - [Standard Components](#standard-components)
@@ -644,9 +645,9 @@ To simplify backwards compatibility, as with the `safeAreaInsets` property itsel
 
 # Expressions
 
-The most important feature of the `LayoutNode` class is its built-in support for parsing and evaluating expressions. The implementation of this feature is built on top of the [Expression](https://github.com/nicklockwood/Expression) framework, but Layout adds a number of extensions in order to support arbitrary types and layout-specific logic.
+The most important feature of the `LayoutNode` class is its built-in support for parsing and evaluating expressions. The implementation of this feature is built on top of the [Expression](https://github.com/nicklockwood/Expression) framework, but Layout adds a number of extensions in order to support UIKit types and layout-specific logic.
 
-Expressions can be simple, hard-coded values such as "10", or more complex expressions such as "width / 2 + someConstant". The available operators and functions to use in an expression depend on the name and type of the property being expressed, but all expressions support the standard decimal math and boolean operators and functions that you find in most C-family programming languages.
+Expressions can be simple, hard-coded values such as "10", or more complex expressions such as "width / 2 + someConstant". The available operators and functions to use in an expression depend on the name and type of the property being expressed, but all expressions support the standard decimal math and boolean operators and functions that you find in most C-family programming languages. You can also extend Layout with custom functions (see the [Functions](#functions) section below).
 
 Expressions in a `LayoutNode` can reference constants and state passed in to the node or any of its parents. They can also reference the values of any other expression defined on the node, or any supported property of the view:
 
@@ -687,7 +688,6 @@ To reference a node that is not an immediate sibling, you can give the node an `
     />
 </UIView>
 ```
-
 
 ## Layout Properties
 
@@ -824,6 +824,29 @@ If you want to display the literal `{` or `}` brace characters, you can escape t
 <UILabel text="Open brace: {'{'}. Close brace: {'}'}."/>
 ```
 
+Layout has support for basic manipulation of string literals and variables inside expressions. To concatenate strings, you can either use multiple expression clauses within a single string property, or you can use the `+` operator within a single expression:
+
+```xml
+<UILabel text="{'foo'}{'bar'}"/>
+
+<UILabel text="{'foo' + 'bar'}"/>
+```
+
+You can reference individual characters or substrings by using Swift-style subscripting syntax. Ordinarily, Swift requires String subscripts to use values of type `String.Index`, but for convenience, Layout supports integer indexes and ranges as well. These are zero-based and refer to the `Character` index (as opposed to bytes or unicode scalars):
+
+```xml
+<!-- Displays 'e' -->
+<UILabel text="{'Hello World'[1]}"/>
+
+<!-- Displays 'foo' -->
+<UILabel text="{'foobar'[0..<3]}"/>
+
+<!-- Displays 'bar' -->
+<UILabel text="{'foobar'[3...]}"/>
+```
+
+Attempting to reference a substring outside the original string bounds won't crash, but will display a Red Box error. There is currently no way to check the bounds of a string from inside an expression unless you implement a custom `count()` function, or equivalent (see the [functions](#functions) section below for details).
+
 If your app is localized, you will need to use constants instead of literal strings for virtually all of the strings in your template. Localizing all of these strings and passing them as individual constants would be tedious, so Layout offers some alternatives:
 
 Constants prefixed with `strings.` are assumed to be localized strings, and will be looked up in the application's `Localizable.strings` file. So for example, if your `Localizable.strings` file contains the following entry:
@@ -917,7 +940,6 @@ As with regular text attributes, inline HTML can contain embedded expressions, w
 ```xml
 <UILabel>Hello <b>{name}</b></UILabel>
 ```
-
 
 ## URLs
 
@@ -1048,7 +1070,6 @@ The `<font-size>` can be either a number or a percentage. If you use a percentag
 <UILabel font="{themeFont} 25 bold"/>
 ```
 
-
 ## Colors
 
 Colors can be specified using CSS-style rgb(a) hex literals. These can be 3, 4, 6 or 8 digits long, and are prefixed with a `#`:
@@ -1145,7 +1166,6 @@ You can also reference a `Bundle`/`NSBundle` instance stored in a constant or va
 
 **Note:** There is no need to use quotes around the color asset name, even if it contains spaces or other punctuation. Layout will interpret invalid color asset names as expressions. You can use `{ ... }` braces to disambiguate between asset names and constant or variable names if necessary.
 
-
 ## Images
 
 Static images can be specified by name or via a constant or state variable. As with colors, there is no need to use quotes around the name, however you can use `{ ... }` braces to disambiguate if needed:
@@ -1167,7 +1187,6 @@ As with color assets, image assets defined in a framework or standalone bundle c
 
 <UIImageView image="{bundle}:MyImage"/>
 ```
-
 
 ## Enums
 
@@ -1194,7 +1213,6 @@ Standard UIKit enum values are exposed as constants that may be used only in exp
 <UIImageView height="contentMode == .scaleAspectFit ? 200 : 300"/>
 ```
 
-
 ## OptionSets
 
 OptionSet expressions work the same way as enums. If you want to set multiple values for an OptionSet, separate them with commas:
@@ -1205,10 +1223,21 @@ OptionSet expressions work the same way as enums. If you want to set multiple va
 
 There is no need to wrap multiple OptionSet values in square brackets, as you would in Swift. As with enums, OptionSet value names cannot be used outside of the expression that sets them unless they are prefixed with the type name.
 
-
 ## Arrays
 
-For array-type expressions, you can use commas to pass multiple values:
+You can use Swift-style square-bracketed array literals inside any type of expression:
+
+```xml
+<UISegmentedControl items="['Hello', 'World']"/>
+```
+
+You can use the `+` operator to concatenate array literals:
+
+```xml
+<UISegmentedControl items="['Hello'] + ['And', 'Goodbye']"/>
+```
+
+For array-type expressions, the square brackets are optional; you can just pass comma, delimited values and they will be treated as an array:
 
 ```xml
 <UISegmentedControl items="'Hello', 'World'"/>
@@ -1253,14 +1282,69 @@ loadLayout(
         "colors": [UIColor.green, UIColor.black],
     ],
 )
+```
 
 ```xml
 <!-- green label -->
 <UILabel textColor="colors[0]"/>
 ```
 
-Attempting to access an array with an out-of-bounds index won't crash, but will display a Red Box error. There is currently no way to check the bounds of an array from inside an expression.
+You can also subscript arrays using ranges. All of the standard Swift range operators are supported, including open-ended ranges:
 
+```xml
+<!-- Only the second and third item -->
+<UISegmentedControl items="items[1...2]"/>
+
+<!-- Only the first and second item -->
+<UISegmentedControl items="items[..<2]"/>
+
+<!-- All but the first item -->
+<UISegmentedControl items="items[1...]"/>
+```
+
+Attempting to access an array with an out-of-bounds index or range won't crash, but will display a Red Box error. There is currently no way to check the bounds of an array from inside an expression unless you implement a custom `count()` function, or equivalent (see the [functions](#functions) section below for details).
+
+## Functions
+
+Layout expressions support a number of built-in math functions such as `min()`, `max()`, `pow()`, etc. But you can also extend Layout with additional custom functions that can be called inside your template.
+
+Custom functions are Swift closures that conform to the signature `([Any]) throws -> Any`. Any closure constant conforming to this type that is passed into your `LayoutNode` can be called inside an expression.
+
+Currently there is no way to specify the number or type of arguments expected by a custom function, so you must be careful to implement type checking within your custom function to prevent crashes. Here are some examples:
+
+```swift
+loadLayout(
+    named: "MyLayout.xml",
+    constants: [
+        "count": { (args: [Any]) throws -> Any in
+            guard args.count == 1 else {
+                throw LayoutError.message("count() function expects a single argument")  
+            }
+            switch args[0] {
+            case let array as [Any]:
+                return array.count
+            case let string as String:
+                return string.count
+            default:
+                throw LayoutError.message("count() function expects an Array or String")   
+            }
+            return array.count
+        },
+        "uppercased": { (args: [Any]) throws -> Any in
+            guard let string = args.first as? String else {
+                throw LayoutError.message("uppercased() function expects a String argument")  
+            }
+            return string.uppercased()
+        },
+    ],
+)
+```
+
+```xml
+<UILabel text="{uppercased('uppercased text'}"/>
+
+<UILabel text="'foo' contains {count('foo')} characters"/>
+```
 
 ## Optionals
 

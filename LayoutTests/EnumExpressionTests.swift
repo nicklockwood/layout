@@ -4,7 +4,6 @@ import XCTest
 @testable import Layout
 
 class EnumExpressionTests: XCTestCase {
-
     func testContentModeLiteral() {
         let node = LayoutNode(
             expressions: [

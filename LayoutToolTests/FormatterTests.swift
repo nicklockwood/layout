@@ -32,6 +32,32 @@ class FormatterTests: XCTestCase {
         }
     }
 
+    func testUndefinedOperator() throws {
+        let input = "<Foo left=\"a^b\"/>"
+        XCTAssertThrowsError(try format(input)) { error in
+            guard case let FormatError.parsing(message) = error else {
+                XCTFail()
+                return
+            }
+            XCTAssert(message.contains("infix operator ^"))
+            XCTAssert(message.contains("left"))
+            XCTAssert(message.contains("Foo"))
+        }
+    }
+
+    func testRGBFunctionArity() throws {
+        let input = "<Foo color=\"rgb(1,2,3,4)\"/>"
+        XCTAssertThrowsError(try format(input)) { error in
+            guard case let FormatError.parsing(message) = error else {
+                XCTFail()
+                return
+            }
+            XCTAssert(message.contains("rgb() expects 3"))
+            XCTAssert(message.contains("color"))
+            XCTAssert(message.contains("Foo"))
+        }
+    }
+
     // MARK: Attributes
 
     func testNoAttributes() {

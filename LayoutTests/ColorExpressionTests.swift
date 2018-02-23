@@ -8,7 +8,6 @@ extension UIColor {
 }
 
 class ColorExpressionTests: XCTestCase {
-
     func testRed() {
         let node = LayoutNode()
         let expression = LayoutExpression(colorExpression: "red", for: node)

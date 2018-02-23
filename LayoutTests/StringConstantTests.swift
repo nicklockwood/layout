@@ -4,7 +4,6 @@ import XCTest
 @testable import Layout
 
 class StringConstantTests: XCTestCase {
-
     func testSimpleStringConstant() {
         let node = LayoutNode(constants: ["strings.hello": "Hello World"])
         let expression = LayoutExpression(expression: "{strings.hello}", type: .string, for: node)

@@ -4,7 +4,6 @@ import UIKit
 import Layout
 
 class ExamplesViewController: UIViewController, LayoutLoading, UITabBarControllerDelegate {
-
     private var selectedTab = 0
 
     override func viewDidLoad() {
@@ -38,7 +37,7 @@ class ExamplesViewController: UIViewController, LayoutLoading, UITabBarControlle
                         throw LayoutError.message("uppercased() function expects a String argument")
                     }
                     return string.uppercased()
-                }
+                },
             ]
         )
     }

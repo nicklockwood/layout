@@ -13,7 +13,6 @@ private let images = [
 ]
 
 class CollectionViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource {
-
     @IBOutlet var collectionView: UICollectionView? {
         didSet {
             collectionView?.registerLayout(

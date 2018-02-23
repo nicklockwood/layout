@@ -13,7 +13,6 @@ private let images = [
 ]
 
 class TableViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
-
     @IBOutlet var tableView: UITableView? {
         didSet {
             tableView?.registerLayout(

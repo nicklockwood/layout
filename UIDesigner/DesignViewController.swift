@@ -56,7 +56,6 @@ class DesignView: UIControl {
 }
 
 class DesignViewController: UIViewController, UIToolbarDelegate, EditViewControllerDelegate, UIPopoverPresentationControllerDelegate {
-
     private(set) var errorLabel: UILabel!
 
     private(set) var toolbar: UIToolbar!

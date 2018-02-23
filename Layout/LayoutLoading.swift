@@ -4,7 +4,6 @@ import UIKit
 
 /// Protocol for views or view controllers that can load and display a LayoutNode
 public protocol LayoutLoading: LayoutDelegate {
-
     /// The loaded LayoutNode instance
     /// A default implementation of this property is provided for UIView and UIViewControllers
     var layoutNode: LayoutNode? { get set }
@@ -20,7 +19,6 @@ public protocol LayoutLoading: LayoutDelegate {
 }
 
 public extension LayoutLoading {
-
     /// Load a named Layout xml file from a local resource bundle
     func loadLayout(
         named: String? = nil,
@@ -95,7 +93,6 @@ public extension LayoutLoading {
 }
 
 public extension LayoutLoading where Self: UIView {
-
     /// Default layoutNode implementation for views
     var layoutNode: LayoutNode? {
         get {
@@ -118,7 +115,6 @@ public extension LayoutLoading where Self: UIView {
 }
 
 public extension LayoutLoading where Self: UIViewController {
-
     /// Default layoutNode implementation for view controllers
     var layoutNode: LayoutNode? {
         get {
@@ -141,7 +137,6 @@ public extension LayoutLoading where Self: UIViewController {
 }
 
 public extension LayoutLoading {
-
     /// Default layoutDidLoad(_:) implementation - does nothing
     public func layoutDidLoad(_: LayoutNode) {}
 

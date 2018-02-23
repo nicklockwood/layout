@@ -6,7 +6,6 @@ import WebKit
 private var _cachedExpressionTypes = [Int: [String: RuntimeType]]()
 
 extension UIView {
-
     /// The view controller that owns the view - used to access layout guides
     var viewController: UIViewController? {
         var controller: UIViewController?

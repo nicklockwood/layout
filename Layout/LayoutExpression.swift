@@ -240,7 +240,6 @@ struct LayoutExpression {
     private init?(percentageExpression: String,
                   for prop: String, in node: LayoutNode,
                   impureSymbols: (AnyExpression.Symbol) -> AnyExpression.SymbolEvaluator? = { _ in nil }) {
-
         guard let expression = LayoutExpression(
             anyExpression: percentageExpression,
             type: .cgFloat,
@@ -359,7 +358,6 @@ struct LayoutExpression {
                   impureSymbols: (AnyExpression.Symbol) -> AnyExpression.SymbolEvaluator? = { _ in nil },
                   macroReferences: [String] = [],
                   for node: LayoutNode) {
-
         if parsedExpression.isEmpty {
             return nil
         }
@@ -422,7 +420,7 @@ struct LayoutExpression {
                     return fn
                 }
                 switch symbol {
-                case let .variable(name), let .array(name):
+                case let .variable(name):
                     if "'\"".contains(name.first ?? " ") { return nil }
                     let key = unescapedName(name)
                     let macro = node.expression(forMacro: key)
@@ -489,7 +487,7 @@ struct LayoutExpression {
                     return fn
                 }
                 switch symbol {
-                case let .variable(name), let .array(name):
+                case let .variable(name):
                     return allConstants[name].map { value in
                         { _ in value }
                     }

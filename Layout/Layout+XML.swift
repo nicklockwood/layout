@@ -3,7 +3,6 @@
 import Foundation
 
 extension Layout {
-
     public init(xmlData: Data, url: URL? = nil, relativeTo: String? = #file) throws {
         let xml: [XMLNode]
         do {

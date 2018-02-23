@@ -3,7 +3,6 @@
 import Foundation
 
 extension LayoutNode {
-
     /// Create a new LayoutNode instance from a Layout template
     convenience init(
         layout: Layout,
@@ -84,7 +83,6 @@ extension LayoutNode {
 }
 
 extension Layout {
-
     // Experimental - extracts a layout template from an existing node
     // TODO: this isn't a lossless conversion - find a better approach
     init(_ node: LayoutNode) {

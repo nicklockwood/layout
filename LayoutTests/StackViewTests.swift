@@ -12,7 +12,6 @@ func autoLayoutViewOfSize(_ width: CGFloat, _ height: CGFloat) -> UIView {
 }
 
 class StackViewTests: XCTestCase {
-
     func testFixedSizeElementsInAutoSizedStack() throws {
         let expectedSize = CGSize(width: 200, height: 150)
 

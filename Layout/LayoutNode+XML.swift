@@ -3,7 +3,6 @@
 import Foundation
 
 public extension LayoutNode {
-
     @available(*, deprecated, renamed: "init(xmlData:)")
     static func with(xmlData: Data, url: URL? = nil, relativeTo: String? = #file) throws -> LayoutNode {
         return try LayoutNode(

@@ -5,7 +5,6 @@ import UIKit
 private let objCBoolIsChar = (OBJC_BOOL_IS_BOOL == 0)
 
 public class RuntimeType: NSObject {
-
     public enum Kind: Equatable, CustomStringConvertible {
         case any(Any.Type)
         case `class`(AnyClass)

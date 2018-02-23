@@ -4,7 +4,6 @@ import UIKit
 import Layout
 
 class TreeViewController: UITableViewController {
-
     func nodeName(_ node: LayoutNode) -> String {
         return node.viewController.map {
             var name = "\($0.classForCoder)"

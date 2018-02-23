@@ -6,7 +6,6 @@ import UIKit
 /// The LayoutNode retains its view/view controller, so any references
 /// from the view back to the node should be weak
 public class LayoutNode: NSObject {
-
     /// The view managed by this node
     /// Accessing this property will instantiate the view if it doesn't already exist
     public var view: UIView {
@@ -820,7 +819,6 @@ public class LayoutNode: NSObject {
             }
 
             if _setupComplete {
-
                 // NOTE: this convoluted update process is needed to ensure that if the
                 // class changes, the new view or controller is inserted at the correct
                 // position in the hierarchy

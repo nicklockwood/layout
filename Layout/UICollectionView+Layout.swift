@@ -228,7 +228,6 @@ private var cellDataKey = 0
 private var nodesKey = 0
 
 extension UICollectionView {
-
     private enum LayoutData {
         case success(Layout, Any, [String: Any])
         case failure(Error)

@@ -4,7 +4,6 @@ import XCTest
 @testable import Layout
 
 class ReloadManagerTests: XCTestCase {
-
     private class TestController: UIViewController, LayoutLoading {
         var loadCount = 0
 

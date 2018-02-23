@@ -20,7 +20,6 @@ private let weightsBySuffix: [(String, UIFont.Weight)] = [
 ]
 
 extension UIFont {
-
     // This is the actual default font size on iOS
     // which is not the same as reported by `UIFont.systemFontSize`
     static let defaultSize: CGFloat = 17

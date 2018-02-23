@@ -3,7 +3,6 @@
 import Foundation
 
 extension UIScrollView {
-
     open override class var expressionTypes: [String: RuntimeType] {
         var types = super.expressionTypes
         types["contentInsetAdjustmentBehavior"] = .uiScrollViewContentInsetAdjustmentBehavior

@@ -4,7 +4,6 @@ import XCTest
 @testable import Layout
 
 class OptionSetExpressionTests: XCTestCase {
-
     func testSingleDataDetectorType() {
         let node = LayoutNode(
             view: UITextView(),

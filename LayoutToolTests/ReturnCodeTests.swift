@@ -3,7 +3,6 @@
 import XCTest
 
 class ReturnCodeTests: XCTestCase {
-
     func testReturnsSuccessCodeForExpectedInput() {
         XCTAssertEqual(processArguments(["LayoutTool", "version"]), .success)
     }

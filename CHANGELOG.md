@@ -1,5 +1,12 @@
 # Change Log
 
+## [0.6.17](https://github.com/schibsted/layout/releases/tag/0.6.17) (2018-02-23)
+
+- You can now pass custom functions to `LayoutNode` for use in property expressions (see README for details)
+- Updated Expression to 0.12.6, which adds support for inline array literals, string subscripting and more (see README for details)
+- Updated LayoutTool and Layout Xcode Editor Extension to support new Expression features
+- Fixed (almost) all deprecation warnings in Swift 4.1
+
 ## [0.6.16](https://github.com/schibsted/layout/releases/tag/0.6.16) (2018-01-29)
 
 - Improved resolution logic when referencing image or color assets in bundles other than the main bundle

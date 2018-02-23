@@ -4,7 +4,6 @@ import XCTest
 @testable import Layout
 
 class AttributedStringExpressionTests: XCTestCase {
-
     func testAttributedStringExpressionTextAndFont() {
         let node = LayoutNode()
         let expression = LayoutExpression(attributedStringExpression: "foo", for: node)

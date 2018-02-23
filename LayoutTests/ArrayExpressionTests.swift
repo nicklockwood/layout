@@ -4,7 +4,6 @@ import XCTest
 @testable import Layout
 
 class ArrayExpressionTests: XCTestCase {
-
     func testArrayExpression() {
         let node = LayoutNode()
         let expression = LayoutExpression(expression: "1, 2, 3", type: .array(of: .int), for: node)

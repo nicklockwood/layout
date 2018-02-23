@@ -4,7 +4,6 @@ import Foundation
 
 /// Optional delegate protocol to be implemented by a LayoutNode's owner
 public protocol LayoutDelegate: class {
-
     /// Handle errors produced by the layout during an update
     /// The default implementation displays a red box error alert using the LayoutConsole
     func layoutError(_ error: LayoutError)
@@ -16,7 +15,6 @@ public protocol LayoutDelegate: class {
 }
 
 extension LayoutDelegate {
-
     /// Default error handler implementation - bubbles error up to the first responder
     /// that will handle it, or displays LayoutConsole if no handler is found
     public func layoutError(_ error: LayoutError) {

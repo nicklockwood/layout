@@ -14,7 +14,6 @@ private class TestViewController: UIViewController {
 }
 
 class SelectorExpressionTests: XCTestCase {
-
     func testSetControlAction() {
         let node = LayoutNode(view: UIControl(), expressions: ["touchUpInside": "foo:"])
         let viewController = TestViewController()

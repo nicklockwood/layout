@@ -49,7 +49,6 @@ struct FileOptions {
 
     public init(followSymlinks: Bool = false,
                 supportedFileExtensions: [String] = ["xml"]) {
-
         self.followSymlinks = followSymlinks
         self.supportedFileExtensions = supportedFileExtensions
     }
@@ -70,7 +69,6 @@ func enumerateFiles(withInputURL inputURL: URL,
                     options: FileOptions = FileOptions(),
                     concurrent: Bool = true,
                     block: @escaping (URL, URL) throws -> () throws -> Void) -> [Error] {
-
     guard let resourceValues = try? inputURL.resourceValues(
         forKeys: Set([.isDirectoryKey, .isAliasFileKey, .isSymbolicLinkKey])) else {
         if FileManager.default.fileExists(atPath: inputURL.path) {
@@ -105,7 +103,6 @@ func enumerateFiles(withInputURL inputURL: URL,
                    outputURL: URL?,
                    options: FileOptions,
                    block: @escaping (URL, URL) throws -> () throws -> Void) {
-
         for excludedURL in excludedURLs {
             if inputURL.absoluteString.hasPrefix(excludedURL.absoluteString) {
                 return
@@ -344,12 +341,9 @@ func validateLayoutExpression(_ parsedExpression: ParsedLayoutExpression) throws
                 throw Expression.Error.undefinedSymbol(symbol)
             }
         case let .function(called, arity):
-            guard keys.contains(symbol) else {
-                for case let .function(name, requiredArity) in keys
-                    where name == called && arity != requiredArity {
-                    throw Expression.Error.arityMismatch(.function(called, arity: requiredArity))
-                }
-                throw Expression.Error.undefinedSymbol(symbol)
+            for case let .function(name, requiredArity) in keys
+                where name == called && arity != requiredArity {
+                throw Expression.Error.arityMismatch(.function(called, arity: requiredArity))
             }
         }
     }

@@ -4,7 +4,6 @@ import UIKit
 import Layout
 
 class BoxesViewController: UIViewController {
-
     var toggled = false {
         didSet {
             layoutNode?.setState(["isToggled": toggled])

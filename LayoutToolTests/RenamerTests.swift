@@ -3,7 +3,6 @@
 import XCTest
 
 class RenamerTests: XCTestCase {
-
     func testRenameStandaloneVariable() {
         let input = "<Foo bar=\"foo\"/>"
         let expected = "<Foo bar=\"bar\"/>\n"

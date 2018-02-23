@@ -4,7 +4,6 @@ import XCTest
 @testable import Layout
 
 class StateTests: XCTestCase {
-
     struct TestState {
         var foo = 5
         var bar = "baz"

@@ -4,7 +4,6 @@ import UIKit
 
 @available(*, deprecated, message: "Use the LayoutLoading protocol instead")
 open class LayoutViewController: UIViewController, LayoutLoading {
-
     /// Called immediately after the layoutNode is set. Will not be called
     /// in the event of an error, or if layoutNode is set to nil
     open func layoutDidLoad(_: LayoutNode) {

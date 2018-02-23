@@ -4,7 +4,6 @@ import XCTest
 @testable import Layout
 
 class FontExpressionTests: XCTestCase {
-
     func testBold() {
         let node = LayoutNode()
         let expression = LayoutExpression(fontExpression: "bold", for: node)
