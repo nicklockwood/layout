@@ -1,5 +1,7 @@
 # Change Log
 
+- You can now use format arguments with literal string expressions, e.g. `{ `results within %i km`(distance) }`
+
 ## [0.6.17](https://github.com/schibsted/layout/releases/tag/0.6.17) (2018-02-23)
 
 - You can now pass custom functions to `LayoutNode` for use in property expressions (see README for details)

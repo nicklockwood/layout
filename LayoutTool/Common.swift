@@ -326,18 +326,12 @@ func validateLayoutExpression(_ parsedExpression: ParsedLayoutExpression) throws
     if let error = parsedExpression.error, error != .unexpectedToken("") {
         throw error
     }
-    let keys = Set(Expression.mathSymbols.keys).union(Expression.boolSymbols.keys).union([
-        .infix("??"),
-        .postfix("%"),
-        .function("rgb", arity: 3),
-        .function("rgba", arity: 4),
-    ])
     for symbol in parsedExpression.symbols {
         switch symbol {
         case .variable, .array:
             break
         case .prefix, .infix, .postfix:
-            guard keys.contains(symbol) else {
+            guard standardSymbols.contains(symbol) else {
                 throw Expression.Error.undefinedSymbol(symbol)
             }
         case let .function(called, arity):

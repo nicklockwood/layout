@@ -5,6 +5,14 @@ import Foundation
 // Prevent cache from distorting performance test results
 private let runningInUnitTest = (NSClassFromString("XCTestCase") != nil)
 
+// Standard library symbols
+let standardSymbols = Set(Expression.mathSymbols.keys).union(Expression.boolSymbols.keys).union([
+    .infix("??"),
+    .postfix("%"),
+    .function("rgb", arity: 3),
+    .function("rgba", arity: 4),
+])
+
 struct ParsedLayoutExpression: CustomStringConvertible {
     var expression: ParsedExpression
     var comment: String?

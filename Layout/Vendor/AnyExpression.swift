@@ -2,7 +2,7 @@
 //  AnyExpression.swift
 //  Expression
 //
-//  Version 0.12.6
+//  Version 0.12.8
 //
 //  Created by Nick Lockwood on 18/04/2017.
 //  Copyright © 2017 Nick Lockwood. All rights reserved.
@@ -86,35 +86,17 @@ public struct AnyExpression: CustomStringConvertible {
             impureSymbols: { symbol in
                 switch symbol {
                 case let .variable(name):
-                    if constants[name] == nil, let fn = symbols[symbol] {
-                        return fn
+                    if constants[name] == nil {
+                        return symbols[symbol]
                     }
                 case let .array(name):
-                    if !(constants[name].map(AnyExpression.isSubscriptable) ?? false),
-                        let fn = symbols[symbol] {
-                        return fn
+                    // TODO: should we support overloading variables and arrays like this?
+                    if !(constants[name].map(AnyExpression.isSubscriptable) ?? false) {
+                        return symbols[symbol]
                     }
-                case let .function(name, _): // TODO: could operators work this way too?
-                    if let fn = constants[name] {
-                        if let fn = fn as? SymbolEvaluator {
-                            return fn
-                        }
-                        if let fn = fn as? Expression.SymbolEvaluator {
-                            return { args in
-                                try fn(args.map {
-                                    guard let doubleValue = ($0 as? NSNumber)
-                                        .flatMap(Double.init(truncating:)) else {
-                                        throw Error.typeMismatch(symbol, args)
-                                    }
-                                    return doubleValue
-                                })
-                            }
-                        }
-                    }
-                    fallthrough
                 default:
-                    if !pureSymbols, let fn = symbols[symbol] {
-                        return fn
+                    if !pureSymbols {
+                        return symbols[symbol]
                     }
                 }
                 return nil
@@ -122,18 +104,12 @@ public struct AnyExpression: CustomStringConvertible {
             pureSymbols: { symbol in
                 switch symbol {
                 case let .variable(name):
-                    if let value = constants[name] {
-                        return { _ in value }
-                    }
-                case let .array(name):
-                    guard let value = constants[name] else {
-                        return nil
-                    }
-                    return AnyExpression.arrayEvaluator(for: symbol, value)
+                    return constants[name].map { value in { _ in value } }
+                case let .array(name) where constants[name] != nil:
+                    return nil // Ensure constant array takes precedence over symbols
                 default:
                     return symbols[symbol]
                 }
-                return nil
             }
         )
     }
@@ -220,6 +196,74 @@ public struct AnyExpression: CustomStringConvertible {
             }
             return String(name.dropFirst().dropLast())
         }
+        func arrayEvaluator(for symbol: Symbol, _ value: Any) -> SymbolEvaluator {
+            // TODO: should arrayEvaluator call the `.infix("[]")` implementation,
+            // rather than vice-versa?
+            switch value {
+            case let array as _Array:
+                return { args in
+                    switch args[0] {
+                    case let index as NSNumber: // TODO: should Bool be explicitly disallowed?
+                        let values = array.values
+                        let index = Int(truncating: index) // TODO: should this use Int(exactly:)?
+                        if (0 ..< values.count).contains(index) {
+                            return values[index]
+                        }
+                        throw Error.arrayBounds(symbol, Double(index))
+                    case let range as _Range:
+                        return try range.slice(of: array, for: symbol)
+                    case let index:
+                        throw Error.typeMismatch(symbol, [array, index])
+                    }
+                }
+            case let dictionary as _Dictionary:
+                return { args in
+                    guard let value = dictionary.value(for: args[0]) else {
+                        throw Error.typeMismatch(symbol, [dictionary, args[0]])
+                    }
+                    return value
+                }
+            case let string as _String:
+                return { args in
+                    switch args[0] {
+                    case let offset as NSNumber:
+                        let substring = string.substring
+                        let offset = Int(truncating: offset)
+                        guard (0 ..< substring.count).contains(offset) else {
+                            throw Error.stringBounds(String(substring), offset)
+                        }
+                        return substring[substring.index(substring.startIndex, offsetBy: offset)]
+                    case let index as String.Index:
+                        let substring = string.substring
+                        guard substring.indices.contains(index) else {
+                            throw Error.stringBounds(substring, index)
+                        }
+                        return substring[index]
+                    case let range as _Range:
+                        return try range.slice(of: string, for: symbol)
+                    case let index:
+                        throw Error.typeMismatch(symbol, [string, index])
+                    }
+                }
+            case let value:
+                return { throw Error.typeMismatch(symbol, [value] + $0) }
+            }
+        }
+        func funcEvaluator(for symbol: Symbol, _ value: Any) -> Expression.SymbolEvaluator? {
+            // TODO: should funcEvaluator call the `.infix("()")` implementation?
+            switch value {
+            case let fn as SymbolEvaluator:
+                return { args in
+                    try box.store(fn(args.map(box.load)))
+                }
+            case let fn as Expression.SymbolEvaluator:
+                return { args in
+                    try fn(argsToDouble(args, for: symbol))
+                }
+            default:
+                return nil
+            }
+        }
 
         // Set description based on the parsed expression, prior to
         // performing optimizations. This avoids issues with inlined
@@ -292,7 +336,7 @@ public struct AnyExpression: CustomStringConvertible {
                 switch symbol {
                 case .infix("[]"):
                     return { args in
-                        let fn = AnyExpression.arrayEvaluator(for: symbol, box.load(args[0]))
+                        let fn = arrayEvaluator(for: symbol, box.load(args[0]))
                         return try box.store(fn([box.load(args[1])]))
                     }
                 case .infix("..."):
@@ -368,7 +412,7 @@ public struct AnyExpression: CustomStringConvertible {
                     guard let string = unwrapString(name) else {
                         return { _ in throw Error.undefinedSymbol(symbol) }
                     }
-                    let fn = AnyExpression.arrayEvaluator(for: symbol, string)
+                    let fn = arrayEvaluator(for: symbol, string)
                     return { try box.store(fn([box.load($0[0])])) }
                 default:
                     return nil
@@ -377,17 +421,43 @@ public struct AnyExpression: CustomStringConvertible {
         }
 
         // Build Expression
+        var _pureSymbols = [Symbol: Expression.SymbolEvaluator]()
         let expression = Expression(
             expression,
             impureSymbols: { symbol in
                 if let fn = impureSymbols(symbol) {
                     return { try box.store(fn($0.map(box.load))) }
-                } else if case let .array(name) = symbol, let fn = impureSymbols(.variable(name)) {
-                    return { args in
-                        let fn = AnyExpression.arrayEvaluator(for: symbol, try fn([]))
-                        return try box.store(fn(args.map(box.load)))
+                } else if let fn = pureSymbols(symbol) {
+                    switch symbol {
+                    case .variable, .function(_, arity: 0):
+                        do {
+                            let value = try box.store(fn([]))
+                            _pureSymbols[symbol] = { _ in value }
+                        } catch {
+                            return { _ in throw error }
+                        }
+                    default:
+                        _pureSymbols[symbol] = { try box.store(fn($0.map(box.load))) }
+                    }
+                } else if case let .array(name) = symbol {
+                    if let fn = impureSymbols(.variable(name)) {
+                        return { args in
+                            let fn = arrayEvaluator(for: symbol, try fn([]))
+                            return try box.store(fn(args.map(box.load)))
+                        }
+                    } else if let fn = pureSymbols(.variable(name)) {
+                        let evaluator: SymbolEvaluator
+                        do {
+                            evaluator = try arrayEvaluator(for: symbol, fn([]))
+                        } catch {
+                            return { _ in throw error }
+                        }
+                        // This is outside do/catch catch in order to fix codecov glitch
+                        _pureSymbols[symbol] = { try box.store(evaluator($0.map(box.load))) }
                     }
                 } else if case .infix("()") = symbol {
+                    // TODO: check for pure `.infix("()")` implementation, and use as
+                    // fallback if the lhs isn't a SymbolEvaluator?
                     return { args in
                         switch box.load(args[0]) {
                         case let fn as SymbolEvaluator:
@@ -398,43 +468,48 @@ public struct AnyExpression: CustomStringConvertible {
                             throw Error.typeMismatch(symbol, args.map(box.load))
                         }
                     }
+                } else if case let .function(name, _) = symbol {
+                    if let fn = defaultEvaluator(for: symbol) {
+                        _pureSymbols[symbol] = fn
+                    } else if let fn = impureSymbols(.variable(name)) {
+                        return { args in
+                            let value = try fn([])
+                            if let fn = funcEvaluator(for: symbol, value) {
+                                return try fn(args)
+                            }
+                            throw Error.typeMismatch(
+                                .infix("()"), [value] + [args.map(box.load)]
+                            )
+                        }
+                    } else if let fn = pureSymbols(.variable(name)) {
+                        do {
+                            if let fn = funcEvaluator(for: symbol, try fn([])) {
+                                return fn
+                            }
+                        } catch {
+                            return { _ in throw error }
+                        }
+                    }
                 }
                 if !shouldOptimize {
-                    if let fn = pureSymbols(symbol) {
-                        return { try box.store(fn($0.map(box.load))) }
-                    }
-                    return defaultEvaluator(for: symbol)
+                    return _pureSymbols[symbol] ?? defaultEvaluator(for: symbol)
                 }
                 return nil
             },
             pureSymbols: { symbol in
-                if let fn = pureSymbols(symbol) {
-                    switch symbol {
-                    case .variable, .function(_, arity: 0):
-                        do {
-                            let value = try box.store(fn([]))
-                            return { _ in value }
-                        } catch {
-                            return { _ in throw error }
-                        }
-                    default:
-                        return { try box.store(fn($0.map(box.load))) }
-                    }
-                } else if case let .array(name) = symbol, let fn = pureSymbols(.variable(name)) {
-                    let evaluator: SymbolEvaluator
-                    do {
-                        evaluator = try AnyExpression.arrayEvaluator(for: symbol, fn([]))
-                    } catch {
-                        return { _ in throw error }
-                    }
-                    return { try box.store(evaluator($0.map(box.load))) }
-                }
-                guard let fn = defaultEvaluator(for: symbol) else {
+                guard let fn = _pureSymbols[symbol] ?? defaultEvaluator(for: symbol) else {
                     if case let .function(name, _) = symbol {
+                        // TODO: check for pure `.infix("()")` implementation?
                         for i in 0 ... 10 {
                             let symbol = Symbol.function(name, arity: .exactly(i))
                             if impureSymbols(symbol) ?? pureSymbols(symbol) != nil {
                                 return { _ in throw Error.arityMismatch(symbol) }
+                            }
+                        }
+                        if let fn = pureSymbols(.variable(name)) {
+                            return { args in
+                                let value = try fn([])
+                                throw Error.typeMismatch(.infix("()"), [value] + [args.map(box.load)])
                             }
                         }
                     }
@@ -557,7 +632,10 @@ extension AnyExpression.Error {
 
     /// Standard error message for invalid range
     static func invalidRange<T: Comparable>(_ lhs: T, _ rhs: T) -> AnyExpression.Error {
-        return .message("Cannot form range with upperBound \(lhs > rhs ? "<" : "<=") lowerBound")
+        if lhs > rhs {
+            return .message("Cannot form range with lower bound > upper bound")
+        }
+        return .message("Cannot form half-open range with lower bound == upper bound")
     }
 
     /// Standard error message for mismatched return type
@@ -580,8 +658,8 @@ extension AnyExpression {
         switch type {
         case let numericType as _Numeric.Type:
             if anyValue is Bool { return nil }
-            return (anyValue as? NSNumber).map { numericType.init(truncating: $0) } as? T
-        case let arrayType as _Array.Type:
+            return (anyValue as? NSNumber).map(numericType.init(truncating:)) as? T
+        case let arrayType as _SwiftArray.Type:
             return arrayType.cast(anyValue) as? T
         case is String.Type:
             return (anyValue as? _String).map { String($0.substring) } as? T
@@ -605,6 +683,20 @@ extension AnyExpression {
                 return "\(uint)"
             }
             return "\(number)"
+        case let array as _Array:
+            return "[" + array.values.map(stringify).joined(separator: ", ") + "]"
+        case let dictionary as [AnyHashable: Any]:
+            return "[" + dictionary.enumerated().map {
+                stringify($0.element.key) + ": " + stringify($0.element.value)
+            }.joined(separator: ", ") + "]"
+        case let range as PartialRangeUpTo<Int>:
+            return "..<\(range.upperBound)"
+        case let range as PartialRangeThrough<Int>:
+            return "...\(range.upperBound)"
+        case let range as PartialRangeFrom<Int>:
+            return "\(range.lowerBound)..."
+        case let range as CountablePartialRangeFrom<Int>:
+            return "\(range.lowerBound)..."
         case is Any.Type:
             let typeName = "\(value)"
             #if !swift(>=3.3) || (swift(>=4) && !swift(>=4.1))
@@ -746,57 +838,6 @@ private extension AnyExpression {
         .infix("??"): { $0[0].bitPattern == NanBox.nilValue.bitPattern ? $0[1] : $0[0] },
     ]
 
-    // Array evaluator
-    static func arrayEvaluator(for symbol: Symbol, _ value: Any) -> SymbolEvaluator {
-        switch value {
-        case let array as _Array:
-            return { args in
-                switch args[0] {
-                case let index as NSNumber:
-                    guard let value = array.value(at: Int(truncating: index)) else {
-                        throw Error.arrayBounds(symbol, Double(truncating: index))
-                    }
-                    return value
-                case let range as _Range:
-                    return try range.slice(of: array, for: symbol)
-                case let index:
-                    throw Error.typeMismatch(symbol, [array, index])
-                }
-            }
-        case let dictionary as _Dictionary:
-            return { args in
-                guard let value = dictionary.value(for: args[0]) else {
-                    throw Error.typeMismatch(symbol, [dictionary, args[0]])
-                }
-                return value
-            }
-        case let string as _String:
-            return { args in
-                switch args[0] {
-                case let offset as NSNumber:
-                    let substring = string.substring
-                    let offset = Int(truncating: offset)
-                    guard (0 ..< substring.count).contains(offset) else {
-                        throw Error.stringBounds(String(substring), offset)
-                    }
-                    return substring[substring.index(substring.startIndex, offsetBy: offset)]
-                case let index as String.Index:
-                    let substring = string.substring
-                    guard substring.indices.contains(index) else {
-                        throw Error.stringBounds(substring, index)
-                    }
-                    return substring[index]
-                case let range as _Range:
-                    return try range.slice(of: string, for: symbol)
-                case let index:
-                    throw Error.typeMismatch(symbol, [string, index])
-                }
-            }
-        case let value:
-            return { throw Error.typeMismatch(symbol, [value] + $0) }
-        }
-    }
-
     // Cast an array
     static func arrayCast<T>(_ anyValue: Any) -> [T]? {
         guard let array = (anyValue as? _Array).map({ $0.values }) else {
@@ -832,6 +873,11 @@ extension UInt64: _Numeric {}
 
 extension Double: _Numeric {}
 extension Float: _Numeric {}
+
+#if os(iOS) || os(macOS) || os(tvOS) || os(watchOS)
+    import CoreGraphics
+    extension CGFloat: _Numeric {}
+#endif
 
 // Used for subscripting
 private protocol _Range {
@@ -1053,20 +1099,15 @@ extension NSString: _String {
 // Used for array values
 private protocol _Array {
     var values: [Any] { get }
-    func value(at index: Int) -> Any?
+}
+
+private protocol _SwiftArray: _Array {
     static func cast(_ value: Any) -> Any?
 }
 
-extension Array: _Array {
+extension Array: _SwiftArray {
     fileprivate var values: [Any] {
         return self
-    }
-
-    fileprivate func value(at index: Int) -> Any? {
-        guard indices.contains(index) else {
-            return nil // Out of bounds
-        }
-        return self[index]
     }
 
     fileprivate static func cast(_ value: Any) -> Any? {
@@ -1074,20 +1115,19 @@ extension Array: _Array {
     }
 }
 
-extension ArraySlice: _Array {
+extension ArraySlice: _SwiftArray {
     fileprivate var values: [Any] {
         return Array(self)
     }
 
-    fileprivate func value(at index: Int) -> Any? {
-        guard indices.contains(index) else {
-            return nil // Out of bounds
-        }
-        return self[index]
-    }
-
     static func cast(_ value: Any) -> Any? {
         return (AnyExpression.arrayCast(value) as [Element]?).map(self.init)
+    }
+}
+
+extension NSArray: _Array {
+    fileprivate var values: [Any] {
+        return Array(self)
     }
 }
 
@@ -1097,10 +1137,16 @@ private protocol _Dictionary {
 }
 
 extension Dictionary: _Dictionary {
-    func value(for key: Any) -> Any? {
+    fileprivate func value(for key: Any) -> Any? {
         guard let key = AnyExpression.cast(key) as Key? else {
             return nil // Type mismatch
         }
+        return self[key] as Any
+    }
+}
+
+extension NSDictionary: _Dictionary {
+    fileprivate func value(for key: Any) -> Any? {
         return self[key] as Any
     }
 }

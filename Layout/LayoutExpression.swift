@@ -464,20 +464,6 @@ struct LayoutExpression {
                     } catch {
                         return { _ in throw error }
                     }
-                case let .function(name, _):
-                    let key = unescapedName(name)
-                    do {
-                        guard let value = (try constants(key) ?? node.constantValue(forSymbol: key)) else {
-                            return nil
-                        }
-                        guard let fn = value as? AnyExpression.SymbolEvaluator else {
-                            allConstants[name] = value
-                            return nil
-                        }
-                        return { args in try SymbolError.wrap({ try fn(args) }, for: key) }
-                    } catch {
-                        return { _ in throw error }
-                    }
                 default:
                     return nil
                 }
@@ -491,12 +477,18 @@ struct LayoutExpression {
                     return allConstants[name].map { value in
                         { _ in value }
                     }
-                case let .function(name, .exactly(arity)):
-                    guard let string = allConstants[name] as? String else {
-                        return nil
-                    }
+                case let .function(name, .exactly(arity))
+                    where !standardSymbols.contains(symbol):
                     let key = unescapedName(name)
                     do {
+                        let string: String
+                        if "'\"".contains(name.first ?? " ") {
+                            string = String(name.dropFirst().dropLast())
+                        } else if let value = (try constants(key) ?? node.constantValue(forSymbol: key) ?? staticConstant(for: key)) as? String {
+                            string = value
+                        } else {
+                            return nil
+                        }
                         let formatString = try FormatString(string)
                         let types = formatString.types.map { RuntimeType($0) }
                         if arity > types.count {
