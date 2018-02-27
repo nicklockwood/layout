@@ -114,6 +114,7 @@ extension UIView {
                 "interactionTintColor",
                 "invalidatingIntrinsicContentSizeAlsoInvalidatesSuperview",
                 "isBaselineRelativeAlignmentRectInsets",
+                "layoutMarginsFollowReadableWidth",
                 "needsDisplayOnBoundsChange",
                 "neverCacheContentLayoutSize",
                 "origin",
@@ -732,7 +733,6 @@ extension UITextView {
     open override class var expressionTypes: [String: RuntimeType] {
         var types = super.expressionTypes
         types["textAlignment"] = .nsTextAlignment
-        types["lineBreakMode"] = .nsLineBreakMode
         types["dataDetectorTypes"] = .uiDataDetectorTypes
         for (name, type) in textInputTraits {
             types[name] = type
