@@ -1,5 +1,9 @@
 # Change Log
 
+## [0.6.18](https://github.com/schibsted/layout/releases/tag/0.6.18) (2018-02-28)
+
+- Fixed spurious error due to the `lineBreakMode` property being unvailable on `UITextView`
+- Updated Expression to 0.12.8, which improves support for custom functions
 - You can now use format arguments with literal string expressions, e.g. `{ `results within %i km`(distance) }`
 
 ## [0.6.17](https://github.com/schibsted/layout/releases/tag/0.6.17) (2018-02-23)
