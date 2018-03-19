@@ -2813,7 +2813,7 @@ When you have a Layout XML file open in Xcode, select the `Editor > Layout > For
 
 *Q. Will Layout ever support macOS/AppKit?*
 
-> There are no plans at the moment, but this would make sense in future given the shared language and similar frameworks. If you are interested in implementing such a feature, please create an issue on Guthub to discuss the approach.
+> There are no plans at the moment, but this would make sense in future given the shared language and similar frameworks. If you are interested in implementing such a feature, please create an issue on GitHub to discuss the approach.
 
 *Q. Will Layout ever support Android/Windows?*
 
