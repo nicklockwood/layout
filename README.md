@@ -495,7 +495,7 @@ Outlets can also be set using an expression instead of a literal value. This is 
     <param name="labelOutlet" type="String"/>
 
     <UILabel
-        outlety="{labelOutlet}"
+        outlet="{labelOutlet}"
         text="Hello World"
     />
 </UIView>
@@ -1162,7 +1162,7 @@ You can also reference a `Bundle`/`NSBundle` instance stored in a constant or va
 
 ```xml
 <UIImageView image="{bundle}:MyColor"/>
-
+```
 
 **Note:** There is no need to use quotes around the color asset name, even if it contains spaces or other punctuation. Layout will interpret invalid color asset names as expressions. You can use `{ ... }` braces to disambiguate between asset names and constant or variable names if necessary.
 
@@ -1259,6 +1259,7 @@ loadLayout(
         "firstTwoItems": ["First", "Second"],
     ]
 )
+```
 
 ```xml
 <UISegmentedControl items="firstTwoItems, 'Third'"/>
