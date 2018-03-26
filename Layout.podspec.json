@@ -16,7 +16,7 @@
   "subspecs": [
     {
       "name": "Core",
-      "source_files": "Layout/**/*"
+      "source_files": "Layout/**/*.swift"
     },
     {
       "name": "CLI",
