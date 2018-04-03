@@ -16,12 +16,15 @@ extension LayoutError {
         switch error {
         case let error as SymbolError where error.description.contains("Unknown property"):
             if error.description.contains("expression") {
-                var suggestions = node.availableSymbols(forExpression: error.symbol)
+                let symbol: String
                 if let subError = error.error as? SymbolError {
-                    suggestions = bestMatches(for: subError.symbol, in: suggestions)
+                    symbol = subError.symbol
                 } else {
-                    suggestions = bestMatches(for: error.symbol, in: suggestions)
+                    symbol = error.symbol
                 }
+                let suggestions = bestMatches(
+                    for: symbol, in: node.availableSymbols(forExpression: error.symbol)
+                )
                 self.init(LayoutError.unknownSymbol(error, suggestions), for: node)
             } else {
                 let suggestions = bestMatches(for: error.symbol, in: node.availableExpressions)
@@ -41,7 +44,7 @@ extension LayoutError {
     }
 }
 
-func bestMatches(for symbol: String, in suggestions: [String]) -> [String] {
+func bestMatches(for symbol: String, in suggestions: Set<String>) -> [String] {
     func levenshtein(_ lhs: String, _ rhs: String) -> Int {
         var dist = [[Int]]()
         for i in 0 ... lhs.count {

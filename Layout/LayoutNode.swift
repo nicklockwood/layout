@@ -993,16 +993,21 @@ public class LayoutNode: NSObject {
 
     // Returns all expressions that can be set on the node
     // Used for generating error suggestions
-    var availableExpressions: [String] {
-        var expressions = Array(layoutSymbols)
-        expressions += ["outlet", "id", "xml", "template"]
-        expressions += _parameters.keys
+    var availableExpressions: Set<String> {
+        var expressions = layoutSymbols
+        expressions.formUnion(["outlet", "id", "xml", "template"])
+        expressions.formUnion(_parameters.keys)
         if let controllerClass = viewControllerClass {
-            expressions +=
-                Array(controllerClass.expressionTypes.compactMap { $0.value.isAvailable ? $0.key : nil }) +
-                Array(UIView.expressionTypes.compactMap { $0.value.isAvailable ? $0.key : nil })
+            expressions.formUnion(controllerClass.expressionTypes.compactMap {
+                $0.value.isAvailable ? $0.key : nil
+            })
+            expressions.formUnion(UIView.expressionTypes.compactMap {
+                $0.value.isAvailable ? $0.key : nil
+            })
         } else {
-            expressions += Array(viewClass.expressionTypes.compactMap { $0.value.isAvailable ? $0.key : nil })
+            expressions.formUnion(viewClass.expressionTypes.compactMap {
+                $0.value.isAvailable ? $0.key : nil }
+            )
         }
         return expressions
     }
@@ -1020,8 +1025,8 @@ public class LayoutNode: NSObject {
     }
 
     // Returns all symbols that can be referenced in an expression
-    func availableSymbols(forExpression name: String) -> [String] {
-        var symbols = Array(layoutSymbols)
+    func availableSymbols(forExpression name: String) -> Set<String> {
+        var symbols = Set(layoutSymbols)
         let type: RuntimeType
         switch name {
         case "left", "right", "top", "bottom",
@@ -1029,7 +1034,7 @@ public class LayoutNode: NSObject {
             type = .cgFloat
         case "width", "height", "contentSize.width", "contentSize.height":
             type = .cgFloat
-            symbols.append("auto")
+            symbols.insert("auto")
         case "outlet", "id", "xml", "template":
             type = .string
         default:
@@ -1043,24 +1048,24 @@ public class LayoutNode: NSObject {
             return types.compactMap { $0.key != name && $0.value == type ? $0.key : nil }
         }
         if let controllerClass = viewControllerClass {
-            symbols += validKeys(in: controllerClass.expressionTypes)
-            symbols += validKeys(in: UIView.expressionTypes)
+            symbols.formUnion(validKeys(in: controllerClass.expressionTypes))
+            symbols.formUnion(validKeys(in: UIView.expressionTypes))
         } else {
-            symbols += validKeys(in: viewClass.expressionTypes)
+            symbols.formUnion(validKeys(in: viewClass.expressionTypes))
         }
-        symbols += type.values.keys
+        symbols.formUnion(type.values.keys)
         // TODO: basing the search on type is not especially effective because
         // you can use symbols of other types inside an expression, but if we
         // don't filter it somehow then there will be too many possible results
         var node: LayoutNode? = self
         while let _node = node {
-            symbols += keys(in: _node.constants, matching: type)
+            symbols.formUnion(keys(in: _node.constants, matching: type))
             for (key, value) in _node._variables where type.matches(value) {
-                symbols.append(key)
+                symbols.insert(key)
             }
             if _node != self {
                 for (key, _type) in _node._parameters where type == _type {
-                    symbols.append(key)
+                    symbols.insert(key)
                 }
                 // TODO: macros?
             }
