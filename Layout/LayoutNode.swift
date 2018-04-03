@@ -77,6 +77,7 @@ public class LayoutNode: NSObject {
     private(set) var _viewController: UIViewController?
     private(set) var _originalExpressions: [String: String]
     private var _usesAutoLayout = false
+    private var _isRightToLeftLayout = false
     var _parameters: [String: RuntimeType]
     var _macros: [String: String]
     var rootURL: URL?
@@ -125,6 +126,14 @@ public class LayoutNode: NSObject {
         // TODO: since this only has to be done once per app launch, is there a
         // better place we can call it?
         UIView._swizzle()
+
+        // Layout direction
+        switch UIView.userInterfaceLayoutDirection(for: _view!.semanticContentAttribute) {
+        case .rightToLeft:
+            _isRightToLeftLayout = true
+        case .leftToRight:
+            _isRightToLeftLayout = false
+        }
 
         // AutoLayout support
         _usesAutoLayout = _view!.constraints.contains {
@@ -303,26 +312,24 @@ public class LayoutNode: NSObject {
         for (key, value) in defaultExpressions {
             guard !hasExpression(key) else { continue }
             switch key {
-            case "center.x" where hasExpression("left") || hasExpression("right"),
-                 "left" where hasExpression("center.x") || (hasExpression("right") && hasExpression("width")),
-                 "right" where hasExpression("center.x") || (hasExpression("left") && hasExpression("width")),
-                 "width" where hasExpression("left") && hasExpression("right"),
+            case "center.x" where hasExpression(in: ["left", "right", "leading", "trailing"]),
+                 "left" where hasExpression(in: ["leading", "trailing"]) ||
+                    (hasExpression(in: ["center.x", "right"]) && hasExpression("width")),
+                 "right" where hasExpression(in: ["leading", "trailing"]) ||
+                    (hasExpression(in: ["center.x", "left"]) && hasExpression("width")),
+                 "width" where (hasExpression("left") && hasExpression("right")) ||
+                    (hasExpression("leading") && hasExpression("trailing")),
                  "center.y" where
-                     hasExpression("top") || hasExpression("bottom") ||
-                     hasExpression("firstBaseline") || hasExpression("lastBaseline"),
+                     hasExpression(in: ["top", "bottom", "firstBaseline", "lastBaseline"]),
                  "top" where
-                     hasExpression("center.y") || hasExpression("firstBaseline") ||
-                     hasExpression("lastBaseline") || (hasExpression("height") && hasExpression("bottom")),
+                     hasExpression(in: ["center.y", "firstBaseline", "lastBaseline"]) || (hasExpression("height") && hasExpression("bottom")),
                  "bottom" where
-                     hasExpression("center.y") || hasExpression("firstBaseline") ||
-                     hasExpression("lastBaseline") || (hasExpression("height") && hasExpression("top")),
+                     hasExpression(in: ["center.y", "firstBaseline", "lastBaseline"]) || (hasExpression("height") && hasExpression("top")),
                  "height" where hasExpression("top") && hasExpression("bottom"),
                  "firstBaseline" where
-                     hasExpression("top") || hasExpression("bottom") ||
-                     hasExpression("center.y") || hasExpression("lastBaseline"),
+                     hasExpression(in: ["top", "bottom", "center.y", "lastBaseline"]),
                  "lastBaseline" where
-                     hasExpression("top") || hasExpression("bottom") ||
-                     hasExpression("center.y") || hasExpression("firstBaseline"):
+                     hasExpression(in: ["top", "bottom", "center.y", "firstBaseline"]):
                 break // Redundant
             default:
                 _originalExpressions[key] = value
@@ -438,7 +445,8 @@ public class LayoutNode: NSObject {
     public static func isValidExpressionName(
         _ name: String, for viewOrViewControllerClass: AnyClass) -> Bool {
         switch name {
-        case "top", "left", "bottom", "right", "width", "height",
+        case "top", "left", "leading", "trailing",
+             "bottom", "right", "width", "height",
              "center.x", "center.y", "firstBaseline", "lastBaseline",
              "outlet":
             return true
@@ -489,19 +497,35 @@ public class LayoutNode: NSObject {
         return false
     }
 
+    func hasExpression(in names: [String]) -> Bool {
+        return names.contains(where: hasExpression)
+    }
+
     private func redundantExpressionErrors() -> Set<LayoutError> {
         var errors = Set<LayoutError>()
-        if hasExpression("bottom"),
-            !value(forSymbol: "height", dependsOn: "bottom"),
-            !value(forSymbol: "top", dependsOn: "bottom") {
-            errors.insert(LayoutError(SymbolError("Expression for bottom is redundant",
-                                                  for: "bottom"), for: self))
+        if hasExpression("leading"),
+            !value(forSymbol: "width", dependsOn: "leading"),
+            !value(forSymbol: "left", dependsOn: "leading") {
+            errors.insert(LayoutError(SymbolError("Expression for leading is redundant",
+                                                  for: "leading"), for: self))
+        }
+        if hasExpression("trailing"),
+            !value(forSymbol: "width", dependsOn: "trailing"),
+            !value(forSymbol: "left", dependsOn: "trailing") {
+            errors.insert(LayoutError(SymbolError("Expression for trailing is redundant",
+                                                  for: "trailing"), for: self))
         }
         if hasExpression("right"),
             !value(forSymbol: "width", dependsOn: "right"),
             !value(forSymbol: "left", dependsOn: "right") {
             errors.insert(LayoutError(SymbolError("Expression for right is redundant",
                                                   for: "right"), for: self))
+        }
+        if hasExpression("bottom"),
+            !value(forSymbol: "height", dependsOn: "bottom"),
+            !value(forSymbol: "top", dependsOn: "bottom") {
+            errors.insert(LayoutError(SymbolError("Expression for bottom is redundant",
+                                                  for: "bottom"), for: self))
         }
         if hasExpression("center.x"), !value(forSymbol: "left", dependsOn: "center.x") {
             errors.insert(LayoutError(SymbolError("Expression for center.x is redundant",
@@ -692,6 +716,15 @@ public class LayoutNode: NSObject {
         return nil
     }
 
+    /// The previous visible sibling
+    var previousVisible: LayoutNode? {
+        var previous = self.previous
+        while previous?.isHidden == true {
+            previous = previous?.previous
+        }
+        return previous
+    }
+
     /// The next sibling of the node within its parent
     /// Returns nil if this is a root node, or is the last child of its parent
     var next: LayoutNode? {
@@ -700,6 +733,15 @@ public class LayoutNode: NSObject {
             return siblings[index + 1]
         }
         return nil
+    }
+
+    /// The next visible sibling
+    var nextVisible: LayoutNode? {
+        var next = self.next
+        while next?.isHidden == true {
+            next = next?.next
+        }
+        return next
     }
 
     // Find a node by id, starting with the children and then progressing to siblings and parents
@@ -899,7 +941,9 @@ public class LayoutNode: NSObject {
         // layout props
         if !hasExpression("width") {
             _getters["width"] = nil
-            if hasExpression("left"), hasExpression("right") {
+            if hasExpression("leading"), hasExpression("trailing") {
+                expressions["width"] = "100% - leading - trailing"
+            } else if hasExpression("left"), hasExpression("right") {
                 expressions["width"] = "right - left"
             } else if !(_view is UIScrollView), _view is UIImageView || _usesAutoLayout ||
                 _view?.intrinsicContentSize.width != UIViewNoIntrinsicMetric {
@@ -910,7 +954,15 @@ public class LayoutNode: NSObject {
         }
         if !hasExpression("left") {
             _getters["left"] = nil
-            if hasExpression("right") {
+            if _isRightToLeftLayout, hasExpression("trailing") {
+                expressions["left"] = "trailing"
+            } else if !_isRightToLeftLayout, hasExpression("leading") {
+                expressions["left"] = "leading"
+            } else if _isRightToLeftLayout, hasExpression("leading") {
+                expressions["left"] = "leading + width"
+            } else if !_isRightToLeftLayout, hasExpression("trailing") {
+                expressions["left"] = "trailing + width"
+            } else if hasExpression("right") {
                 expressions["left"] = "right - width"
             } else if hasExpression("center.x") {
                 expressions["left"] = "center.x - width * layer.anchorPoint.x"
@@ -1092,7 +1144,7 @@ public class LayoutNode: NSObject {
             _evaluating.append(symbol)
             defer { _evaluating.removeLast() }
             switch symbol {
-            case "left", "right", "center.x":
+            case "left", "right", "leading", "trailing", "center.x":
                 expression = LayoutExpression(xExpression: string, for: self)
             case "top", "bottom", "center.y", "firstBaseline", "lastBaseline":
                 expression = LayoutExpression(yExpression: string, for: self)
@@ -1634,7 +1686,9 @@ public class LayoutNode: NSObject {
         handleDeprecation(for: symbol)
         let getter: Getter
         switch symbol {
-        case "left":
+        case "left",
+             "leading" where !_isRightToLeftLayout,
+             "trailing" where _isRightToLeftLayout:
             getter = { [unowned self] in
                 self._view?.frame.minX ?? 0
             }
@@ -1646,6 +1700,13 @@ public class LayoutNode: NSObject {
             getter = { [unowned self] in
                 try SymbolError.wrap({
                     try self.cgFloatValue(forSymbol: "left") + self.cgFloatValue(forSymbol: "width")
+                }, for: symbol)
+            }
+        case "leading" where _isRightToLeftLayout,
+             "trailing" where !_isRightToLeftLayout:
+            getter = { [unowned self] in
+                try SymbolError.wrap({
+                    try self.cgFloatValue(forSymbol: "containerSize.width") - (self._view?.frame.maxX ?? 0)
                 }, for: symbol)
             }
         case "top":
@@ -1842,24 +1903,110 @@ public class LayoutNode: NSObject {
                         }
                     }
                 case "previous" where layoutSymbols.contains(tail):
-                    getter = { [unowned self] in
-                        var previous = self.previous
-                        while previous?.isHidden == true {
-                            previous = previous?.previous
+                    switch tail {
+                    case "trailing":
+                        if _isRightToLeftLayout {
+                            getter = { [unowned self] in
+                                switch self._evaluating.last ?? "" {
+                                case "left", "right":
+                                    return try self.previousVisible?.value(forSymbol: "left") ??
+                                        self.cgFloatValue(forSymbol: "parent.width")
+                                case "leading":
+                                    return try self.previousVisible.map {
+                                        try self.cgFloatValue(forSymbol: "parent.width")
+                                            - $0.cgFloatValue(forSymbol: "left")
+                                    } ?? 0
+                                default:
+                                    return try self.previousVisible?.value(forSymbol: "trailing") ?? 0
+                                }
+                            }
+                        } else {
+                            getter = { [unowned self] in
+                                switch self._evaluating.last ?? "" {
+                                case "left", "right", "leading":
+                                    return try self.previousVisible?.value(forSymbol: "right") ?? 0
+                                default:
+                                    return try self.previousVisible?.value(forSymbol: "trailing") ?? 0
+                                }
+                            }
                         }
-                        return try previous?.value(forSymbol: tail) ?? 0
+                    case "leading":
+                        if _isRightToLeftLayout {
+                            getter = { [unowned self] in
+                                switch self._evaluating.last ?? "" {
+                                case "left", "right":
+                                    return try self.previousVisible?.value(forSymbol: "right") ??
+                                        self.cgFloatValue(forSymbol: "parent.width")
+                                case "trailing":
+                                    return try self.previousVisible?.value(forSymbol: "right") ?? 0
+                                default:
+                                    return try self.previousVisible?.value(forSymbol: "leading") ?? 0
+                                }
+                            }
+                        } else {
+                            getter = { [unowned self] in
+                                try self.previousVisible?.value(forSymbol: "leading") ?? 0
+                            }
+                        }
+                    default:
+                        getter = { [unowned self] in
+                            try self.previousVisible?.value(forSymbol: tail) ?? 0
+                        }
                     }
                 case "previous":
                     getter = { [unowned self] in
                         try self.previous?.value(forSymbol: tail) as Any
                     }
                 case "next" where layoutSymbols.contains(tail):
-                    getter = { [unowned self] in
-                        var next = self.next
-                        while next?.isHidden == true {
-                            next = next?.next
+                    switch tail {
+                    case "trailing":
+                        if _isRightToLeftLayout {
+                            getter = { [unowned self] in
+                                switch self._evaluating.last ?? "" {
+                                case "left", "right":
+                                    return try self.nextVisible?.value(forSymbol: "left") ??
+                                        self.cgFloatValue(forSymbol: "parent.width")
+                                case "leading":
+                                    return try self.nextVisible.map {
+                                        try self.cgFloatValue(forSymbol: "parent.width")
+                                            - $0.cgFloatValue(forSymbol: "left")
+                                    } ?? 0
+                                default:
+                                    return try self.nextVisible?.value(forSymbol: "trailing") ?? 0
+                                }
+                            }
+                        } else {
+                            getter = { [unowned self] in
+                                switch self._evaluating.last ?? "" {
+                                case "left", "right", "leading":
+                                    return try self.nextVisible?.value(forSymbol: "right") ?? 0
+                                default:
+                                    return try self.nextVisible?.value(forSymbol: "trailing") ?? 0
+                                }
+                            }
                         }
-                        return try next?.value(forSymbol: tail) ?? 0
+                    case "leading":
+                        if _isRightToLeftLayout {
+                            getter = { [unowned self] in
+                                switch self._evaluating.last ?? "" {
+                                case "left", "right":
+                                    return try self.nextVisible?.value(forSymbol: "right") ??
+                                        self.cgFloatValue(forSymbol: "parent.width")
+                                case "trailing":
+                                    return try self.nextVisible?.value(forSymbol: "right") ?? 0
+                                default:
+                                    return try self.nextVisible?.value(forSymbol: "leading") ?? 0
+                                }
+                            }
+                        } else {
+                            getter = { [unowned self] in
+                                try self.nextVisible?.value(forSymbol: "leading") ?? 0
+                            }
+                        }
+                    default:
+                        getter = { [unowned self] in
+                            try self.nextVisible?.value(forSymbol: tail) ?? 0
+                        }
                     }
                 case "next":
                     getter = { [unowned self] in
@@ -2673,7 +2820,8 @@ extension UIView {
 }
 
 private let layoutSymbols: Set<String> = [
-    "left", "right", "width", "top", "bottom", "height", "center",
+    "left", "right", "leading", "trailing",
+    "width", "top", "bottom", "height", "center",
     "center.x", "center.y", "firstBaseline", "lastBaseline",
 ]
 
