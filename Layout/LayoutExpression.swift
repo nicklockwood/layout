@@ -374,36 +374,41 @@ struct LayoutExpression {
             guard !head.isEmpty, let type = RuntimeType.type(named: head) else {
                 return nil
             }
-            switch type.type {
-            case let .enum(_, values):
-                return values[tail]
-            case let .options(_, values):
-                return values[tail]
-            case let .any(type as NSObject.Type):
-                if !tail.isEmpty {
-                    guard type.responds(to: Selector(tail)) else {
-                        var suffix = head.components(separatedBy: ".").last!
-                        for prefix in ["UI", "NS"] {
-                            if suffix.hasPrefix(prefix) {
-                                suffix = String(suffix[prefix.endIndex ..< suffix.endIndex])
-                                break
+            guard let value: Any = {
+                switch type.type {
+                case let .enum(_, values):
+                    return values[tail]
+                case let .options(_, values):
+                    return values[tail]
+                case let .any(type as NSObject.Type):
+                    if !tail.isEmpty {
+                        if !type.responds(to: Selector(tail)) {
+                            var suffix = head.components(separatedBy: ".").last!
+                            for prefix in ["UI", "NS"] {
+                                if suffix.hasPrefix(prefix) {
+                                    suffix = String(suffix[prefix.endIndex ..< suffix.endIndex])
+                                    break
+                                }
                             }
+                            let newTail = tail + suffix
+                            guard type.responds(to: Selector(newTail)) else {
+                                return nil
+                            }
+                            tail = newTail
                         }
-                        let newTail = tail + suffix
-                        guard type.responds(to: Selector(newTail)) else {
-                            throw SymbolError("Cannot access static property `\(tail)` of class \(head)", for: key)
-                        }
-                        return type.value(forKeyPath: newTail)
+                        return type.value(forKeyPath: tail)
                     }
-                    return type.value(forKeyPath: tail)
+                    return type
+                default:
+                    return nil
                 }
-                return type
-            default:
+            }() else {
                 if !tail.isEmpty {
                     throw SymbolError("Cannot access static property `\(tail)` of type \(head)", for: key)
                 }
                 throw SymbolError("Unsupported type \(type)", for: key)
             }
+            return value
         }
         func unescapedName(_ name: String) -> String {
             if name.first == "`" {
