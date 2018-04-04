@@ -1282,7 +1282,8 @@ public class LayoutNode: NSObject {
                     cachedValue = value
                     return value
                 },
-                symbols: expression.symbols
+                symbols: expression.symbols,
+                isConstant: expression.isConstant
             )
         }
         _getters[symbol] = expression.evaluate
@@ -1597,7 +1598,7 @@ public class LayoutNode: NSObject {
                 return true
             }
             if let expression = _layoutExpressions[name] ?? _viewControllerExpressions[name] ??
-                _viewExpressions[name], !expression.isConstant {
+                _viewExpressions[name] {
                 checking.append(name)
                 defer { checking.removeLast() }
                 for name in expression.symbols where

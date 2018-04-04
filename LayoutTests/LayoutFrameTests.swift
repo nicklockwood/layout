@@ -331,6 +331,30 @@ class LayoutFrameTests: XCTestCase {
         XCTAssertEqual(child.frame.origin.y, -25)
     }
 
+    // MARK: Redundant expressions
+
+    func testRedundantRightPosition() {
+        let node = LayoutNode(expressions: [
+            "width": "100",
+            "height": "100",
+            "left": "0",
+            "right": "100",
+        ])
+        let errors = node.validate()
+        XCTAssertEqual(errors.count, 1)
+        XCTAssert((errors.first.map { "\($0)" } ?? "").contains("right is redundant"))
+    }
+
+    func testNonRedundantRightPosition() {
+        let node = LayoutNode(expressions: [
+            "height": "100",
+            "left": "0",
+            "right": "100",
+        ])
+        let errors = node.validate()
+        XCTAssert(errors.isEmpty)
+    }
+
     func testRedundantCenterPosition() {
         let node = LayoutNode(expressions: [
             "width": "100",
@@ -339,7 +363,29 @@ class LayoutFrameTests: XCTestCase {
             "center.x": "50%",
         ])
         let errors = node.validate()
-        XCTAssert(errors.count == 1)
+        XCTAssertEqual(errors.count, 1)
         XCTAssert((errors.first.map { "\($0)" } ?? "").contains("center.x is redundant"))
+    }
+
+    func testRedundantLeadingPosition() {
+        let node = LayoutNode(expressions: [
+            "width": "100",
+            "height": "100",
+            "left": "0",
+            "leading": "0",
+        ])
+        let errors = node.validate()
+        XCTAssertEqual(errors.count, 1)
+        XCTAssert((errors.first.map { "\($0)" } ?? "").contains("leading is redundant"))
+    }
+
+    func testNonRedundantLeadingPosition() {
+        let node = LayoutNode(expressions: [
+            "height": "100",
+            "trailing": "0",
+            "leading": "0",
+        ])
+        let errors = node.validate()
+        XCTAssert(errors.isEmpty)
     }
 }

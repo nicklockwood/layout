@@ -209,16 +209,28 @@ func stringToImageAsset(_ string: String) throws -> UIImage? {
 struct LayoutExpression {
     let evaluate: () throws -> Any
     let symbols: Set<String>
+    let isConstant: Bool
 
-    var isConstant: Bool { return symbols.isEmpty }
-
-    init(evaluate: @escaping () throws -> Any, symbols: Set<String>) {
+    init(evaluate: @escaping () throws -> Any, symbols: Set<String>, isConstant: Bool) {
         self.symbols = symbols
-        if symbols.isEmpty, let value = try? evaluate() {
-            self.evaluate = { value }
+        self.isConstant = isConstant
+        if isConstant {
+            do {
+                let value = try evaluate()
+                self.evaluate = { value }
+            } catch {
+                self.evaluate = { throw error }
+            }
         } else {
+            assert(!symbols.isEmpty)
             self.evaluate = evaluate
         }
+    }
+
+    init(error: Error) {
+        symbols = []
+        isConstant = true
+        evaluate = { throw error }
     }
 
     init?(doubleExpression: String, for node: LayoutNode) {
@@ -260,7 +272,8 @@ struct LayoutExpression {
         }
         self.init(
             evaluate: expression.evaluate,
-            symbols: Set(expression.symbols.map { $0 == "%" ? prop : $0 })
+            symbols: Set(expression.symbols.map { $0 == "%" ? prop : $0 }),
+            isConstant: expression.isConstant
         )
     }
 
@@ -288,7 +301,8 @@ struct LayoutExpression {
         }
         self.init(
             evaluate: expression.evaluate,
-            symbols: Set(expression.symbols.map { $0 == "auto" ? sizeProp : $0 })
+            symbols: Set(expression.symbols.map { $0 == "auto" ? sizeProp : $0 }),
+            isConstant: expression.isConstant
         )
     }
 
@@ -316,7 +330,8 @@ struct LayoutExpression {
         }
         self.init(
             evaluate: expression.evaluate,
-            symbols: Set(expression.symbols.map { $0 == "auto" ? sizeProp : $0 })
+            symbols: Set(expression.symbols.map { $0 == "auto" ? sizeProp : $0 }),
+            isConstant: expression.isConstant
         )
     }
 
@@ -346,7 +361,7 @@ struct LayoutExpression {
                 for: node
             )
         } catch {
-            self.init(evaluate: { throw error }, symbols: [])
+            self.init(error: error)
         }
     }
 
@@ -418,6 +433,7 @@ struct LayoutExpression {
         }
         var allConstants = [String: Any]()
         var macroSymbols = [String: Set<String>]()
+        var pureMacros = [Expression.Symbol: ([Any]) throws -> Any]()
         let expression = AnyExpression(
             parsedExpression.expression,
             impureSymbols: { symbol in
@@ -442,12 +458,19 @@ struct LayoutExpression {
                                 macroReferences: macroReferences + [key],
                                 for: node
                             ) else {
-                                return { _ in throw SymbolError("Empty expression for `\(key)` macro", for: key) }
+                                return { _ in
+                                    throw SymbolError("Empty expression for `\(key)` macro", for: key)
+                                }
                             }
                             macroSymbols[key] = macroExpression.symbols
-                            return { _ in
+                            let macroFn: ([Any]) throws -> Any = { _ in
                                 try SymbolError.wrap(macroExpression.evaluate, for: key)
                             }
+                            if macroExpression.isConstant {
+                                pureMacros[symbol] = macroFn
+                                return nil
+                            }
+                            return macroFn
                         } else if let value = try constants(key) ?? node.constantValue(forSymbol: key) ?? staticConstant(for: key) {
                             allConstants[name] = value
                             return nil
@@ -474,7 +497,7 @@ struct LayoutExpression {
                 }
             },
             pureSymbols: { symbol in
-                if let fn = pureSymbols(symbol) {
+                if let fn = pureSymbols(symbol) ?? pureMacros[symbol] {
                     return fn
                 }
                 switch symbol {
@@ -533,11 +556,11 @@ struct LayoutExpression {
                 }
                 return try cast(anyValue, as: type)
             },
-            symbols: Set(expression.symbols.flatMap { symbol -> [String] in
+            symbols: Set(parsedExpression.symbols.flatMap { symbol -> [String] in
                 switch symbol {
                 case _ where ignoredSymbols.contains(symbol):
                     return []
-                case let .variable(name), let .array(name):
+                case let .variable(name), let .array(name), let .function(name, _):
                     if let symbols = macroSymbols[name] {
                         return Array(symbols)
                     }
@@ -547,7 +570,8 @@ struct LayoutExpression {
                 default:
                     return []
                 }
-            })
+            }),
+            isConstant: expression.symbols.isEmpty
         )
     }
 
@@ -558,6 +582,7 @@ struct LayoutExpression {
         }
 
         do {
+            var isConstant = true
             var expressionSymbols = Set<String>()
             let parts: [ExpressionPart] = try parseStringExpression(expression).compactMap { part in
                 switch part {
@@ -570,6 +595,7 @@ struct LayoutExpression {
                     ) else {
                         return nil
                     }
+                    isConstant = isConstant && expression.isConstant
                     expressionSymbols.formUnion(expression.symbols)
                     return .expression(expression.evaluate)
                 case let .string(string):
@@ -592,10 +618,11 @@ struct LayoutExpression {
                         }
                     }
                 },
-                symbols: expressionSymbols
+                symbols: expressionSymbols,
+                isConstant: isConstant
             )
         } catch {
-            self.init(evaluate: { throw error }, symbols: [])
+            self.init(error: error)
         }
     }
 
@@ -611,7 +638,8 @@ struct LayoutExpression {
                 }
                 return try parts.map(stringify).joined()
             },
-            symbols: expression.symbols
+            symbols: expression.symbols,
+            isConstant: expression.isConstant
         )
     }
 
@@ -620,10 +648,9 @@ struct LayoutExpression {
             return nil
         }
         var symbols = expression.symbols
-        for symbol in ["font", "textColor", "textAlignment", "lineBreakMode"] {
-            if node.viewExpressionTypes[symbol] != nil {
-                symbols.insert(symbol)
-            }
+        for symbol in ["font", "textColor", "textAlignment", "lineBreakMode"]
+            where node.viewExpressionTypes[symbol] != nil {
+            symbols.insert(symbol)
         }
         func makeToken(_ index: Int) -> String {
             return "$(\(index))"
@@ -708,7 +735,8 @@ struct LayoutExpression {
                 }
                 return result
             },
-            symbols: symbols
+            symbols: symbols,
+            isConstant: symbols.isEmpty // TODO: detect if textColor, etc symbols are constant
         )
     }
 
@@ -857,7 +885,8 @@ struct LayoutExpression {
                 try processString()
                 return try UIFont.font(with: parts)
             },
-            symbols: expression.symbols
+            symbols: expression.symbols,
+            isConstant: expression.isConstant
         )
     }
 
@@ -876,7 +905,7 @@ struct LayoutExpression {
                 case let .string(name):
                     if let color = try stringToColorAsset(name) {
                         let color = try cast(color, as: type)
-                        self.init(evaluate: { color }, symbols: [])
+                        self.init(evaluate: { color }, symbols: [], isConstant: true)
                         return
                     }
                     // Attempt to interpret as a color expression
@@ -912,7 +941,8 @@ struct LayoutExpression {
                             return try cast(color, as: type)
                         }
                     },
-                    symbols: expression.symbols
+                    symbols: expression.symbols,
+                    isConstant: expression.isConstant
                 )
             } else if #available(iOS 11.0, *) {
                 guard let expression = LayoutExpression(stringExpression: colorExpression, for: node) else {
@@ -920,13 +950,14 @@ struct LayoutExpression {
                 }
                 self.init(
                     evaluate: { try nameToColorAsset(expression.evaluate() as! String) },
-                    symbols: expression.symbols
+                    symbols: expression.symbols,
+                    isConstant: expression.isConstant
                 )
             } else {
                 throw Expression.Error.message("Named colors are only supported in iOS 11 and above")
             }
         } catch {
-            self.init(evaluate: { throw error }, symbols: [])
+            self.init(error: error)
         }
     }
 
@@ -945,7 +976,7 @@ struct LayoutExpression {
                 case let .string(name):
                     if let image = try stringToImageAsset(name) {
                         let image = try cast(image, as: type)
-                        self.init(evaluate: { image }, symbols: [])
+                        self.init(evaluate: { image }, symbols: [], isConstant: true)
                         return
                     }
                     // Attempt to interpret as an image expression
@@ -990,7 +1021,8 @@ struct LayoutExpression {
                             return try cast(image, as: type)
                         }
                     },
-                    symbols: expression.symbols
+                    symbols: expression.symbols,
+                    isConstant: expression.isConstant
                 )
             } else {
                 guard let expression = LayoutExpression(stringExpression: imageExpression, for: node) else {
@@ -998,11 +1030,12 @@ struct LayoutExpression {
                 }
                 self.init(
                     evaluate: { try nameToImageAsset(expression.evaluate() as! String) },
-                    symbols: expression.symbols
+                    symbols: expression.symbols,
+                    isConstant: expression.isConstant
                 )
             }
         } catch {
-            self.init(evaluate: { throw error }, symbols: [])
+            self.init(error: error)
         }
     }
 
@@ -1030,7 +1063,8 @@ struct LayoutExpression {
                 }
                 return try urlFromString(parts.map(stringify).joined())
             },
-            symbols: expression.symbols
+            symbols: expression.symbols,
+            isConstant: expression.isConstant
         )
     }
 
@@ -1059,7 +1093,8 @@ struct LayoutExpression {
                 }
                 return try URLRequest(url: urlFromString(parts.map(stringify).joined()))
             },
-            symbols: expression.symbols
+            symbols: expression.symbols,
+            isConstant: expression.isConstant
         )
     }
 
@@ -1089,7 +1124,8 @@ struct LayoutExpression {
         }
         self.init(
             evaluate: { Selector(try expression.evaluate() as! String) },
-            symbols: expression.symbols
+            symbols: expression.symbols,
+            isConstant: expression.isConstant
         )
     }
 
@@ -1135,7 +1171,8 @@ struct LayoutExpression {
                                 evaluate: {
                                     throw Expression.Error.message("Outlet parameters must be of type String, not \(type)")
                                 },
-                                symbols: []
+                                symbols: [],
+                                isConstant: false
                             )
                             return
                         }
@@ -1150,7 +1187,8 @@ struct LayoutExpression {
         }
         self.init(
             evaluate: { try expression.evaluate() as! String },
-            symbols: expression.symbols
+            symbols: expression.symbols,
+            isConstant: expression.isConstant
         )
     }
 
