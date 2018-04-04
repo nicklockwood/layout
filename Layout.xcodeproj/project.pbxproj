@@ -86,6 +86,8 @@
 		012073261F39EE0000FD092A /* UIScrollView+Layout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 012073251F39EE0000FD092A /* UIScrollView+Layout.swift */; };
 		0127DAE0200E41D700B95E17 /* AnyExpression.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0127DADF200E41D600B95E17 /* AnyExpression.swift */; };
 		012847E31FFF73F700413679 /* LayoutMountingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 012847E21FFF73F700413679 /* LayoutMountingTests.swift */; };
+		01291EF620753D760083707C /* TableViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01291EF520753D760083707C /* TableViewTests.swift */; };
+		01291EF820753F0B0083707C /* TableViewTest.xml in Resources */ = {isa = PBXBuildFile; fileRef = 01291EF720753F0B0083707C /* TableViewTest.xml */; };
 		01345C551F66B784002BDEC9 /* PropertiesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01345C541F66B784002BDEC9 /* PropertiesTests.swift */; };
 		01346F8A1F597F88002C0802 /* TitleTextAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01346F891F597F88002C0802 /* TitleTextAttributes.swift */; };
 		0136F1BC1F17863C00C44673 /* PerformanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0136F1BB1F17863C00C44673 /* PerformanceTests.swift */; };
@@ -378,6 +380,8 @@
 		012073251F39EE0000FD092A /* UIScrollView+Layout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIScrollView+Layout.swift"; sourceTree = "<group>"; };
 		0127DADF200E41D600B95E17 /* AnyExpression.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AnyExpression.swift; sourceTree = "<group>"; };
 		012847E21FFF73F700413679 /* LayoutMountingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayoutMountingTests.swift; sourceTree = "<group>"; };
+		01291EF520753D760083707C /* TableViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TableViewTests.swift; sourceTree = "<group>"; };
+		01291EF720753F0B0083707C /* TableViewTest.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = TableViewTest.xml; sourceTree = "<group>"; };
 		01345C541F66B784002BDEC9 /* PropertiesTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PropertiesTests.swift; sourceTree = "<group>"; };
 		01346F891F597F88002C0802 /* TitleTextAttributes.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TitleTextAttributes.swift; sourceTree = "<group>"; };
 		0136F1B91F17863A00C44673 /* PerformanceTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PerformanceTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -717,6 +721,8 @@
 				011CE6C11F053D530034771C /* OptionalExpressionTests.swift */,
 				01FAAD261FBD991E00C26799 /* StackViewTests.swift */,
 				011CE6C21F053D530034771C /* StateTests.swift */,
+				01291EF520753D760083707C /* TableViewTests.swift */,
+				01291EF720753F0B0083707C /* TableViewTest.xml */,
 				017539881F2A2F2F005B7516 /* XMLTests.swift */,
 				0192A6CE1FA73BA300A30FDA /* FileTests.swift */,
 				01B17AAD1FB350DE0048E582 /* UtilitiesTests.swift */,
@@ -1355,6 +1361,7 @@
 				01C4B0CE201B41E60062825B /* Assets.xcassets in Resources */,
 				01B909C0201BB09900CEBD81 /* LayoutDidLoad_Valid.xml in Resources */,
 				ACD6CEF71FD6C64A00E08B8C /* LayoutDidLoad_Invalid.xml in Resources */,
+				01291EF820753F0B0083707C /* TableViewTest.xml in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1614,6 +1621,7 @@
 				012847E31FFF73F700413679 /* LayoutMountingTests.swift in Sources */,
 				0192A6CF1FA73BA300A30FDA /* FileTests.swift in Sources */,
 				011CE6CB1F053D530034771C /* OptionalExpressionTests.swift in Sources */,
+				01291EF620753D760083707C /* TableViewTests.swift in Sources */,
 				016439C51F8D033B00497FD9 /* ArrayExpressionTests.swift in Sources */,
 				01FAAD271FBD991E00C26799 /* StackViewTests.swift in Sources */,
 			);

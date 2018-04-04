@@ -1,0 +1,21 @@
+<UIView>
+    <UITableView
+        contentInset.bottom="safeAreaInsets.bottom"
+        contentInset.top="safeAreaInsets.top"
+        contentInsetAdjustmentBehavior="never"
+        contentOffset.y="-safeAreaInsets.top"
+        outlet="tableView"
+        rowHeight="44"
+        scrollIndicatorInsets.bottom="safeAreaInsets.bottom"
+        scrollIndicatorInsets.top="safeAreaInsets.top"
+        style="plain">
+
+        <!-- Table cell template -->
+        <UITableViewCell reuseIdentifier="testCell">
+            <UIView
+                height="100%"
+                width="100%"
+            />
+        </UITableViewCell>
+    </UITableView>
+</UIView>

@@ -2531,6 +2531,7 @@ public class LayoutNode: NSObject {
     /// Re-evaluates all expressions for the node and its children
     private func update(animated: Bool) {
         attempt {
+            _view?.layoutIfNeeded()
             try updateValues(animated: animated)
             try updateFrame()
         }
