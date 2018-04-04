@@ -14,7 +14,7 @@ class TableViewController: UIViewController, LayoutLoading, UITableViewDataSourc
         loadLayout(named: "TableViewTest.xml", bundle: Bundle(for: type(of: self)))
     }
 
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    func tableView(_: UITableView, numberOfRowsInSection _: Int) -> Int {
         didLoadRows = true
         return 5
     }
@@ -27,7 +27,6 @@ class TableViewController: UIViewController, LayoutLoading, UITableViewDataSourc
 }
 
 class TableViewTests: XCTestCase {
-
     func testTableCellSizing() {
         let vc = TableViewController()
         vc.view.frame = CGRect(x: 0, y: 0, width: 512, height: 512)

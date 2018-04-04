@@ -1,5 +1,9 @@
 # Change Log
 
+## [0.6.20](https://github.com/schibsted/layout/releases/tag/0.6.20) (2018-04-04)
+
+- Fixed `UITableViewCell` layout bug 
+
 ## [0.6.19](https://github.com/schibsted/layout/releases/tag/0.6.19) (2018-04-04)
 
 - Added `leading` and `trailing` layout expressions for handling right-to-left internationalization
