@@ -10,11 +10,7 @@ extension XMLNode {
                 return false
             }
             for key in attributes.keys {
-                if ["top", "left",
-                    "leading", "trailing",
-                    "bottom", "right",
-                    "width", "height",
-                    "backgroundColor"].contains(key) {
+                if layoutSymbols.contains(key) {
                     return true
                 }
                 if key.hasPrefix("layer.") {

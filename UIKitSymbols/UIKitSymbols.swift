@@ -267,6 +267,10 @@ class UIKitSymbols: XCTestCase {
             "{ \"trigger\": \"template\tURL\", \"contents\": \"template=\\\"$0\\\"\" }",
             "{ \"trigger\": \"xml\tURL\", \"contents\": \"xml=\\\"$0\\\"\" }",
         ]
+        for name in Array(layoutSymbols).sorted() {
+            let type = (name == "center") ? "CGPoint" : "CGFloat"
+            rows.append("{ \"trigger\": \"\(name)\t\(type)\", \"contents\": \"\(name)\" }")
+        }
         let properties = getProperties()
         for name in properties.keys.sorted() {
             let props = properties[name]!

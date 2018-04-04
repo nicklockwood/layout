@@ -2281,6 +2281,8 @@ extension RuntimeType {
             "left": .left,
             "right": .right,
             "center": .center,
+            "justified": .justified,
+            "natural": .natural,
         ] as [String: NSTextAlignment])
     }
 }

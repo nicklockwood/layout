@@ -609,7 +609,7 @@ extension NSObject {
             } catch let error as SymbolError {
                 var description = error.description
                 description = description.replacingOccurrences(of: " of \(classForCoder)", with: "")
-                throw SymbolError.init(description, for: name)
+                throw SymbolError(description, for: name)
             }
         }
         var prevKey = name

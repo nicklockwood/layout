@@ -258,8 +258,9 @@ func typeOfAttribute(_ key: String, inNode node: XMLNode) -> String? {
             return "String"
         case "xml", "template":
             return "URL"
-        case "left", "right", "width", "top", "bottom", "height",
-             "center.x", "center.y", "firstBaseline", "lastBaseline":
+        case "center":
+            return "CGPoint"
+        case _ where layoutSymbols.contains(key):
             return "CGFloat"
         default:
             // Look up the type

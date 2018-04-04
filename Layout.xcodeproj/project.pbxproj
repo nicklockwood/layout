@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		01052D132075129600482C10 /* Shared.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01052D122075129600482C10 /* Shared.swift */; };
+		01052D142075129600482C10 /* Shared.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01052D122075129600482C10 /* Shared.swift */; };
+		01052D152075129600482C10 /* Shared.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01052D122075129600482C10 /* Shared.swift */; };
+		01052D16207512F300482C10 /* Shared.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01052D122075129600482C10 /* Shared.swift */; };
 		010564BC1FB5F59700342074 /* Strings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 010564BB1FB5F59700342074 /* Strings.swift */; };
 		010564BD1FB5FA9F00342074 /* Strings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 010564BB1FB5F59700342074 /* Strings.swift */; };
 		010564BF1FB5FAE800342074 /* StringsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 010564BE1FB5FAE800342074 /* StringsTests.swift */; };
@@ -296,6 +300,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		01052D122075129600482C10 /* Shared.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shared.swift; sourceTree = "<group>"; };
 		010564BB1FB5F59700342074 /* Strings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Strings.swift; sourceTree = "<group>"; };
 		010564BE1FB5FAE800342074 /* StringsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StringsTests.swift; sourceTree = "<group>"; };
 		0105F7791F05473A0067B313 /* Expression.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Expression.framework; path = "../../Library/Developer/Xcode/DerivedData/Layout-dywuqcmuxfxexhcatfkwvqimcwys/Build/Products/Debug-iphonesimulator/Expression/Expression.framework"; sourceTree = "<group>"; };
@@ -781,6 +786,7 @@
 				01B1316D1F629F0700B426BB /* XMLNode+Layout.swift */,
 				011D73681FB1D217006406F7 /* StringUtils.swift */,
 				01146B111F4700AD008A9B24 /* Files.swift */,
+				01052D122075129600482C10 /* Shared.swift */,
 			);
 			path = Shared;
 			sourceTree = "<group>";
@@ -1470,6 +1476,7 @@
 				0164F9231F470A4400AFCDCA /* Files.swift in Sources */,
 				017539821F28B623005B7516 /* Renamer.swift in Sources */,
 				01181E051F0EA7F90011C4DE /* ExpressionParser.swift in Sources */,
+				01052D142075129600482C10 /* Shared.swift in Sources */,
 				0105F79D1F055C260067B313 /* main.swift in Sources */,
 				0105F7B81F0AA7D70067B313 /* Formatter.swift in Sources */,
 				0105F7A21F055F9D0067B313 /* Common.swift in Sources */,
@@ -1485,6 +1492,7 @@
 				0164F9241F470A4500AFCDCA /* Files.swift in Sources */,
 				010564BD1FB5FA9F00342074 /* Strings.swift in Sources */,
 				3583485A1F3F1EB000CFB6BB /* ReturnCodeTests.swift in Sources */,
+				01052D16207512F300482C10 /* Shared.swift in Sources */,
 				011D736B1FB1D222006406F7 /* StringUtils.swift in Sources */,
 				017539841F28D055005B7516 /* RenamerTests.swift in Sources */,
 				017539851F28DAC5005B7516 /* Renamer.swift in Sources */,
@@ -1539,6 +1547,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				01052D132075129600482C10 /* Shared.swift in Sources */,
 				01E7E0511F1C077900B7F9DB /* LayoutError+LayoutNode.swift in Sources */,
 				0137B81B1FDEF24200E2061F /* ReloadManager.swift in Sources */,
 				01E7E04F1F1C057700B7F9DB /* Layout+XML.swift in Sources */,
@@ -1631,6 +1640,7 @@
 				015256301F8F5C5C00BDD15D /* FormatXMLCommand.swift in Sources */,
 				015256311F8F5C5C00BDD15D /* SourceEditorExtension.swift in Sources */,
 				0152563A1F8F5E3100BDD15D /* Files.swift in Sources */,
+				01052D152075129600482C10 /* Shared.swift in Sources */,
 				015256371F8F5E0600BDD15D /* XMLNode+Layout.swift in Sources */,
 				013A91B01FC7291D0043C543 /* Expression.swift in Sources */,
 			);
@@ -2330,7 +2340,6 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
-				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
 				SWIFT_SWIFT3_OBJC_INFERENCE = Off;
 				SWIFT_VERSION = 4.0;

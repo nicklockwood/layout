@@ -1,5 +1,13 @@
 # Change Log
 
+## [0.6.19](https://github.com/schibsted/layout/releases/tag/0.6.19) (2018-04-04)
+
+- Added `leading` and `trailing` layout expressions for handling right-to-left internationalization
+- Added missing `justified` and `natural` values for `NSTextAlignment` properties
+- Fixed duplicate symbols suggestions in Red Box
+- Improved error messaging, especially for invalid static properties
+- Fixed bug where expressions were sometimes incorrectly marked as redundant
+
 ## [0.6.18](https://github.com/schibsted/layout/releases/tag/0.6.18) (2018-02-28)
 
 - Fixed spurious error due to the `lineBreakMode` property being unvailable on `UITextView`

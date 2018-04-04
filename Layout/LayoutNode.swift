@@ -314,11 +314,11 @@ public class LayoutNode: NSObject {
             switch key {
             case "center.x" where hasExpression(in: ["left", "right", "leading", "trailing"]),
                  "left" where hasExpression(in: ["leading", "trailing"]) ||
-                    (hasExpression(in: ["center.x", "right"]) && hasExpression("width")),
+                     (hasExpression(in: ["center.x", "right"]) && hasExpression("width")),
                  "right" where hasExpression(in: ["leading", "trailing"]) ||
-                    (hasExpression(in: ["center.x", "left"]) && hasExpression("width")),
+                     (hasExpression(in: ["center.x", "left"]) && hasExpression("width")),
                  "width" where (hasExpression("left") && hasExpression("right")) ||
-                    (hasExpression("leading") && hasExpression("trailing")),
+                     (hasExpression("leading") && hasExpression("trailing")),
                  "center.y" where
                      hasExpression(in: ["top", "bottom", "firstBaseline", "lastBaseline"]),
                  "top" where
@@ -1081,14 +1081,15 @@ public class LayoutNode: NSObject {
         var symbols = Set(layoutSymbols)
         let type: RuntimeType
         switch name {
-        case "left", "right", "top", "bottom",
-             "center.x", "center.y", "firstBaseline", "lastBaseline":
-            type = .cgFloat
-        case "width", "height", "contentSize.width", "contentSize.height":
-            type = .cgFloat
-            symbols.insert("auto")
         case "outlet", "id", "xml", "template":
             type = .string
+        case "center":
+            type = .cgPoint
+        case "width", "height", "contentSize.width", "contentSize.height":
+            symbols.insert("auto")
+            fallthrough
+        case _ where layoutSymbols.contains(name):
+            type = .cgFloat
         default:
             if let controllerClass = viewControllerClass {
                 type = controllerClass.expressionTypes[name] ?? UIView.expressionTypes[name] ?? .any
@@ -2819,12 +2820,6 @@ extension UIView {
         _layoutNode?.updateLayout()
     }
 }
-
-private let layoutSymbols: Set<String> = [
-    "left", "right", "leading", "trailing",
-    "width", "top", "bottom", "height", "center",
-    "center.x", "center.y", "firstBaseline", "lastBaseline",
-]
 
 private func areEqual(_ lhs: Any, _ rhs: Any) -> Bool {
     if let lhs = lhs as? AnyHashable, let rhs = rhs as? AnyHashable {
