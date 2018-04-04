@@ -180,7 +180,7 @@ func stringToColorAsset(_ string: String) throws -> UIColor? {
             return color
         }
         if let bundle = bundle {
-            throw Expression.Error.message("Color named `\(name)` not found in bundle \(bundle.bundleIdentifier ?? "<unknown>")")
+            throw Expression.Error.message("Color named '\(name)' not found in bundle \(bundle.bundleIdentifier ?? "<unknown>")")
         }
         return nil
     }
@@ -201,7 +201,7 @@ func stringToImageAsset(_ string: String) throws -> UIImage? {
         return image
     }
     if let bundle = bundle {
-        throw Expression.Error.message("Image named `\(name)` not found in bundle \(bundle.bundleIdentifier ?? "<unknown>")")
+        throw Expression.Error.message("Image named '\(name)' not found in bundle \(bundle.bundleIdentifier ?? "<unknown>")")
     }
     return nil
 }
@@ -419,7 +419,7 @@ struct LayoutExpression {
                 }
             }() else {
                 if !tail.isEmpty {
-                    throw SymbolError("Cannot access static property `\(tail)` of type \(head)", for: key)
+                    throw SymbolError("Unknown static property \(key)", for: key)
                 }
                 throw SymbolError("Unsupported type \(type)", for: key)
             }
@@ -459,7 +459,7 @@ struct LayoutExpression {
                                 for: node
                             ) else {
                                 return { _ in
-                                    throw SymbolError("Empty expression for `\(key)` macro", for: key)
+                                    throw SymbolError("Empty expression for \(key) macro", for: key)
                                 }
                             }
                             macroSymbols[key] = macroExpression.symbols
@@ -479,7 +479,7 @@ struct LayoutExpression {
                                 do {
                                     return try node.value(forSymbol: key)
                                 } catch {
-                                    throw SymbolError("Macro `\(key)` references a nonexistent symbol of the same name (macros cannot reference themselves)", for: key)
+                                    throw SymbolError("Macro \(key) references a nonexistent symbol of the same name (macros cannot reference themselves)", for: key)
                                 }
                             }
                         } else if ignoredSymbols.contains(symbol) || pureSymbols(symbol) != nil {
@@ -522,9 +522,9 @@ struct LayoutExpression {
                         if arity > types.count {
                             // TODO: this should probably be a warning, since there are legitimate cases where this
                             // might arise - e.g. if a string doesn't use a param in one locale but does in others
-                            throw SymbolError("Too many arguments (\(arity)) for format string '\(string)' for key `\(key)`", for: key)
+                            throw SymbolError("Too many arguments (\(arity)) for format string '\(string)' for key \(name)", for: key)
                         } else if arity < types.count {
-                            throw SymbolError("Too few arguments (\(arity)) for format string '\(string)' for key `\(key)`", for: key)
+                            throw SymbolError("Too few arguments (\(arity)) for format string '\(string)' for key \(name)", for: key)
                         }
                         return { args in
                             let args = zip(types, args).map { type, value in
@@ -848,7 +848,7 @@ struct LayoutExpression {
                                         let string = String(result)
                                         result.removeAll()
                                         guard let part = font(named: string) else {
-                                            throw Expression.Error.message("Invalid font name or specifier `\(string)`")
+                                            throw Expression.Error.message("Invalid font name or specifier '\(string)'")
                                         }
                                         fontName = string
                                         parts.append(part)
@@ -867,7 +867,7 @@ struct LayoutExpression {
                             }
                         }
                         if !processResult() {
-                            throw Expression.Error.message("Invalid font name or specifier `\(string)`")
+                            throw Expression.Error.message("Invalid font name or specifier '\(string)'")
                         }
                         string = ""
                     }
@@ -893,7 +893,7 @@ struct LayoutExpression {
     init?(colorExpression: String, type: RuntimeType = .uiColor, for node: LayoutNode) {
         func nameToColorAsset(_ name: String) throws -> Any {
             guard let color = try stringToColorAsset(name) else {
-                throw Expression.Error.message("Invalid color name `\(name)`")
+                throw Expression.Error.message("Invalid color name '\(name)'")
             }
             return try cast(color, as: type)
         }
@@ -910,7 +910,7 @@ struct LayoutExpression {
                     }
                     // Attempt to interpret as a color expression
                     guard let _parsedExpression = try? parseExpression(name) else {
-                        throw Expression.Error.message("Invalid color name `\(name)`")
+                        throw Expression.Error.message("Invalid color name '\(name)'")
                     }
                     parsedExpression = _parsedExpression
                 case let .expression(_parsedExpression):
@@ -964,7 +964,7 @@ struct LayoutExpression {
     init?(imageExpression: String, type: RuntimeType = .uiImage, for node: LayoutNode) {
         func nameToImageAsset(_ name: String) throws -> Any {
             guard let image = try stringToImageAsset(name) else {
-                throw Expression.Error.message("Image named `\(name)` not found in main bundle")
+                throw Expression.Error.message("Image named '\(name)' not found in main bundle")
             }
             return try cast(image, as: type)
         }
@@ -981,7 +981,7 @@ struct LayoutExpression {
                     }
                     // Attempt to interpret as an image expression
                     guard let _parsedExpression = try? parseExpression(name) else {
-                        throw Expression.Error.message("Invalid image name `\(name)`")
+                        throw Expression.Error.message("Invalid image name '\(name)'")
                     }
                     parsedExpression = _parsedExpression
                 case let .expression(_parsedExpression):
@@ -1006,7 +1006,7 @@ struct LayoutExpression {
                             // TODO: find a less stringly-typed solution for this
                             if imageExpression.description == error.symbol,
                                 "\(error)".contains("Unknown property") {
-                                throw Expression.Error.message("Image named `\(error.symbol)` not found in main bundle")
+                                throw Expression.Error.message("Image named '\(error.symbol)' not found in main bundle")
                             }
                             throw error
                         }
@@ -1043,7 +1043,6 @@ struct LayoutExpression {
         guard let expression = LayoutExpression(interpolatedStringExpression: urlExpression, for: node) else {
             return nil
         }
-        // TODO: optimize for constant URLs
         // TODO: should empty string return nil instead of URL with empy path?
         self.init(
             evaluate: {
@@ -1072,7 +1071,6 @@ struct LayoutExpression {
         guard let expression = LayoutExpression(interpolatedStringExpression: urlRequestExpression, for: node) else {
             return nil
         }
-        // TODO: optimize for constant URLs
         self.init(
             evaluate: {
                 let parts = try expression.evaluate() as! [Any]

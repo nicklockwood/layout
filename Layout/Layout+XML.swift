@@ -57,7 +57,7 @@ extension Layout {
                             }
                             type = runtimeType
                         default:
-                            throw LayoutError("Unexpected attribute `\(key)` in <param>", in: className, in: url)
+                            throw LayoutError("Unexpected attribute \(key) in <param>", in: className, in: url)
                         }
                     }
                     parameters[name] = type
@@ -79,7 +79,7 @@ extension Layout {
                         case "value":
                             expression = value
                         default:
-                            throw LayoutError("Unexpected attribute `\(key)` in <macro>", in: className, in: url)
+                            throw LayoutError("Unexpected attribute \(key) in <macro>", in: className, in: url)
                         }
                     }
                     macros[name] = expression

@@ -483,7 +483,7 @@ extension UIControl {
             } else {
                 if !target.responds(to: action) {
                     guard let responder = target as? UIResponder, let next = responder.next else {
-                        throw LayoutError.message("Layout could find no suitable target for the `\(action)` action. If the method exists, it must be prefixed with @objc or @IBAction to be used with Layout")
+                        throw LayoutError.message("Layout could find no suitable target for the \(action) action. If the method exists, it must be prefixed with @objc or @IBAction to be used with Layout")
                     }
                     try bindActions(for: next)
                     return

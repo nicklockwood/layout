@@ -133,7 +133,7 @@ private class LayoutErrorView: UIView, LayoutLoading {
             background = "#D32F2F"
             let suggestions = error.suggestions
             if suggestions.count == 1 {
-                message += "\n\nDid you mean `\(suggestions[0])`?"
+                message += "\n\nDid you mean \(suggestions[0])?"
             } else if !suggestions.isEmpty {
                 message += " Did you mean one of the following?"
             }
@@ -166,7 +166,7 @@ private class LayoutErrorView: UIView, LayoutLoading {
                         expressions: [
                             "width": "min(auto, 100% - 40)",
                             "left": "(100% - width) / 2",
-                            "text": suggestions.joined(separator: ", "),
+                            "text": suggestions.prefix(20).joined(separator: ", "),
                             "textColor": "rgba(255,255,255,0.7)",
                             "numberOfLines": "0",
                             "top": "previous.bottom + 20",

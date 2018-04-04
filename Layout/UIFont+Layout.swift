@@ -74,7 +74,7 @@ extension UIFont {
                 fontSize = preferredFont.pointSize
                 font = font ?? preferredFont
             default:
-                throw Expression.Error.message("Invalid font specifier `\(part)`")
+                throw Expression.Error.message("Invalid font specifier '\(part)'")
             }
         }
         return self.font(font, withSize: fontSize, weight: fontWeight, traits: traits)

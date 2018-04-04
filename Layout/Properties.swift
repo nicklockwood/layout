@@ -290,13 +290,13 @@ extension NSObject {
         }
         guard responds(to: Selector(setter)) else {
             if self is NSValue {
-                throw SymbolError("Cannot set property `\(key)` of immutable \(Swift.type(of: self))", for: key)
+                throw SymbolError("Cannot set property \(key) of immutable \(Swift.type(of: self))", for: key)
             }
             let mirror = Mirror(reflecting: self)
             if mirror.children.contains(where: { $0.label == key }) {
                 throw LayoutError("\(classForCoder) \(key) property must be prefixed with @objc to be set at runtime")
             }
-            throw SymbolError("Unknown property `\(key)` of \(classForCoder)", for: key)
+            throw SymbolError("Unknown property \(key) of \(classForCoder)", for: key)
         }
         setValue(value, forKey: key)
         return true
@@ -489,9 +489,9 @@ extension NSObject {
                 prevTarget.setValue(value, forKey: prevKey)
                 return
             }
-            throw SymbolError("No valid setter found for property `\(key)` of \(target.classForCoder)", for: name)
+            throw SymbolError("No valid setter found for property \(key) of \(target.classForCoder)", for: name)
         }
-        throw SymbolError("Cannot set property `\(key)` of immutable \(target.classForCoder)", for: name)
+        throw SymbolError("Cannot set property \(key) of immutable \(target.classForCoder)", for: name)
     }
 
     /// Safe version of value(forKey:)
@@ -511,7 +511,7 @@ extension NSObject {
             case "y":
                 return point.y
             default:
-                throw SymbolError("Unknown property `\(key)` of CGPoint", for: key)
+                throw SymbolError("Unknown property \(key) of CGPoint", for: key)
             }
         case let size as CGSize:
             switch key {
@@ -520,7 +520,7 @@ extension NSObject {
             case "height":
                 return size.height
             default:
-                throw SymbolError("Unknown property `\(key)` of CGSize", for: key)
+                throw SymbolError("Unknown property \(key) of CGSize", for: key)
             }
         case let vector as CGVector:
             switch key {
@@ -529,7 +529,7 @@ extension NSObject {
             case "dy":
                 return vector.dy
             default:
-                throw SymbolError("Unknown property `\(key)` of CGVector", for: key)
+                throw SymbolError("Unknown property \(key) of CGVector", for: key)
             }
         case let rect as CGRect:
             switch key {
@@ -558,16 +558,16 @@ extension NSObject {
             case "midY":
                 return rect.midY
             default:
-                throw SymbolError("Unknown property `\(key)` of CGRect", for: key)
+                throw SymbolError("Unknown property \(key) of CGRect", for: key)
             }
         case is CGAffineTransform:
-            throw SymbolError("Unknown property `\(key)` of CGAffineTransform", for: key)
+            throw SymbolError("Unknown property \(key) of CGAffineTransform", for: key)
         case let transform as CATransform3D:
             switch key {
             case "m34":
                 return transform.m34 // Used for perspective
             default:
-                throw SymbolError("Unknown property `\(key)` of CATransform3D", for: key)
+                throw SymbolError("Unknown property \(key) of CATransform3D", for: key)
             }
         case let insets as UIEdgeInsets:
             switch key {
@@ -580,7 +580,7 @@ extension NSObject {
             case "right":
                 return insets.right
             default:
-                throw SymbolError("Unknown property `\(key)` of UIEdgeInsets", for: key)
+                throw SymbolError("Unknown property \(key) of UIEdgeInsets", for: key)
             }
         case let offset as UIOffset:
             switch key {
@@ -589,14 +589,14 @@ extension NSObject {
             case "vertical":
                 return offset.vertical
             default:
-                throw SymbolError("Unknown property `\(key)` of UIOffset", for: key)
+                throw SymbolError("Unknown property \(key) of UIOffset", for: key)
             }
         default:
             let mirror = Mirror(reflecting: self)
             if mirror.children.contains(where: { $0.label == key }) {
                 throw LayoutError("\(classForCoder) \(key) property must be prefixed with @objc to be accessed at runtime")
             }
-            throw SymbolError("Unknown property `\(key)` of \(classForCoder)", for: key)
+            throw SymbolError("Unknown property \(key) of \(classForCoder)", for: key)
         }
     }
 
@@ -604,7 +604,13 @@ extension NSObject {
     /// Checks that the property exists, and is gettable, but doesn't validate the type
     func _value(ofType type: RuntimeType?, forKeyPath name: String) throws -> Any? {
         guard let range = name.range(of: ".", options: .backwards) else {
-            return try _value(ofType: type, forKey: name)
+            do {
+                return try _value(ofType: type, forKey: name)
+            } catch let error as SymbolError {
+                var description = error.description
+                description = description.replacingOccurrences(of: " of \(classForCoder)", with: "")
+                throw SymbolError.init(description, for: name)
+            }
         }
         var prevKey = name
         var prevTarget: NSObject?

@@ -1155,7 +1155,7 @@ public class LayoutNode: NSObject {
             case "outlet":
                 expression = LayoutExpression(outletExpression: string, for: self)
                 if let expression = expression, !expression.isConstant {
-                    throw SymbolError("Expression for `\(symbol)` must be a constant or literal value", for: symbol)
+                    throw SymbolError("Expression for \(symbol) must be a constant or literal value", for: symbol)
                 }
             default:
                 let type: RuntimeType
@@ -1200,7 +1200,7 @@ public class LayoutNode: NSObject {
                         let _ = try? view.value(forSymbol: symbol) {
                         throw SymbolError(fatal: "\(_class).\(symbol) is private or read-only", for: symbol)
                     }
-                    throw SymbolError("Unknown property `\(symbol)` of \(_class)", for: symbol)
+                    throw SymbolError("Unknown property \(symbol) of \(_class)", for: symbol)
                 }
                 switch type.availability {
                 case .available:
@@ -1267,11 +1267,11 @@ public class LayoutNode: NSObject {
                             }
                             if let macro = self.expression(forMacro: symbol) {
                                 // TODO: allow this
-                                throw SymbolError("Expression for `\(symbol)` references a macro of the same name (which is not currently supported)", for: symbol)
+                                throw SymbolError("Expression for \(symbol) references a macro of the same name (which is not currently supported)", for: symbol)
                             }
                         }
                         // TODO: allow expression to reference its previous value instead of treating this as an error
-                        throw SymbolError("Expression for `\(symbol)` references a nonexistent symbol of the same name (expressions cannot reference themselves)", for: symbol)
+                        throw SymbolError("Expression for \(symbol) references a nonexistent symbol of the same name (expressions cannot reference themselves)", for: symbol)
                     }
                     self._evaluating.append(symbol)
                     defer {
@@ -1389,7 +1389,7 @@ public class LayoutNode: NSObject {
 
     private func localizedString(forKey key: String) throws -> String {
         guard let delegate = delegate as? LayoutLoading else {
-            throw SymbolError("No layoutString(forKey:) implementation found. Unable to look up localized string for key `\(key)`", for: key)
+            throw SymbolError("No layoutString(forKey:) implementation found. Unable to look up localized string for key '\(key)'", for: key)
         }
         guard let string = delegate.layoutString(forKey: key) else {
             throw SymbolError("Missing localized string", for: key)
@@ -1424,7 +1424,7 @@ public class LayoutNode: NSObject {
             if let value = try self.value(forKeyPath: subKeyPath, in: object) {
                 return value
             }
-            throw SymbolError("Unknown property `\(subKeyPath)` in `\(key)`", for: keyPath)
+            throw SymbolError("Unknown property \(subKeyPath) in \(key)", for: keyPath)
         }
         let children = Mirror(reflecting: object).children
         if let (_, value) = children.first(where: { $0.label == keyPath }) {
@@ -1439,7 +1439,7 @@ public class LayoutNode: NSObject {
             if let value = try self.value(forKeyPath: subKeyPath, in: object) {
                 return value
             }
-            throw SymbolError("Unknown property `\(subKeyPath)` in `\(key)`", for: keyPath)
+            throw SymbolError("Unknown property \(subKeyPath) in \(key)", for: keyPath)
         }
         return nil
     }
@@ -1456,11 +1456,11 @@ public class LayoutNode: NSObject {
                     }
                     if expression(forMacro: symbol) != nil {
                         // TODO: allow this
-                        throw SymbolError("Expression for `\(symbol)` references a macro of the same name (which is not currently supported)", for: symbol)
+                        throw SymbolError("Expression for \(symbol) references a macro of the same name (which is not currently supported)", for: symbol)
                     }
                 }
                 // TODO: allow expression to reference its previous value instead of treating this as an error
-                throw SymbolError("Expression for `\(symbol)` references a nonexistent symbol of the same name (expressions cannot reference themselves)", for: symbol)
+                throw SymbolError("Expression for \(symbol) references a nonexistent symbol of the same name (expressions cannot reference themselves)", for: symbol)
             }
             return try value(forSymbol: symbol)
         }
@@ -1831,7 +1831,7 @@ public class LayoutNode: NSObject {
                 if viewControllerClass != nil, viewControllerExpressionTypes[symbol] != nil {
                     fallback = { [unowned self] in
                         guard let viewController = self._viewController else {
-                            throw SymbolError("Undefined symbol `\(symbol)`", for: symbol)
+                            throw SymbolError("Undefined symbol \(symbol)", for: symbol)
                         }
                         return try viewController.value(forSymbol: symbol)
                     }
@@ -1842,14 +1842,14 @@ public class LayoutNode: NSObject {
                             return value
                         }
                         guard let view = self._view else {
-                            throw SymbolError("Undefined symbol `\(symbol)`", for: symbol)
+                            throw SymbolError("Undefined symbol \(symbol)", for: symbol)
                         }
                         return try view.value(forSymbol: symbol)
                     }
                 } else {
                     fallback = { [unowned self] in
                         guard let view = self._view else {
-                            throw SymbolError("Undefined symbol `\(symbol)`", for: symbol)
+                            throw SymbolError("Undefined symbol \(symbol)", for: symbol)
                         }
                         return try view.value(forSymbol: symbol)
                     }
@@ -1900,7 +1900,7 @@ public class LayoutNode: NSObject {
                     default:
                         getter = {
                             // TODO: should we allow view properties to be referenced?
-                            throw SymbolError("Undefined symbol `\(tail)`", for: symbol)
+                            throw SymbolError("Undefined symbol \(tail)", for: symbol)
                         }
                     }
                 case "previous" where layoutSymbols.contains(tail):
@@ -2025,7 +2025,7 @@ public class LayoutNode: NSObject {
                         }
                     } else {
                         getter = {
-                            throw SymbolError("Could not find node with id `\(id)`", for: symbol)
+                            throw SymbolError("Could not find node with id \(id)", for: symbol)
                         }
                     }
                 case "top", "left",

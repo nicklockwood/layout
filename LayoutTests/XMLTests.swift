@@ -60,7 +60,7 @@ class XMLTests: XCTestCase {
         let input = "<UILabel><param name=\"text\" type=\"String\" value=\"foo\"/></UILabel>"
         let xmlData = input.data(using: .utf8)!
         XCTAssertThrowsError(try Layout(xmlData: xmlData)) { error in
-            XCTAssert("\(error)".contains("Unexpected attribute `value`"))
+            XCTAssert("\(error)".contains("Unexpected attribute value"))
         }
     }
 
@@ -92,7 +92,7 @@ class XMLTests: XCTestCase {
         let input = "<UILabel><macro name=\"text\" type=\"String\" value=\"foo\"/></UILabel>"
         let xmlData = input.data(using: .utf8)!
         XCTAssertThrowsError(try Layout(xmlData: xmlData)) { error in
-            XCTAssert("\(error)".contains("Unexpected attribute `type`"))
+            XCTAssert("\(error)".contains("Unexpected attribute type"))
         }
     }
 

@@ -38,10 +38,9 @@ extension LayoutError {
                 } else {
                     symbol = error.symbol
                 }
-                guard let properties = staticProperties(for: symbol) else {
+                guard let suggestions = staticPropertyMatches(for: symbol) else {
                     fallthrough
                 }
-                let suggestions = bestMatches(for: symbol, in: properties)
                 self.init(LayoutError.unknownSymbol(error, suggestions), for: node)
             } else {
                 let suggestions = bestMatches(for: error.symbol, in: node.availableExpressions)
@@ -61,7 +60,7 @@ extension LayoutError {
     }
 }
 
-func staticProperties(for key: String) -> Set<String>? {
+private func staticPropertyMatches(for key: String) -> [String]? {
     var tail = key
     var head = ""
     while tail.isCapitalized, let range = tail.range(of: ".") {
@@ -76,9 +75,9 @@ func staticProperties(for key: String) -> Set<String>? {
     }
     switch type.type {
     case let .enum(_, values):
-        return Set(values.keys)
+        return bestMatches(for: tail, in: Set(values.keys))
     case let .options(_, values):
-        return Set(values.keys)
+        return bestMatches(for: tail, in: Set(values.keys))
     case let .any(type as NSObject.Type):
         var suffix = head.components(separatedBy: ".").last!
         for prefix in ["UI", "NS"] {
@@ -101,7 +100,7 @@ func staticProperties(for key: String) -> Set<String>? {
             }
             keys.insert(name)
         }
-        return keys
+        return bestMatches(for: tail, in: keys)
     default:
         return nil
     }
