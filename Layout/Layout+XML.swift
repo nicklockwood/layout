@@ -144,13 +144,6 @@ extension Layout {
     }
 }
 
-// http://w3c.github.io/html/syntax.html#void-elements
-private let emptyHTMLTags: Set<String> = [
-    "area", "base", "br", "col", "embed", "hr",
-    "img", "input", "link", "meta", "param",
-    "source", "track", "wbr",
-]
-
 private extension XMLNode {
     func toHTML() throws -> String {
         var text = ""

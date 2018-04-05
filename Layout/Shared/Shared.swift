@@ -8,3 +8,11 @@ let layoutSymbols: Set<String> = [
     "width", "top", "bottom", "height", "center",
     "center.x", "center.y", "firstBaseline", "lastBaseline",
 ]
+
+// HTML tags that should not contain children
+// http://w3c.github.io/html/syntax.html#void-elements
+let emptyHTMLTags: Set<String> = [
+    "area", "base", "br", "col", "embed", "hr",
+    "img", "input", "link", "meta", "param",
+    "source", "track", "wbr",
+]

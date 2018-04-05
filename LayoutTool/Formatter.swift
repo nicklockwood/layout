@@ -174,7 +174,7 @@ extension XMLNode {
                     if !isHTML, attributes.count >= attributeWrap {
                         xml += "\n\(indent)"
                     }
-                    if !isHTML || name == "br" {
+                    if !isHTML || emptyHTMLTags.contains(name) {
                         xml += "/>"
                     } else {
                         xml += "></\(name)>"
