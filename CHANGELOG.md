@@ -1,5 +1,9 @@
 # Change Log
 
+## [0.6.21](https://github.com/schibsted/layout/releases/tag/0.6.21) (2018-04-05)
+
+- Added `<children/>` tag for specifying insertion point for children inside nested template files (see README for details)
+
 ## [0.6.20](https://github.com/schibsted/layout/releases/tag/0.6.20) (2018-04-04)
 
 - Fixed `UITableViewCell` layout bug 
