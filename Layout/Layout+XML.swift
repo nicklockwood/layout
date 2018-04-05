@@ -29,16 +29,47 @@ extension Layout {
         var body = ""
         var isHTML = false
         var children = [Layout]()
+        var childrenTagIndex: Int?
         var parameters = [String: RuntimeType]()
         var macros = [String: String]()
         for node in childNodes {
             switch node {
             case let .node(_, attributes, childNodes):
-                if isHTML { // <param> is a valid html tag, so check if we're in an HTML context first
+                if node.isMacro {
+                    guard childNodes.isEmpty else {
+                        throw LayoutError("<macro> node should not contain sub-nodes", in: className, in: url)
+                    }
+                    for key in ["name", "value"] {
+                        guard let value = attributes[key], !value.isEmpty else {
+                            throw LayoutError("<macro> \(key) is a required attribute", in: className, in: url)
+                        }
+                    }
+                    var name = ""
+                    var expression: String?
+                    for (key, value) in attributes {
+                        switch key {
+                        case "name":
+                            name = value
+                        case "value":
+                            expression = value
+                        default:
+                            throw LayoutError("Unexpected attribute \(key) in <macro>", in: className, in: url)
+                        }
+                    }
+                    macros[name] = expression
+                } else if node.isChildren {
+                    guard childNodes.isEmpty else {
+                        throw LayoutError("<children> node should not contain sub-nodes", in: className, in: url)
+                    }
+                    for key in attributes.keys {
+                        throw LayoutError("Unexpected attribute \(key) in <children>", in: className, in: url)
+                    }
+                    childrenTagIndex = children.count
+                } else if isHTML { // <param> is a valid html tag, so check if we're in an HTML context first
                     body += try LayoutError.wrap({ try node.toHTML() }, in: className, in: url)
                 } else if node.isParameter {
                     guard childNodes.isEmpty else {
-                        throw LayoutError("<param> node should not contain children", in: className, in: url)
+                        throw LayoutError("<param> node should not contain sub-nodes", in: className, in: url)
                     }
                     for key in ["name", "type"] {
                         guard let value = attributes[key], !value.isEmpty else {
@@ -61,28 +92,6 @@ extension Layout {
                         }
                     }
                     parameters[name] = type
-                } else if node.isMacro {
-                    guard childNodes.isEmpty else {
-                        throw LayoutError("<macro> node should not contain children", in: className, in: url)
-                    }
-                    for key in ["name", "value"] {
-                        guard let value = attributes[key], !value.isEmpty else {
-                            throw LayoutError("<macro> \(key) is a required attribute", in: className, in: url)
-                        }
-                    }
-                    var name = ""
-                    var expression: String?
-                    for (key, value) in attributes {
-                        switch key {
-                        case "name":
-                            name = value
-                        case "value":
-                            expression = value
-                        default:
-                            throw LayoutError("Unexpected attribute \(key) in <macro>", in: className, in: url)
-                        }
-                    }
-                    macros[name] = expression
                 } else if node.isHTML {
                     body = try LayoutError.wrap({ try body.xmlEncoded() + node.toHTML() }, in: className, in: url)
                     isHTML = true
@@ -138,6 +147,7 @@ extension Layout {
             body: body.isEmpty ? nil : body,
             xmlPath: xmlPath,
             templatePath: templatePath,
+            childrenTagIndex: childrenTagIndex,
             relativePath: relativeTo,
             rootURL: url
         )

@@ -14,6 +14,7 @@ struct Layout {
     var body: String?
     var xmlPath: String?
     var templatePath: String?
+    var childrenTagIndex: Int?
     var relativePath: String?
     var rootURL: URL?
 

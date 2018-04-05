@@ -37,6 +37,13 @@ extension XMLNode {
         return true
     }
 
+    public var isChildren: Bool {
+        guard case .node("children", _, _) = self else {
+            return false
+        }
+        return true
+    }
+
     public var isParameterOrMacro: Bool {
         return isParameter || isMacro
     }

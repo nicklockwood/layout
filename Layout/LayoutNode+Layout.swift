@@ -96,6 +96,7 @@ extension Layout {
             body: nil,
             xmlPath: nil, // TODO: what if the layout is currently loading this? Race condition!
             templatePath: nil,
+            childrenTagIndex: nil,
             relativePath: nil,
             rootURL: node.rootURL
         )

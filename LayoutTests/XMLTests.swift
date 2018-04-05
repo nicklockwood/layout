@@ -76,7 +76,7 @@ class XMLTests: XCTestCase {
         let input = "<UILabel><param name=\"text\">foo</param></UILabel>"
         let xmlData = input.data(using: .utf8)!
         XCTAssertThrowsError(try Layout(xmlData: xmlData)) { error in
-            XCTAssert("\(error)".contains("should not contain children"))
+            XCTAssert("\(error)".contains("should not contain sub-nodes"))
         }
     }
 
@@ -100,7 +100,7 @@ class XMLTests: XCTestCase {
         let input = "<UILabel><macro name=\"text\">foo</macro></UILabel>"
         let xmlData = input.data(using: .utf8)!
         XCTAssertThrowsError(try Layout(xmlData: xmlData)) { error in
-            XCTAssert("\(error)".contains("should not contain children"))
+            XCTAssert("\(error)".contains("should not contain sub-nodes"))
         }
     }
 

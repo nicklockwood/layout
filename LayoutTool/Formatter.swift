@@ -75,7 +75,7 @@ extension Collection where Iterator.Element == XMLNode {
                     }
                     macros = nodes[i ... index] + macros
                     nodes[i ... index] = []
-                } else if node.isHTML || node.isText {
+                } else if node.isChildren || node.isHTML || node.isText {
                     break
                 }
             }
@@ -168,7 +168,7 @@ extension XMLNode {
                         xml += try "\n\(indent)    \(formatAttribute(key: key, value: value))"
                     }
                 }
-                if isParameterOrMacro {
+                if isParameterOrMacro || isChildren {
                     xml += "/>"
                 } else if isEmpty {
                     if !isHTML, attributes.count >= attributeWrap {

@@ -250,6 +250,14 @@ class FormatterTests: XCTestCase {
         XCTAssertEqual(try format(input), output)
     }
 
+    // MARK: Children tag
+
+    func testViewWithChildrenTag() {
+        let input = "<Foo>\n\n    <children/>\n\n</Foo>"
+        let output = "<Foo>\n    <children/>\n</Foo>\n"
+        XCTAssertEqual(try format(input), output)
+    }
+
     // MARK: Encoding
 
     func testEncodeAmpersandInText() {

@@ -2560,6 +2560,20 @@ As with composition, the template itself is just an ordinary layout file, and ca
 
 The imported template's root node class must be either the same class or a *superclass* of the importing node (unlike with composition, where it must be the same class or a *subclass*).
 
+If your template has a complex internal structure, you may wish to specify where children will be inserted, instead of just having them appended to the existing top-level sub-nodes. To do that, you can use the `<children/>` tag.
+
+The `<children/>` tag can be placed anywhere inside the template (including inside sub-nodes of the template node) and it will be replaced by the children of the importing node:
+
+```xml
+<!-- MyTemplate.xml -->
+<UIView backgroundColor="#fff">
+    <UILabel>Shared Heading</UILabel>
+    <UIView>
+        <children/> <!-- children of the importing node will be inserted here -->
+    </UIView>
+    <UILabel>Shared Footer</UILabel>
+</UIView>
+```
 
 ## Parameters
 
