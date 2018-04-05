@@ -108,20 +108,8 @@ struct UIntOptionSet: OptionSet {
 
 #if !swift(>=4.1)
 
-    extension Array {
+    extension Sequence {
         func compactMap<T>(_ transform: (Element) throws -> T?) rethrows -> [T] {
-            return try flatMap { try transform($0).map { [$0] } ?? [] }
-        }
-    }
-
-    extension Set {
-        func compactMap<T>(_ transform: (Element) throws -> T?) rethrows -> [T] {
-            return try flatMap { try transform($0).map { [$0] } ?? [] }
-        }
-    }
-
-    extension Dictionary {
-        func compactMap<T>(_ transform: ((key: Key, value: Value)) throws -> T?) rethrows -> [T] {
             return try flatMap { try transform($0).map { [$0] } ?? [] }
         }
     }
