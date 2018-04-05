@@ -2304,7 +2304,7 @@ extension RuntimeType {
 }
 ```
 
-Again, for Objective-C APIs it is typically not necessary to provide a custom `setValue(forExpression:)` implementation for and OptionSet value, but if the type of the property is defined in Swift as the OptionSet type itself rather than the `rawValue` type, then you may need to do so.
+Again, for Objective-C APIs it is typically not necessary to provide a custom `setValue(forExpression:)` implementation for an OptionSet value, but if the type of the property is defined in Swift as the OptionSet type itself rather than the `rawValue` type, then you may need to do so.
 
 
 ## Custom Constructor Arguments
