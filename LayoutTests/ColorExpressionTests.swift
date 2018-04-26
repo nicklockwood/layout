@@ -41,6 +41,18 @@ class ColorExpressionTests: XCTestCase {
         XCTAssertEqual(try expression?.evaluate() as? UIColor, .testColor)
     }
 
+    func testCustomStaticColor3() {
+        let node = LayoutNode()
+        let expression = LayoutExpression(colorExpression: "{UIColor.testColor}", for: node)
+        XCTAssertEqual(try expression?.evaluate() as? UIColor, .testColor)
+    }
+
+    func testCustomStaticColor4() {
+        let node = LayoutNode()
+        let expression = LayoutExpression(colorExpression: "{testColor}", for: node)
+        XCTAssertEqual(try expression?.evaluate() as? UIColor, .testColor)
+    }
+
     func testNilColor() {
         let null: UIColor? = nil
         let node = LayoutNode(constants: ["color": null as Any])

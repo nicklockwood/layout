@@ -1067,6 +1067,24 @@ The `<font-size>` can be either a number or a percentage. If you use a percentag
 <UILabel font="{themeFont} 25 bold"/>
 ```
 
+You can also define custom named fonts using an extension on `UIFont`, and Layout will detect them automatically:
+
+```swift
+extension UIFont {
+    @objc static var customFont: UIFont { return .systemFont(ofSize: 42) }
+}
+```
+
+Fonts defined in this way can be referenced by name from inside any font expression, either with or without the "Font" suffix, but are not available inside braced sub-expressions `{...}` unless prefixed with `UIFont.`:
+
+```xml
+<UILabel font="customFont bold"/>
+
+<UILabel font="custom italic"/>
+
+<UILabel font="{UIFont.customFont} 120%"/>
+```
+
 ## Colors
 
 Colors can be specified using CSS-style rgb(a) hex literals. These can be 3, 4, 6 or 8 digits long, and are prefixed with a `#`:
@@ -1119,7 +1137,7 @@ loadLayout(
 
 Color constants are available to use in any expression (although they probably aren't much use outside of a color expression).
 
-You can also define a custom colors using extension on `UIColor`, and Layout will detect it automatically:
+You can also define a custom colors using an extension on `UIColor`, and Layout will detect it automatically:
 
 ```swift
 extension UIColor {
@@ -1127,7 +1145,7 @@ extension UIColor {
 }
 ```
 
-Colors defined in this way can be referenced by name from inside any color expression, either with or without the `Color` suffix, but are not available inside other expression types unless prefixed with `UIColor.`:
+Colors defined in this way can be referenced by name from inside any color expression, either with or without the "Color" suffix, but are not available inside other expression types unless prefixed with `UIColor.`:
 
 ```xml
 <UIView backgroundColor="headerColor"/>

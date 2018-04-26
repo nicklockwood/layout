@@ -693,7 +693,7 @@ struct LayoutExpression {
                 if symbols.contains("font"), let font = try node.value(forSymbol: "font") as? UIFont {
                     correctFont = font
                 } else {
-                    correctFont = UIFont.systemFont(ofSize: 17)
+                    correctFont = .systemFont(ofSize: UIFont.defaultSize)
                 }
                 let range = NSMakeRange(0, result.string.utf16.count)
                 result.enumerateAttributes(in: range, options: []) { attribs, range, _ in
@@ -746,6 +746,9 @@ struct LayoutExpression {
         }
 
         func font(named name: String) -> UIFont? {
+            if UIFont.responds(to: Selector(name)), let font = UIFont.value(forKey: name) as? UIFont {
+                return font
+            }
             if let font = UIFont(name: name, size: UIFont.defaultSize),
                 font.fontName.lowercased() == name.lowercased() {
                 return font
@@ -754,6 +757,10 @@ struct LayoutExpression {
                 let font = UIFont(name: fontName, size: UIFont.defaultSize) {
                 let descriptor = UIFontDescriptor().withFamily(font.familyName)
                 return UIFont(descriptor: descriptor, size: UIFont.defaultSize)
+            }
+            let name = name + "Font"
+            if UIFont.responds(to: Selector(name)), let font = UIFont.value(forKey: name) as? UIFont {
+                return font
             }
             return nil
         }
