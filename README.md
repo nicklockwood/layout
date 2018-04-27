@@ -30,6 +30,7 @@ Layout is a native Swift framework for implementing iOS user interfaces using XM
     - [Delegates](#delegates)
     - [Animation](#animation)
     - [Safe Area Insets](#safe-area-insets)
+    - [Legacy Layout Mode](#legacy-layout-mode)
 - [Expressions](#expressions)
     - [Layout Properties](#layout-properties)
     - [Geometry](#geometry)
@@ -639,6 +640,35 @@ For Layout, this approach creates problems, as your view frame may depend on the
 
 To simplify backwards compatibility, as with the `safeAreaInsets` property itself, Layout permits you to set `contentInsetAdjustmentBehavior` on any iOS version, however the value is ignored on iOS versions earlier than 11.
 
+## Legacy Layout Mode
+
+You may have seen references in the code or documentation to the `LayoutNode.useLegacyLayoutMode`. In the original design of Layout, the `right` and `bottom` expressions were specified relative to the top-left corner of the view, rather than relative to their respective edges as you might expect.
+
+Version 0.6.22 of Layout introduces a new layout mode where `bottom` and `right` expressions are relative to the `bottom` and `right` edges, which is more intuitive for users familiar with CSS or AutoLayout, and is also more consistent with the way that the `leading` and `trailing` expressions work.
+
+To avoid breaking compatibility with existing Layout projects, you must explicitly opt-in to the new layout mode by setting `LayoutNode.useLegacyLayoutMode = false` in your application code. This is a global property so it only needs to be set once. A good place to do this is in the `application(_:didFinishLaunchingWithOptions:)` method of your `AppDelegate`:
+
+```swift
+import UIKit
+import Layout
+
+@UIApplicationMain
+class AppDelegate: UIResponder, UIApplicationDelegate {
+    var window: UIWindow?
+
+    func application(_: UIApplication, didFinishLaunchingWithOptions _: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
+        
+        // enable Layout's new layout mode
+        LayoutNode.useLegacyLayoutMode = false
+        
+        // other setup code
+        ...
+    }
+}
+```
+
+In a future version of Layout, the new layout mode will become the default and the legacy layout mode will eventually be removed, so it's a good idea to begin migrating your templates now!
+
 
 # Expressions
 
@@ -695,11 +725,15 @@ top
 left
 bottom
 right
+leading
+trailing
 width
 height
 center.x
 center.y
 ```
+
+**Note:** see the [Legacy Layout Mode](#legacy-layout-mode) section for an important note about the `right` and `bottom` layout properties.
 
 These are numeric values (measured in screen points) that specify the frame for the view. In addition to the standard operators, all of these properties allow values specified in percentages:
 
@@ -733,7 +767,7 @@ The following types of property are given special treatment in order to make it 
 
 ## Geometry
 
-Because Layout manages the view frame automatically, direct manipulation of the view's `frame` or `bounds` is not permitted - you should use the `top`, `left`, `bottom`, `right`, `width`, `height`, `center.x` and `center.y` expressions instead. However, there are other geometric properties that do not directly affect the frame, and many of these *are* available to be set via expressions, for example:
+Because Layout manages the view frame automatically, direct manipulation of the view's `frame` or `bounds` is not permitted - you should use the `top`, `left`, `bottom`, `right`, `leading`, `trailing`, `width`, `height`, `center.x` and `center.y` expressions instead. However, there are other geometric properties that do not directly affect the frame, and many of these *are* available to be set via expressions, for example:
 
 * contentSize
 * contentInset
@@ -741,7 +775,7 @@ Because Layout manages the view frame automatically, direct manipulation of the 
 
 These properties are not simple numbers, but structs containing several packed values. So how can you manipulate these with Layout expressions?
 
-Well, firstly, almost any property type can be set using a constant or state variable, even if there is no way to define a literal value for it in an expression. So for example, the following code will set the `layer.transform` even though Layout has no way to specify a literal `CATransform3D` struct in an expression:
+Firstly, almost any property type can be set using a constant or state variable, even if there is no way to define a literal value for it in an expression. So for example, the following code will set the `layer.transform` even though Layout has no way to specify a literal `CATransform3D` struct in an expression:
 
 ```swift
 loadLayout(
@@ -760,7 +794,7 @@ loadLayout(
 <UIView layer.transform="flipped ? flipTransform : identityTransform"/>
 ```
 
-For many geometric struct types, such as `CGPoint`, `CGSize`, `CGRect`, `CGAffineTransform` and `UIEdgeInsets`, Layout has built-in support for directly referencing the member properties in expressions. To set the top `contentInset` value for a `UIScrollView`, you could use:
+Secondly, for many geometric struct types, such as `CGPoint`, `CGSize`, `CGRect`, `CGAffineTransform` and `UIEdgeInsets`, Layout has built-in support for directly referencing the member properties in expressions. To set the top `contentInset` value for a `UIScrollView`, you could use:
 
 ```xml
 <UIScrollView contentInset.top="safeAreaInsets.top + 10"/>

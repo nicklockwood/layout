@@ -71,6 +71,9 @@ public class LayoutNode: NSObject {
     /// Get the view controller class without side-effects of accessing view
     public var viewControllerClass: UIViewController.Type? { return _class as? UIViewController.Type }
 
+    /// Global legacy rendering mode toggle - affects all LayoutNodes created after setting
+    public static var useLegacyLayoutMode: Bool?
+
     // For internal use
     private(set) var _class: AnyClass
     @objc var _view: UIView?
@@ -78,6 +81,7 @@ public class LayoutNode: NSObject {
     private(set) var _originalExpressions: [String: String]
     private var _usesAutoLayout = false
     private var _isRightToLeftLayout = false
+    private var _useLegacyLayoutMode: Bool
     var _parameters: [String: RuntimeType]
     var _macros: [String: String]
     var rootURL: URL?
@@ -321,6 +325,7 @@ public class LayoutNode: NSObject {
         _parameters = [:]
         _macros = [:]
         _originalExpressions = expressions
+        _useLegacyLayoutMode = LayoutNode.useLegacyLayoutMode ?? true
 
         super.init()
 
@@ -961,7 +966,7 @@ public class LayoutNode: NSObject {
             if hasExpression("leading"), hasExpression("trailing") {
                 expressions["width"] = "100% - leading - trailing"
             } else if hasExpression("left"), hasExpression("right") {
-                expressions["width"] = "right - left"
+                expressions["width"] = _useLegacyLayoutMode ? "right - left" : "100% - right - left"
             } else if !(_view is UIScrollView), _view is UIImageView || _usesAutoLayout ||
                 _view?.intrinsicContentSize.width != UIViewNoIntrinsicMetric {
                 expressions["width"] = "100% == 0 ? auto : min(auto, 100%)"
@@ -980,7 +985,7 @@ public class LayoutNode: NSObject {
             } else if !_isRightToLeftLayout, hasExpression("trailing") {
                 expressions["left"] = "trailing + width"
             } else if hasExpression("right") {
-                expressions["left"] = "right - width"
+                expressions["left"] = _useLegacyLayoutMode ? "right - width" : "100% - right - width"
             } else if hasExpression("center.x") {
                 expressions["left"] = "center.x - width * layer.anchorPoint.x"
             }
@@ -988,7 +993,7 @@ public class LayoutNode: NSObject {
         if !hasExpression("height") {
             _getters["height"] = nil
             if hasExpression("top"), hasExpression("bottom") {
-                expressions["height"] = "bottom - top"
+                expressions["height"] = _useLegacyLayoutMode ? "bottom - top" : "100% - bottom - top"
             } else if !(_view is UIScrollView), _view is UIImageView || _usesAutoLayout ||
                 _view?.intrinsicContentSize.height != UIViewNoIntrinsicMetric {
                 expressions["height"] = "auto"
@@ -999,7 +1004,7 @@ public class LayoutNode: NSObject {
         if !hasExpression("top") {
             _getters["top"] = nil
             if hasExpression("bottom") {
-                expressions["top"] = "bottom - height"
+                expressions["top"] = _useLegacyLayoutMode ? "bottom - height" : "100% - bottom - height"
             } else if hasExpression("center.y") {
                 expressions["top"] = "center.y - height * layer.anchorPoint.y"
             } else if hasExpression("firstBaseline") {
@@ -1720,17 +1725,18 @@ public class LayoutNode: NSObject {
             getter = { [unowned self] in
                 self._view?.frame.width ?? 0
             }
-        case "right":
+        case "right" where _useLegacyLayoutMode:
             getter = { [unowned self] in
                 try SymbolError.wrap({
                     try self.cgFloatValue(forSymbol: "left") + self.cgFloatValue(forSymbol: "width")
                 }, for: symbol)
             }
         case "leading" where _isRightToLeftLayout,
-             "trailing" where !_isRightToLeftLayout:
+             "trailing" where !_isRightToLeftLayout,
+             "right" where !_useLegacyLayoutMode:
             getter = { [unowned self] in
                 try SymbolError.wrap({
-                    try self.cgFloatValue(forSymbol: "containerSize.width") - (self._view?.frame.maxX ?? 0)
+                    try (self.parent?.cgFloatValue(forSymbol: "containerSize.width") ?? 0) - self.maxXValue()
                 }, for: symbol)
             }
         case "top":
@@ -1741,10 +1747,16 @@ public class LayoutNode: NSObject {
             getter = { [unowned self] in
                 self._view?.frame.height ?? 0
             }
-        case "bottom":
+        case "bottom" where _useLegacyLayoutMode:
             getter = { [unowned self] in
                 try SymbolError.wrap({
                     try self.cgFloatValue(forSymbol: "top") + self.cgFloatValue(forSymbol: "height")
+                }, for: symbol)
+            }
+        case "bottom" where !_useLegacyLayoutMode:
+            getter = { [unowned self] in
+                try SymbolError.wrap({
+                    try (self.parent?.cgFloatValue(forSymbol: "containerSize.height") ?? 0) - self.maxYValue()
                 }, for: symbol)
             }
         case "center.x":
@@ -1906,12 +1918,14 @@ public class LayoutNode: NSObject {
                         getter = { [unowned self] in
                             try self.parent?.cgFloatValue(forSymbol: "lastBaselineOffset") ?? 0
                         }
-                    case "right", "width", "containerSize.width":
+                    case "width", "containerSize.width",
+                         "right" where _useLegacyLayoutMode:
                         getter = { [unowned self] in
                             try self.parent?.cgFloatValue(forSymbol: "containerSize.width") ??
                                 self._view?.superview?.bounds.width ?? 0
                         }
-                    case "bottom", "height", "containerSize.height":
+                    case "height", "containerSize.height",
+                         "bottom" where _useLegacyLayoutMode:
                         getter = { [unowned self] in
                             try self.parent?.cgFloatValue(forSymbol: "containerSize.height") ??
                                 self._view?.superview?.bounds.height ?? 0
@@ -1928,48 +1942,54 @@ public class LayoutNode: NSObject {
                     }
                 case "previous" where layoutSymbols.contains(tail):
                     switch tail {
-                    case "trailing":
-                        if _isRightToLeftLayout {
-                            getter = { [unowned self] in
-                                switch self._evaluating.last ?? "" {
-                                case "left", "right":
-                                    return try self.previousVisible?.value(forSymbol: "left") ??
-                                        self.cgFloatValue(forSymbol: "parent.width")
-                                case "leading":
-                                    return try self.previousVisible.map {
-                                        try self.cgFloatValue(forSymbol: "parent.width")
-                                            - $0.cgFloatValue(forSymbol: "left")
-                                    } ?? 0
-                                default:
-                                    return try self.previousVisible?.value(forSymbol: "trailing") ?? 0
-                                }
-                            }
-                        } else {
-                            getter = { [unowned self] in
-                                switch self._evaluating.last ?? "" {
-                                case "left", "right", "leading":
-                                    return try self.previousVisible?.value(forSymbol: "right") ?? 0
-                                default:
-                                    return try self.previousVisible?.value(forSymbol: "trailing") ?? 0
-                                }
+                    case "trailing" where _isRightToLeftLayout:
+                        getter = { [unowned self] in
+                            switch self._evaluating.last ?? "" {
+                            case "left",
+                                 "right" where self._useLegacyLayoutMode:
+                                return try self.previousVisible?.value(forSymbol: "left") ??
+                                    self.cgFloatValue(forSymbol: "parent.width")
+                            case "leading":
+                                return try self.previousVisible.map {
+                                    try self.cgFloatValue(forSymbol: "parent.width")
+                                        - $0.cgFloatValue(forSymbol: "left")
+                                } ?? 0
+                            default:
+                                return try self.previousVisible?.value(forSymbol: "trailing") ?? 0
                             }
                         }
-                    case "leading":
-                        if _isRightToLeftLayout {
-                            getter = { [unowned self] in
-                                switch self._evaluating.last ?? "" {
-                                case "left", "right":
-                                    return try self.previousVisible?.value(forSymbol: "right") ??
-                                        self.cgFloatValue(forSymbol: "parent.width")
-                                case "trailing":
-                                    return try self.previousVisible?.value(forSymbol: "right") ?? 0
-                                default:
-                                    return try self.previousVisible?.value(forSymbol: "leading") ?? 0
-                                }
+                    case "trailing" where !_isRightToLeftLayout,
+                         "right" where !self._useLegacyLayoutMode:
+                        getter = { [unowned self] in
+                            switch self._evaluating.last ?? "" {
+                            case "left",
+                                 "right" where self._useLegacyLayoutMode,
+                                 "leading" where !self._isRightToLeftLayout:
+                                return try self.previousVisible?.maxXValue() ?? 0
+                            default:
+                                return try self.previousVisible?.value(forSymbol: "trailing") ?? 0
                             }
-                        } else {
-                            getter = { [unowned self] in
-                                try self.previousVisible?.value(forSymbol: "leading") ?? 0
+                        }
+                    case "leading" where _isRightToLeftLayout:
+                        getter = { [unowned self] in
+                            switch self._evaluating.last ?? "" {
+                            case "left",
+                                 "right" where self._useLegacyLayoutMode:
+                                return try self.previousVisible?.maxXValue() ??
+                                    self.cgFloatValue(forSymbol: "parent.width")
+                            case "trailing":
+                                return try self.previousVisible?.maxXValue() ?? 0
+                            default:
+                                return try self.previousVisible?.value(forSymbol: "leading") ?? 0
+                            }
+                        }
+                    case "bottom" where !self._useLegacyLayoutMode:
+                        getter = { [unowned self] in
+                            switch self._evaluating.last ?? "" {
+                            case "top":
+                                return try self.previousVisible?.maxYValue() ?? 0
+                            default:
+                                return try self.previousVisible?.value(forSymbol: "bottom") ?? 0
                             }
                         }
                     default:
@@ -1983,48 +2003,54 @@ public class LayoutNode: NSObject {
                     }
                 case "next" where layoutSymbols.contains(tail):
                     switch tail {
-                    case "trailing":
-                        if _isRightToLeftLayout {
-                            getter = { [unowned self] in
-                                switch self._evaluating.last ?? "" {
-                                case "left", "right":
-                                    return try self.nextVisible?.value(forSymbol: "left") ??
-                                        self.cgFloatValue(forSymbol: "parent.width")
-                                case "leading":
-                                    return try self.nextVisible.map {
-                                        try self.cgFloatValue(forSymbol: "parent.width")
-                                            - $0.cgFloatValue(forSymbol: "left")
-                                    } ?? 0
-                                default:
-                                    return try self.nextVisible?.value(forSymbol: "trailing") ?? 0
-                                }
-                            }
-                        } else {
-                            getter = { [unowned self] in
-                                switch self._evaluating.last ?? "" {
-                                case "left", "right", "leading":
-                                    return try self.nextVisible?.value(forSymbol: "right") ?? 0
-                                default:
-                                    return try self.nextVisible?.value(forSymbol: "trailing") ?? 0
-                                }
+                    case "trailing" where _isRightToLeftLayout:
+                        getter = { [unowned self] in
+                            switch self._evaluating.last ?? "" {
+                            case "left",
+                                 "right" where self._useLegacyLayoutMode:
+                                return try self.nextVisible?.value(forSymbol: "left") ??
+                                    self.cgFloatValue(forSymbol: "parent.width")
+                            case "leading":
+                                return try self.nextVisible.map {
+                                    try self.cgFloatValue(forSymbol: "parent.width")
+                                        - $0.cgFloatValue(forSymbol: "left")
+                                } ?? 0
+                            default:
+                                return try self.nextVisible?.value(forSymbol: "trailing") ?? 0
                             }
                         }
-                    case "leading":
-                        if _isRightToLeftLayout {
-                            getter = { [unowned self] in
-                                switch self._evaluating.last ?? "" {
-                                case "left", "right":
-                                    return try self.nextVisible?.value(forSymbol: "right") ??
-                                        self.cgFloatValue(forSymbol: "parent.width")
-                                case "trailing":
-                                    return try self.nextVisible?.value(forSymbol: "right") ?? 0
-                                default:
-                                    return try self.nextVisible?.value(forSymbol: "leading") ?? 0
-                                }
+                    case "trailing" where !_isRightToLeftLayout,
+                         "right" where !self._useLegacyLayoutMode:
+                        getter = { [unowned self] in
+                            switch self._evaluating.last ?? "" {
+                            case "left",
+                                 "right" where self._useLegacyLayoutMode,
+                                 "leading" where !self._isRightToLeftLayout:
+                                return try self.nextVisible?.maxXValue() ?? 0
+                            default:
+                                return try self.nextVisible?.value(forSymbol: "trailing") ?? 0
                             }
-                        } else {
-                            getter = { [unowned self] in
-                                try self.nextVisible?.value(forSymbol: "leading") ?? 0
+                        }
+                    case "leading" where _isRightToLeftLayout:
+                        getter = { [unowned self] in
+                            switch self._evaluating.last ?? "" {
+                            case "left",
+                                 "right" where self._useLegacyLayoutMode:
+                                return try self.nextVisible?.maxXValue() ??
+                                    self.cgFloatValue(forSymbol: "parent.width")
+                            case "trailing":
+                                return try self.nextVisible?.maxXValue() ?? 0
+                            default:
+                                return try self.nextVisible?.value(forSymbol: "leading") ?? 0
+                            }
+                        }
+                    case "bottom" where !self._useLegacyLayoutMode:
+                        getter = { [unowned self] in
+                            switch self._evaluating.last ?? "" {
+                            case "top":
+                                return try self.nextVisible?.maxYValue() ?? 0
+                            default:
+                                return try self.nextVisible?.value(forSymbol: "bottom") ?? 0
                             }
                         }
                     default:
@@ -2090,6 +2116,20 @@ public class LayoutNode: NSObject {
                 height: _evaluating.contains("height") ? 0 : try cgFloatValue(forSymbol: "height")
             )
         } ?? .zero
+    }
+
+    private func maxXValue() throws -> CGFloat {
+        if _useLegacyLayoutMode {
+            return try cgFloatValue(forSymbol: "right")
+        }
+        return try cgFloatValue(forSymbol: "left") + cgFloatValue(forSymbol: "width")
+    }
+
+    private func maxYValue() throws -> CGFloat {
+        if _useLegacyLayoutMode {
+            return try cgFloatValue(forSymbol: "bottom")
+        }
+        return try cgFloatValue(forSymbol: "top") + cgFloatValue(forSymbol: "height")
     }
 
     private var _widthDependsOnParent: Bool?
