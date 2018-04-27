@@ -237,12 +237,29 @@ public class LayoutNode: NSObject {
                     "contentOffset", "contentOffset.x", "contentOffset.y",
                     "bounds", "bounds.origin", "bounds.origin.x", "bounds.origin.y",
                     "bounds.x", "bounds.y",
-                ])
+                ], recursive: true)
             }
             if _anyChildDependsOnContentOffset == true {
                 children.forEach { $0.update() }
             }
             _previousBounds.origin = view.bounds.origin
+        }
+    }
+
+    // called by UITableView/UICollectionView as cells are loaded
+    private var _anyExpressionDependsOnContentSize: Bool?
+    internal func contentSizeChanged() {
+        if _anyExpressionDependsOnContentSize == nil {
+            _anyExpressionDependsOnContentSize = anyExpressionDependsOn([
+                "inferredSize.width", "inferredSize.height",
+                "inferredContentSize.width", "inferredContentSize.height",
+                "contentSize", "contentSize.width", "contentSize.height",
+                "bounds", "bounds.size", "bounds.size.width", "bounds.size.height",
+                "bounds.width", "bounds.height",
+            ], recursive: false)
+        }
+        if _anyExpressionDependsOnContentSize == true, _view?.window != nil {
+            update()
         }
     }
 
@@ -1612,7 +1629,7 @@ public class LayoutNode: NSObject {
         return _value(forSymbol: name, dependsOn: symbol)
     }
 
-    private func anyExpressionDependsOn(_ symbols: [String]) -> Bool {
+    private func anyExpressionDependsOn(_ symbols: [String], recursive: Bool) -> Bool {
         for name in expressions.keys {
             if let expression = _layoutExpressions[name] ??
                 _viewControllerExpressions[name] ?? _viewExpressions[name],
@@ -1629,7 +1646,12 @@ public class LayoutNode: NSObject {
             }
             return ["parent.\(symbol)"]
         }
-        return children.contains(where: { $0.anyExpressionDependsOn(symbols) })
+        if recursive {
+            return children.contains {
+                $0.anyExpressionDependsOn(symbols, recursive: true)
+            }
+        }
+        return false
     }
 
     // Used by LayoutExpression and for unit tests

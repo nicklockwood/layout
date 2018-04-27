@@ -142,11 +142,7 @@ extension UITableView: LayoutBacked {
     open override var contentSize: CGSize {
         didSet {
             if oldValue != contentSize, let layoutNode = layoutNode {
-                let contentOffset = self.contentOffset.y
-                layoutNode.update()
-                if contentOffset >= 0 {
-                    self.contentOffset.y = contentOffset
-                }
+                layoutNode.contentSizeChanged()
             }
         }
     }

@@ -128,9 +128,7 @@ extension UICollectionView: LayoutBacked {
     open override var contentSize: CGSize {
         didSet {
             if oldValue != contentSize, let layoutNode = layoutNode {
-                let contentOffset = self.contentOffset
-                layoutNode.update()
-                self.contentOffset = contentOffset
+                layoutNode.contentSizeChanged()
             }
         }
     }
