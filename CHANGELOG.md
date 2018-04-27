@@ -1,5 +1,11 @@
 # Change Log
 
+## [0.6.22](https://github.com/schibsted/layout/releases/tag/0.6.22) (2018-04-27)
+
+- Added a more intuitive behavior for `right` & `bottom` layout expressions (see "Legacy Layout Mode" section in README)
+- Reduced initial setup time for UITableView ans UICollectionView layouts
+- Font expressions can now reference static font properties defined on `UIFont` as named fonts
+
 ## [0.6.21](https://github.com/schibsted/layout/releases/tag/0.6.21) (2018-04-05)
 
 - Added `<children/>` tag for specifying insertion point for children inside nested template files (see README for details)

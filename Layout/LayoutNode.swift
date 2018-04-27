@@ -1959,7 +1959,7 @@ public class LayoutNode: NSObject {
                             }
                         }
                     case "trailing" where !_isRightToLeftLayout,
-                         "right" where !self._useLegacyLayoutMode:
+                         "right" where !_useLegacyLayoutMode:
                         getter = { [unowned self] in
                             switch self._evaluating.last ?? "" {
                             case "left",
@@ -1983,7 +1983,7 @@ public class LayoutNode: NSObject {
                                 return try self.previousVisible?.value(forSymbol: "leading") ?? 0
                             }
                         }
-                    case "bottom" where !self._useLegacyLayoutMode:
+                    case "bottom" where !_useLegacyLayoutMode:
                         getter = { [unowned self] in
                             switch self._evaluating.last ?? "" {
                             case "top":
@@ -2020,7 +2020,7 @@ public class LayoutNode: NSObject {
                             }
                         }
                     case "trailing" where !_isRightToLeftLayout,
-                         "right" where !self._useLegacyLayoutMode:
+                         "right" where !_useLegacyLayoutMode:
                         getter = { [unowned self] in
                             switch self._evaluating.last ?? "" {
                             case "left",
@@ -2044,7 +2044,7 @@ public class LayoutNode: NSObject {
                                 return try self.nextVisible?.value(forSymbol: "leading") ?? 0
                             }
                         }
-                    case "bottom" where !self._useLegacyLayoutMode:
+                    case "bottom" where !_useLegacyLayoutMode:
                         getter = { [unowned self] in
                             switch self._evaluating.last ?? "" {
                             case "top":
