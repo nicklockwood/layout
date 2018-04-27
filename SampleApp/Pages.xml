@@ -33,7 +33,7 @@
         />
     </UIScrollView>
     <UIPageControl
-        bottom="100% - parent.safeAreaInsets.bottom - 40"
+        bottom="parent.safeAreaInsets.bottom + 40"
         center.x="50%"
         isUserInteractionEnabled="false"
         numberOfPages="3"

@@ -58,17 +58,17 @@
     <!-- Floating button -->
     <UIView
         backgroundColor="#fff9"
-        bottom="previous.bottom - parent.safeAreaInsets.bottom"
+        bottom="previous.bottom + parent.safeAreaInsets.bottom"
         height="50"
         left="0"
         width="100%">
 
         <UIButton
             backgroundColor="isToggled ? colors.blue : colors.red"
-            bottom="100% - 10"
+            bottom="10"
             layer.cornerRadius="5"
             left="safeAreaInsets.left + 15"
-            right="100% - 15 - safeAreaInsets.right"
+            right="safeAreaInsets.right + 15"
             title="Toggle"
             top="10"
             touchUpInside="{isToggled ? 'setUntoggled' : 'setToggled'}"

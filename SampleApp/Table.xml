@@ -45,7 +45,7 @@
             <UIImageView
                 highlightedImage="{whiteImage}"
                 image="{image}"
-                right="100% - 20"
+                right="20"
                 top="20"
             />
         </UITableViewCell>
