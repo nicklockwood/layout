@@ -337,16 +337,22 @@ public class LayoutNode: NSObject {
             case "center.x" where hasExpression(in: ["left", "right", "leading", "trailing"]),
                  "left" where hasExpression(in: ["leading", "trailing"]) ||
                      (hasExpression(in: ["center.x", "right"]) && hasExpression("width")),
+                 "leading" where hasExpression(in: ["left", "right"]) ||
+                    (hasExpression(in: ["center.x", "trailing"]) && hasExpression("width")),
                  "right" where hasExpression(in: ["leading", "trailing"]) ||
                      (hasExpression(in: ["center.x", "left"]) && hasExpression("width")),
+                 "trailing" where hasExpression(in: ["left", "right"]) ||
+                    (hasExpression(in: ["center.x", "leading"]) && hasExpression("width")),
                  "width" where (hasExpression("left") && hasExpression("right")) ||
                      (hasExpression("leading") && hasExpression("trailing")),
                  "center.y" where
                      hasExpression(in: ["top", "bottom", "firstBaseline", "lastBaseline"]),
                  "top" where
-                     hasExpression(in: ["center.y", "firstBaseline", "lastBaseline"]) || (hasExpression("height") && hasExpression("bottom")),
+                     hasExpression(in: ["center.y", "firstBaseline", "lastBaseline"]) ||
+                        (hasExpression("height") && hasExpression("bottom")),
                  "bottom" where
-                     hasExpression(in: ["center.y", "firstBaseline", "lastBaseline"]) || (hasExpression("height") && hasExpression("top")),
+                     hasExpression(in: ["center.y", "firstBaseline", "lastBaseline"]) ||
+                        (hasExpression("height") && hasExpression("top")),
                  "height" where hasExpression("top") && hasExpression("bottom"),
                  "firstBaseline" where
                      hasExpression(in: ["top", "bottom", "center.y", "lastBaseline"]),
