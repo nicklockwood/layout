@@ -122,18 +122,18 @@ class EditViewController: UIViewController, UITextFieldDelegate {
                 return filterType(key, elementType)
             }
         }
-        let fieldNames = ["top", "left", "width", "height", "bottom", "right"]
-            + node.viewControllerExpressionTypes.flatMap(filterType).sorted()
-            + node.viewExpressionTypes.flatMap(filterType).sorted {
-                switch ($0.hasPrefix("layer."), $1.hasPrefix("layer.")) {
-                case (true, true), (false, false):
-                    return $0 < $1
-                case (true, false):
-                    return false
-                case (false, true):
-                    return true
-                }
+        var fieldNames = ["top", "left", "width", "height", "bottom", "right"]
+        fieldNames.append(contentsOf: node.viewControllerExpressionTypes.flatMap(filterType).sorted())
+        fieldNames.append(contentsOf: node.viewExpressionTypes.flatMap(filterType).sorted {
+            switch ($0.hasPrefix("layer."), $1.hasPrefix("layer.")) {
+            case (true, true), (false, false):
+                return $0 < $1
+            case (true, false):
+                return false
+            case (false, true):
+                return true
             }
+        })
 
         let start = CACurrentMediaTime()
         for name in fieldNames {

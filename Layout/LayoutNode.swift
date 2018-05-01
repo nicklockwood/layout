@@ -2525,16 +2525,14 @@ public class LayoutNode: NSObject {
         guard _updateLock == 0 else { return }
         defer { _updateLock -= 1 }
         _updateLock += 1
-        try LayoutError.wrap(setUpExpressions, for: self)
-        clearCachedValues()
         try LayoutError.wrap({
+            try setUpExpressions()
+            clearCachedValues()
             try _updateExpressionValues(animated)
-        }, for: self)
-        for child in children {
-            try LayoutError.wrap({
+            for child in children {
                 try child.updateValues(animated: animated)
-            }, for: self)
-        }
+            }
+        }, for: self)
     }
 
     // Note: thrown error is always a LayoutError
@@ -2582,9 +2580,11 @@ public class LayoutNode: NSObject {
                 scrollView.contentSize = contentSize
             }
         }
-        for child in children {
-            try LayoutError.wrap(child.updateFrame, for: self)
-        }
+        try LayoutError.wrap({
+            for child in children where child._view?.superview != nil {
+                try child.updateFrame()
+            }
+        }, for: self)
         _view.didUpdateLayout(for: self)
         _view.viewController?.didUpdateLayout(for: self)
         try throwUnhandledError()
@@ -2593,7 +2593,9 @@ public class LayoutNode: NSObject {
     /// Re-evaluates all expressions for the node and its children
     private func update(animated: Bool) {
         attempt {
-            _view?.layoutIfNeeded()
+            if _updateLock == 0 {
+                _view?.layoutIfNeeded()
+            }
             try updateValues(animated: animated)
             try updateFrame()
         }

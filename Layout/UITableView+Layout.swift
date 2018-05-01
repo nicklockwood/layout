@@ -393,15 +393,9 @@ extension UITableView {
                 }
                 nodes?.add(node)
                 node.delegate = self
-                try node.bind(to: node.view) // TODO: find a better solution for binding
                 let cell = node.view
                 cell.setValue(identifier, forKey: "reuseIdentifier")
-                node.performWithoutUpdate {
-                    cell.frame.size = CGSize(
-                        width: bounds.width,
-                        height: estimatedRowHeight > 0 ? estimatedRowHeight : rowHeight
-                    )
-                }
+                try node.bind(to: cell) // TODO: find a better solution for binding
                 return node
             case let .failure(error):
                 throw error
