@@ -4,7 +4,7 @@ import Foundation
 
 // Internal struct used to store
 // serialized layouts
-struct Layout {
+public struct Layout {
     var className: String
     var id: String?
     var expressions: [String: String]

@@ -20,6 +20,7 @@ class ViewController: UIViewController, LayoutLoading {
     }
 
     @objc func refresh() {
+        Layout.clearAllCaches()
         layoutNode?.setState(getState())
     }
 }
@@ -72,14 +73,16 @@ private func createNodes(_ count: Int) -> LayoutNode {
         children.append(
             LayoutNode(
                 view: UILabel(),
+                constants: ["i": i],
                 expressions: [
+                    "backgroundColor": "i % 2 == 0 ? #ff0000 : #00ff00",
                     "top": "previous.bottom + 10",
                     "left": "10",
                     "width": "100% - 20",
                     "height": "auto",
                     "font": "helvetica 17",
                     "numberOfLines": "0",
-                    "text": "\(i). Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+                    "text": "{i}. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
                 ]
             )
         )
@@ -147,6 +150,9 @@ private func createAutoLayout(_ count: Int) -> UIView {
     var previous: UILabel?
     for i in 0 ..< count {
         let label = UILabel()
+        label.backgroundColor = (i % 2 == 0) ?
+            UIColor(red: 1, green: 0, blue: 0, alpha: 1) :
+            UIColor(red: 0, green: 1, blue: 0, alpha: 1)
         label.numberOfLines = 0
         label.font = UIFont(name: "Helvetica", size: 17)
         label.text = "\(i). Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."

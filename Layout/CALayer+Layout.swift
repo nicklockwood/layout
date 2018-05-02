@@ -4,6 +4,10 @@ import QuartzCore
 
 private var _cachedExpressionTypes = [Int: [String: RuntimeType]]()
 
+func clearCachedLayerExpressionTypes() {
+    _cachedExpressionTypes.removeAll()
+}
+
 extension CALayer {
     /// Expression names and types
     @objc class var expressionTypes: [String: RuntimeType] {

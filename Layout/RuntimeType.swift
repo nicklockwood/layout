@@ -4,6 +4,10 @@ import UIKit
 
 private let objCBoolIsChar = (OBJC_BOOL_IS_BOOL == 0)
 
+func clearRuntimeTypeCache() {
+    RuntimeType.cache.removeAll()
+}
+
 public class RuntimeType: NSObject {
     public enum Kind: Equatable, CustomStringConvertible {
         case any(Any.Type)
@@ -64,7 +68,7 @@ public class RuntimeType: NSObject {
     private(set) var setter: Setter?
     internal var caster: Caster?
 
-    private static var cache = [String: RuntimeType?]()
+    fileprivate static var cache = [String: RuntimeType?]()
     private static let queue = DispatchQueue(label: "com.Layout.RuntimeType")
     private static func _type(named typeName: String) -> RuntimeType? {
         if let type = queue.sync(execute: { cache[typeName] }) {

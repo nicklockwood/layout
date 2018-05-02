@@ -3,6 +3,12 @@
 import UIKit
 import Foundation
 
+func clearLayoutExpressionCache() {
+    _colorCache.removeAll()
+    _colorAssetCache.removeAll()
+    _imageAssetCache.removeAllObjects()
+}
+
 private let ignoredSymbols: Set<Expression.Symbol> = [
     .variable("pi"),
     .variable("true"),

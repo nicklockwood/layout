@@ -4,6 +4,10 @@ import UIKit
 
 private var _cachedExpressionTypes = [Int: [String: RuntimeType]]()
 
+func clearCachedViewControllerExpressionTypes() {
+    _cachedExpressionTypes.removeAll()
+}
+
 extension UIBarButtonItem {
     /// Expression names and types
     @objc class var expressionTypes: [String: RuntimeType] {

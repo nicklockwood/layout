@@ -13,6 +13,11 @@ let standardSymbols = Set(Expression.mathSymbols.keys).union(Expression.boolSymb
     .function("rgba", arity: 4),
 ])
 
+func clearParsedExpressionCache() {
+    _expressionCache.removeAll()
+    _stringExpressionCache.removeAll()
+}
+
 struct ParsedLayoutExpression: CustomStringConvertible {
     var expression: ParsedExpression
     var comment: String?

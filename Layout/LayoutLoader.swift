@@ -4,6 +4,10 @@ import Foundation
 
 typealias LayoutLoaderCallback = (LayoutNode?, LayoutError?) -> Void
 
+func clearLayoutLoaderCache() {
+    cache.removeAll()
+}
+
 // Cache for previously loaded layouts
 private var cache = [URL: Layout]()
 private let queue = DispatchQueue(label: "com.Layout.LayoutLoader")
