@@ -1058,11 +1058,11 @@ public class LayoutNode: NSObject {
     lazy var availableExpressions: Set<String> = {
         var expressions = layoutSymbols
         expressions.formUnion(["outlet", "id", "xml", "template"])
-        expressions.formUnion(_parameters.keys)
-        expressions.formUnion(_class.expressionTypes.compactMap {
+        expressions.formUnion(self._parameters.keys)
+        expressions.formUnion(self._class.expressionTypes.compactMap {
             $0.value.isAvailable ? $0.key : nil
         })
-        if _class is UIViewController.Type {
+        if self._class is UIViewController.Type {
             // TODO: disallow setting view properties directly if type is a UIViewController
             expressions.formUnion(UIView.expressionTypes.compactMap {
                 $0.value.isAvailable ? $0.key : nil
@@ -2567,7 +2567,10 @@ public class LayoutNode: NSObject {
                 try child.updateFrame()
             }
         }, for: self)
-        _managed?.didUpdateLayout(for: self)
+        // TODO: would it be better to apply this only to the managed view/vc
+        // and then also call didUpdateLayout on root's owner if it has that method?
+        _view.didUpdateLayout(for: self)
+        _view.viewController?.didUpdateLayout(for: self)
         try throwUnhandledError()
     }
 

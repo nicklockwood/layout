@@ -1,5 +1,13 @@
 # Change Log
 
+## [0.6.23](https://github.com/schibsted/layout/releases/tag/0.6.23) (2018-05-03)
+
+- Added a warning when setting UIView property expressions directly on a UIViewController node
+- Improved right-to-left behavior on iOS 10 and earlier
+- Default leading and trailing expressions are now supported
+- Fixed blank warnings in Layout console when using new layout mode
+- Performance improvements
+
 ## [0.6.22](https://github.com/schibsted/layout/releases/tag/0.6.22) (2018-04-27)
 
 - Added a more intuitive behavior for `right` & `bottom` layout expressions (see "Legacy Layout Mode" section in README)

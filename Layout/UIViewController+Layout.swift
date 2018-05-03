@@ -400,8 +400,9 @@ extension UITabBarController {
     open override class var expressionTypes: [String: RuntimeType] {
         var types = super.expressionTypes
         types["selectedIndex"] = .int
+        types["viewControllers"] = .array(of: UIViewController.self)
         types["customizableViewControllers"] = .array(of: UIViewController.self)
-
+        
         #if arch(i386) || arch(x86_64)
             // Private and read-only properties
             for name in [
@@ -414,6 +415,15 @@ extension UITabBarController {
             }
         #endif
         return types
+    }
+
+    open override func setAnimatedValue(_ value: Any, forExpression name: String) throws {
+        switch name {
+        case "viewControllers":
+            setViewControllers(value as? [UIViewController], animated: true)
+        default:
+            try super.setAnimatedValue(value, forExpression: name)
+        }
     }
 
     open override func didInsertChildNode(_ node: LayoutNode, at index: Int) {
@@ -737,6 +747,7 @@ extension UISplitViewController {
     open override class var expressionTypes: [String: RuntimeType] {
         var types = super.expressionTypes
         types["preferredDisplayMode"] = .uiSplitViewControllerDisplayMode
+        types["viewControllers"] = .array(of: UIViewController.self)
         types["primaryEdge"] = .uiSplitViewControllerPrimaryEdge
 
         #if arch(i386) || arch(x86_64)
