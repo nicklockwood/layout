@@ -56,8 +56,13 @@ extension UIViewController: LayoutManaged {
         }
         // TODO: barButtonItem.backgroundImage, etc
 
+        // View properties
+        for (name, type) in UIView.cachedExpressionTypes {
+            types["view.\(name)"] = type
+        }
+
         #if arch(i386) || arch(x86_64)
-            // Private and read-only properties
+            // Private properties
             for name in [
                 "SKUIStackedBarSplit",
                 "aggregateStatisticsDisplayCountKey",
@@ -92,7 +97,14 @@ extension UIViewController: LayoutManaged {
                 "storePageProtocol",
                 "useLegacyContainment",
                 "wantsFullScreenLayout",
-            ] + [
+            ] {
+                types[name] = nil
+                for key in types.keys where key.hasPrefix(name) {
+                    types[key] = nil
+                }
+            }
+            // Read-only properties
+            for name in [
                 "disablesAutomaticKeyboardDismissal",
                 "interfaceOrientation",
                 "nibName",
@@ -102,9 +114,6 @@ extension UIViewController: LayoutManaged {
                 "view", // Not actually read-only, but Layout doesn't allow this to be set
             ] {
                 types[name] = nil
-                for key in types.keys where key.hasPrefix(name) {
-                    types[key] = nil
-                }
             }
         #endif
 
@@ -229,9 +238,13 @@ extension UIViewController: LayoutManaged {
     /// Key is the symbol name, value is the suggested replacement
     /// Empty value string indicates no replacement available
     @objc open class var deprecatedSymbols: [String: String] {
-        return [
+        var deprecatedSymbols = [
             "automaticallyAdjustsScrollViewInsets": "UIScrollView.contentInsetAdjustmentBehavior",
         ]
+        for (key, alternative) in UIView.deprecatedSymbols {
+            deprecatedSymbols["view.\(key)"] = alternative
+        }
+        return deprecatedSymbols
     }
 
     /// Called to construct the view

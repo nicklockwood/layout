@@ -307,7 +307,7 @@ private class LayoutWarningView: UIView, LayoutLoading {
                         expressions: [
                             "top": "5",
                             "left": "10",
-                            "right": "100% - 10",
+                            "width": "100% - 20",
                             "numberOfLines": "0",
                             "height": "auto",
                             "text": "{warning}",

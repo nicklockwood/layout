@@ -1,4 +1,4 @@
-<TableViewController backgroundColor="white">
+<TableViewController view.backgroundColor="white">
     <UITableView
         backgroundColor="tintColor"
         contentInset.bottom="safeAreaInsets.bottom"

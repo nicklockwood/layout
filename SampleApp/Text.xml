@@ -1,4 +1,4 @@
-<UIViewController backgroundColor="#fee">
+<UIViewController view.backgroundColor="#fee">
     <UIScrollView
         contentInset.bottom="safeAreaInsets.bottom + PADDING"
         contentInset.left="safeAreaInsets.left + PADDING"

@@ -1568,29 +1568,23 @@ public class LayoutNode: NSObject {
 
     #if arch(i386) || arch(x86_64)
 
-        private lazy var deprecatedViewSymbols: [String: String] = {
-            self.viewClass.deprecatedSymbols
-        }()
-
-        private lazy var deprecatedViewControllerSymbols: [String: String] = {
-            self.viewControllerClass.map { $0.deprecatedSymbols } ?? [:]
+        private lazy var deprecatedSymbols: [String: String] = {
+            self._class.deprecatedSymbols
         }()
 
         private func handleDeprecation(for symbol: String) {
-            let cls: AnyClass
             let alternative: String
-            if let _alternative = deprecatedViewControllerSymbols[symbol] {
-                cls = _class
+            if let _alternative = deprecatedSymbols[symbol] {
                 alternative = _alternative
-            } else if let _alternative = deprecatedViewSymbols[symbol] {
+            } else if _class is UIViewController.Type,
                 // TODO: disallow setting view properties directly if type is a UIViewController
-                cls = viewClass
-                alternative = _alternative
+                _viewExpressions[symbol] != nil, _viewControllerExpressions[symbol] == nil {
+                alternative = "view.\(symbol)"
             } else {
                 return
             }
             _unhandledWarnings.append(
-                "\(cls).\(symbol) is deprecated\(alternative.isEmpty ? "" : ". Use \(alternative) instead")"
+                "\(_class).\(symbol) is deprecated\(alternative.isEmpty ? "" : ". Use \(alternative) instead")"
             )
             bubbleUnhandledErrors()
         }

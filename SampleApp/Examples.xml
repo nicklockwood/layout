@@ -1,4 +1,4 @@
-<UITabBarController backgroundColor="white">
+<UITabBarController view.backgroundColor="white">
     <UITabBar tintColor="#77f"/>
 
     <!-- Boxes -->

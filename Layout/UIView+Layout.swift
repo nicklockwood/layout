@@ -33,6 +33,8 @@ extension UIView: LayoutManaged {
             types["directionalLayoutMargins.\(key)"] = .cgFloat
         }
         types["semanticContentAttribute"] = .uiSemanticContentAttribute
+
+        // Layer properties
         for (name, type) in (layerClass as! CALayer.Type).cachedExpressionTypes {
             types["layer.\(name)"] = type
         }

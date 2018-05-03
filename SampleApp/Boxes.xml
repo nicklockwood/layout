@@ -1,6 +1,6 @@
 <BoxesViewController
-    backgroundColor="white"
-    outlet="layoutNode">
+    outlet="layoutNode"
+    view.backgroundColor="white">
 
     <UIScrollView
         contentInset.bottom="safeAreaInsets.bottom + 50"

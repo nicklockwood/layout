@@ -1,4 +1,4 @@
-<PagesViewController backgroundColor="#ddd">
+<PagesViewController view.backgroundColor="#ddd">
     <UIScrollView
         contentInset.bottom="safeAreaInsets.bottom"
         contentInset.top="max(safeAreaInsets.top + 10, 20)"
