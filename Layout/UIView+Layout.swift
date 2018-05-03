@@ -215,11 +215,11 @@ extension UIView {
         )
     }
 
-    private var _effectiveUserInterfaceLayoutDirection: UIUserInterfaceLayoutDirection {
+    internal var _effectiveUserInterfaceLayoutDirection: UIUserInterfaceLayoutDirection {
         if #available(iOS 10.0, *) {
             return effectiveUserInterfaceLayoutDirection
         } else {
-            return UIApplication.shared.userInterfaceLayoutDirection
+            return UIView.userInterfaceLayoutDirection(for: semanticContentAttribute)
         }
     }
 

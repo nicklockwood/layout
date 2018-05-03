@@ -80,11 +80,15 @@ public class LayoutNode: NSObject {
     private(set) var _viewController: UIViewController?
     private(set) var _originalExpressions: [String: String]
     private var _usesAutoLayout = false
-    private var _isRightToLeftLayout = false
     private var _useLegacyLayoutMode: Bool
     var _parameters: [String: RuntimeType]
     var _macros: [String: String]
     var rootURL: URL?
+
+    private var _isRightToLeftLayout: Bool {
+        return _view?._effectiveUserInterfaceLayoutDirection ??
+            UIApplication.shared.userInterfaceLayoutDirection == .rightToLeft
+    }
 
     func expression(forMacro name: String) -> String? {
         attempt(completeSetup)
@@ -130,14 +134,6 @@ public class LayoutNode: NSObject {
         // TODO: since this only has to be done once per app launch, is there a
         // better place we can call it?
         UIView._swizzle()
-
-        // Layout direction
-        switch UIView.userInterfaceLayoutDirection(for: _view!.semanticContentAttribute) {
-        case .rightToLeft:
-            _isRightToLeftLayout = true
-        case .leftToRight:
-            _isRightToLeftLayout = false
-        }
 
         // AutoLayout support
         _usesAutoLayout = _view!.constraints.contains {
