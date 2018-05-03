@@ -1354,9 +1354,11 @@ public class LayoutNode: NSObject {
             _settingUpExpressions = false
             _expressionsSetUp = true
         }
-        for symbol in expressions.keys {
-            try LayoutError.wrap({ try setUpExpression(for: symbol) }, for: self)
-        }
+        try LayoutError.wrap({
+            for symbol in expressions.keys {
+                try setUpExpression(for: symbol)
+            }
+        }, for: self)
 
         var blocks = [(Bool) throws -> Void]()
         try LayoutError.wrap({
@@ -1401,6 +1403,7 @@ public class LayoutNode: NSObject {
             for block in blocks {
                 try block(animated)
             }
+            // TODO: check if actions are dynamic, otherwise this is uneccesary
             try self.bindActions()
         }
 
@@ -2554,7 +2557,7 @@ public class LayoutNode: NSObject {
         }
         _updateLock += 1
         frame = self.frame
-        if frame != _view.frame {
+        if !frame.isNearlyEqual(to: _view.frame) {
             if _view.translatesAutoresizingMaskIntoConstraints {
                 let transform = _view.layer.transform
                 _view.layer.transform = CATransform3DIdentity
@@ -2693,10 +2696,10 @@ public class LayoutNode: NSObject {
     /// Binds the node to the specified owner but doesn't attach the view or view controller(s)
     /// Note: thrown error is always a LayoutError
     public func bind(to owner: NSObject) throws {
-        try _bind(to: owner, with: NSMutableSet())
+        try _bind(to: owner, with: nil)
     }
 
-    private func _bind(to owner: NSObject, with viewsAndOutlets: NSMutableSet) throws {
+    private func _bind(to owner: NSObject, with viewsAndOutlets: NSMutableSet?) throws {
         guard _owner == nil || _owner == owner || _owner == _viewController else {
             throw LayoutError("Cannot re-bind an already bound node.", for: self)
         }
@@ -2704,7 +2707,7 @@ public class LayoutNode: NSObject {
         if oldDelegate == nil {
             _delegate = owner as? LayoutDelegate
         }
-        if viewControllerClass != nil, owner != _viewController, let viewController = viewController {
+        if owner != _viewController, let viewController = viewController {
             do {
                 try bind(to: viewController)
                 return
@@ -2726,6 +2729,8 @@ public class LayoutNode: NSObject {
         }
 
         #if arch(i386) || arch(x86_64)
+
+            let viewsAndOutlets = viewsAndOutlets ?? NSMutableSet()
 
             // Check if this view controller instance has already been used
             if let controller = viewController {
@@ -2755,7 +2760,17 @@ public class LayoutNode: NSObject {
         #endif
 
         if let outlet = outlet {
-            guard let type = Swift.type(of: owner).allPropertyTypes()[outlet] else {
+            let propertyTypes: [String: RuntimeType]
+            switch Swift.type(of: owner) {
+            case let viewControllerType as UIViewController.Type:
+                propertyTypes = viewControllerType.cachedExpressionTypes
+            case let viewType as UIView.Type:
+                propertyTypes = viewType.cachedExpressionTypes
+            case let objectType:
+                // TODO: this is uncached so quite expensive
+                propertyTypes = objectType.allPropertyTypes()
+            }
+            guard let type = propertyTypes[outlet] else {
                 let mirror = Mirror(reflecting: owner)
                 if mirror.children.contains(where: { $0.label == outlet }) {
                     throw LayoutError("\(owner.classForCoder) \(outlet) outlet must be prefixed with @objc or @IBOutlet to be used with Layout")
@@ -2793,20 +2808,19 @@ public class LayoutNode: NSObject {
                 throw LayoutError("outlet \(outlet) of \(owner.classForCoder) is not a \(expectedType)", for: self)
             }
         }
-        for (name, type) in viewExpressionTypes where expressions[name] == nil {
-            guard case .protocol = type.type, type.matches(owner),
-                name == "delegate" || name == "dataSource" ||
-                name.hasSuffix("Delegate") || name.hasSuffix("DataSource") else {
-                continue
+        try LayoutError.wrap({
+            for (name, type) in viewExpressionTypes where expressions[name] == nil {
+                if case let .protocol(proto) = type.type, owner.conforms(to: proto),
+                    name == "delegate" || name == "dataSource" ||
+                    name.hasSuffix("Delegate") || name.hasSuffix("DataSource") {
+                    try self._view?.setValue(owner, forExpression: name)
+                }
             }
-            try LayoutError.wrap({
-                try self._view?.setValue(owner, forExpression: name)
-            }, for: self)
-        }
-        try bindActions()
-        for child in children {
-            try LayoutError.wrap({ try child._bind(to: owner, with: viewsAndOutlets) }, for: self)
-        }
+            try bindActions()
+            for child in children {
+                try child._bind(to: owner, with: viewsAndOutlets)
+            }
+        }, for: self)
         try throwUnhandledError()
     }
 
@@ -2814,8 +2828,20 @@ public class LayoutNode: NSObject {
     /// the view or view controller(s) from their respective parents
     public func unbind() {
         if let owner = _owner {
-            if let outlet = outlet, type(of: owner).allPropertyTypes()[outlet] != nil {
-                owner.setValue(nil, forKey: outlet)
+            if let outlet = outlet {
+                let propertyTypes: [String: RuntimeType]
+                switch Swift.type(of: owner) {
+                case let viewControllerType as UIViewController.Type:
+                    propertyTypes = viewControllerType.cachedExpressionTypes
+                case let viewType as UIView.Type:
+                    propertyTypes = viewType.cachedExpressionTypes
+                case let objectType:
+                    // TODO: this is uncached so quite expensive
+                    propertyTypes = objectType.allPropertyTypes()
+                }
+                if propertyTypes[outlet] != nil {
+                    owner.setValue(nil, forKey: outlet)
+                }
             }
             if let control = view as? UIControl {
                 control.unbindActions(for: owner)
@@ -2849,7 +2875,7 @@ public class LayoutNode: NSObject {
             try control.bindActions(for: owner)
         } catch {
             if let delegate = delegate {
-                try LayoutError.wrap({ try control.bindActions(for: delegate) }, for: self)
+                try control.bindActions(for: delegate)
                 return
             }
             throw LayoutError(error, for: self)

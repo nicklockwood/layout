@@ -66,22 +66,25 @@ func urlFromString(_ path: String, relativeTo baseURL: URL? = nil) -> URL {
 private let precision: CGFloat = 0.001
 
 extension CGPoint {
-    func isNearlyEqual(to other: CGPoint?) -> Bool {
-        guard let other = other else { return false }
+    func isNearlyEqual(to other: CGPoint) -> Bool {
         return abs(x - other.x) <= precision && abs(y - other.y) <= precision
     }
 }
 
 extension CGSize {
-    func isNearlyEqual(to other: CGSize?) -> Bool {
-        guard let other = other else { return false }
+    func isNearlyEqual(to other: CGSize) -> Bool {
         return abs(width - other.width) <= precision && abs(height - other.height) <= precision
     }
 }
 
+extension CGRect {
+    func isNearlyEqual(to other: CGRect) -> Bool {
+        return size.isNearlyEqual(to: other.size) && origin.isNearlyEqual(to: other.origin)
+    }
+}
+
 extension UIEdgeInsets {
-    func isNearlyEqual(to other: UIEdgeInsets?) -> Bool {
-        guard let other = other else { return false }
+    func isNearlyEqual(to other: UIEdgeInsets) -> Bool {
         return
             abs(left - other.left) <= precision &&
             abs(right - other.right) <= precision &&

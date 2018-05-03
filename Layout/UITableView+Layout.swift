@@ -486,6 +486,7 @@ extension UITableViewHeaderFooterView: LayoutBacked {
         )
     }
 
+    // TODO: it looks like UITableView doesn't use this for auto-sizing sections header/footer - remove it?
     open override func sizeThatFits(_ size: CGSize) -> CGSize {
         if let layoutNode = layoutNode {
             let height = (try? layoutNode.doubleValue(forSymbol: "height")) ?? 0
