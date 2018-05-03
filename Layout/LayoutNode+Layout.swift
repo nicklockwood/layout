@@ -33,7 +33,7 @@ extension LayoutNode {
             let _class: AnyClass = try layout.getClass()
             var expressions = layout.expressions
             if let body = layout.body {
-                guard let viewClass = _class as? UIView.Type, let bodyExpression = viewClass.bodyExpression else {
+                guard case let bodyExpression?? = _class.bodyExpression else {
                     throw LayoutError("\(layout.className) does not support inline (X)HTML content")
                 }
                 expressions[bodyExpression] = body

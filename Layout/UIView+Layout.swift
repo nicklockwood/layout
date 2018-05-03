@@ -3,13 +3,7 @@
 import UIKit
 import WebKit
 
-private var _cachedExpressionTypes = [Int: [String: RuntimeType]]()
-
-func clearCachedViewExpressionTypes() {
-    _cachedExpressionTypes.removeAll()
-}
-
-extension UIView {
+extension UIView: LayoutManaged {
     /// The view controller that owns the view - used to access layout guides
     var viewController: UIViewController? {
         var controller: UIViewController?
@@ -140,15 +134,6 @@ extension UIView {
                 }
             }
         #endif
-        return types
-    }
-
-    class var cachedExpressionTypes: [String: RuntimeType] {
-        if let types = _cachedExpressionTypes[self.hash()] {
-            return types
-        }
-        let types = expressionTypes
-        _cachedExpressionTypes[self.hash()] = types
         return types
     }
 

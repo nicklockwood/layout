@@ -32,6 +32,7 @@
 		0105F7B81F0AA7D70067B313 /* Formatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0105F7B61F0AA7D70067B313 /* Formatter.swift */; };
 		0105F7B91F0AA7E70067B313 /* Formatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0105F7B61F0AA7D70067B313 /* Formatter.swift */; };
 		010654B12099AE1700753AA5 /* Layout+Testing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 010654B02099AE1700753AA5 /* Layout+Testing.swift */; };
+		010654B4209B003700753AA5 /* LayoutManaged.swift in Sources */ = {isa = PBXBuildFile; fileRef = 010654B3209B003700753AA5 /* LayoutManaged.swift */; };
 		01146B121F4700AD008A9B24 /* Files.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01146B111F4700AD008A9B24 /* Files.swift */; };
 		01181E041F0E1FE80011C4DE /* ExpressionParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01181E031F0E1FE80011C4DE /* ExpressionParser.swift */; };
 		01181E051F0EA7F90011C4DE /* ExpressionParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01181E031F0E1FE80011C4DE /* ExpressionParser.swift */; };
@@ -326,6 +327,7 @@
 		0105F7AD1F059A820067B313 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		0105F7B61F0AA7D70067B313 /* Formatter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Formatter.swift; sourceTree = "<group>"; };
 		010654B02099AE1700753AA5 /* Layout+Testing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Layout+Testing.swift"; sourceTree = "<group>"; };
+		010654B3209B003700753AA5 /* LayoutManaged.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayoutManaged.swift; sourceTree = "<group>"; };
 		01146B111F4700AD008A9B24 /* Files.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Files.swift; sourceTree = "<group>"; };
 		01181E031F0E1FE80011C4DE /* ExpressionParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExpressionParser.swift; sourceTree = "<group>"; };
 		01185CB11F3207FB00D34EA7 /* Sandbox.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Sandbox.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -674,6 +676,7 @@
 				0105F77F1F0547910067B313 /* LayoutLoader.swift */,
 				01CB3DF91F47559500343286 /* LayoutDelegate.swift */,
 				0105F7801F0547910067B313 /* LayoutLoading.swift */,
+				010654B3209B003700753AA5 /* LayoutManaged.swift */,
 				011D73601FB1B7DE006406F7 /* LayoutBacked.swift */,
 				0137B81E1FE0159800E2061F /* LayoutConsole.swift */,
 				0105F7811F0547910067B313 /* LayoutNode.swift */,
@@ -1590,6 +1593,7 @@
 				0105F78B1F0547910067B313 /* LayoutExpression.swift in Sources */,
 				0105F7921F0547910067B313 /* Properties.swift in Sources */,
 				01181E041F0E1FE80011C4DE /* ExpressionParser.swift in Sources */,
+				010654B4209B003700753AA5 /* LayoutManaged.swift in Sources */,
 				01B1316E1F629F0700B426BB /* XMLNode+Layout.swift in Sources */,
 				0127DAE0200E41D700B95E17 /* AnyExpression.swift in Sources */,
 				01146B121F4700AD008A9B24 /* Files.swift in Sources */,

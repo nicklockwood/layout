@@ -2,13 +2,7 @@
 
 import UIKit
 
-private var _cachedExpressionTypes = [Int: [String: RuntimeType]]()
-
-func clearCachedViewControllerExpressionTypes() {
-    _cachedExpressionTypes.removeAll()
-}
-
-extension UIBarButtonItem {
+extension UIBarButtonItem: LayoutConfigurable {
     /// Expression names and types
     @objc class var expressionTypes: [String: RuntimeType] {
         var types = allPropertyTypes()
@@ -36,7 +30,7 @@ extension UIBarButtonItem {
     }
 }
 
-extension UIViewController {
+extension UIViewController: LayoutManaged {
     /// Expression names and types
     @objc open class var expressionTypes: [String: RuntimeType] {
         var types = allPropertyTypes()
@@ -144,15 +138,6 @@ extension UIViewController {
             #endif
         }
 
-        return types
-    }
-
-    class var cachedExpressionTypes: [String: RuntimeType] {
-        if let types = _cachedExpressionTypes[self.hash()] {
-            return types
-        }
-        let types = expressionTypes
-        _cachedExpressionTypes[self.hash()] = types
         return types
     }
 
@@ -550,13 +535,13 @@ extension UINavigationController {
         var toolbarClass = try node.value(forExpression: "toolbarClass") as? UIToolbar.Type
         for child in node.children {
             if let cls = navigationBarClass, child._class is UINavigationBar.Type {
-                if child._class.isSubclass(of: cls) {
+                if (child._class as AnyClass).isSubclass(of: cls) {
                     navigationBarClass = child._class as? UINavigationBar.Type
                 } else if !cls.isSubclass(of: child._class) {
                     throw LayoutError("\(child._class) is not compatible with \(cls)")
                 }
             } else if let cls = toolbarClass, child._class is UIToolbar.Type {
-                if child._class.isSubclass(of: cls) {
+                if (child._class as AnyClass).isSubclass(of: cls) {
                     toolbarClass = child._class as? UIToolbar.Type
                 } else if !cls.isSubclass(of: child._class) {
                     throw LayoutError("\(child._class) is not compatible with \(cls)")

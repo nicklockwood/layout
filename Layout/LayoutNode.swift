@@ -75,7 +75,7 @@ public class LayoutNode: NSObject {
     public static var useLegacyLayoutMode: Bool?
 
     // For internal use
-    private(set) var _class: AnyClass
+    private(set) var _class: LayoutManaged.Type
     @objc var _view: UIView?
     private(set) var _viewController: UIViewController?
     private(set) var _originalExpressions: [String: String]
@@ -84,6 +84,10 @@ public class LayoutNode: NSObject {
     var _parameters: [String: RuntimeType]
     var _macros: [String: String]
     var rootURL: URL?
+
+    private var _managed: LayoutManaged? {
+        return _viewController ?? _view
+    }
 
     private var _isRightToLeftLayout: Bool {
         return _view?._effectiveUserInterfaceLayoutDirection ??
@@ -151,22 +155,16 @@ public class LayoutNode: NSObject {
         overrideExpressions()
         updateObservers()
 
-        var index = 0
-        for child in children {
-            if let viewController = _view?.viewController {
-                if viewController.shouldInsertChildNode(child, at: index) {
+        if let managed = _managed {
+            var index = 0
+            for child in children {
+                if managed.shouldInsertChildNode(child, at: index) {
                     child.parent = self
-                    viewController.didInsertChildNode(child, at: index)
+                    managed.didInsertChildNode(child, at: index)
                     index += 1
                 } else {
                     children.remove(at: index)
                 }
-            } else if _view?.shouldInsertChildNode(child, at: index) == true {
-                child.parent = self
-                _view?.didInsertChildNode(child, at: index)
-                index += 1
-            } else {
-                children.remove(at: index)
             }
         }
     }
@@ -308,10 +306,11 @@ public class LayoutNode: NSObject {
         expressions: [String: String] = [:],
         children: [LayoutNode] = []
     ) throws {
-        guard `class` is UIView.Type || `class` is UIViewController.Type else {
+        guard let _class = `class` as? LayoutManaged.Type,
+            _class is UIView.Type || _class is UIViewController.Type else {
             throw LayoutError.message("\(`class`) is not a subclass of UIView or UIViewController")
         }
-        _class = `class`
+        self._class = _class
         _state = AnyExpression.unwrap(state)!
         self.id = id
         self.constants = merge(constants)
@@ -326,29 +325,27 @@ public class LayoutNode: NSObject {
         super.init()
 
         // Merge expressions with defaults
-        let defaultExpressions = viewControllerClass?.defaultExpressions ?? viewClass.defaultExpressions
-        for (key, value) in defaultExpressions {
-            guard !hasExpression(key) else { continue }
+        for (key, value) in _class.defaultExpressions where !hasExpression(key) {
             switch key {
             case "center.x" where hasExpression(in: ["left", "right", "leading", "trailing"]),
                  "left" where hasExpression(in: ["leading", "trailing"]) ||
                      (hasExpression(in: ["center.x", "right"]) && hasExpression("width")),
                  "leading" where hasExpression(in: ["left", "right"]) ||
-                    (hasExpression(in: ["center.x", "trailing"]) && hasExpression("width")),
+                     (hasExpression(in: ["center.x", "trailing"]) && hasExpression("width")),
                  "right" where hasExpression(in: ["leading", "trailing"]) ||
                      (hasExpression(in: ["center.x", "left"]) && hasExpression("width")),
                  "trailing" where hasExpression(in: ["left", "right"]) ||
-                    (hasExpression(in: ["center.x", "leading"]) && hasExpression("width")),
+                     (hasExpression(in: ["center.x", "leading"]) && hasExpression("width")),
                  "width" where (hasExpression("left") && hasExpression("right")) ||
                      (hasExpression("leading") && hasExpression("trailing")),
                  "center.y" where
                      hasExpression(in: ["top", "bottom", "firstBaseline", "lastBaseline"]),
                  "top" where
                      hasExpression(in: ["center.y", "firstBaseline", "lastBaseline"]) ||
-                        (hasExpression("height") && hasExpression("bottom")),
+                     (hasExpression("height") && hasExpression("bottom")),
                  "bottom" where
                      hasExpression(in: ["center.y", "firstBaseline", "lastBaseline"]) ||
-                        (hasExpression("height") && hasExpression("top")),
+                     (hasExpression("height") && hasExpression("top")),
                  "height" where hasExpression("top") && hasExpression("bottom"),
                  "firstBaseline" where
                      hasExpression(in: ["top", "bottom", "center.y", "lastBaseline"]),
@@ -475,13 +472,10 @@ public class LayoutNode: NSObject {
              "outlet":
             return true
         default:
-            if let viewClass = viewOrViewControllerClass as? UIView.Type {
-                return viewClass.cachedExpressionTypes[name]?.isAvailable == true
-            } else if let viewControllerClass = viewOrViewControllerClass as? UIViewController.Type {
-                return viewControllerClass.cachedExpressionTypes[name]?.isAvailable ??
-                    UIView.cachedExpressionTypes[name]?.isAvailable == true
+            guard let cls = viewOrViewControllerClass as? LayoutManaged.Type else {
+                preconditionFailure("\(viewOrViewControllerClass) is not a UIView or UIViewController subclass")
             }
-            preconditionFailure("\(viewOrViewControllerClass) is not a UIView or UIViewController subclass")
+            return (cls.cachedExpressionTypes[name] ?? UIView.cachedExpressionTypes[name])?.isAvailable == true
         }
     }
 
@@ -822,11 +816,7 @@ public class LayoutNode: NSObject {
             if let owner = _owner {
                 try? child.bind(to: owner)
             }
-            if let viewController = _viewController {
-                viewController.didInsertChildNode(child, at: index)
-            } else {
-                _view?.didInsertChildNode(child, at: index)
-            }
+            _managed?.didInsertChildNode(child, at: index)
         }
     }
 
@@ -841,11 +831,7 @@ public class LayoutNode: NSObject {
     /// Note: this will not necessarily trigger an update in either node
     public func removeFromParent() {
         if let index = parent?.children.index(where: { $0 === self }) {
-            if let viewController = parent?._viewController {
-                viewController.willRemoveChildNode(self, at: index)
-            } else {
-                parent?._view?.willRemoveChildNode(self, at: index)
-            }
+            parent?._managed?.willRemoveChildNode(self, at: index)
             unbind()
             parent?.children.remove(at: index)
             parent = nil
@@ -859,10 +845,10 @@ public class LayoutNode: NSObject {
 
     // Experimental - used for nested XML reference loading
     internal func update(with layout: Layout) throws {
-        let newClass: AnyClass = try layout.getClass()
-        let oldClass: AnyClass = _class
-        guard newClass.isSubclass(of: oldClass) else {
-            throw LayoutError("Cannot replace \(oldClass) with \(newClass)", for: self)
+        let _newClass: AnyClass = try layout.getClass()
+        let oldClass = _class
+        guard let newClass = _newClass as? LayoutManaged.Type, _newClass.isSubclass(of: oldClass) else {
+            throw LayoutError("Cannot replace \(oldClass) with \(_newClass)", for: self)
         }
 
         for child in children {
@@ -1069,24 +1055,21 @@ public class LayoutNode: NSObject {
 
     // Returns all expressions that can be set on the node
     // Used for generating error suggestions
-    var availableExpressions: Set<String> {
+    lazy var availableExpressions: Set<String> = {
         var expressions = layoutSymbols
         expressions.formUnion(["outlet", "id", "xml", "template"])
         expressions.formUnion(_parameters.keys)
-        if let controllerClass = viewControllerClass {
-            expressions.formUnion(controllerClass.expressionTypes.compactMap {
-                $0.value.isAvailable ? $0.key : nil
-            })
+        expressions.formUnion(_class.expressionTypes.compactMap {
+            $0.value.isAvailable ? $0.key : nil
+        })
+        if _class is UIViewController.Type {
+            // TODO: disallow setting view properties directly if type is a UIViewController
             expressions.formUnion(UIView.expressionTypes.compactMap {
                 $0.value.isAvailable ? $0.key : nil
             })
-        } else {
-            expressions.formUnion(viewClass.expressionTypes.compactMap {
-                $0.value.isAvailable ? $0.key : nil }
-            )
         }
         return expressions
-    }
+    }()
 
     private func keys(in values: [String: Any], matching type: RuntimeType) -> [String] {
         var matches = [String]()
@@ -1115,20 +1098,17 @@ public class LayoutNode: NSObject {
         case _ where layoutSymbols.contains(name):
             type = .cgFloat
         default:
-            if let controllerClass = viewControllerClass {
-                type = controllerClass.expressionTypes[name] ?? UIView.expressionTypes[name] ?? .any
-            } else {
-                type = viewClass.expressionTypes[name] ?? .any
-            }
+            type = _class.expressionTypes[name] ??
+                // TODO: disallow setting view properties directly if type is a UIViewController
+                UIView.expressionTypes[name] ?? .any
         }
         func validKeys(in types: [String: RuntimeType]) -> [String] {
             return types.compactMap { $0.key != name && $0.value == type ? $0.key : nil }
         }
-        if let controllerClass = viewControllerClass {
-            symbols.formUnion(validKeys(in: controllerClass.expressionTypes))
+        symbols.formUnion(validKeys(in: _class.expressionTypes))
+        if _class is UIViewController.Type {
+            // TODO: disallow setting view properties directly if type is a UIViewController
             symbols.formUnion(validKeys(in: UIView.expressionTypes))
-        } else {
-            symbols.formUnion(validKeys(in: viewClass.expressionTypes))
         }
         symbols.formUnion(type.values.keys)
         // TODO: basing the search on type is not especially effective because
@@ -1221,6 +1201,7 @@ public class LayoutNode: NSObject {
                         let _ = try? viewController.value(forSymbol: symbol) {
                         throw SymbolError(fatal: "\(_class).\(symbol) is private or read-only", for: symbol)
                     }
+                    // TODO: disallow setting view properties directly if type is a UIViewController
                     if let view = try? viewClass.create(with: self),
                         let _ = try? view.value(forSymbol: symbol) {
                         throw SymbolError(fatal: "\(_class).\(symbol) is private or read-only", for: symbol)
@@ -1376,6 +1357,7 @@ public class LayoutNode: NSObject {
                     }
                 }
             }
+            // TODO: disallow setting view properties directly if type is a UIViewController
             for key in _viewExpressions.keys.sorted() {
                 let expression = _viewExpressions[key]!
                 let keys = [key] + superExpressions(for: key)
@@ -1600,8 +1582,8 @@ public class LayoutNode: NSObject {
             if let _alternative = deprecatedViewControllerSymbols[symbol] {
                 cls = _class
                 alternative = _alternative
-
             } else if let _alternative = deprecatedViewSymbols[symbol] {
+                // TODO: disallow setting view properties directly if type is a UIViewController
                 cls = viewClass
                 alternative = _alternative
             } else {
@@ -1876,6 +1858,7 @@ public class LayoutNode: NSObject {
                         return try viewController.value(forSymbol: symbol)
                     }
                 } else if viewControllerClass != nil, viewExpressionTypes[symbol] == nil {
+                    // TODO: disallow setting view properties directly if type is a UIViewController
                     fallback = { [unowned self] in
                         if let viewController = self._viewController,
                             let value = try? viewController.value(forSymbol: symbol) { // TODO: find a non-throwing solution for this
@@ -2590,8 +2573,7 @@ public class LayoutNode: NSObject {
                 try child.updateFrame()
             }
         }, for: self)
-        _view.didUpdateLayout(for: self)
-        _view.viewController?.didUpdateLayout(for: self)
+        _managed?.didUpdateLayout(for: self)
         try throwUnhandledError()
     }
 
@@ -2758,10 +2740,8 @@ public class LayoutNode: NSObject {
         if let outlet = outlet {
             let propertyTypes: [String: RuntimeType]
             switch Swift.type(of: owner) {
-            case let viewControllerType as UIViewController.Type:
-                propertyTypes = viewControllerType.cachedExpressionTypes
-            case let viewType as UIView.Type:
-                propertyTypes = viewType.cachedExpressionTypes
+            case let managedType as LayoutManaged.Type:
+                propertyTypes = managedType.cachedExpressionTypes
             case let objectType:
                 // TODO: this is uncached so quite expensive
                 propertyTypes = objectType.allPropertyTypes()
@@ -2827,10 +2807,8 @@ public class LayoutNode: NSObject {
             if let outlet = outlet {
                 let propertyTypes: [String: RuntimeType]
                 switch Swift.type(of: owner) {
-                case let viewControllerType as UIViewController.Type:
-                    propertyTypes = viewControllerType.cachedExpressionTypes
-                case let viewType as UIView.Type:
-                    propertyTypes = viewType.cachedExpressionTypes
+                case let managedType as LayoutManaged.Type:
+                    propertyTypes = managedType.cachedExpressionTypes
                 case let objectType:
                     // TODO: this is uncached so quite expensive
                     propertyTypes = objectType.allPropertyTypes()

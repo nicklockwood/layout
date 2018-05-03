@@ -2,13 +2,7 @@
 
 import QuartzCore
 
-private var _cachedExpressionTypes = [Int: [String: RuntimeType]]()
-
-func clearCachedLayerExpressionTypes() {
-    _cachedExpressionTypes.removeAll()
-}
-
-extension CALayer {
+extension CALayer: LayoutConfigurable {
     /// Expression names and types
     @objc class var expressionTypes: [String: RuntimeType] {
         var types = allPropertyTypes()
@@ -136,15 +130,6 @@ extension CALayer {
                 }
             }
         #endif
-        return types
-    }
-
-    class var cachedExpressionTypes: [String: RuntimeType] {
-        if let types = _cachedExpressionTypes[self.hash()] {
-            return types
-        }
-        let types = expressionTypes
-        _cachedExpressionTypes[self.hash()] = types
         return types
     }
 }
