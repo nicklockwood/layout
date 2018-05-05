@@ -4,7 +4,7 @@ import XCTest
 @testable import Layout
 
 extension UIFont {
-    @objc static var testFont: UIFont { return .systemFont(ofSize: 46) }
+    @objc static let testFont = UIFont.systemFont(ofSize: 46)
 }
 
 class FontExpressionTests: XCTestCase {

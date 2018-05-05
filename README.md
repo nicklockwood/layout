@@ -1105,7 +1105,7 @@ You can also define custom named fonts using an extension on `UIFont`, and Layou
 
 ```swift
 extension UIFont {
-    @objc static var customFont: UIFont { return .systemFont(ofSize: 42) }
+    @objc static let customFont = UIFont.systemFont(ofSize: 42)
 }
 ```
 
@@ -1175,7 +1175,7 @@ You can also define a custom colors using an extension on `UIColor`, and Layout 
 
 ```swift
 extension UIColor {
-    @objc static var headerColor: UIColor { return UIColor(0.6, 0.5, 0.5, 1) }
+    @objc static let headerColor = UIColor(0.6, 0.5, 0.5, 1)
 }
 ```
 
@@ -2300,10 +2300,8 @@ The preferred way to define custom runtime types is as static vars on the `Runti
 
 ```swift
 extension RuntimeType {
-
-    @objc static var myStructType: RuntimeType {
-        return RuntimeType(MyStructType.self)
-    }
+    
+    @objc static let myStructType = RuntimeType(MyStructType.self)
 }
 
 extension MyView {
@@ -2325,15 +2323,13 @@ Layout's `RuntimeType` wrapper can also be used to specify a set of enum values:
 ```swift
 extension RuntimeType {
 
-    @objc static var nsTextAlignment: RuntimeType {
-        return RuntimeType([
-            "left": .left,
-            "right": .right,
-            "center": .center,
-            "justified": .justified,
-            "natural": .natural,
-        ] as [String: NSTextAlignment])
-    }
+    @objc static let nsTextAlignment = RuntimeType([
+        "left": .left,
+        "right": .right,
+        "center": .center,
+        "justified": .justified,
+        "natural": .natural,
+    ] as [String: NSTextAlignment])
 }
 ```
 
@@ -2344,15 +2340,13 @@ OptionSets can be specified in the same way as enums:
 ```swift
 extension RuntimeType {
 
-    @objc static var uiDataDetectorTypes: RuntimeType {
-        return RuntimeType([
-            "phoneNumber": .phoneNumber,
-            "link": .link,
-            "address": .address,
-            "calendarEvent": .calendarEvent,
-            "all": .all,
-        ] as [String: UIDataDetectorTypes])
-    }
+    @objc static let uiDataDetectorTypes = RuntimeType([
+        "phoneNumber": .phoneNumber,
+        "link": .link,
+        "address": .address,
+        "calendarEvent": .calendarEvent,
+        "all": .all,
+    ] as [String: UIDataDetectorTypes])
 }
 ```
 
