@@ -129,6 +129,7 @@ class LayoutLoader {
     private var _state: Any = ()
     private var _constants: [String: Any] = [:]
     private var _strings: [String: String]?
+    private(set) var watcher: FileWatcher?
 
     /// Used for protecting operations that must not be interupted by a reload.
     /// Any reload attempts that happen inside the block will be ignored
@@ -258,6 +259,7 @@ class LayoutLoader {
         _originalURL = xmlURL
         _xmlURL = xmlURL
         _strings = nil
+        watcher = nil
 
         func processLayoutData(_ data: Data) throws {
             assert(Thread.isMainThread) // TODO: can we parse XML in the background instead?
@@ -290,6 +292,8 @@ class LayoutLoader {
                     let path = parts.joined(separator: "/")
                     do {
                         _xmlURL = try findSourceURL(forRelativePath: path, in: projectDirectory)
+                        // Create file watcher for the source file
+                        watcher = FileWatcher(with: _xmlURL, queue: .main)
                     } catch {
                         completion(nil, LayoutError(error))
                         return

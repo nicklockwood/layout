@@ -66,6 +66,9 @@ public extension LayoutLoading {
             }
             completion?(error)
         }
+        loader.watcher?.fileChanged = { [weak self] in
+            self?.reloadLayout()
+        }
     }
 
     /// Reload the previously loaded xml file
@@ -78,6 +81,9 @@ public extension LayoutLoading {
                 self.layoutError(error)
             }
             completion?(error)
+        }
+        loader.watcher?.fileChanged = { [weak self] in
+            self?.reloadLayout()
         }
     }
 
