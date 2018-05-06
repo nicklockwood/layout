@@ -41,7 +41,7 @@ class FileWatcher {
     
     private func startObservingFileChangesIfPossible() {
         guard fileExists() else { return }
-        guard let fileChanged = fileChanged else { return }
+        guard fileChanged != nil else { return }
         
         let descriptor = open(_url.path, O_EVTONLY)
         
@@ -50,7 +50,7 @@ class FileWatcher {
         let source = DispatchSource.makeFileSystemObjectSource(fileDescriptor: descriptor, eventMask: _event, queue: _queue)
         _source = source
         
-        source.setEventHandler { fileChanged() }
+        source.setEventHandler { [weak self] in self?.fileChanged?() }
         
         source.setCancelHandler() { close(descriptor) }
         
