@@ -158,6 +158,13 @@ class XMLTests: XCTestCase {
         XCTAssertEqual(layout.body, "Foo")
     }
 
+    func testInterleavedTextAndViewsInsideLabel() {
+        let input = "<UILabel>Foo<UIView/>Bar</UILabel>"
+        let xmlData = input.data(using: .utf8)!
+        let layout = try! Layout(xmlData: xmlData)
+        XCTAssertEqual(layout.body, "FooBar")
+    }
+
     func testPreserveWhitespaceInsideHTML() {
         let html = "Some <b>bold </b>and<i> italic</i> text"
         let input = "<UILabel>\n    \(html)\n</UILabel>"

@@ -96,7 +96,6 @@ extension Layout {
                     body = try LayoutError.wrap({ try body.xmlEncoded() + node.toHTML() }, in: className, in: url)
                     isHTML = true
                 } else {
-                    body = ""
                     try LayoutError.wrap({
                         try children.append(Layout(xmlNode: node, url: url, relativeTo: relativeTo))
                     }, in: className, in: url)
