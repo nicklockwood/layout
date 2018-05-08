@@ -661,6 +661,8 @@ struct LayoutExpression {
         func makeToken(_ index: Int) -> String {
             return "$(\(index))"
         }
+        var previousHTMLString = ""
+        var previousAttributedString = NSAttributedString()
         self.init(
             evaluate: {
                 var substrings = [NSAttributedString]()
@@ -682,18 +684,25 @@ struct LayoutExpression {
                         htmlString += try stringify(part)
                     }
                 }
-                // LayoutLoader.atomic is needed here to avoid a concurrency issue caused by
-                // the attributedString HTML parser spinning its own runloop instance
-                // https://github.com/schibsted/layout/issues/9
-                let result = try LayoutLoader.atomic {
-                    try NSMutableAttributedString(
-                        data: htmlString.data(using: .utf8, allowLossyConversion: true) ?? Data(),
-                        options: [
-                            NSAttributedString.DocumentReadingOptionKey.documentType: NSAttributedString.DocumentType.html,
-                            NSAttributedString.DocumentReadingOptionKey.characterEncoding: String.Encoding.utf8.rawValue,
-                        ],
-                        documentAttributes: nil
-                    )
+                let result: NSMutableAttributedString
+                if htmlString != previousHTMLString {
+                    // LayoutLoader.atomic is needed here to avoid a concurrency issue caused by
+                    // the attributedString HTML parser spinning its own runloop instance
+                    // https://github.com/schibsted/layout/issues/9
+                    result = try LayoutLoader.atomic {
+                        try NSMutableAttributedString(
+                            data: htmlString.data(using: .utf8, allowLossyConversion: true) ?? Data(),
+                            options: [
+                                NSAttributedString.DocumentReadingOptionKey.documentType: NSAttributedString.DocumentType.html,
+                                NSAttributedString.DocumentReadingOptionKey.characterEncoding: String.Encoding.utf8.rawValue,
+                            ],
+                            documentAttributes: nil
+                        )
+                    }
+                    previousHTMLString = htmlString
+                    previousAttributedString = result
+                } else {
+                    result = NSMutableAttributedString(attributedString: previousAttributedString)
                 }
                 let correctFont: UIFont
                 if symbols.contains("font"), let font = try node.value(forSymbol: "font") as? UIFont {

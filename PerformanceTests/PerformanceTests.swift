@@ -143,6 +143,88 @@ class PerformanceTests: XCTestCase {
         }
     }
 
+    // MARK: Text processing
+
+    private let textNodesCount = 10
+
+    private func createTextNodes(_ count: Int) -> LayoutNode {
+        var children = [LayoutNode]()
+        for i in 0 ..< count {
+            children.append(
+                LayoutNode(
+                    view: UILabel(),
+                    state: ["i": i],
+                    expressions: [
+                        "top": "previous.bottom + 10",
+                        "left": "10",
+                        "width": "100% - 20",
+                        "height": "auto",
+                        "font": "helvetica 17",
+                        "numberOfLines": "0",
+                        "text": "{i}. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+                    ]
+                )
+            )
+        }
+        return LayoutNode(
+            expressions: [
+                "width": "100%",
+                "height": "auto",
+            ],
+            children: children
+        )
+    }
+
+    private func createRichTextNodes(_ count: Int) -> LayoutNode {
+        var children = [LayoutNode]()
+        for i in 0 ..< count {
+            children.append(
+                LayoutNode(
+                    view: UILabel(),
+                    state: ["i": i],
+                    expressions: [
+                        "top": "previous.bottom + 10",
+                        "left": "10",
+                        "width": "100% - 20",
+                        "height": "auto",
+                        "font": "helvetica 17",
+                        "numberOfLines": "0",
+                        "attributedText": "{i}. Lorem ipsum dolor sit amet, consectetur <b>adipiscing</b> elit, sed do eiusmod tempor incididunt ut labore et <i>dolore</i> magna aliqua.",
+                    ]
+                )
+            )
+        }
+        return LayoutNode(
+            expressions: [
+                "width": "100%",
+                "height": "auto",
+            ],
+            children: children
+        )
+    }
+
+    func testUpdateTextNodes() {
+        let rootNode = createTextNodes(textNodesCount)
+        let view = UIView(frame: CGRect(x: 0, y: 0, width: 300, height: 400))
+        try! rootNode.mount(in: view)
+        measure {
+            view.frame.size.width += 1
+            view.frame.size.height -= 1
+            rootNode.update()
+        }
+    }
+
+    func testUpdateRichTextNodes() {
+        let rootNode = createRichTextNodes(textNodesCount)
+        let view = UIView(frame: CGRect(x: 0, y: 0, width: 300, height: 400))
+        try! rootNode.mount(in: view)
+        measure {
+            view.frame.size.width += 1
+            view.frame.size.height -= 1
+            rootNode.update()
+        }
+    }
+
     // MARK: XML loading and parsing
 
     func testParseXML() {
