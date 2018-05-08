@@ -576,6 +576,10 @@ extension UITableViewCell: LayoutBacked {
         return types
     }
 
+    open override class var bodyExpression: String? {
+        return "textLabel.attributedText"
+    }
+
     open override func setAnimatedValue(_ value: Any, forExpression name: String) throws {
         switch name {
         case "isEditing":

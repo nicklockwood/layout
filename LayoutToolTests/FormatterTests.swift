@@ -118,6 +118,18 @@ class FormatterTests: XCTestCase {
         XCTAssertEqual(try format(input), output)
     }
 
+    func testTextWithChildBefore() {
+        let input = "<Foo><Baz/>bar</Foo>"
+        let output = "<Foo>\n    <Baz/>\n    bar\n</Foo>\n"
+        XCTAssertEqual(try format(input), output)
+    }
+
+    func testTextWithChildAfter() {
+        let input = "<Foo>bar<Baz/></Foo>"
+        let output = "<Foo>\n    bar\n    <Baz/>\n</Foo>\n"
+        XCTAssertEqual(try format(input), output)
+    }
+
     func testTextWithCommentBefore() {
         let input = "<Foo><!-- bar -->bar</Foo>"
         let output = "<Foo>\n\n    <!-- bar -->\n    bar\n</Foo>\n"
