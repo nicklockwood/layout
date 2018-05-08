@@ -9,7 +9,7 @@ func clearRuntimeTypeCache() {
 }
 
 public class RuntimeType: NSObject {
-    public enum Kind: Equatable, CustomStringConvertible {
+    enum Kind: Equatable, CustomStringConvertible {
         case any(Any.Type)
         case `class`(AnyClass)
         case `struct`(String)
@@ -42,7 +42,7 @@ public class RuntimeType: NSObject {
         }
     }
 
-    public enum Availability: Equatable {
+    enum Availability: Equatable {
         case available
         case unavailable(reason: String?)
 
@@ -58,11 +58,45 @@ public class RuntimeType: NSObject {
         }
     }
 
+    public var swiftType: Any.Type? {
+        switch type {
+        case let .any(type):
+            return type
+        case let .class(cls):
+            return Swift.type(of: cls)
+        case let .struct(name),
+             let .pointer(name):
+            // TODO: find a general solution
+            switch name {
+            case "CGImage":
+                return CGImage.self
+            case "CGColor":
+                return CGColor.self
+            default:
+                return nil
+            }
+        case let .protocol(proto):
+            // TODO: can we get the specific protocol type?
+            return Swift.type(of: proto)
+        case let .enum(type, _),
+             let .options(type, _):
+            return type
+        case let .array(elementType):
+            // TODO: find a general solution
+            switch elementType.swiftType {
+            case is String.Type:
+                return [String].self
+            default:
+                return [Any].self
+            }
+        }
+    }
+
     public typealias Getter = (_ target: AnyObject, _ key: String) -> Any?
     public typealias Setter = (_ target: AnyObject, _ key: String, _ value: Any) throws -> Void
     internal typealias Caster = (_ value: Any) -> Any?
 
-    public let type: Kind
+    let type: Kind
     private(set) var availability = Availability.available
     private(set) var getter: Getter?
     private(set) var setter: Setter?
@@ -125,7 +159,9 @@ public class RuntimeType: NSObject {
 
     static func unavailable(_ reason: String? = nil) -> RuntimeType? {
         #if arch(i386) || arch(x86_64)
-            return RuntimeType(String.self, .unavailable(reason: reason))
+            let type = RuntimeType(String.self)
+            type.availability = .unavailable(reason: reason)
+            return type
         #else
             return nil
         #endif
@@ -151,9 +187,8 @@ public class RuntimeType: NSObject {
         }
     }
 
-    @nonobjc init(_ type: Kind, _ availability: Availability = .available) {
+    @nonobjc init(_ type: Kind) {
         self.type = type
-        self.availability = availability
         switch type {
         case let .any(type) where type is Selector.Type:
             getter = { target, key in
@@ -179,35 +214,35 @@ public class RuntimeType: NSObject {
         }
     }
 
-    @nonobjc public convenience init(_ type: Any.Type, _ availability: Availability = .available) {
+    @nonobjc public convenience init(_ type: Any.Type) {
         if let type = RuntimeType._type(named: "\(type)") {
-            self.init(type.type, availability)
+            self.init(type.type)
         } else {
-            self.init(.any(type), availability)
+            self.init(.any(type))
         }
     }
 
-    @nonobjc public convenience init(_ type: Protocol, _ availability: Availability = .available) {
-        self.init(.protocol(type), availability)
+    @nonobjc public convenience init(_ type: Protocol) {
+        self.init(.protocol(type))
     }
 
-    @nonobjc public convenience init(class: AnyClass, _ availability: Availability = .available) {
-        self.init(.class(`class`), availability)
+    @nonobjc public convenience init(class: AnyClass) {
+        self.init(.class(`class`))
     }
 
-    @nonobjc public convenience init<T>(array type: Array<T>.Type, _ availability: Availability = .available) {
-        self.init(.array(RuntimeType(type)), availability)
+    @nonobjc public convenience init<T>(array type: Array<T>.Type) {
+        self.init(.array(RuntimeType(type)))
     }
 
     @available(*, deprecated, message: "Use type(named:) instead")
-    @nonobjc public convenience init?(_ typeName: String, _ availability: Availability = .available) {
+    @nonobjc public convenience init?(_ typeName: String) {
         guard let type = RuntimeType.type(named: typeName) else {
             return nil
         }
-        self.init(type.type, availability)
+        self.init(type.type)
     }
 
-    @nonobjc public convenience init?(objCType: String, _ availability: Availability = .available) {
+    @nonobjc public convenience init?(objCType: String) {
         guard let first = objCType.unicodeScalars.first else {
             assertionFailure("Empty objCType")
             return nil
@@ -265,7 +300,7 @@ public class RuntimeType: NSObject {
             // Unsupported type
             return nil
         }
-        self.init(type, availability)
+        self.init(type)
     }
 
     @nonobjc public init<T: RawRepresentable & Hashable>(_: T.Type, _ values: [String: T]) {
@@ -308,7 +343,7 @@ public class RuntimeType: NSObject {
         availability = .available
     }
 
-    @nonobjc public init<T: RawRepresentable & OptionSet>(_: T.Type, _ values: [String: T]) {
+    @nonobjc public init<T: OptionSet>(_: T.Type, _ values: [String: T]) {
         type = .options(T.self, values)
         getter = { target, key in
             (target.value(forKey: key) as? T.RawValue).flatMap { T(rawValue: $0) }
@@ -325,7 +360,7 @@ public class RuntimeType: NSObject {
         availability = .available
     }
 
-    @nonobjc public convenience init<T: RawRepresentable & OptionSet>(_ values: [String: T]) {
+    @nonobjc public convenience init<T: OptionSet>(_ values: [String: T]) {
         self.init(T.self, values)
     }
 

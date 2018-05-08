@@ -95,31 +95,25 @@ class EditViewController: UIViewController, UITextFieldDelegate {
             if !type.isAvailable {
                 return nil
             }
-            switch type.type {
-            case let .any(subtype):
-                switch subtype {
-                case is CGFloat.Type,
-                     is Double.Type,
-                     is Float.Type,
-                     is Int.Type,
-                     is NSNumber.Type,
-                     is Bool.Type,
-                     is String.Type,
-                     is NSString.Type,
-                     is NSAttributedString.Type,
-                     is UIColor.Type,
-                     is UIImage.Type,
-                     is UIFont.Type:
-                    return key
-                default:
-                    return nil
-                }
-            case .enum, .options, .class, .pointer("CGImage"), .pointer("CGColor"):
+            switch type.swiftType {
+            case is CGFloat.Type,
+                 is Double.Type,
+                 is Float.Type,
+                 is Int.Type,
+                 is NSNumber.Type,
+                 is Bool.Type,
+                 is String.Type,
+                 is NSString.Type,
+                 is NSAttributedString.Type,
+                 is UIColor.Type,
+                 is UIImage.Type,
+                 is UIFont.Type,
+                 is CGImage.Type,
+                 is CGColor.Type,
+                 is [String].Type:
                 return key
-            case .struct, .pointer, .protocol:
-                return nil
-            case let .array(elementType):
-                return filterType(key, elementType)
+            default:
+                return type.values.isEmpty ? nil : key
             }
         }
         var fieldNames = ["top", "left", "width", "height", "bottom", "right"]

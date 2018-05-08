@@ -33,12 +33,43 @@ class RuntimeTypeTests: XCTestCase {
 
     // MARK: Type classification
 
+    func testCGImageType() {
+        let runtimeType = RuntimeType(CGImage.self)
+        guard case let .pointer(name) = runtimeType.type else {
+            XCTFail()
+            return
+        }
+        XCTAssertEqual(name, "CGImage")
+        XCTAssert(runtimeType.swiftType == CGImage.self)
+    }
+
+    func testCGColorType() {
+        let runtimeType = RuntimeType(CGColor.self)
+        guard case let .pointer(name) = runtimeType.type else {
+            XCTFail()
+            return
+        }
+        XCTAssertEqual(name, "CGColor")
+        XCTAssert(runtimeType.swiftType == CGColor.self)
+    }
+
+    func testCGRectType() {
+        let runtimeType = RuntimeType(CGRect.self)
+        guard case let .any(type) = runtimeType.type else {
+            XCTFail()
+            return
+        }
+        XCTAssert(type == CGRect.self)
+        XCTAssert(runtimeType.swiftType == CGRect.self)
+    }
+
     func testProtocolType() {
         let runtimeType = RuntimeType(UITableViewDelegate.self)
         guard case .protocol = runtimeType.type else {
             XCTFail()
             return
         }
+        XCTAssert(runtimeType.swiftType == Protocol.self)
     }
 
     func testDynamicProtocolType() {
@@ -48,6 +79,7 @@ class RuntimeTypeTests: XCTestCase {
             XCTFail()
             return
         }
+        XCTAssert(runtimeType.swiftType == Protocol.self)
     }
 
     func testArrayType() {
@@ -56,6 +88,7 @@ class RuntimeTypeTests: XCTestCase {
             XCTFail()
             return
         }
+        XCTAssert(runtimeType.swiftType == [Any].self)
     }
 
     func testDynamicArrayType() {
@@ -65,6 +98,7 @@ class RuntimeTypeTests: XCTestCase {
             XCTFail()
             return
         }
+        XCTAssert(runtimeType.swiftType == [Any].self)
     }
 
     func testArrayTypeByName() {
@@ -77,6 +111,7 @@ class RuntimeTypeTests: XCTestCase {
             return
         }
         XCTAssertEqual(subtype, .int)
+        XCTAssert(runtimeType.swiftType == [Any].self)
     }
 
     func testArrayTypeByShortName() {
@@ -89,6 +124,7 @@ class RuntimeTypeTests: XCTestCase {
             return
         }
         XCTAssertEqual(subtype, .int)
+        XCTAssert(runtimeType.swiftType == [Any].self)
     }
 
     func testNSArrayTypeByName() {
@@ -100,6 +136,54 @@ class RuntimeTypeTests: XCTestCase {
             XCTFail()
             return
         }
+        XCTAssert(runtimeType.swiftType == [Any].self)
+    }
+
+    func testStringTypeByName() {
+        guard let runtimeType = RuntimeType.type(named: "String") else {
+            XCTFail()
+            return
+        }
+        guard case let .any(type) = runtimeType.type else {
+            XCTFail()
+            return
+        }
+        XCTAssert(type == String.self)
+        XCTAssert(runtimeType.swiftType == String.self)
+    }
+
+    func testNSStringTypeByName() {
+        guard let runtimeType = RuntimeType.type(named: "NSString") else {
+            XCTFail()
+            return
+        }
+        guard case let .any(type) = runtimeType.type else {
+            XCTFail()
+            return
+        }
+        XCTAssert(type == String.self)
+        XCTAssert(runtimeType.swiftType == String.self)
+    }
+
+    func testClassType() {
+        let runtimeType = RuntimeType(class: NSIndexSet.self)
+        guard case let .class(cls) = runtimeType.type else {
+            XCTFail()
+            return
+        }
+        XCTAssert(cls == NSIndexSet.self)
+        XCTAssert(runtimeType.swiftType == NSIndexSet.Type.self)
+    }
+
+    func testEnumType() {
+        let runtimeType = RuntimeType.nsLineBreakMode
+        guard case let .enum(type, values) = runtimeType.type else {
+            XCTFail()
+            return
+        }
+        XCTAssertFalse(values.isEmpty)
+        XCTAssert(type == NSLineBreakMode.self)
+        XCTAssert(runtimeType.swiftType == NSLineBreakMode.self)
     }
 
     // MARK: Type casting

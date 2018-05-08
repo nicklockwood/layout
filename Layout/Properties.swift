@@ -17,71 +17,70 @@ extension NSObject {
         var allProperties = [String: RuntimeType]()
         func addProperty(_ name: String, _ type: RuntimeType) {
             allProperties[name] = type
-            let availability = type.availability
             switch type.type {
             case let .struct(type):
                 switch type {
                 case "CGPoint":
-                    allProperties[name] = RuntimeType(CGPoint.self, availability)
+                    allProperties[name] = RuntimeType(CGPoint.self)
                     for key in ["x", "y"] {
-                        allProperties["\(name).\(key)"] = RuntimeType(CGFloat.self, availability)
+                        allProperties["\(name).\(key)"] = RuntimeType(CGFloat.self)
                     }
                 case "CGSize":
-                    allProperties[name] = RuntimeType(CGSize.self, availability)
+                    allProperties[name] = RuntimeType(CGSize.self)
                     for key in ["width", "height"] {
-                        allProperties["\(name).\(key)"] = RuntimeType(CGFloat.self, availability)
+                        allProperties["\(name).\(key)"] = RuntimeType(CGFloat.self)
                     }
                 case "CGVector":
-                    allProperties[name] = RuntimeType(CGVector.self, availability)
+                    allProperties[name] = RuntimeType(CGVector.self)
                     for key in ["dx", "dy"] {
-                        allProperties["\(name).\(key)"] = RuntimeType(CGFloat.self, availability)
+                        allProperties["\(name).\(key)"] = RuntimeType(CGFloat.self)
                     }
                 case "CGRect":
-                    allProperties[name] = RuntimeType(CGRect.self, availability)
-                    allProperties["\(name).origin"] = RuntimeType(CGPoint.self, availability)
-                    allProperties["\(name).size"] = RuntimeType(CGSize.self, availability)
+                    allProperties[name] = RuntimeType(CGRect.self)
+                    allProperties["\(name).origin"] = RuntimeType(CGPoint.self)
+                    allProperties["\(name).size"] = RuntimeType(CGSize.self)
                     for key in [
                         "x", "y",
                         "width", "height",
                         "origin.x", "origin.y",
                         "size.width", "size.height",
                     ] {
-                        allProperties["\(name).\(key)"] = RuntimeType(CGFloat.self, availability)
+                        allProperties["\(name).\(key)"] = RuntimeType(CGFloat.self)
                     }
                 case "CGAffineTransform":
-                    allProperties[name] = RuntimeType(CGAffineTransform.self, availability)
+                    allProperties[name] = RuntimeType(CGAffineTransform.self)
                     for key in [
                         "rotation",
                         "scale", "scale.x", "scale.y",
                         "translation.x", "translation.y",
                     ] {
-                        allProperties["\(name).\(key)"] = RuntimeType(CGFloat.self, availability)
+                        allProperties["\(name).\(key)"] = RuntimeType(CGFloat.self)
                     }
                 case "CATransform3D":
-                    allProperties[name] = RuntimeType(CATransform3D.self, availability)
+                    allProperties[name] = RuntimeType(CATransform3D.self)
                     for key in [
                         "rotation", "rotation.x", "rotation.y", "rotation.z",
                         "scale", "scale.x", "scale.y", "scale.z",
                         "translation.x", "translation.y", "translation.z",
                         "m34", // Used for perspective
                     ] {
-                        allProperties["\(name).\(key)"] = RuntimeType(CGFloat.self, availability)
+                        allProperties["\(name).\(key)"] = RuntimeType(CGFloat.self)
                     }
                 case "UIEdgeInsets":
-                    allProperties[name] = RuntimeType(UIEdgeInsets.self, availability)
+                    allProperties[name] = RuntimeType(UIEdgeInsets.self)
                     for key in ["top", "left", "bottom", "right"] {
-                        allProperties["\(name).\(key)"] = RuntimeType(CGFloat.self, availability)
+                        allProperties["\(name).\(key)"] = RuntimeType(CGFloat.self)
                     }
                 case "UIOffset":
-                    allProperties[name] = RuntimeType(UIOffset.self, availability)
+                    allProperties[name] = RuntimeType(UIOffset.self)
                     for key in ["horizontal", "vertical"] {
-                        allProperties["\(name).\(key)"] = RuntimeType(CGFloat.self, availability)
+                        allProperties["\(name).\(key)"] = RuntimeType(CGFloat.self)
                     }
                 case "NSDirectionalEdgeInsets":
                     if #available(iOS 11.0, *) {
-                        allProperties[name] = RuntimeType(NSDirectionalEdgeInsets.self, availability)
+                        allProperties[name] = RuntimeType(NSDirectionalEdgeInsets.self)
                         for key in ["top", "leading", "bottom", "trailing"] {
-                            allProperties["\(name).\(key)"] = RuntimeType(CGFloat.self, availability)
+                            allProperties["\(name).\(key)"] = RuntimeType(CGFloat.self)
                         }
                     }
                 default:
