@@ -402,7 +402,7 @@ extension UITabBarController {
         types["selectedIndex"] = .int
         types["viewControllers"] = .array(of: UIViewController.self)
         types["customizableViewControllers"] = .array(of: UIViewController.self)
-        
+
         #if arch(i386) || arch(x86_64)
             // Private and read-only properties
             for name in [

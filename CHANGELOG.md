@@ -1,5 +1,12 @@
 # Change Log
 
+## [0.6.24](https://github.com/schibsted/layout/releases/tag/0.6.24) (2018-05-09)
+
+- Significantly improved performance for inline HTML and NSAttributedString expressions
+- Added support for inline HTML inside UITableViewCell nodes
+- Added support for nodes containing both body text and subviews
+- Minor breaking changes to the RuntimeType API
+
 ## [0.6.23](https://github.com/schibsted/layout/releases/tag/0.6.23) (2018-05-03)
 
 - Added a warning when setting UIView property expressions directly on a UIViewController node

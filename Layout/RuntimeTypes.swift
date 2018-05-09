@@ -111,6 +111,7 @@ public extension RuntimeType {
             "landmark": 3,
         ] as [String: Int])
     }()
+
     @objc static let uiAccessibilityNavigationStyle = RuntimeType([
         "automatic": .automatic,
         "separate": .separate,
@@ -207,6 +208,7 @@ public extension RuntimeType {
         }
         return RuntimeType(types)
     }()
+
     @objc static let uiFont = RuntimeType(UIFont.self)
     @objc static let uiFontDescriptorSymbolicTraits = RuntimeType([
         "traitItalic": .traitItalic,
@@ -271,6 +273,7 @@ public extension RuntimeType {
         }
         return RuntimeType(keyboardTypes)
     }()
+
     @objc static let uiReturnKeyType = RuntimeType([
         "default": .default,
         "go": .go,
@@ -322,6 +325,7 @@ public extension RuntimeType {
             "yes": 2,
         ] as [String: Int])
     }()
+
     @objc static let uiTextSmartDashesType: RuntimeType = {
         if #available(iOS 11.0, *) {
             return RuntimeType([
@@ -336,6 +340,7 @@ public extension RuntimeType {
             "yes": 2,
         ] as [String: Int])
     }()
+
     @objc static let uiTextSmartInsertDeleteType: RuntimeType = {
         if #available(iOS 11.0, *) {
             return RuntimeType([
@@ -350,6 +355,7 @@ public extension RuntimeType {
             "yes": 2,
         ] as [String: Int])
     }()
+
     @objc static let uiTextSpellCheckingType = RuntimeType([
         "default": .default,
         "no": .no,
@@ -425,12 +431,14 @@ public extension RuntimeType {
         }
         return .anyObject
     }()
+
     @objc static let uiTextDropDelegate: RuntimeType = {
         if #available(iOS 11.0, *) {
             return RuntimeType(UITextDropDelegate.self)
         }
         return .anyObject
     }()
+
     @objc static let uiTextDragOptions: RuntimeType = {
         if #available(iOS 11.0, *) {
             return RuntimeType([
@@ -555,6 +563,7 @@ public extension RuntimeType {
             "always": 3,
         ] as [String: Int])
     }()
+
     @objc static let uiScrollViewIndicatorStyle = RuntimeType([
         "default": .default,
         "black": .black,
@@ -590,6 +599,7 @@ public extension RuntimeType {
             "slow": 2,
         ] as [String: Int])
     }()
+
     @objc static let uiCollectionViewFlowLayoutSectionInsetReference: RuntimeType = {
         if #available(iOS 11.0, *) {
             return RuntimeType([
@@ -679,6 +689,7 @@ public extension RuntimeType {
             "fromAutomaticInsets": 1,
         ] as [String: Int])
     }()
+
     @objc static let uiTableViewStyle = RuntimeType([
         "plain": .plain,
         "grouped": .grouped,
@@ -714,6 +725,7 @@ public extension RuntimeType {
             "all": IntOptionSet(rawValue: 3),
         ] as [String: IntOptionSet])
     }()
+
     @objc static let wkDataDetectorTypes: RuntimeType = {
         if #available(iOS 10, *) {
             return RuntimeType([
@@ -738,6 +750,7 @@ public extension RuntimeType {
             "all": IntOptionSet(rawValue: 127),
         ] as [String: IntOptionSet])
     }()
+
     @objc static let wkSelectionGranularity = RuntimeType([
         "dynamic": .dynamic,
         "character": .character,
@@ -814,6 +827,7 @@ public extension RuntimeType {
             "current": IntOptionSet(rawValue: 2),
         ] as [String: IntOptionSet])
     }()
+
     @objc static let uiImagePickerControllerSourceType = RuntimeType([
         "photoLibrary": .photoLibrary,
         "camera": .camera,
