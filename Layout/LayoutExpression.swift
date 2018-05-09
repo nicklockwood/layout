@@ -665,45 +665,58 @@ struct LayoutExpression {
         var previousAttributedString = NSAttributedString()
         self.init(
             evaluate: {
-                var substrings = [NSAttributedString]()
+                var parts = [Any]() // String or NSAttributedString
                 var htmlString = ""
+                func appendPart(_ part: Any) {
+                    let token = makeToken(parts.count)
+                    if htmlString.contains(token) {
+                        parts.append(token)
+                        appendPart(part)
+                        return
+                    }
+                    htmlString += token
+                    parts.append(part)
+                }
+                var containsHTML = false
                 for part in try expression.evaluate() as! [Any] {
                     switch part {
                     case let part as NSAttributedString:
-                        while true {
-                            let token = makeToken(substrings.count)
-                            if htmlString.contains(token) {
-                                substrings.append(NSAttributedString(string: token))
-                            } else {
-                                htmlString += token
-                                substrings.append(part)
-                                break
-                            }
-                        }
+                        appendPart(part)
                     default:
-                        htmlString += try stringify(part)
+                        let substring = try stringify(part)
+                        if ["<", ">", "&"].contains(where: { substring.contains($0) }) {
+                            // Potentially affects html structure
+                            htmlString += substring
+                            containsHTML = true
+                        } else {
+                            appendPart(part)
+                        }
                     }
                 }
-                let result: NSMutableAttributedString
                 if htmlString != previousHTMLString {
-                    // LayoutLoader.atomic is needed here to avoid a concurrency issue caused by
-                    // the attributedString HTML parser spinning its own runloop instance
-                    // https://github.com/schibsted/layout/issues/9
-                    result = try LayoutLoader.atomic {
-                        try NSMutableAttributedString(
-                            data: htmlString.data(using: .utf8, allowLossyConversion: true) ?? Data(),
-                            options: [
-                                NSAttributedString.DocumentReadingOptionKey.documentType: NSAttributedString.DocumentType.html,
-                                NSAttributedString.DocumentReadingOptionKey.characterEncoding: String.Encoding.utf8.rawValue,
-                            ],
-                            documentAttributes: nil
-                        )
-                    }
                     previousHTMLString = htmlString
-                    previousAttributedString = result
-                } else {
-                    result = NSMutableAttributedString(attributedString: previousAttributedString)
+                    if containsHTML {
+                        // LayoutLoader.atomic is needed here to avoid a concurrency issue caused by
+                        // the attributedString HTML parser spinning its own runloop instance
+                        // https://github.com/schibsted/layout/issues/9
+                        previousAttributedString = try LayoutLoader.atomic {
+                            try NSAttributedString(
+                                data: htmlString.data(using: .utf8, allowLossyConversion: true) ?? Data(),
+                                options: [
+                                    NSAttributedString.DocumentReadingOptionKey.documentType: NSAttributedString.DocumentType.html,
+                                    NSAttributedString.DocumentReadingOptionKey.characterEncoding: String.Encoding.utf8.rawValue,
+                                ],
+                                documentAttributes: nil
+                            )
+                        }
+                    } else {
+                        previousAttributedString = NSAttributedString(string: htmlString, attributes: [
+                            NSAttributedStringKey.font: UIFont.systemFont(ofSize: UIFont.defaultSize),
+                        ])
+                    }
                 }
+                let result = NSMutableAttributedString(attributedString: previousAttributedString)
+
                 let correctFont: UIFont
                 if symbols.contains("font"), let font = try node.value(forSymbol: "font") as? UIFont {
                     correctFont = font
@@ -742,10 +755,14 @@ struct LayoutExpression {
                 result.addAttribute(NSAttributedStringKey.paragraphStyle, value: style, range: range)
 
                 // Substitutions
-                for (i, substring) in substrings.enumerated().reversed() {
+                for (i, part) in parts.enumerated().reversed() {
                     let range = (result.string as NSString).range(of: makeToken(i))
                     if range.location != NSNotFound {
-                        result.replaceCharacters(in: range, with: substring)
+                        if let part = part as? NSAttributedString {
+                            result.replaceCharacters(in: range, with: part)
+                        } else if let part = part as? String {
+                            result.replaceCharacters(in: range, with: part)
+                        }
                     }
                 }
                 return result

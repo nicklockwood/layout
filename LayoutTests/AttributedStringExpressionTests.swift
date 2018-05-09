@@ -66,10 +66,38 @@ class AttributedStringExpressionTests: XCTestCase {
         XCTAssertEqual(paragraphStyle.lineBreakMode, .byTruncatingHead)
     }
 
-    func testAttributedStringContainingToken() {
-        let node = LayoutNode(constants: ["bar": NSAttributedString(string: "bar")])
-        let expression = LayoutExpression(attributedStringExpression: "hello $(0) world {bar}", for: node)
+    func testAttributedStringContainingStringConstant() {
+        let node = LayoutNode(constants: ["bar": "bar"])
+        let expression = LayoutExpression(attributedStringExpression: "hello world {bar}", for: node)
         let result = try! expression?.evaluate() as! NSAttributedString
-        XCTAssertEqual(result.string, "hello $(0) world bar")
+        XCTAssertEqual(result.string, "hello world bar")
+    }
+
+    func testAttributedStringContainingAttributedStringConstant() {
+        let node = LayoutNode(constants: ["bar": NSAttributedString(string: "bar", attributes: [
+            NSAttributedStringKey.foregroundColor: UIColor.red,
+        ])])
+        let expression = LayoutExpression(attributedStringExpression: "hello world {bar}", for: node)
+        let result = try! expression?.evaluate() as! NSAttributedString
+        XCTAssertEqual(result.string, "hello world bar")
+        XCTAssertEqual(result.attribute(NSAttributedStringKey.foregroundColor, at: 12, effectiveRange: nil) as? UIColor, .red)
+    }
+
+    func testAttributedStringContainingHTMLConstant() {
+        let node = LayoutNode(constants: ["bar": "<i>bar</i>"])
+        let expression = LayoutExpression(attributedStringExpression: "<b>foo {bar}</b>", for: node)
+        let result = try! expression?.evaluate() as! NSAttributedString
+        XCTAssertEqual(result.string, "foo bar")
+        XCTAssertEqual(result.attribute(NSAttributedStringKey.font, at: 0, effectiveRange: nil) as? UIFont, .boldSystemFont(ofSize: 17))
+        let traits = (result.attribute(NSAttributedStringKey.font, at: 4, effectiveRange: nil) as? UIFont)?.fontDescriptor.symbolicTraits
+        XCTAssert(traits?.contains(.traitItalic) == true)
+        XCTAssert(traits?.contains(.traitBold) == true)
+    }
+
+    func testAttributedStringContainingAmbiguousTokens() {
+        let node = LayoutNode(constants: ["foo": "$(2)", "bar": "$(3)"])
+        let expression = LayoutExpression(attributedStringExpression: "<b>$(1)</b>{foo}{bar}", for: node)
+        let result = try! expression?.evaluate() as! NSAttributedString
+        XCTAssertEqual(result.string, "$(1)$(2)$(3)")
     }
 }
