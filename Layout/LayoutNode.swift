@@ -173,6 +173,7 @@ public class LayoutNode: NSObject {
     private func _stopObservingContentSizeCategory() {
         if _observingContentSizeCategory {
             NotificationCenter.default.removeObserver(self, name: .UIContentSizeCategoryDidChange, object: nil)
+            _observingContentSizeCategory = false
         }
     }
 
@@ -204,10 +205,11 @@ public class LayoutNode: NSObject {
 
     // Depends on presence of parent - must be called again if parent is added or removed
     private func updateObservers() {
-        if _observingContentSizeCategory, parent != nil {
+        if parent != nil {
             _stopObservingContentSizeCategory()
-        } else if !_observingContentSizeCategory, parent == nil {
+        } else if !_observingContentSizeCategory {
             NotificationCenter.default.addObserver(self, selector: #selector(contentSizeCategoryChanged), name: .UIContentSizeCategoryDidChange, object: nil)
+            _observingContentSizeCategory = true
         }
         if !_observingFrame {
             addObserver(self, forKeyPath: "_view.translatesAutoresizingMaskIntoConstraints", options: [.new, .old], context: nil)
