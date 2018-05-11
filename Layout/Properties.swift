@@ -21,67 +21,56 @@ extension NSObject {
             case let .struct(type):
                 switch type {
                 case "CGPoint":
-                    allProperties[name] = RuntimeType(CGPoint.self)
                     for key in ["x", "y"] {
-                        allProperties["\(name).\(key)"] = RuntimeType(CGFloat.self)
+                        allProperties["\(name).\(key)"] = .cgFloat
                     }
                 case "CGSize":
-                    allProperties[name] = RuntimeType(CGSize.self)
                     for key in ["width", "height"] {
-                        allProperties["\(name).\(key)"] = RuntimeType(CGFloat.self)
+                        allProperties["\(name).\(key)"] = .cgFloat
                     }
                 case "CGVector":
-                    allProperties[name] = RuntimeType(CGVector.self)
                     for key in ["dx", "dy"] {
-                        allProperties["\(name).\(key)"] = RuntimeType(CGFloat.self)
+                        allProperties["\(name).\(key)"] = .cgFloat
                     }
                 case "CGRect":
-                    allProperties[name] = RuntimeType(CGRect.self)
-                    allProperties["\(name).origin"] = RuntimeType(CGPoint.self)
-                    allProperties["\(name).size"] = RuntimeType(CGSize.self)
+                    allProperties["\(name).origin"] = .cgPoint
+                    allProperties["\(name).size"] = .cgSize
                     for key in [
                         "x", "y",
                         "width", "height",
                         "origin.x", "origin.y",
                         "size.width", "size.height",
                     ] {
-                        allProperties["\(name).\(key)"] = RuntimeType(CGFloat.self)
+                        allProperties["\(name).\(key)"] = .cgFloat
                     }
                 case "CGAffineTransform":
-                    allProperties[name] = RuntimeType(CGAffineTransform.self)
                     for key in [
                         "rotation",
                         "scale", "scale.x", "scale.y",
                         "translation.x", "translation.y",
                     ] {
-                        allProperties["\(name).\(key)"] = RuntimeType(CGFloat.self)
+                        allProperties["\(name).\(key)"] = .cgFloat
                     }
                 case "CATransform3D":
-                    allProperties[name] = RuntimeType(CATransform3D.self)
                     for key in [
                         "rotation", "rotation.x", "rotation.y", "rotation.z",
                         "scale", "scale.x", "scale.y", "scale.z",
                         "translation.x", "translation.y", "translation.z",
                         "m34", // Used for perspective
                     ] {
-                        allProperties["\(name).\(key)"] = RuntimeType(CGFloat.self)
+                        allProperties["\(name).\(key)"] = .cgFloat
                     }
                 case "UIEdgeInsets":
-                    allProperties[name] = RuntimeType(UIEdgeInsets.self)
                     for key in ["top", "left", "bottom", "right"] {
-                        allProperties["\(name).\(key)"] = RuntimeType(CGFloat.self)
+                        allProperties["\(name).\(key)"] = .cgFloat
                     }
                 case "UIOffset":
-                    allProperties[name] = RuntimeType(UIOffset.self)
                     for key in ["horizontal", "vertical"] {
-                        allProperties["\(name).\(key)"] = RuntimeType(CGFloat.self)
+                        allProperties["\(name).\(key)"] = .cgFloat
                     }
                 case "NSDirectionalEdgeInsets":
-                    if #available(iOS 11.0, *) {
-                        allProperties[name] = RuntimeType(NSDirectionalEdgeInsets.self)
-                        for key in ["top", "leading", "bottom", "trailing"] {
-                            allProperties["\(name).\(key)"] = RuntimeType(CGFloat.self)
-                        }
+                    for key in ["top", "leading", "bottom", "trailing"] {
+                        allProperties["\(name).\(key)"] = .cgFloat
                     }
                 default:
                     break
