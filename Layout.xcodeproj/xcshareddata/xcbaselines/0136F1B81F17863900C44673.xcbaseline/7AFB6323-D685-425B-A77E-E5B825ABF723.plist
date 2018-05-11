@@ -11,9 +11,9 @@
 				<key>com.apple.XCTPerformanceMetric_WallClockTime</key>
 				<dict>
 					<key>baselineAverage</key>
-					<real>0.22402</real>
+					<real>0.24696</real>
 					<key>baselineIntegrationDisplayName</key>
-					<string>8 May 2018 at 19:09:55</string>
+					<string>11 May 2018 at 09:03:56</string>
 				</dict>
 			</dict>
 			<key>testAutoLayoutCreation()</key>
@@ -21,9 +21,9 @@
 				<key>com.apple.XCTPerformanceMetric_WallClockTime</key>
 				<dict>
 					<key>baselineAverage</key>
-					<real>0.05593</real>
+					<real>0.059584</real>
 					<key>baselineIntegrationDisplayName</key>
-					<string>8 May 2018 at 19:09:55</string>
+					<string>11 May 2018 at 09:03:56</string>
 				</dict>
 			</dict>
 			<key>testAutoLayoutMount()</key>
@@ -31,9 +31,9 @@
 				<key>com.apple.XCTPerformanceMetric_WallClockTime</key>
 				<dict>
 					<key>baselineAverage</key>
-					<real>0.015685</real>
+					<real>0.016534</real>
 					<key>baselineIntegrationDisplayName</key>
-					<string>8 May 2018 at 19:09:55</string>
+					<string>11 May 2018 at 09:03:56</string>
 				</dict>
 			</dict>
 			<key>testAutoLayoutUpdate()</key>
@@ -41,9 +41,9 @@
 				<key>com.apple.XCTPerformanceMetric_WallClockTime</key>
 				<dict>
 					<key>baselineAverage</key>
-					<real>0.089441</real>
+					<real>0.094101</real>
 					<key>baselineIntegrationDisplayName</key>
-					<string>8 May 2018 at 19:09:55</string>
+					<string>11 May 2018 at 09:03:56</string>
 				</dict>
 			</dict>
 			<key>testCreateAndMount()</key>
@@ -51,9 +51,9 @@
 				<key>com.apple.XCTPerformanceMetric_WallClockTime</key>
 				<dict>
 					<key>baselineAverage</key>
-					<real>0.20455</real>
+					<real>0.19382</real>
 					<key>baselineIntegrationDisplayName</key>
-					<string>8 May 2018 at 19:09:55</string>
+					<string>11 May 2018 at 09:03:56</string>
 				</dict>
 			</dict>
 			<key>testCreateRichTextNodes()</key>
@@ -81,9 +81,9 @@
 				<key>com.apple.XCTPerformanceMetric_WallClockTime</key>
 				<dict>
 					<key>baselineAverage</key>
-					<real>0.0062454</real>
+					<real>0.0075009</real>
 					<key>baselineIntegrationDisplayName</key>
-					<string>8 May 2018 at 19:09:55</string>
+					<string>11 May 2018 at 09:03:56</string>
 				</dict>
 			</dict>
 			<key>testMount()</key>
@@ -91,9 +91,9 @@
 				<key>com.apple.XCTPerformanceMetric_WallClockTime</key>
 				<dict>
 					<key>baselineAverage</key>
-					<real>0.14814</real>
+					<real>0.13528</real>
 					<key>baselineIntegrationDisplayName</key>
-					<string>8 May 2018 at 19:09:55</string>
+					<string>11 May 2018 at 09:03:56</string>
 				</dict>
 			</dict>
 			<key>testParseAndLoadAndMount()</key>
@@ -101,9 +101,9 @@
 				<key>com.apple.XCTPerformanceMetric_WallClockTime</key>
 				<dict>
 					<key>baselineAverage</key>
-					<real>0.25655</real>
+					<real>0.2525</real>
 					<key>baselineIntegrationDisplayName</key>
-					<string>8 May 2018 at 19:09:55</string>
+					<string>11 May 2018 at 09:03:56</string>
 				</dict>
 			</dict>
 			<key>testParseAndLoadXML()</key>
@@ -111,9 +111,9 @@
 				<key>com.apple.XCTPerformanceMetric_WallClockTime</key>
 				<dict>
 					<key>baselineAverage</key>
-					<real>0.0076033</real>
+					<real>0.0081208</real>
 					<key>baselineIntegrationDisplayName</key>
-					<string>8 May 2018 at 19:09:55</string>
+					<string>11 May 2018 at 09:03:56</string>
 				</dict>
 			</dict>
 			<key>testParseXML()</key>
@@ -121,9 +121,9 @@
 				<key>com.apple.XCTPerformanceMetric_WallClockTime</key>
 				<dict>
 					<key>baselineAverage</key>
-					<real>0.0085139</real>
+					<real>0.0077307</real>
 					<key>baselineIntegrationDisplayName</key>
-					<string>8 May 2018 at 19:09:55</string>
+					<string>11 May 2018 at 09:03:56</string>
 				</dict>
 			</dict>
 			<key>testUpdate()</key>
@@ -131,9 +131,9 @@
 				<key>com.apple.XCTPerformanceMetric_WallClockTime</key>
 				<dict>
 					<key>baselineAverage</key>
-					<real>0.069086</real>
+					<real>0.067784</real>
 					<key>baselineIntegrationDisplayName</key>
-					<string>8 May 2018 at 19:09:55</string>
+					<string>11 May 2018 at 09:03:56</string>
 				</dict>
 			</dict>
 			<key>testUpdateRichTextNodes()</key>
@@ -141,9 +141,9 @@
 				<key>com.apple.XCTPerformanceMetric_WallClockTime</key>
 				<dict>
 					<key>baselineAverage</key>
-					<real>0.0069999</real>
+					<real>0.0076429</real>
 					<key>baselineIntegrationDisplayName</key>
-					<string>8 May 2018 at 19:09:55</string>
+					<string>11 May 2018 at 09:03:56</string>
 				</dict>
 			</dict>
 			<key>testUpdateTextNodes()</key>
@@ -151,9 +151,9 @@
 				<key>com.apple.XCTPerformanceMetric_WallClockTime</key>
 				<dict>
 					<key>baselineAverage</key>
-					<real>0.0039962</real>
+					<real>0.0039654</real>
 					<key>baselineIntegrationDisplayName</key>
-					<string>8 May 2018 at 19:09:55</string>
+					<string>11 May 2018 at 09:03:56</string>
 				</dict>
 			</dict>
 		</dict>

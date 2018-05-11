@@ -43,6 +43,7 @@ class PerformanceTests: XCTestCase {
 
     func testCreation() {
         measure {
+            Layout.clearAllCaches()
             _ = self.createNodes(nodeCount)
         }
     }
@@ -51,6 +52,7 @@ class PerformanceTests: XCTestCase {
         let rootNode = createNodes(nodeCount)
         let view = UIView(frame: CGRect(x: 0, y: 0, width: 300, height: 400))
         measure {
+            Layout.clearAllCaches()
             try! rootNode.mount(in: view)
             rootNode.unmount()
         }
@@ -59,6 +61,7 @@ class PerformanceTests: XCTestCase {
     func testCreateAndMount() {
         let view = UIView(frame: CGRect(x: 0, y: 0, width: 300, height: 400))
         measure {
+            Layout.clearAllCaches()
             let rootNode = self.createNodes(nodeCount)
             try! rootNode.mount(in: view)
             rootNode.unmount()
@@ -230,12 +233,14 @@ class PerformanceTests: XCTestCase {
     func testParseXML() {
         let xmlData = try! Data(contentsOf: xmlURL)
         measure {
+            Layout.clearAllCaches()
             _ = try! LayoutNode(xmlData: xmlData)
         }
     }
 
     func testParseAndLoadXML() {
         measure {
+            Layout.clearAllCaches()
             let xmlData = try! Data(contentsOf: xmlURL)
             _ = try! LayoutNode(xmlData: xmlData)
         }
@@ -244,6 +249,7 @@ class PerformanceTests: XCTestCase {
     func testParseAndLoadAndMount() {
         let view = UIView(frame: CGRect(x: 0, y: 0, width: 300, height: 400))
         measure {
+            Layout.clearAllCaches()
             let xmlData = try! Data(contentsOf: xmlURL)
             let rootNode = try! LayoutNode(xmlData: xmlData)
             try! rootNode.mount(in: view)

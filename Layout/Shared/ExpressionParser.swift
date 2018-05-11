@@ -2,9 +2,6 @@
 
 import Foundation
 
-// Prevent cache from distorting performance test results
-private let runningInUnitTest = (NSClassFromString("XCTestCase") != nil)
-
 // Standard library symbols
 let standardSymbols = Set(Expression.mathSymbols.keys).union(Expression.boolSymbols.keys).union([
     .infix("??"),
@@ -100,9 +97,7 @@ func parseExpression(_ expression: String) throws -> ParsedLayoutExpression {
         throw Expression.Error.message("Unexpected token `\(String(characters))`")
     }
     let parsedLayoutExpression = ParsedLayoutExpression(parsedExpression, comment: comment)
-    if !runningInUnitTest {
-        _expressionCache[expression] = parsedLayoutExpression
-    }
+    _expressionCache[expression] = parsedLayoutExpression
     return parsedLayoutExpression
 }
 
@@ -147,9 +142,7 @@ func parseStringExpression(_ expression: String) throws -> [ParsedExpressionPart
             parts.append(.string(string))
         }
     }
-    if !runningInUnitTest {
-        _stringExpressionCache[expression] = parts
-    }
+    _stringExpressionCache[expression] = parts
     return parts
 }
 
