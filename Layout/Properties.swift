@@ -163,11 +163,11 @@ extension NSObject {
         }
         addProperty("isAccessibilityElement", .bool)
         addProperty("accessibilityLabel", .string)
-        // TODO: iOS 11 addProperty("accessibilityAttributedLabel", .nsAttributedString)
+        addProperty("accessibilityAttributedLabel", .nsAttributedString)
         addProperty("accessibilityHint", .string)
-        // TODO: iOS 11 addProperty("accessibilityAttributedHint", .nsAttributedString)
+        addProperty("accessibilityAttributedHint", .nsAttributedString)
         addProperty("accessibilityValue", .string)
-        // TODO: iOS 11 addProperty("accessibilityAttributedValue", .nsAttributedString)
+        addProperty("accessibilityAttributedValue", .nsAttributedString)
         addProperty("accessibilityTraits", .uiAccessibilityTraits)
         addProperty("accessibilityFrame", .cgRect)
         addProperty("accessibilityPath", .uiBezierPath)
@@ -277,6 +277,21 @@ extension NSObject {
             return false
         }
         guard responds(to: Selector(setter)) else {
+            if #available(iOS 11.0, *) {} else {
+                switch key {
+                case "accessibilityAttributedLabel":
+                    accessibilityLabel = (value as? NSAttributedString)?.string
+                    return true
+                case "accessibilityAttributedHint":
+                    accessibilityHint = (value as? NSAttributedString)?.string
+                    return true
+                case "accessibilityAttributedValue":
+                    accessibilityValue = (value as? NSAttributedString)?.string
+                    return true
+                default:
+                    break
+                }
+            }
             if self is NSValue {
                 throw SymbolError("Cannot set property \(key) of immutable \(Swift.type(of: self))", for: key)
             }
@@ -580,6 +595,18 @@ extension NSObject {
                 throw SymbolError("Unknown property \(key) of UIOffset", for: key)
             }
         default:
+            if #available(iOS 11.0, *) {} else {
+                switch key {
+                case "accessibilityAttributedLabel":
+                    return accessibilityLabel.map(NSAttributedString.init(string:))
+                case "accessibilityAttributedHint":
+                    return accessibilityHint.map(NSAttributedString.init(string:))
+                case "accessibilityAttributedValue":
+                    return accessibilityValue.map(NSAttributedString.init(string:))
+                default:
+                    break
+                }
+            }
             let mirror = Mirror(reflecting: self)
             if mirror.children.contains(where: { $0.label == key }) {
                 throw LayoutError("\(classForCoder) \(key) property must be prefixed with @objc to be accessed at runtime")
