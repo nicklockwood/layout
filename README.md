@@ -2853,7 +2853,7 @@ When you have a Layout XML file open in Xcode, select the `Editor > Layout > For
 
 *Q. Why does Layout use XML instead of a more modern format like JSON?*
 
-> XML is better to suited to representing document-like structures such as view hierarchies. JSON does not distinguish between node types, attributes, and children in its syntax, which leads to a lot of extra verbosity when representing hierarchical structures because each node must include keys for "type" and "children", or equivalent. JSON also doesn't support comments, which are useful in complex layouts. While XML isn't perfect, it is the most appropriate of the formats that iOS has built-in support for.
+> XML is better suited to representing document-like structures such as view hierarchies. JSON does not distinguish between node types, attributes, and children in its syntax, which leads to a lot of extra verbosity when representing hierarchical structures because each node must include keys for "type" and "children", or equivalent. JSON also doesn't support comments, which are useful in complex layouts. While XML isn't perfect, it is the most appropriate of the formats that iOS has built-in support for.
 
 *Q. Do I really have to write my layouts in XML?*
 
