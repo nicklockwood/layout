@@ -126,4 +126,29 @@ class StateTests: XCTestCase {
         node.setState(state) // Not changed
         XCTAssertFalse(vc.updated)
     }
+
+    class OptionalChildModel {
+        var name: String?
+    }
+
+    class OptionalParentModel {
+        var nestedModel: OptionalChildModel?
+    }
+
+    func testStateClass() {
+        let state = OptionalParentModel()
+        state.nestedModel = OptionalChildModel()
+        let label = UILabel()
+        let node = LayoutNode(
+            view: label,
+            state: state,
+            expressions: ["text": "{nestedModel.name}"]
+        )
+        let vc = TestVC()
+        try! node.mount(in: vc)
+        XCTAssertEqual(label.text, "")
+        state.nestedModel?.name = "Foo"
+        node.setState(state)
+        XCTAssertEqual(label.text, "Foo")
+    }
 }

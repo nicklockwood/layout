@@ -1438,6 +1438,9 @@ public class LayoutNode: NSObject {
             }
             throw SymbolError("Unknown property \(subKeyPath) in \(key)", for: keyPath)
         }
+        guard let object = AnyExpression.unwrap(object) else {
+            return nil
+        }
         let children = Mirror(reflecting: object).children
         if let (_, value) = children.first(where: { $0.label == keyPath }) {
             return value
