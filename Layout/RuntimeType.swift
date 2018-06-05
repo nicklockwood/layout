@@ -72,6 +72,8 @@ public class RuntimeType: NSObject {
                 return CGImage.self
             case "CGColor":
                 return CGColor.self
+            case "CGPath":
+                return CGPath.self
             default:
                 return nil
             }
@@ -112,6 +114,8 @@ public class RuntimeType: NSObject {
         switch typeName {
         case "CGColor", "CGImage", "CGPath":
             type = RuntimeType(.pointer(typeName))
+        case "CGColorRef", "CGImageRef", "CGPathRef":
+            type = RuntimeType(.pointer(String(typeName.dropLast(3))))
         case "NSString":
             type = RuntimeType(.any(String.self))
         case "NSArray":

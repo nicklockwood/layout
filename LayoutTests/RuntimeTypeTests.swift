@@ -53,6 +53,16 @@ class RuntimeTypeTests: XCTestCase {
         XCTAssert(runtimeType.swiftType == CGColor.self)
     }
 
+    func testCGPathType() {
+        let runtimeType = RuntimeType(CGPath.self)
+        guard case let .pointer(name) = runtimeType.type else {
+            XCTFail()
+            return
+        }
+        XCTAssertEqual(name, "CGPath")
+        XCTAssert(runtimeType.swiftType == CGPath.self)
+    }
+
     func testCGRectType() {
         let runtimeType = RuntimeType(CGRect.self)
         guard case let .any(type) = runtimeType.type else {
