@@ -2,7 +2,7 @@
 //  Expression.swift
 //  Expression
 //
-//  Version 0.12.8
+//  Version 0.12.10
 //
 //  Created by Nick Lockwood on 15/09/2016.
 //  Copyright © 2016 Nick Lockwood. All rights reserved.
@@ -31,6 +31,7 @@
 //  SOFTWARE.
 //
 
+import Dispatch
 import Foundation
 
 /// Immutable wrapper for a parsed expression
