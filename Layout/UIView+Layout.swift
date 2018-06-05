@@ -570,6 +570,31 @@ extension UIButton {
             try super.setValue(value, forExpression: name)
         }
     }
+
+    open override func value(forSymbol name: String) throws -> Any {
+        switch name {
+        case "title": return title(for: .normal) ?? ""
+        case "titleColor": return titleColor(for: .normal) as Any
+        case "titleShadowColor": return titleShadowColor(for: .normal) as Any
+        case "image": return image(for: .normal) as Any
+        case "backgroundImage": return backgroundImage(for: .normal) as Any
+        case "attributedTitle": return attributedTitle(for: .normal) as Any
+        default:
+            if let (prefix, state) = controlStates.first(where: { name.hasPrefix($0.key) }) {
+                switch name[prefix.endIndex ..< name.endIndex] {
+                case "Title": return title(for: state) as Any
+                case "TitleColor": return titleColor(for: state) as Any
+                case "TitleShadowColor": return titleShadowColor(for: state) as Any
+                case "Image": return image(for: state) as Any
+                case "BackgroundImage": return backgroundImage(for: state) as Any
+                case "AttributedTitle": return attributedTitle(for: state) as Any
+                default:
+                    break
+                }
+            }
+            return try super.value(forSymbol: name)
+        }
+    }
 }
 
 private let textInputTraits: [String: RuntimeType] = [

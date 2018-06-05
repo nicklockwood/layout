@@ -654,7 +654,7 @@ struct LayoutExpression {
             return nil
         }
         var symbols = expression.symbols
-        for symbol in ["font", "textColor", "textAlignment", "lineBreakMode"]
+        for symbol in ["font", "textColor", "textAlignment", "lineBreakMode", "titleColor"]
             where node.viewExpressionTypes[symbol] != nil {
             symbols.insert(symbol)
         }
@@ -736,6 +736,9 @@ struct LayoutExpression {
                 }
                 if symbols.contains("textColor"),
                     let color = try node.value(forSymbol: "textColor") as? UIColor {
+                    result.addAttribute(NSAttributedStringKey.foregroundColor, value: color, range: range)
+                } else if symbols.contains("titleColor"),
+                    let color = try node.value(forSymbol: "titleColor") as? UIColor {
                     result.addAttribute(NSAttributedStringKey.foregroundColor, value: color, range: range)
                 }
 
