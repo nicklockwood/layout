@@ -654,7 +654,8 @@ struct LayoutExpression {
             return nil
         }
         var symbols = expression.symbols
-        for symbol in ["font", "textColor", "textAlignment", "lineBreakMode", "titleColor"]
+        for symbol in ["font", "textColor", "textAlignment", "lineBreakMode",
+                       "titleColor", "titleLabel.font"]
             where node.viewExpressionTypes[symbol] != nil {
             symbols.insert(symbol)
         }
@@ -720,6 +721,10 @@ struct LayoutExpression {
                 let correctFont: UIFont
                 if symbols.contains("font"), let font = try node.value(forSymbol: "font") as? UIFont {
                     correctFont = font
+                } else if symbols.contains("titleLabel.font"),
+                    let font = try node.value(forSymbol: "titleLabel.font") as? UIFont {
+                    // TODO: find a less hacky solution for this
+                    correctFont = font
                 } else {
                     correctFont = .systemFont(ofSize: UIFont.defaultSize)
                 }
@@ -738,6 +743,7 @@ struct LayoutExpression {
                     let color = try node.value(forSymbol: "textColor") as? UIColor {
                     result.addAttribute(NSAttributedStringKey.foregroundColor, value: color, range: range)
                 } else if symbols.contains("titleColor"),
+                    // TODO: support UIButton states (like selectedTitleColor, etc.) correctly
                     let color = try node.value(forSymbol: "titleColor") as? UIColor {
                     result.addAttribute(NSAttributedStringKey.foregroundColor, value: color, range: range)
                 }
