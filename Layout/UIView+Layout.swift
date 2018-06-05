@@ -89,8 +89,22 @@ extension UIView: LayoutManaged {
             }
         }
 
+        // Private and read-only properties
+        for name in [
+            "size",
+            "origin",
+            "position",
+        ] + [
+            "effectiveUserInterfaceLayoutDirection",
+            "safeAreaInsets",
+        ] {
+            types[name] = nil
+            let name = "\(name)."
+            for key in types.keys where key.hasPrefix(name) {
+                types[key] = nil
+            }
+        }
         #if arch(i386) || arch(x86_64)
-            // Private and read-only properties
             for name in [
                 "allowsBaselineOffsetApproximation",
                 "animationInfo",
@@ -117,23 +131,13 @@ extension UIView: LayoutManaged {
                 "layoutMarginsFollowReadableWidth",
                 "needsDisplayOnBoundsChange",
                 "neverCacheContentLayoutSize",
-                "origin",
-                "position",
                 "previewingSegueTemplateStorage",
                 "rotationBy",
-                "size",
                 "skipsSubviewEnumeration",
                 "viewTraversalMark",
                 "wantsDeepColorDrawing",
-            ] + [
-                "effectiveUserInterfaceLayoutDirection",
-                "safeAreaInsets",
             ] {
                 types[name] = nil
-                let name = "\(name)."
-                for key in types.keys where key.hasPrefix(name) {
-                    types[key] = nil
-                }
             }
         #endif
         return types
@@ -528,12 +532,11 @@ extension UIButton {
         for (name, type) in UIImageView.cachedExpressionTypes {
             types["imageView.\(name)"] = type
         }
-
+        // Private properties
+        types["lineBreakMode"] = nil
         #if arch(i386) || arch(x86_64)
-            // Private properties
             for name in [
                 "autosizesToFit",
-                "lineBreakMode",
                 "showPressFeedback",
             ] {
                 types[name] = nil
@@ -1233,14 +1236,14 @@ extension UIInputView {
 
     open override class var expressionTypes: [String: RuntimeType] {
         var types = super.expressionTypes
+        // Read-only properties
+        types["inputViewStyle"] = nil
+        // Private properties
         #if arch(i386) || arch(x86_64)
-            // Private and read-only properties
             for name in [
                 "contentRatio",
                 "leftContentViewSize",
                 "rightContentViewSize",
-            ] + [
-                "inputViewStyle",
             ] {
                 types[name] = nil
                 let name = "\(name)."

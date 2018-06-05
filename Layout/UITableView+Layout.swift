@@ -450,20 +450,24 @@ extension UITableViewHeaderFooterView: LayoutBacked {
             types["detailTextLabel.\(key)"] = type
         }
 
+        // Private and read-only properties
+        for name in [
+            "backgroundImage",
+            "textAlignment",
+            "text",
+        ] + [
+            "reuseIdentifier",
+            "sectionHeader",
+            "table",
+            "tableView",
+            "tableViewStyle",
+        ] {
+            types[name] = nil
+        }
         #if arch(i386) || arch(x86_64)
-            // Private and read-only properties
             for name in [
-                "backgroundImage",
                 "floating",
                 "maxTitleWidth",
-                "text",
-                "textAlignment",
-            ] + [
-                "reuseIdentifier",
-                "sectionHeader",
-                "table",
-                "tableView",
-                "tableViewStyle",
             ] {
                 types[name] = nil
             }
@@ -540,15 +544,17 @@ extension UITableViewCell: LayoutBacked {
             types["detailTextLabel.\(key)"] = type
         }
 
+        // Private and read-only properties
+        types["lineBreakMode"] = nil
+        types["textAlignment"] = nil
+        types["textColor"] = nil
         #if arch(i386) || arch(x86_64)
-            // Private and read-only properties
             for name in [
                 "accessoryAction",
                 "bottomShadowColor",
                 "clipsContents",
                 "drawingEnabled",
                 "hidesAccessoryWhenEditing",
-                "lineBreakMode",
                 "returnAction",
                 "sectionBorderColor",
                 "sectionLocation",
@@ -560,8 +566,6 @@ extension UITableViewCell: LayoutBacked {
                 "tableBackgroundColor",
                 "tableSpecificElementsHidden",
                 "tableViewStyle",
-                "textAlignment",
-                "textColor",
                 "textFieldOffset",
                 "topShadowColor",
                 "wasSwiped",

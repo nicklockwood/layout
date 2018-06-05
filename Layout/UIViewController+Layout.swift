@@ -403,13 +403,13 @@ extension UITabBarController {
         types["viewControllers"] = .array(of: UIViewController.self)
         types["customizableViewControllers"] = .array(of: UIViewController.self)
 
+        // Read-only properties
+        types["tabBar"] = nil
+        // Private properties
         #if arch(i386) || arch(x86_64)
-            // Private and read-only properties
             for name in [
                 "moreChildViewControllers",
                 "showsEditButtonOnLeft",
-            ] + [
-                "tabBar",
             ] {
                 types[name] = nil
             }
@@ -584,8 +584,15 @@ extension UINavigationController {
     open override class var expressionTypes: [String: RuntimeType] {
         var types = super.expressionTypes
         types["viewControllers"] = .array(of: UIViewController.self)
+        // Read-only properties
+        for name in [
+            "navigationBar",
+            "toolbar",
+        ] {
+            types[name] = nil
+        }
+        // Private properties
         #if arch(i386) || arch(x86_64)
-            // Private and read-only properties
             for name in [
                 "allowUserInteractionDuringTransition",
                 "avoidMovingNavBarOffscreenBeforeUnhiding",
@@ -598,9 +605,6 @@ extension UINavigationController {
                 "isInteractiveTransition",
                 "needsDeferredTransition",
                 "pretendNavBarHidden",
-            ] + [
-                "navigationBar",
-                "toolbar",
             ] {
                 types[name] = nil
             }
