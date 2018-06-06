@@ -4,7 +4,7 @@ import UIKit
 
 extension UITableView: LayoutBacked {
     open override class func create(with node: LayoutNode) throws -> UITableView {
-        let style = try node.value(forExpression: "style") as? UITableViewStyle ?? .plain
+        let style = try node.value(forExpression: "style") as? UITableView.Style ?? .plain
         let tableView = self.init(frame: .zero, style: style)
         tableView.enableAutoSizing()
         return tableView
@@ -12,11 +12,11 @@ extension UITableView: LayoutBacked {
 
     fileprivate func enableAutoSizing() {
         estimatedRowHeight = 44
-        rowHeight = UITableViewAutomaticDimension
+        rowHeight = UITableView.automaticDimension
         estimatedSectionHeaderHeight = 0
-        sectionHeaderHeight = UITableViewAutomaticDimension
+        sectionHeaderHeight = UITableView.automaticDimension
         estimatedSectionFooterHeight = 0
-        sectionFooterHeight = UITableViewAutomaticDimension
+        sectionFooterHeight = UITableView.automaticDimension
     }
 
     open override class var parameterTypes: [String: RuntimeType] {
@@ -156,7 +156,7 @@ extension UITableView: LayoutBacked {
 
 extension UITableViewController: LayoutBacked {
     open override class func create(with node: LayoutNode) throws -> UITableViewController {
-        let style = try node.value(forExpression: "style") as? UITableViewStyle ?? .plain
+        let style = try node.value(forExpression: "style") as? UITableView.Style ?? .plain
         let viewController = self.init(style: style)
         if !node.children.contains(where: { $0.viewClass is UITableView.Type }) {
             viewController.tableView.enableAutoSizing()
@@ -485,8 +485,8 @@ extension UITableViewHeaderFooterView: LayoutBacked {
             return super.intrinsicContentSize
         }
         return CGSize(
-            width: UIViewNoIntrinsicMetric,
-            height: textLabel?.intrinsicContentSize.height ?? UIViewNoIntrinsicMetric
+            width: UIView.noIntrinsicMetric,
+            height: textLabel?.intrinsicContentSize.height ?? UIView.noIntrinsicMetric
         )
     }
 
@@ -502,7 +502,7 @@ extension UITableViewHeaderFooterView: LayoutBacked {
 
 extension UITableViewCell: LayoutBacked {
     open override class func create(with node: LayoutNode) throws -> UITableViewCell {
-        let style = try node.value(forExpression: "style") as? UITableViewCellStyle ?? .default
+        let style = try node.value(forExpression: "style") as? UITableViewCell.CellStyle ?? .default
         let reuseIdentifier = try node.value(forExpression: "reuseIdentifier") as? String
         let cell = self.init(style: style, reuseIdentifier: reuseIdentifier)
         if node.expressions.keys.contains(where: { $0.hasPrefix("backgroundView.") }),

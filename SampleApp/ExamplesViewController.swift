@@ -11,7 +11,7 @@ class ExamplesViewController: UIViewController, LayoutLoading, UITabBarControlle
 
         // Swift 3.x compatibility
         #if swift(>=4)
-            let foregroundColorKey = NSAttributedStringKey.foregroundColor
+            let foregroundColorKey = NSAttributedString.Key.foregroundColor
         #else
             let foregroundColorKey = NSForegroundColorAttributeName
         #endif

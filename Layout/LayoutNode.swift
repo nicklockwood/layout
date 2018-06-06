@@ -172,7 +172,7 @@ public class LayoutNode: NSObject {
     private var _observingContentSizeCategory = false
     private func _stopObservingContentSizeCategory() {
         if _observingContentSizeCategory {
-            NotificationCenter.default.removeObserver(self, name: .UIContentSizeCategoryDidChange, object: nil)
+            NotificationCenter.default.removeObserver(self, name: UIContentSizeCategory.didChangeNotification, object: nil)
             _observingContentSizeCategory = false
         }
     }
@@ -208,7 +208,12 @@ public class LayoutNode: NSObject {
         if parent != nil {
             _stopObservingContentSizeCategory()
         } else if !_observingContentSizeCategory {
-            NotificationCenter.default.addObserver(self, selector: #selector(contentSizeCategoryChanged), name: .UIContentSizeCategoryDidChange, object: nil)
+            NotificationCenter.default.addObserver(
+                self,
+                selector: #selector(contentSizeCategoryChanged),
+                name: UIContentSizeCategory.didChangeNotification,
+                object: nil
+            )
             _observingContentSizeCategory = true
         }
         if !_observingFrame {
@@ -841,7 +846,7 @@ public class LayoutNode: NSObject {
         }
         _view?.removeFromSuperview()
         for controller in viewControllers {
-            controller.removeFromParentViewController()
+            controller.removeFromParent()
         }
     }
 
@@ -899,13 +904,13 @@ public class LayoutNode: NSObject {
                 unmount()
                 if let parent = parent, let index = parent.children.index(of: self) {
                     oldView?.removeFromSuperview()
-                    oldViewController?.removeFromParentViewController()
+                    oldViewController?.removeFromParent()
                     parent.insertChild(self, at: index)
                 } else if let superview = oldView?.superview,
                     let index = superview.subviews.index(of: oldView!) {
                     if let parentViewController = oldViewController?.parent {
-                        oldViewController?.removeFromParentViewController()
-                        parentViewController.addChildViewController(viewController!)
+                        oldViewController?.removeFromParent()
+                        parentViewController.addChild(viewController!)
                     }
                     oldView!.removeFromSuperview()
                     superview.insertSubview(view, at: index)
@@ -958,7 +963,7 @@ public class LayoutNode: NSObject {
             } else if hasExpression("left"), hasExpression("right") {
                 expressions["width"] = _useLegacyLayoutMode ? "right - left" : "100% - right - left"
             } else if !(_view is UIScrollView), _view is UIImageView || _usesAutoLayout ||
-                _view?.intrinsicContentSize.width != UIViewNoIntrinsicMetric {
+                _view?.intrinsicContentSize.width != UIView.noIntrinsicMetric {
                 expressions["width"] = "100% == 0 ? auto : min(auto, 100%)"
             } else if parent != nil {
                 expressions["width"] = "100%"
@@ -985,7 +990,7 @@ public class LayoutNode: NSObject {
             if hasExpression("top"), hasExpression("bottom") {
                 expressions["height"] = _useLegacyLayoutMode ? "bottom - top" : "100% - bottom - top"
             } else if !(_view is UIScrollView), _view is UIImageView || _usesAutoLayout ||
-                _view?.intrinsicContentSize.height != UIViewNoIntrinsicMetric {
+                _view?.intrinsicContentSize.height != UIView.noIntrinsicMetric {
                 expressions["height"] = "auto"
             } else if parent != nil {
                 expressions["height"] = "100%"
@@ -2132,7 +2137,7 @@ public class LayoutNode: NSObject {
         }
         if value(forSymbol: "width", dependsOn: "inferredSize.width"),
             !hasExpression("contentSize"), !hasExpression("contentSize.width"),
-            !_usesAutoLayout, _view?.intrinsicContentSize.width == UIViewNoIntrinsicMetric, children.isEmpty {
+            !_usesAutoLayout, _view?.intrinsicContentSize.width == UIView.noIntrinsicMetric, children.isEmpty {
             _widthDependsOnParent = true
             return true
         }
@@ -2153,7 +2158,7 @@ public class LayoutNode: NSObject {
         }
         if value(forSymbol: "height", dependsOn: "inferredSize.height"),
             !hasExpression("contentSize"), !hasExpression("contentSize.height"),
-            !_usesAutoLayout, _view?.intrinsicContentSize.height == UIViewNoIntrinsicMetric, children.isEmpty {
+            !_usesAutoLayout, _view?.intrinsicContentSize.height == UIView.noIntrinsicMetric, children.isEmpty {
             _heightDependsOnParent = true
             return true
         }
@@ -2182,7 +2187,7 @@ public class LayoutNode: NSObject {
         }
         // TODO: remove special cases
         if _view is UIStackView {
-            let isVertical = try value(forSymbol: "axis") as! UILayoutConstraintAxis == .vertical
+            let isVertical = try value(forSymbol: "axis") as! NSLayoutConstraint.Axis == .vertical
             let spacing = try cgFloatValue(forSymbol: "spacing")
             var size = CGSize.zero
             let children = self.children.filter { !$0.isHidden }
@@ -2233,7 +2238,7 @@ public class LayoutNode: NSObject {
             _view.layoutIfNeeded() // TODO: find a more performant solution for automatic cell-sizing
             _view.textLabel?.sizeToFit()
             _view.detailTextLabel?.sizeToFit()
-            switch try value(forSymbol: "style") as? UITableViewCellStyle ?? .default {
+            switch try value(forSymbol: "style") as? UITableViewCell.CellStyle ?? .default {
             case .default, .subtitle:
                 size.height = (_view.textLabel?.frame.height ?? 0) + (_view.detailTextLabel?.frame.height ?? 0)
             case .value1, .value2:
@@ -2295,8 +2300,13 @@ public class LayoutNode: NSObject {
             contentInset.right = try cgFloatValue(forSymbol: "contentInset.right")
         }
         if #available(iOS 11.0, *) {
+            #if swift(>=4.2)
+                typealias ContentInsetAdjustmentBehavior = UIScrollView.ContentInsetAdjustmentBehavior
+            #else
+                typealias ContentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentBehavior
+            #endif
             let contentInsetAdjustmentBehavior = try value(forSymbol: "contentInsetAdjustmentBehavior") as!
-                UIScrollViewContentInsetAdjustmentBehavior
+                ContentInsetAdjustmentBehavior
             switch contentInsetAdjustmentBehavior {
             case .automatic, .scrollableAxes:
                 var contentInset = contentInset
@@ -2419,7 +2429,7 @@ public class LayoutNode: NSObject {
             if let width = try computeExplicitWidth() {
                 _widthConstraint?.constant = width
                 _widthConstraint?.isActive = true
-            } else if intrinsicSize.width != UIViewNoIntrinsicMetric,
+            } else if intrinsicSize.width != UIView.noIntrinsicMetric,
                 _view.constraints.contains(where: { $0.firstAttribute == .width }) {
                 _widthConstraint?.constant = intrinsicSize.width
                 _widthConstraint?.isActive = true
@@ -2429,7 +2439,7 @@ public class LayoutNode: NSObject {
             if let height = try computeExplicitHeight() {
                 _heightConstraint?.constant = height
                 _heightConstraint?.isActive = true
-            } else if intrinsicSize.height != UIViewNoIntrinsicMetric,
+            } else if intrinsicSize.height != UIView.noIntrinsicMetric,
                 _view.constraints.contains(where: { $0.firstAttribute == .height }) {
                 _widthConstraint?.constant = intrinsicSize.height
                 _widthConstraint?.isActive = true
@@ -2448,7 +2458,7 @@ public class LayoutNode: NSObject {
         }
         // Try intrinsic size
         var size = intrinsicSize
-        if size.width != UIViewNoIntrinsicMetric || size.height != UIViewNoIntrinsicMetric {
+        if size.width != UIView.noIntrinsicMetric || size.height != UIView.noIntrinsicMetric {
             let explicitWidth = try computeExplicitWidth()
             if let explicitWidth = explicitWidth {
                 size.width = explicitWidth
@@ -2611,7 +2621,7 @@ public class LayoutNode: NSObject {
         try performWithoutUpdate {
             try bind(to: viewController)
             for controller in viewControllers {
-                viewController.addChildViewController(controller)
+                viewController.addChild(controller)
             }
             if (viewController is UITableViewController && view is UITableView) ||
                 (viewController is UICollectionViewController && view is UICollectionView) {
@@ -2648,7 +2658,7 @@ public class LayoutNode: NSObject {
         if let viewController = view.viewController {
             // TODO: should mounting a VC node in a view without a containing VC be an error?
             for controller in viewControllers {
-                viewController.addChildViewController(controller)
+                viewController.addChild(controller)
             }
         }
         _view.map { view.addSubview($0) }
@@ -2666,7 +2676,7 @@ public class LayoutNode: NSObject {
         }
         unbind()
         for controller in viewControllers {
-            controller.removeFromParentViewController()
+            controller.removeFromParent()
         }
         _view?.removeFromSuperview()
     }

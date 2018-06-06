@@ -410,13 +410,13 @@ class LayoutExpressionTests: XCTestCase {
     func testEnumPropertyInEnumExpression() {
         let node = LayoutNode()
         let expression = LayoutExpression(enumExpression: "UIViewContentMode.center", type: .uiViewContentMode, for: node)
-        XCTAssertEqual(try expression?.evaluate() as? UIViewContentMode, .center)
+        XCTAssertEqual(try expression?.evaluate() as? UIView.ContentMode, .center)
     }
 
     func testOptionSetPropertyInEnumExpression() {
         let node = LayoutNode()
         let expression = LayoutExpression(optionsExpression: "UIViewAutoresizing.flexibleWidth, UIViewAutoresizing.flexibleHeight", type: .uiViewAutoresizing, for: node)
-        XCTAssertEqual(try expression?.evaluate() as? UIViewAutoresizing, [.flexibleWidth, .flexibleHeight])
+        XCTAssertEqual(try expression?.evaluate() as? UIView.AutoresizingMask, [.flexibleWidth, .flexibleHeight])
     }
 
     // MARK: Integration tests

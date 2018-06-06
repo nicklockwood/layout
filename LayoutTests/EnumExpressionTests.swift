@@ -10,12 +10,12 @@ class EnumExpressionTests: XCTestCase {
                 "contentMode": "center",
             ]
         )
-        let expected = UIViewContentMode.center
-        XCTAssertEqual(try node.value(forSymbol: "contentMode") as? UIViewContentMode, expected)
+        let expected = UIView.ContentMode.center
+        XCTAssertEqual(try node.value(forSymbol: "contentMode") as? UIView.ContentMode, expected)
     }
 
     func testContentModeConstant() {
-        let expected = UIViewContentMode.center
+        let expected = UIView.ContentMode.center
         let node = LayoutNode(
             constants: [
                 "mode": expected,
@@ -24,7 +24,7 @@ class EnumExpressionTests: XCTestCase {
                 "contentMode": "mode",
             ]
         )
-        XCTAssertEqual(try node.value(forSymbol: "contentMode") as? UIViewContentMode, expected)
+        XCTAssertEqual(try node.value(forSymbol: "contentMode") as? UIView.ContentMode, expected)
     }
 
     func testReturnKeyLiteral() {

@@ -334,7 +334,7 @@ extension UIView: LayoutManaged {
     @objc open func didInsertChildNode(_ node: LayoutNode, at index: Int) {
         if let viewController = self.viewController {
             for controller in node.viewControllers {
-                viewController.addChildViewController(controller)
+                viewController.addChild(controller)
             }
         }
         if index > 0, let previous = node.parent?.children[index - 1].view {
@@ -349,7 +349,7 @@ extension UIView: LayoutManaged {
     @objc open func willRemoveChildNode(_ node: LayoutNode, at _: Int) {
         if node._view == nil { return }
         for controller in node.viewControllers {
-            controller.removeFromParentViewController()
+            controller.removeFromParent()
         }
         node.view.removeFromSuperview()
     }
@@ -394,7 +394,7 @@ extension UIImageView {
     }
 }
 
-private let controlEvents: [String: UIControlEvents] = [
+private let controlEvents: [String: UIControl.Event] = [
     "touchDown": .touchDown,
     "touchDownRepeat": .touchDownRepeat,
     "touchDragInside": .touchDragInside,
@@ -415,7 +415,7 @@ private let controlEvents: [String: UIControlEvents] = [
     "allEvents": .allEvents,
 ]
 
-private let controlStates: [String: UIControlState] = [
+private let controlStates: [String: UIControl.State] = [
     "normal": .normal,
     "highlighted": .highlighted,
     "disabled": .disabled,
@@ -500,7 +500,7 @@ extension UIControl {
 
 extension UIButton {
     open override class func create(with node: LayoutNode) throws -> UIButton {
-        if let type = try node.value(forExpression: "type") as? UIButtonType {
+        if let type = try node.value(forExpression: "type") as? UIButton.ButtonType {
             return self.init(type: type)
         }
         return self.init(frame: .zero)
@@ -885,13 +885,13 @@ extension UISearchBar {
     }
 }
 
-private let controlSegments: [String: UISegmentedControlSegment] = [
-    "any": .any,
-    "left": .left,
-    "center": .center,
-    "right": .right,
-    "alone": .alone,
-]
+#if swift(>=4.2)
+    private typealias Segment = UISegmentedControl.Segment
+#else
+    private typealias Segment = UISegmentedControlSegment
+#endif
+
+private let controlSegments = RuntimeType.uiSegmentedControlSegment.values.mapValues { $0 as! Segment }
 
 extension UISegmentedControl: TitleTextAttributes {
     open override class func create(with node: LayoutNode) throws -> UISegmentedControl {
@@ -988,24 +988,24 @@ extension UISegmentedControl: TitleTextAttributes {
     }
 
     var titleColor: UIColor? {
-        get { return titleTextAttributes(for: .normal)?[NSAttributedStringKey.foregroundColor] as? UIColor }
+        get { return titleTextAttributes(for: .normal)?[NSAttributedString.Key.foregroundColor] as? UIColor }
         set { setTitleColor(newValue, for: .normal) }
     }
 
     var titleFont: UIFont? {
-        get { return titleTextAttributes(for: .normal)?[NSAttributedStringKey.font] as? UIFont }
+        get { return titleTextAttributes(for: .normal)?[NSAttributedString.Key.font] as? UIFont }
         set { setTitleFont(newValue, for: .normal) }
     }
 
-    private func setTitleColor(_ color: UIColor?, for state: UIControlState) {
+    private func setTitleColor(_ color: UIColor?, for state: UIControl.State) {
         var attributes = titleTextAttributes(for: state) ?? [:]
-        attributes[NSAttributedStringKey.foregroundColor] = color
+        attributes[NSAttributedString.Key.foregroundColor] = color
         setTitleTextAttributes(attributes, for: state)
     }
 
-    private func setTitleFont(_ font: UIFont?, for state: UIControlState) {
+    private func setTitleFont(_ font: UIFont?, for state: UIControl.State) {
         var attributes = titleTextAttributes(for: state) ?? [:]
-        attributes[NSAttributedStringKey.font] = font
+        attributes[NSAttributedString.Key.font] = font
         setTitleTextAttributes(attributes, for: state)
     }
 
@@ -1251,7 +1251,7 @@ extension UIProgressView {
 
 extension UIInputView {
     open override class func create(with node: LayoutNode) throws -> UIInputView {
-        let inputViewStyle = try node.value(forExpression: "inputViewStyle") as? UIInputViewStyle ?? .default
+        let inputViewStyle = try node.value(forExpression: "inputViewStyle") as? UIInputView.Style ?? .default
         return self.init(frame: .zero, inputViewStyle: inputViewStyle)
     }
 

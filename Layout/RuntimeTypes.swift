@@ -69,8 +69,8 @@ public extension RuntimeType {
 
     @objc static let uiColor = RuntimeType(UIColor.self)
     @objc static let uiImage = RuntimeType(UIImage.self)
-    @objc static let uiActivityType: RuntimeType = {
-        var values: [String: UIActivityType] = [
+    @objc static let uiActivity_ActivityType: RuntimeType = {
+        var values: [String: UIActivity.ActivityType] = [
             "postToFacebook": .postToFacebook,
             "postToTwitter": .postToTwitter,
             "postToWeibo": .postToWeibo,
@@ -92,6 +92,10 @@ public extension RuntimeType {
         }
         return RuntimeType(values)
     }()
+
+    // Deprecated
+
+    @objc static var uiActivityType: RuntimeType { return uiActivity_ActivityType }
 
     // MARK: Accessibility
 
@@ -120,38 +124,46 @@ public extension RuntimeType {
     @objc static let uiAccessibilityTraits: RuntimeType = {
         let tabBarTrait: UIAccessibilityTraits
         if #available(iOS 10, *) {
-            tabBarTrait = UIAccessibilityTraitTabBar
+            tabBarTrait = UIAccessibilityTraits.tabBar
         } else {
-            tabBarTrait = UIAccessibilityTraitNone
+            tabBarTrait = UIAccessibilityTraits.none
         }
         let type = RuntimeType(RuntimeType.Kind.options(UIAccessibilityTraits.self, [
-            "none": UIAccessibilityTraitNone,
-            "button": UIAccessibilityTraitButton,
-            "link": UIAccessibilityTraitLink,
-            "header": UIAccessibilityTraitHeader,
-            "searchField": UIAccessibilityTraitSearchField,
-            "image": UIAccessibilityTraitImage,
-            "selected": UIAccessibilityTraitSelected,
-            "playsSound": UIAccessibilityTraitPlaysSound,
-            "keyboardKey": UIAccessibilityTraitKeyboardKey,
-            "staticText": UIAccessibilityTraitStaticText,
-            "summaryElement": UIAccessibilityTraitSummaryElement,
-            "notEnabled": UIAccessibilityTraitNotEnabled,
-            "updatesFrequently": UIAccessibilityTraitUpdatesFrequently,
-            "startsMediaSession": UIAccessibilityTraitStartsMediaSession,
-            "adjustable": UIAccessibilityTraitAdjustable,
-            "allowsIndirectInteraction": UIAccessibilityTraitAllowsDirectInteraction,
-            "causesPageTurn": UIAccessibilityTraitCausesPageTurn,
+            "none": UIAccessibilityTraits.none,
+            "button": UIAccessibilityTraits.button,
+            "link": UIAccessibilityTraits.link,
+            "header": UIAccessibilityTraits.header,
+            "searchField": UIAccessibilityTraits.searchField,
+            "image": UIAccessibilityTraits.image,
+            "selected": UIAccessibilityTraits.selected,
+            "playsSound": UIAccessibilityTraits.playsSound,
+            "keyboardKey": UIAccessibilityTraits.keyboardKey,
+            "staticText": UIAccessibilityTraits.staticText,
+            "summaryElement": UIAccessibilityTraits.summaryElement,
+            "notEnabled": UIAccessibilityTraits.notEnabled,
+            "updatesFrequently": UIAccessibilityTraits.updatesFrequently,
+            "startsMediaSession": UIAccessibilityTraits.startsMediaSession,
+            "adjustable": UIAccessibilityTraits.adjustable,
+            "allowsIndirectInteraction": UIAccessibilityTraits.allowsDirectInteraction,
+            "causesPageTurn": UIAccessibilityTraits.causesPageTurn,
             "tabBar": tabBarTrait,
         ] as [String: UIAccessibilityTraits]))
         type.caster = { value in
             if let values = value as? [UIAccessibilityTraits] {
-                return values.reduce(0) { $0 + $1 }
+                #if swift(>=4.2)
+                    return UIAccessibilityTraits(rawValue: values.map { $0.rawValue}.reduce(0 as UInt64) { $0 + $1 })
+                #else
+                    return values.reduce(0) { $0 + $1 }
+                #endif
             }
             return value as? UIAccessibilityTraits
         }
         return type
     }()
+
+    // Deprecated
+
+
 
     // MARK: Geometry
 
@@ -210,7 +222,7 @@ public extension RuntimeType {
     }()
 
     @objc static let uiFont = RuntimeType(UIFont.self)
-    @objc static let uiFontDescriptorSymbolicTraits = RuntimeType([
+    @objc static let uiFontDescriptor_SymbolicTraits = RuntimeType([
         "traitItalic": .traitItalic,
         "traitBold": .traitBold,
         "traitExpanded": .traitExpanded,
@@ -220,8 +232,8 @@ public extension RuntimeType {
         "traitUIOptimized": .traitUIOptimized,
         "traitTightLeading": .traitTightLeading,
         "traitLooseLeading": .traitLooseLeading,
-    ] as [String: UIFontDescriptorSymbolicTraits])
-    @objc static let uiFontTextStyle = RuntimeType([
+    ] as [String: UIFontDescriptor.SymbolicTraits])
+    @objc static let uiFont_TextStyle = RuntimeType([
         "title1": .title1,
         "title2": .title2,
         "title3": .title3,
@@ -232,7 +244,7 @@ public extension RuntimeType {
         "footnote": .footnote,
         "caption1": .caption1,
         "caption2": .caption2,
-    ] as [String: UIFontTextStyle])
+    ] as [String: UIFont.TextStyle])
     @objc static let uiFont_Weight = RuntimeType([
         "ultraLight": .ultraLight,
         "thin": .thin,
@@ -244,6 +256,11 @@ public extension RuntimeType {
         "heavy": .heavy,
         "black": .black,
     ] as [String: UIFont.Weight])
+
+    // Deprecated
+
+    @objc static var uiFontDescriptorSymbolicTraits: RuntimeType { return uiFontDescriptor_SymbolicTraits }
+    @objc static var uiFontTextStyle: RuntimeType { return uiFont_TextStyle }
 
     // MARK: TextInput
 
@@ -299,18 +316,6 @@ public extension RuntimeType {
         "no": .no,
         "yes": .yes,
     ] as [String: UITextAutocorrectionType])
-    @objc static let uiTextBorderStyle = RuntimeType([
-        "none": .none,
-        "line": .line,
-        "bezel": .bezel,
-        "roundedRect": .roundedRect,
-    ] as [String: UITextBorderStyle])
-    @objc static let uiTextFieldViewMode = RuntimeType([
-        "never": .never,
-        "whileEditing": .whileEditing,
-        "unlessEditing": .unlessEditing,
-        "always": .always,
-    ] as [String: UITextFieldViewMode])
     @objc static let uiTextSmartQuotesType: RuntimeType = {
         if #available(iOS 11.0, *) {
             return RuntimeType([
@@ -362,6 +367,40 @@ public extension RuntimeType {
         "yes": .yes,
     ] as [String: UITextSpellCheckingType])
 
+    // MARK: UITextField
+
+    @objc static let uiTextField_BorderStyle = RuntimeType([
+        "none": .none,
+        "line": .line,
+        "bezel": .bezel,
+        "roundedRect": .roundedRect,
+    ] as [String: UITextField.BorderStyle])
+    @objc static let uiTextField_ViewMode = RuntimeType([
+        "never": .never,
+        "whileEditing": .whileEditing,
+        "unlessEditing": .unlessEditing,
+        "always": .always,
+    ] as [String: UITextField.ViewMode])
+
+    // Deprecated
+
+    @objc static var uiTextBorderStyle: RuntimeType { return uiTextField_BorderStyle }
+    @objc static var uiTextFieldViewMode: RuntimeType { return uiTextField_ViewMode }
+
+    // MARK: UISegmentedControl
+
+    @objc static let uiSegmentedControl_Segment = RuntimeType([
+        "any": .any,
+        "left": .left,
+        "center": .center,
+        "right": .right,
+        "alone": .alone,
+    ] as [String: UISegmentedControl.Segment])
+
+    // Deprecated
+
+    @objc static var uiSegmentedControlSegment: RuntimeType { return uiSegmentedControl_Segment }
+
     // MARK: Toolbars
 
     @objc static let uiBarStyle = RuntimeType([
@@ -374,12 +413,12 @@ public extension RuntimeType {
         "top": .top,
         "topAttached": .topAttached,
     ] as [String: UIBarPosition])
-    @objc static let uiSearchBarStyle = RuntimeType([
+    @objc static let uiSearchBar_Style = RuntimeType([
         "default": .default,
         "prominent": .prominent,
         "minimal": .minimal,
-    ] as [String: UISearchBarStyle])
-    @objc static let uiBarButtonSystemItem = RuntimeType([
+    ] as [String: UISearchBar.Style])
+    @objc static let uiBarButtonItem_SystemItem = RuntimeType([
         "done": .done,
         "cancel": .cancel,
         "edit": .edit,
@@ -403,12 +442,12 @@ public extension RuntimeType {
         "undo": .undo,
         "redo": .redo,
         "pageCurl": .pageCurl,
-    ] as [String: UIBarButtonSystemItem])
-    @objc static let uiBarButtonItemStyle = RuntimeType([
+    ] as [String: UIBarButtonItem.SystemItem])
+    @objc static let uiBarButtonItem_Style = RuntimeType([
         "plain": .plain,
         "done": .done,
-    ] as [String: UIBarButtonItemStyle])
-    @objc static let uiTabBarSystemItem = RuntimeType([
+    ] as [String: UIBarButtonItem.Style])
+    @objc static let uiTabBarItem_SystemItem = RuntimeType([
         "more": .more,
         "favorites": .favorites,
         "featured": .featured,
@@ -421,7 +460,14 @@ public extension RuntimeType {
         "downloads": .downloads,
         "mostRecent": .mostRecent,
         "mostViewed": .mostViewed,
-    ] as [String: UITabBarSystemItem])
+    ] as [String: UITabBarItem.SystemItem])
+
+    // Deprecated
+
+    @objc static var uiSearchBarStyle: RuntimeType { return uiSearchBar_Style }
+    @objc static var uiBarButtonSystemItem: RuntimeType { return uiBarButtonItem_SystemItem }
+    @objc static var uiBarButtonItemStyle: RuntimeType { return uiBarButtonItem_Style }
+    @objc static var uiTabBarSystemItem: RuntimeType { return uiTabBarItem_SystemItem }
 
     // MARK: Drag and drop
 
@@ -452,14 +498,14 @@ public extension RuntimeType {
 
     // MARK: UIView
 
-    @objc static let uiViewAutoresizing = RuntimeType([
+    @objc static let uiView_AutoresizingMask = RuntimeType([
         "flexibleLeftMargin": .flexibleLeftMargin,
         "flexibleWidth": .flexibleWidth,
         "flexibleRightMargin": .flexibleRightMargin,
         "flexibleTopMargin": .flexibleTopMargin,
         "flexibleHeight": .flexibleHeight,
         "flexibleBottomMargin": .flexibleBottomMargin,
-    ] as [String: UIViewAutoresizing])
+    ] as [String: UIView.AutoresizingMask])
     @objc static let uiSemanticContentAttribute = RuntimeType([
         "unspecified": .unspecified,
         "playback": .playback,
@@ -467,7 +513,7 @@ public extension RuntimeType {
         "forceLeftToRight": .forceLeftToRight,
         "forceRightToLeft": .forceRightToLeft,
     ] as [String: UISemanticContentAttribute])
-    @objc static let uiViewContentMode = RuntimeType([
+    @objc static let uiView_ContentMode = RuntimeType([
         "scaleToFill": .scaleToFill,
         "scaleAspectFit": .scaleAspectFit,
         "scaleAspectFill": .scaleAspectFill,
@@ -481,80 +527,116 @@ public extension RuntimeType {
         "topRight": .topRight,
         "bottomLeft": .bottomLeft,
         "bottomRight": .bottomRight,
-    ] as [String: UIViewContentMode])
-    @objc static let uiViewTintAdjustmentMode = RuntimeType([
+    ] as [String: UIView.ContentMode])
+    @objc static let uiView_TintAdjustmentMode = RuntimeType([
         "automatic": .automatic,
         "normal": .normal,
         "dimmed": .dimmed,
-    ] as [String: UIViewTintAdjustmentMode])
+    ] as [String: UIView.TintAdjustmentMode])
+
+    // Deprecated
+
+    @objc static var uiViewAutoresizing: RuntimeType { return uiView_AutoresizingMask }
+    @objc static var uiViewContentMode: RuntimeType { return uiView_ContentMode }
+    @objc static var uiViewTintAdjustmentMode: RuntimeType { return uiView_TintAdjustmentMode }
 
     // MARK: UIControl
 
-    @objc static let uiControlContentVerticalAlignment = RuntimeType([
+    @objc static let uiControl_ContentVerticalAlignment = RuntimeType([
         "center": .center,
         "top": .top,
         "bottom": .bottom,
         "fill": .fill,
-    ] as [String: UIControlContentVerticalAlignment])
-    @objc static let uiControlContentHorizontalAlignment = RuntimeType([
+    ] as [String: UIControl.ContentVerticalAlignment])
+    @objc static let uiControl_ContentHorizontalAlignment = RuntimeType([
         "center": .center,
         "left": .left,
         "right": .right,
         "fill": .fill,
-    ] as [String: UIControlContentHorizontalAlignment])
+    ] as [String: UIControl.ContentHorizontalAlignment])
+
+    // Deprecated
+
+    @objc static var uiControlContentVerticalAlignment: RuntimeType { return uiControl_ContentVerticalAlignment }
+    @objc static var uiControlContentHorizontalAlignment: RuntimeType { return uiControl_ContentHorizontalAlignment }
 
     // MARK: UIButton
 
-    @objc static let uiButtonType = RuntimeType([
+    @objc static let uiButton_ButtonType = RuntimeType([
         "custom": .custom,
         "system": .system,
         "detailDisclosure": .detailDisclosure,
         "infoLight": .infoLight,
         "infoDark": .infoDark,
         "contactAdd": .contactAdd,
-    ] as [String: UIButtonType])
+    ] as [String: UIButton.ButtonType])
+
+    // Deprecated
+
+    @objc static var uiButtonType: RuntimeType { return uiButton_ButtonType }
 
     // MARK: UIActivityIndicatorView
 
-    @objc static let uiActivityIndicatorViewStyle = RuntimeType([
+    @objc static let uiActivityIndicatorView_Style = RuntimeType([
         "whiteLarge": .whiteLarge,
         "white": .white,
         "gray": .gray,
-    ] as [String: UIActivityIndicatorViewStyle])
+    ] as [String: UIActivityIndicatorView.Style])
+
+    // Deprecated
+
+    @objc static var uiActivityIndicatorViewStyle: RuntimeType { return uiActivityIndicatorView_Style }
 
     // MARK: UIProgressView
 
-    @objc static let uiProgressViewStyle = RuntimeType([
+    @objc static let uiProgressView_Style = RuntimeType([
         "default": .default,
         "bar": .bar,
-    ] as [String: UIProgressViewStyle])
+    ] as [String: UIProgressView.Style])
+
+    // Deprecated
+
+    @objc static var uiProgressViewStyle: RuntimeType { return uiProgressView_Style }
 
     // MARK: UIInputView
 
-    @objc static let uiInputViewStyle = RuntimeType([
+    @objc static let uiInputView_Style = RuntimeType([
         "default": .default,
         "keyboard": .keyboard,
-    ] as [String: UIInputViewStyle])
+    ] as [String: UIInputView.Style])
+
+    // Deprecated
+
+    @objc static var uiInputViewStyle: RuntimeType { return uiInputView_Style }
 
     // MARK: UIDatePicker
 
-    @objc static let uiDatePickerMode = RuntimeType([
+    @objc static let uiDatePicker_Mode = RuntimeType([
         "time": .time,
         "date": .date,
         "dateAndTime": .dateAndTime,
         "countDownTimer": .countDownTimer,
-    ] as [String: UIDatePickerMode])
+    ] as [String: UIDatePicker.Mode])
+
+    // Deprecated
+
+    @objc static var uiDatePickerMode: RuntimeType { return uiDatePicker_Mode }
 
     // MARK: UIScrollView
 
-    @objc static let uiScrollViewContentInsetAdjustmentBehavior: RuntimeType = {
+    @objc static let uiScrollView_ContentInsetAdjustmentBehavior: RuntimeType = {
         if #available(iOS 11.0, *) {
+            #if swift(>=4.2)
+                typealias ContentInsetAdjustmentBehavior = UIScrollView.ContentInsetAdjustmentBehavior
+            #else
+                typealias ContentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentBehavior
+            #endif
             return RuntimeType([
                 "automatic": .automatic,
                 "scrollableAxes": .scrollableAxes,
                 "never": .never,
                 "always": .always,
-            ] as [String: UIScrollViewContentInsetAdjustmentBehavior])
+            ] as [String: ContentInsetAdjustmentBehavior])
         }
         return RuntimeType([
             "automatic": 0,
@@ -564,34 +646,46 @@ public extension RuntimeType {
         ] as [String: Int])
     }()
 
-    @objc static let uiScrollViewIndicatorStyle = RuntimeType([
+    @objc static let uiScrollView_IndicatorStyle = RuntimeType([
         "default": .default,
         "black": .black,
         "white": .white,
-    ] as [String: UIScrollViewIndicatorStyle])
-    @objc static let uiScrollViewIndexDisplayMode = RuntimeType([
+    ] as [String: UIScrollView.IndicatorStyle])
+    @objc static let uiScrollView_IndexDisplayMode = RuntimeType([
         "automatic": .automatic,
         "alwaysHidden": .alwaysHidden,
-    ] as [String: UIScrollViewIndexDisplayMode])
-    @objc static let uiScrollViewKeyboardDismissMode = RuntimeType([
+    ] as [String: UIScrollView.IndexDisplayMode])
+    @objc static let uiScrollView_KeyboardDismissMode = RuntimeType([
         "none": .none,
         "onDrag": .onDrag,
         "interactive": .interactive,
-    ] as [String: UIScrollViewKeyboardDismissMode])
+    ] as [String: UIScrollView.KeyboardDismissMode])
+
+    // Deprecated
+
+    @objc static var uiScrollViewContentInsetAdjustmentBehavior: RuntimeType { return uiScrollView_ContentInsetAdjustmentBehavior }
+    @objc static var uiScrollViewIndicatorStyle: RuntimeType { return uiScrollView_IndicatorStyle }
+    @objc static var uiScrollViewIndexDisplayMode: RuntimeType { return uiScrollView_IndexDisplayMode }
+    @objc static var uiScrollViewKeyboardDismissMode: RuntimeType { return uiScrollView_KeyboardDismissMode }
 
     // MARK: UICollectionView
 
-    @objc static let uiCollectionViewScrollDirection = RuntimeType([
+    @objc static let uiCollectionView_ScrollDirection = RuntimeType([
         "horizontal": .horizontal,
         "vertical": .vertical,
-    ] as [String: UICollectionViewScrollDirection])
-    @objc static let uiCollectionViewReorderingCadence: RuntimeType = {
+    ] as [String: UICollectionView.ScrollDirection])
+    @objc static let uiCollectionView_ReorderingCadence: RuntimeType = {
         if #available(iOS 11.0, *) {
+            #if swift(>=4.2)
+                typealias ReorderingCadence = UICollectionView.ReorderingCadence
+            #else
+                typealias ReorderingCadence = UICollectionViewReorderingCadence
+            #endif
             return RuntimeType([
                 "immediate": .immediate,
                 "fast": .fast,
                 "slow": .slow,
-            ] as [String: UICollectionViewReorderingCadence])
+            ] as [String: ReorderingCadence])
         }
         return RuntimeType([
             "immediate": 0,
@@ -599,14 +693,18 @@ public extension RuntimeType {
             "slow": 2,
         ] as [String: Int])
     }()
-
-    @objc static let uiCollectionViewFlowLayoutSectionInsetReference: RuntimeType = {
+    @objc static let uiCollectionViewFlowLayout_SectionInsetReference: RuntimeType = {
         if #available(iOS 11.0, *) {
+            #if swift(>=4.2)
+                typealias SectionInsetReference = UICollectionViewFlowLayout.SectionInsetReference
+            #else
+                typealias SectionInsetReference = UICollectionViewFlowLayoutSectionInsetReference
+            #endif
             return RuntimeType([
                 "fromContentInset": .fromContentInset,
                 "fromSafeArea": .fromSafeArea,
                 "fromLayoutMargins": .fromLayoutMargins,
-            ] as [String: UICollectionViewFlowLayoutSectionInsetReference])
+            ] as [String: SectionInsetReference])
         }
         return RuntimeType([
             "fromContentInset": 0,
@@ -615,12 +713,18 @@ public extension RuntimeType {
         ] as [String: Int])
     }()
 
+    // Deprecated
+
+    @objc static var uiCollectionViewScrollDirection: RuntimeType { return uiCollectionView_ScrollDirection }
+    @objc static var uiCollectionViewReorderingCadence: RuntimeType { return uiCollectionView_ReorderingCadence }
+    @objc static var uiCollectionViewFlowLayoutSectionInsetReference: RuntimeType { return uiCollectionViewFlowLayout_SectionInsetReference }
+
     // MARK: UIStackView
 
-    @objc static let uiLayoutConstraintAxis = RuntimeType([
+    @objc static let nsLayoutConstraint_Axis = RuntimeType([
         "horizontal": .horizontal,
         "vertical": .vertical,
-    ] as [String: UILayoutConstraintAxis])
+    ] as [String: NSLayoutConstraint.Axis])
     @objc static let uiLayoutPriority = RuntimeType(
         RuntimeType.Kind.options(UILayoutPriority.self, [
             "required": .required,
@@ -629,14 +733,14 @@ public extension RuntimeType {
             "fittingSizeLevel": .fittingSizeLevel,
         ] as [String: UILayoutPriority])
     )
-    @objc static let uiStackViewDistribution = RuntimeType([
+    @objc static let uiStackView_Distribution = RuntimeType([
         "fill": .fill,
         "fillEqually": .fillEqually,
         "fillProportionally": .fillProportionally,
         "equalSpacing": .equalSpacing,
         "equalCentering": .equalCentering,
-    ] as [String: UIStackViewDistribution])
-    @objc static let uiStackViewAlignment = RuntimeType([
+    ] as [String: UIStackView.Distribution])
+    @objc static let uiStackView_Alignment = RuntimeType([
         "fill": .fill,
         "leading": .leading,
         "top": .top,
@@ -645,44 +749,70 @@ public extension RuntimeType {
         "trailing": .trailing,
         "bottom": .bottom,
         "lastBaseline": .lastBaseline, // Valid for horizontal axis only
-    ] as [String: UIStackViewAlignment])
+    ] as [String: UIStackView.Alignment])
 
-    // MARK: UITableView
+    // Deprecated
 
-    @objc static let uiTableViewCellAccessoryType = RuntimeType([
+    @objc static var uiLayoutConstraintAxis: RuntimeType { return nsLayoutConstraint_Axis }
+    @objc static var uiStackViewDistribution: RuntimeType { return uiStackView_Distribution }
+    @objc static var uiStackViewAlignment: RuntimeType { return uiStackView_Alignment }
+
+    // MARK: UITableViewCell
+
+    @objc static let uiTableViewCell_AccessoryType = RuntimeType([
         "none": .none,
         "disclosureIndicator": .disclosureIndicator,
         "detailDisclosureButton": .detailDisclosureButton,
         "checkmark": .checkmark,
         "detailButton": .detailButton,
-    ] as [String: UITableViewCellAccessoryType])
-    @objc static let uiTableViewCellFocusStyle = RuntimeType([
-        "default": .default,
-        "custom": .custom,
-    ] as [String: UITableViewCellFocusStyle])
-    @objc static let uiTableViewCellSelectionStyle = RuntimeType([
-        "none": .none,
-        "blue": .blue,
-        "gray": .gray,
-        "default": .default,
-    ] as [String: UITableViewCellSelectionStyle])
-    @objc static let uiTableViewCellSeparatorStyle = RuntimeType([
-        "none": .none,
-        "singleLine": .singleLine,
-        "singleLineEtched": .singleLineEtched,
-    ] as [String: UITableViewCellSeparatorStyle])
-    @objc static let uiTableViewCellStyle = RuntimeType([
+    ] as [String: UITableViewCell.AccessoryType])
+    @objc static let uiTableViewCell_CellStyle = RuntimeType([
         "default": .default,
         "value1": .value1,
         "value2": .value2,
         "subtitle": .subtitle,
-    ] as [String: UITableViewCellStyle])
-    @objc static let uiTableViewSeparatorInsetReference: RuntimeType = {
+    ] as [String: UITableViewCell.CellStyle])
+    @objc static let uiTableViewCell_FocusStyle = RuntimeType([
+        "default": .default,
+        "custom": .custom,
+    ] as [String: UITableViewCell.FocusStyle])
+    @objc static let uiTableViewCell_SelectionStyle = RuntimeType([
+        "none": .none,
+        "blue": .blue,
+        "gray": .gray,
+        "default": .default,
+    ] as [String: UITableViewCell.SelectionStyle])
+    @objc static let uiTableViewCell_SeparatorStyle = RuntimeType([
+        "none": .none,
+        "singleLine": .singleLine,
+        "singleLineEtched": .singleLineEtched,
+    ] as [String: UITableViewCell.SeparatorStyle])
+
+    // Deprecated
+
+    @objc static var uiTableViewCellAccessoryType: RuntimeType { return uiTableViewCell_AccessoryType }
+    @objc static var uiTableViewCellFocusStyle: RuntimeType { return uiTableViewCell_FocusStyle }
+    @objc static var uiTableViewCellSelectionStyle: RuntimeType { return uiTableViewCell_SelectionStyle }
+    @objc static var uiTableViewCellSeparatorStyle: RuntimeType { return uiTableViewCell_SeparatorStyle }
+    @objc static var uiTableViewCellStyle: RuntimeType { return uiTableViewCell_CellStyle }
+
+    // MARK: UITableView
+
+    @objc static let uiTableView_Style = RuntimeType([
+        "plain": .plain,
+        "grouped": .grouped,
+    ] as [String: UITableView.Style])
+    @objc static let uiTableView_SeparatorInsetReference: RuntimeType = {
         if #available(iOS 11.0, *) {
+            #if swift(>=4.2)
+                typealias SeparatorInsetReference = UITableView.SeparatorInsetReference
+            #else
+                typealias SeparatorInsetReference = UITableViewSeparatorInsetReference
+            #endif
             return RuntimeType([
                 "fromCellEdges": .fromCellEdges,
                 "fromAutomaticInsets": .fromAutomaticInsets,
-            ] as [String: UITableViewSeparatorInsetReference])
+            ] as [String: SeparatorInsetReference])
         }
         return RuntimeType([
             "fromCellEdges": 0,
@@ -690,24 +820,29 @@ public extension RuntimeType {
         ] as [String: Int])
     }()
 
-    @objc static let uiTableViewStyle = RuntimeType([
-        "plain": .plain,
-        "grouped": .grouped,
-    ] as [String: UITableViewStyle])
+    // Deprecated
+
+    @objc static var uiTableViewStyle: RuntimeType { return uiTableView_Style }
+    @objc static var uiTableViewSeparatorInsetReference: RuntimeType { return uiTableView_SeparatorInsetReference }
 
     // MARK: UIWebView
 
-    @objc static let uiWebPaginationMode = RuntimeType([
+    @objc static let uiWebView_PaginationMode = RuntimeType([
         "unpaginated": .unpaginated,
         "leftToRight": .leftToRight,
         "topToBottom": .topToBottom,
         "bottomToTop": .bottomToTop,
         "rightToLeft": .rightToLeft,
-    ] as [String: UIWebPaginationMode])
-    @objc static let uiWebPaginationBreakingMode = RuntimeType([
+    ] as [String: UIWebView.PaginationMode])
+    @objc static let uiWebView_PaginationBreakingMode = RuntimeType([
         "page": .page,
         "column": .column,
-    ] as [String: UIWebPaginationBreakingMode])
+    ] as [String: UIWebView.PaginationBreakingMode])
+
+    // Deprecated
+
+    @objc static var uiWebPaginationMode: RuntimeType { return uiWebView_PaginationMode }
+    @objc static var uiWebPaginationBreakingMode: RuntimeType { return uiWebView_PaginationBreakingMode }
 
     // MARK: WebKit
 
@@ -781,16 +916,32 @@ public extension RuntimeType {
         "never": .never,
     ] as [String: UINavigationItem.LargeTitleDisplayMode])
 
+    // MARK: UIAlertController
+
+    @objc static let uiAlertController_Style = RuntimeType([
+        "actionSheet": .actionSheet,
+        "alert": .alert,
+    ] as [String: UIAlertController.Style])
+
+    // Deprecated
+
+    @objc static var uiAlertControllerStyle: RuntimeType { return uiAlertController_Style }
+
     // MARK: UICloudSharingViewController
 
-    @objc static let uiCloudSharingPermissionOptions: RuntimeType = {
+    @objc static let uiCloudSharingController_PermissionOptions: RuntimeType = {
         if #available(iOS 10.0, *) {
+            #if swift(>=4.2)
+                typealias PermissionOptions = UICloudSharingController.PermissionOptions
+            #else
+                typealias PermissionOptions = UICloudSharingPermissionOptions
+            #endif
             return RuntimeType([
                 "allowPublic": .allowPublic,
                 "allowPrivate": .allowPrivate,
                 "allowReadOnly": .allowReadOnly,
                 "allowReadWrite": .allowReadWrite,
-            ] as [String: UICloudSharingPermissionOptions])
+            ] as [String: PermissionOptions])
         }
         return RuntimeType([
             "allowPublic": 0,
@@ -800,66 +951,93 @@ public extension RuntimeType {
         ] as [String: Int])
     }()
 
+    // Deprecated
+
+    @objc static var uiCloudSharingPermissionOptions: RuntimeType { return uiCloudSharingController_PermissionOptions }
+
     // MARK: UIImagePickerController
 
-    @objc static let uiImagePickerControllerCameraCaptureMode = RuntimeType([
+    @objc static let uiImagePickerController_CameraCaptureMode = RuntimeType([
         "photo": .photo,
         "video": .video,
-    ] as [String: UIImagePickerControllerCameraCaptureMode])
-    @objc static let uiImagePickerControllerCameraDevice = RuntimeType([
+    ] as [String: UIImagePickerController.CameraCaptureMode])
+    @objc static let uiImagePickerController_CameraDevice = RuntimeType([
         "rear": .rear,
         "front": .front,
-    ] as [String: UIImagePickerControllerCameraDevice])
-    @objc static let uiImagePickerControllerCameraFlashMode = RuntimeType([
+    ] as [String: UIImagePickerController.CameraDevice])
+    @objc static let uiImagePickerController_CameraFlashMode = RuntimeType([
         "off": .off,
         "auto": .auto,
         "on": .on,
-    ] as [String: UIImagePickerControllerCameraFlashMode])
-    @objc static let uiImagePickerControllerImageURLExportPreset: RuntimeType = {
+    ] as [String: UIImagePickerController.CameraFlashMode])
+    @objc static let uiImagePickerController_ImageURLExportPreset: RuntimeType = {
         if #available(iOS 11.0, *) {
+            #if swift(>=4.2)
+                typealias ImageURLExportPreset = UIImagePickerController.ImageURLExportPreset
+            #else
+                typealias ImageURLExportPreset = UIImagePickerControllerImageURLExportPreset
+            #endif
             return RuntimeType([
                 "compatible": .compatible,
                 "current": .current,
-            ] as [String: UIImagePickerControllerImageURLExportPreset])
+            ] as [String: ImageURLExportPreset])
         }
         return RuntimeType([
             "compatible": IntOptionSet(rawValue: 1),
             "current": IntOptionSet(rawValue: 2),
         ] as [String: IntOptionSet])
     }()
-
-    @objc static let uiImagePickerControllerSourceType = RuntimeType([
+    @objc static let uiImagePickerController_SourceType = RuntimeType([
         "photoLibrary": .photoLibrary,
         "camera": .camera,
         "savedPhotosAlbum": .savedPhotosAlbum,
-    ] as [String: UIImagePickerControllerSourceType])
-    @objc static let uiImagePickerControllerQualityType = RuntimeType([
+    ] as [String: UIImagePickerController.SourceType])
+    @objc static let uiImagePickerController_QualityType = RuntimeType([
         "typeHigh": .typeHigh,
         "typeMedium": .typeMedium,
         "typeLow": .typeLow,
         "type640x480": .type640x480,
         "typeIFrame1280x720": .typeIFrame1280x720,
         "typeIFrame960x540": .typeIFrame960x540,
-    ] as [String: UIImagePickerControllerQualityType])
+    ] as [String: UIImagePickerController.QualityType])
+
+    // Deprecated
+
+    @objc static var uiImagePickerControllerCameraCaptureMode: RuntimeType { return uiImagePickerController_CameraCaptureMode }
+    @objc static var uiImagePickerControllerCameraDevice: RuntimeType { return uiImagePickerController_CameraDevice }
+    @objc static var uiImagePickerControllerCameraFlashMode: RuntimeType { return uiImagePickerController_CameraFlashMode }
+    @objc static var uiImagePickerControllerImageURLExportPreset: RuntimeType { return uiImagePickerController_ImageURLExportPreset }
+    @objc static var uiImagePickerControllerSourceType: RuntimeType { return uiImagePickerController_SourceType }
+    @objc static var uiImagePickerControllerQualityType: RuntimeType { return uiImagePickerController_QualityType }
 
     // MARK: UISplitViewController
 
-    @objc static let uiSplitViewControllerDisplayMode = RuntimeType([
+    @objc static let uiSplitViewController_DisplayMode = RuntimeType([
         "automatic": .automatic,
         "primaryHidden": .primaryHidden,
         "allVisible": .allVisible,
         "primaryOverlay": .primaryOverlay,
-    ] as [String: UISplitViewControllerDisplayMode])
-    @objc static let uiSplitViewControllerPrimaryEdge: RuntimeType = {
+    ] as [String: UISplitViewController.DisplayMode])
+    @objc static let uiSplitViewController_PrimaryEdge: RuntimeType = {
         if #available(iOS 11.0, *) {
+            #if swift(>=4.2)
+                typealias PrimaryEdge = UISplitViewController.PrimaryEdge
+            #else
+                typealias PrimaryEdge = UISplitViewControllerPrimaryEdge
+            #endif
             return RuntimeType([
                 "leading": .leading,
                 "trailing": .trailing,
-            ] as [String: UISplitViewControllerPrimaryEdge])
+            ] as [String: PrimaryEdge])
         }
         return RuntimeType([
             "leading": 0,
             "trailing": 1,
         ] as [String: Int])
     }()
+
+    // Deprecated
+
+    @objc static var uiSplitViewControllerDisplayMode: RuntimeType { return uiSplitViewController_DisplayMode }
+    @objc static var uiSplitViewControllerPrimaryEdge: RuntimeType { return uiSplitViewController_PrimaryEdge }
 }

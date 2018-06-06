@@ -173,7 +173,7 @@ extension UIViewController: LayoutManaged {
         }
     }
 
-    private func updateTabBarItem(systemItem: UITabBarSystemItem) {
+    private func updateTabBarItem(systemItem: UITabBarItem.SystemItem) {
         guard let oldTabBarItem = tabBarItem else {
             tabBarItem = UITabBarItem(tabBarSystemItem: systemItem, tag: 0)
             return
@@ -219,7 +219,7 @@ extension UIViewController: LayoutManaged {
         return item
     }
 
-    private func updatedBarItem(_ item: UIBarButtonItem?, systemItem: UIBarButtonSystemItem) -> UIBarButtonItem {
+    private func updatedBarItem(_ item: UIBarButtonItem?, systemItem: UIBarButtonItem.SystemItem) -> UIBarButtonItem {
         guard var item = item else {
             return UIBarButtonItem(barButtonSystemItem: systemItem, target: nil, action: nil)
         }
@@ -265,19 +265,19 @@ extension UIViewController: LayoutManaged {
         case "tabBarItem.image":
             updateTabBarItem(image: value as? UIImage)
         case "tabBarItem.systemItem":
-            updateTabBarItem(systemItem: value as! UITabBarSystemItem)
+            updateTabBarItem(systemItem: value as! UITabBarItem.SystemItem)
         case "navigationItem.leftBarButtonItem.title":
             navigationItem.leftBarButtonItem = updatedBarItem(navigationItem.leftBarButtonItem, title: value as! String)
         case "navigationItem.leftBarButtonItem.image":
             navigationItem.leftBarButtonItem = updatedBarItem(navigationItem.leftBarButtonItem, image: value as! UIImage)
         case "navigationItem.leftBarButtonItem.systemItem":
-            navigationItem.leftBarButtonItem = updatedBarItem(navigationItem.leftBarButtonItem, systemItem: value as! UIBarButtonSystemItem)
+            navigationItem.leftBarButtonItem = updatedBarItem(navigationItem.leftBarButtonItem, systemItem: value as! UIBarButtonItem.SystemItem)
         case "navigationItem.rightBarButtonItem.title":
             navigationItem.rightBarButtonItem = updatedBarItem(navigationItem.rightBarButtonItem, title: value as! String)
         case "navigationItem.rightBarButtonItem.image":
             navigationItem.rightBarButtonItem = updatedBarItem(navigationItem.rightBarButtonItem, image: value as! UIImage)
         case "navigationItem.rightBarButtonItem.systemItem":
-            navigationItem.rightBarButtonItem = updatedBarItem(navigationItem.rightBarButtonItem, systemItem: value as! UIBarButtonSystemItem)
+            navigationItem.rightBarButtonItem = updatedBarItem(navigationItem.rightBarButtonItem, systemItem: value as! UIBarButtonItem.SystemItem)
         case "navigationItem.largeTitleDisplayMode":
             if #available(iOS 11.0, *) {
                 navigationItem.largeTitleDisplayMode = value as! UINavigationItem.LargeTitleDisplayMode
@@ -322,7 +322,7 @@ extension UIViewController: LayoutManaged {
     /// Called immediately after a child node is added
     @objc open func didInsertChildNode(_ node: LayoutNode, at index: Int) {
         for controller in node.viewControllers {
-            addChildViewController(controller)
+            addChild(controller)
         }
         node.view.frame = view.bounds
         if index > 0, let previous = node.parent?.children[index - 1].view {
@@ -335,7 +335,7 @@ extension UIViewController: LayoutManaged {
     /// Called immediately before a child node is removed
     @objc open func willRemoveChildNode(_ node: LayoutNode, at _: Int) {
         for controller in node.viewControllers {
-            controller.removeFromParentViewController()
+            controller.removeFromParent()
         }
         node.view.removeFromSuperview()
     }
@@ -352,7 +352,7 @@ extension UITabBar {
             "automatic": .automatic,
             "fill": .fill,
             "centered": .centered,
-        ] as [String: UITabBarItemPositioning])
+        ] as [String: UITabBar.ItemPositioning])
         types["barStyle"] = .uiBarStyle
         types["itemSpacing"] = .cgFloat
         types["itemWidth"] = .cgFloat
@@ -478,13 +478,13 @@ extension UINavigationBar: TitleTextAttributes {
     }
 
     var titleColor: UIColor? {
-        get { return titleTextAttributes?[NSAttributedStringKey.foregroundColor] as? UIColor }
-        set { titleTextAttributes?[NSAttributedStringKey.foregroundColor] = newValue }
+        get { return titleTextAttributes?[NSAttributedString.Key.foregroundColor] as? UIColor }
+        set { titleTextAttributes?[NSAttributedString.Key.foregroundColor] = newValue }
     }
 
     var titleFont: UIFont? {
-        get { return titleTextAttributes?[NSAttributedStringKey.font] as? UIFont }
-        set { titleTextAttributes?[NSAttributedStringKey.font] = newValue }
+        get { return titleTextAttributes?[NSAttributedString.Key.font] as? UIFont }
+        set { titleTextAttributes?[NSAttributedString.Key.font] = newValue }
     }
 
     open override func setAnimatedValue(_ value: Any, forExpression name: String) throws {
@@ -657,10 +657,7 @@ extension UINavigationController {
 extension UIAlertController {
     open override class var expressionTypes: [String: RuntimeType] {
         var types = super.expressionTypes
-        types["preferredStyle"] = RuntimeType([
-            "actionSheet": .actionSheet,
-            "alert": .alert,
-        ] as [String: UIAlertControllerStyle])
+        types["preferredStyle"] = .uiAlertControllerStyle
         #if arch(i386) || arch(x86_64)
             // Private properties
             for name in [

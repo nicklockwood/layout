@@ -712,7 +712,7 @@ struct LayoutExpression {
                         }
                     } else {
                         previousAttributedString = NSAttributedString(string: htmlString, attributes: [
-                            NSAttributedStringKey.font: UIFont.systemFont(ofSize: UIFont.defaultSize),
+                            NSAttributedString.Key.font: UIFont.systemFont(ofSize: UIFont.defaultSize),
                         ])
                     }
                 }
@@ -731,21 +731,21 @@ struct LayoutExpression {
                 let range = NSMakeRange(0, result.string.utf16.count)
                 result.enumerateAttributes(in: range, options: []) { attribs, range, _ in
                     var attribs = attribs
-                    if let font = attribs[NSAttributedStringKey.font] as? UIFont {
+                    if let font = attribs[NSAttributedString.Key.font] as? UIFont {
                         let traits = font.fontDescriptor.symbolicTraits
                         var descriptor = correctFont.fontDescriptor
                         descriptor = descriptor.withSymbolicTraits(traits) ?? descriptor
-                        attribs[NSAttributedStringKey.font] = UIFont(descriptor: descriptor, size: correctFont.pointSize)
+                        attribs[NSAttributedString.Key.font] = UIFont(descriptor: descriptor, size: correctFont.pointSize)
                         result.setAttributes(attribs, range: range)
                     }
                 }
                 if symbols.contains("textColor"),
                     let color = try node.value(forSymbol: "textColor") as? UIColor {
-                    result.addAttribute(NSAttributedStringKey.foregroundColor, value: color, range: range)
+                    result.addAttribute(NSAttributedString.Key.foregroundColor, value: color, range: range)
                 } else if symbols.contains("titleColor"),
                     // TODO: support UIButton states (like selectedTitleColor, etc.) correctly
                     let color = try node.value(forSymbol: "titleColor") as? UIColor {
-                    result.addAttribute(NSAttributedStringKey.foregroundColor, value: color, range: range)
+                    result.addAttribute(NSAttributedString.Key.foregroundColor, value: color, range: range)
                 }
 
                 // Paragraph style
@@ -761,7 +761,7 @@ struct LayoutExpression {
                 let style = NSMutableParagraphStyle()
                 style.alignment = alignment
                 style.lineBreakMode = linebreakMode
-                result.addAttribute(NSAttributedStringKey.paragraphStyle, value: style, range: range)
+                result.addAttribute(NSAttributedString.Key.paragraphStyle, value: style, range: range)
 
                 // Substitutions
                 for (i, part) in parts.enumerated().reversed() {
@@ -810,13 +810,13 @@ struct LayoutExpression {
         func fontPart(for string: String) -> Any? {
             switch string.lowercased() {
             case "italic":
-                return UIFontDescriptorSymbolicTraits.traitItalic
+                return UIFontDescriptor.SymbolicTraits.traitItalic
             case "condensed":
-                return UIFontDescriptorSymbolicTraits.traitCondensed
+                return UIFontDescriptor.SymbolicTraits.traitCondensed
             case "expanded":
-                return UIFontDescriptorSymbolicTraits.traitExpanded
+                return UIFontDescriptor.SymbolicTraits.traitExpanded
             case "monospace", "monospaced":
-                return UIFontDescriptorSymbolicTraits.traitMonoSpace
+                return UIFontDescriptor.SymbolicTraits.traitMonoSpace
             case "system":
                 return UIFont.systemFont(ofSize: UIFont.defaultSize)
             case "systembold", "system-bold":
