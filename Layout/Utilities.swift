@@ -158,13 +158,26 @@ struct UIntOptionSet: OptionSet {
         struct AttributeName {
             static let traits = UIFontDescriptorTraitsAttribute
         }
-
-        typealias TraitKey = String
     }
 
-    extension UIFontDescriptor.TraitKey {
-        static let weight = UIFontWeightTrait
-    }
+    #if !swift(>=3.4)
+
+        extension UIFontDescriptor {
+            typealias TraitKey = String
+        }
+
+        extension UIFontDescriptor.TraitKey {
+            static let weight = UIFontWeightTrait
+        }
+
+    #else
+
+        extension UIFontDescriptor.TraitKey {
+            static let weight = UIFontWeightTrait as NSString
+        }
+
+    #endif
+
 
     extension UILayoutPriority {
         var rawValue: Float { return self }
