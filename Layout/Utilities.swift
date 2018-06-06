@@ -159,11 +159,11 @@ struct UIntOptionSet: OptionSet {
             static let traits = UIFontDescriptorTraitsAttribute
         }
 
-        typealias TraitKey = String
+        typealias TraitKey = NSString
     }
 
     extension UIFontDescriptor.TraitKey {
-        static let weight = UIFontWeightTrait
+        static let weight = UIFontWeightTrait as NSString
     }
 
     extension UILayoutPriority {
