@@ -370,7 +370,7 @@ class LayoutNodeTests: XCTestCase {
         let node = LayoutNode(
             view: scrollView,
             state: [
-                "inset": UIEdgeInsets.zero,
+                "inset": UIEdgeInsets(),
                 "insetTop": 5,
             ],
             expressions: [
@@ -387,7 +387,7 @@ class LayoutNodeTests: XCTestCase {
         let scrollView = UIScrollView()
         let node = LayoutNode(
             view: scrollView,
-            state: ["inset": UIEdgeInsets.zero],
+            state: ["inset": UIEdgeInsets()],
             expressions: [
                 "contentInset": "inset",
                 "contentInset.top": "5",

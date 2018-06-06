@@ -20,9 +20,13 @@ extension UICollectionViewLayout {
             flowLayout.estimatedItemSize = flowLayout.itemSize
         }
         if #available(iOS 10.0, *) {
-            flowLayout.itemSize = UICollectionViewFlowLayoutAutomaticSize
+            #if swift(>=4.2)
+                flowLayout.itemSize = UICollectionViewFlowLayout.automaticSize
+            #else
+                flowLayout.itemSize = UICollectionViewFlowLayoutAutomaticSize
+            #endif
         } else {
-            flowLayout.itemSize = CGSize(width: UIViewNoIntrinsicMetric, height: UIViewNoIntrinsicMetric)
+            flowLayout.itemSize = CGSize(width: UIView.noIntrinsicMetric, height: UIView.noIntrinsicMetric)
         }
         return flowLayout
     }
@@ -366,7 +370,7 @@ extension UICollectionViewCell: LayoutBacked {
         guard let layoutNode = layoutNode, layoutNode.children.isEmpty else {
             return super.intrinsicContentSize
         }
-        return CGSize(width: UIViewNoIntrinsicMetric, height: 44)
+        return CGSize(width: UIView.noIntrinsicMetric, height: 44)
     }
 
     open override func sizeThatFits(_ size: CGSize) -> CGSize {

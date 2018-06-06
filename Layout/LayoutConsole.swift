@@ -85,7 +85,7 @@ private class LayoutErrorView: UIView, LayoutLoading {
                 autoresizingMask = [.flexibleWidth, .flexibleHeight]
                 window.addSubview(self)
             }
-            window.bringSubview(toFront: self)
+            window.bringSubviewToFront(self)
         }
 
         // Display error
@@ -283,7 +283,7 @@ private class LayoutWarningView: UIView, LayoutLoading {
                 window.insertSubview(self, belowSubview: errorView)
             } else if window.subviews.last != self {
                 alpha = 0
-                window.bringSubview(toFront: self)
+                window.bringSubviewToFront(self)
             }
         }
 

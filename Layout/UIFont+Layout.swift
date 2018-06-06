@@ -55,13 +55,13 @@ extension UIFont {
     static func font(with parts: [Any]) throws -> UIFont {
         var font: UIFont!
         var fontSize: CGFloat!
-        var traits = UIFontDescriptorSymbolicTraits()
+        var traits = UIFontDescriptor.SymbolicTraits()
         var fontWeight: UIFont.Weight?
         for part in parts {
             switch part {
             case let part as UIFont:
                 font = part
-            case let trait as UIFontDescriptorSymbolicTraits:
+            case let trait as UIFontDescriptor.SymbolicTraits:
                 traits.insert(trait)
             case let weight as UIFont.Weight:
                 fontWeight = weight
@@ -69,7 +69,7 @@ extension UIFont {
                 fontSize = CGFloat(truncating: size)
             case let size as UIFont.RelativeSize:
                 fontSize = (fontSize ?? font?.pointSize ?? defaultSize) * size.factor
-            case let style as UIFontTextStyle:
+            case let style as UIFont.TextStyle:
                 let preferredFont = UIFont.preferredFont(forTextStyle: style)
                 fontSize = preferredFont.pointSize
                 font = font ?? preferredFont
@@ -84,7 +84,7 @@ extension UIFont {
         _ font: UIFont?,
         withSize fontSize: CGFloat?,
         weight: UIFont.Weight?,
-        traits: UIFontDescriptorSymbolicTraits
+        traits: UIFontDescriptor.SymbolicTraits
     ) -> UIFont {
         let fontSize = fontSize ?? font?.pointSize ?? defaultSize
         let font = font ?? {
@@ -116,7 +116,7 @@ extension UIFont {
                 .traitExpanded,
                 .traitItalic,
                 .traitMonoSpace,
-            ] as [UIFontDescriptorSymbolicTraits] {
+            ] as [UIFontDescriptor.SymbolicTraits] {
                 if traits.contains(trait) {
                     if fontTraits.contains(trait) {
                         matchQuality += 1

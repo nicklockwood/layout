@@ -183,7 +183,7 @@ public class RuntimeType: NSObject {
     public var values: [String: Any] {
         switch type {
         case let .enum(_, values):
-            return values as [String: Any]
+            return values.mapValues { $0.base }
         case let .options(_, values):
             return values
         case .any, .class, .struct, .pointer, .protocol, .array:

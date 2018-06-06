@@ -9,7 +9,7 @@ class AttributedStringExpressionTests: XCTestCase {
         let expression = LayoutExpression(attributedStringExpression: "foo", for: node)
         let result = try! expression?.evaluate() as! NSAttributedString
         XCTAssertEqual(result.string, "foo")
-        XCTAssertEqual(result.attribute(NSAttributedStringKey.font, at: 0, effectiveRange: nil) as? UIFont, .systemFont(ofSize: 17))
+        XCTAssertEqual(result.attribute(NSAttributedString.Key.font, at: 0, effectiveRange: nil) as? UIFont, .systemFont(ofSize: 17))
     }
 
     func testAttributedStringHTMLExpression() {
@@ -17,7 +17,7 @@ class AttributedStringExpressionTests: XCTestCase {
         let expression = LayoutExpression(attributedStringExpression: "<b>foo</b>", for: node)
         let result = try! expression?.evaluate() as! NSAttributedString
         XCTAssertEqual(result.string, "foo")
-        XCTAssertEqual(result.attribute(NSAttributedStringKey.font, at: 0, effectiveRange: nil) as? UIFont, .boldSystemFont(ofSize: 17))
+        XCTAssertEqual(result.attribute(NSAttributedString.Key.font, at: 0, effectiveRange: nil) as? UIFont, .boldSystemFont(ofSize: 17))
     }
 
     func testAttributedStringContainingUnicode() {
@@ -34,7 +34,7 @@ class AttributedStringExpressionTests: XCTestCase {
         let node = LayoutNode(view: label)
         let expression = LayoutExpression(attributedStringExpression: "foo", for: node)
         let result = try! expression?.evaluate() as! NSAttributedString
-        XCTAssertEqual(result.attribute(NSAttributedStringKey.font, at: 0, effectiveRange: nil) as? UIFont, label.font)
+        XCTAssertEqual(result.attribute(NSAttributedString.Key.font, at: 0, effectiveRange: nil) as? UIFont, label.font)
     }
 
     func testAttributedStringInheritsTextColor() {
@@ -43,7 +43,7 @@ class AttributedStringExpressionTests: XCTestCase {
         let node = LayoutNode(view: label)
         let expression = LayoutExpression(attributedStringExpression: "foo", for: node)
         let result = try! expression?.evaluate() as! NSAttributedString
-        XCTAssertEqual(result.attribute(NSAttributedStringKey.foregroundColor, at: 0, effectiveRange: nil) as? UIColor, .red)
+        XCTAssertEqual(result.attribute(NSAttributedString.Key.foregroundColor, at: 0, effectiveRange: nil) as? UIColor, .red)
     }
 
     func testAttributedStringInheritsTextAlignment() {
@@ -52,7 +52,7 @@ class AttributedStringExpressionTests: XCTestCase {
         let node = LayoutNode(view: label)
         let expression = LayoutExpression(attributedStringExpression: "foo", for: node)
         let result = try! expression?.evaluate() as! NSAttributedString
-        let paragraphStyle = result.attribute(NSAttributedStringKey.paragraphStyle, at: 0, effectiveRange: nil) as! NSParagraphStyle
+        let paragraphStyle = result.attribute(NSAttributedString.Key.paragraphStyle, at: 0, effectiveRange: nil) as! NSParagraphStyle
         XCTAssertEqual(paragraphStyle.alignment, .right)
     }
 
@@ -62,7 +62,7 @@ class AttributedStringExpressionTests: XCTestCase {
         let node = LayoutNode(view: label)
         let expression = LayoutExpression(attributedStringExpression: "foo", for: node)
         let result = try! expression?.evaluate() as! NSAttributedString
-        let paragraphStyle = result.attribute(NSAttributedStringKey.paragraphStyle, at: 0, effectiveRange: nil) as! NSParagraphStyle
+        let paragraphStyle = result.attribute(NSAttributedString.Key.paragraphStyle, at: 0, effectiveRange: nil) as! NSParagraphStyle
         XCTAssertEqual(paragraphStyle.lineBreakMode, .byTruncatingHead)
     }
 
@@ -75,12 +75,12 @@ class AttributedStringExpressionTests: XCTestCase {
 
     func testAttributedStringContainingAttributedStringConstant() {
         let node = LayoutNode(constants: ["bar": NSAttributedString(string: "bar", attributes: [
-            NSAttributedStringKey.foregroundColor: UIColor.red,
+            NSAttributedString.Key.foregroundColor: UIColor.red,
         ])])
         let expression = LayoutExpression(attributedStringExpression: "hello world {bar}", for: node)
         let result = try! expression?.evaluate() as! NSAttributedString
         XCTAssertEqual(result.string, "hello world bar")
-        XCTAssertEqual(result.attribute(NSAttributedStringKey.foregroundColor, at: 12, effectiveRange: nil) as? UIColor, .red)
+        XCTAssertEqual(result.attribute(NSAttributedString.Key.foregroundColor, at: 12, effectiveRange: nil) as? UIColor, .red)
     }
 
     func testAttributedStringContainingHTMLConstant() {
@@ -88,8 +88,8 @@ class AttributedStringExpressionTests: XCTestCase {
         let expression = LayoutExpression(attributedStringExpression: "<b>foo {bar}</b>", for: node)
         let result = try! expression?.evaluate() as! NSAttributedString
         XCTAssertEqual(result.string, "foo bar")
-        XCTAssertEqual(result.attribute(NSAttributedStringKey.font, at: 0, effectiveRange: nil) as? UIFont, .boldSystemFont(ofSize: 17))
-        let traits = (result.attribute(NSAttributedStringKey.font, at: 4, effectiveRange: nil) as? UIFont)?.fontDescriptor.symbolicTraits
+        XCTAssertEqual(result.attribute(NSAttributedString.Key.font, at: 0, effectiveRange: nil) as? UIFont, .boldSystemFont(ofSize: 17))
+        let traits = (result.attribute(NSAttributedString.Key.font, at: 4, effectiveRange: nil) as? UIFont)?.fontDescriptor.symbolicTraits
         XCTAssert(traits?.contains(.traitItalic) == true)
         XCTAssert(traits?.contains(.traitBold) == true)
     }
