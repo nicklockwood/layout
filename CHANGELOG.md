@@ -1,5 +1,13 @@
 # Change Log
 
+## [0.6.25](https://github.com/schibsted/layout/releases/tag/0.6.25) (2018-06-06)
+
+- Now supports Swift 3.4 or 4.1.5 in Xcode 10 beta (Swift 4.2 is not yet supported)
+- Fixed a bug where nested `Optional` state properties could not be referenced in expressions
+- Fixed crash when setting `UIButton.attributedTitle` property or using inline HTML
+- Setting `UIButton.attributedTitle` now preserves the `titleColor` and `titleLabel.font`
+- Added support for `accessibilityAttributedLabel`
+
 ## [0.6.24](https://github.com/schibsted/layout/releases/tag/0.6.24) (2018-05-09)
 
 - Significantly improved performance for inline HTML and NSAttributedString expressions
