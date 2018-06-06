@@ -49,6 +49,8 @@ class UIKitSymbols: XCTestCase {
         ]
         let blacklist = [
             "AVPlayerViewControllerContentView",
+            "AVPlayerViewControllerCustomControlsView",
+            "AVPlayerViewControllerCustomControlsViewLayoutMarginsGuideProvidingView",
             "MKOverlayContainer",
             "UIAccessibility",
             "UIActionSheet",

@@ -117,6 +117,8 @@ extension UIView: LayoutManaged {
                 "customAlignmentRectInsets",
                 "customBaselineOffsetFromBottom",
                 "customFirstBaselineOffsetFromContentTop",
+                "customFirstBaselineOffsetFromTop",
+                "customScreenScale",
                 "deliversButtonsForGesturesToSuperview",
                 "deliversTouchesForGesturesToSuperview",
                 "edgesInsettingLayoutMarginsFromSafeArea",
@@ -129,6 +131,8 @@ extension UIView: LayoutManaged {
                 "invalidatingIntrinsicContentSizeAlsoInvalidatesSuperview",
                 "isBaselineRelativeAlignmentRectInsets",
                 "layoutMarginsFollowReadableWidth",
+                "maximumLayoutSize",
+                "minimumLayoutSize",
                 "needsDisplayOnBoundsChange",
                 "neverCacheContentLayoutSize",
                 "previewingSegueTemplateStorage",
@@ -138,6 +142,10 @@ extension UIView: LayoutManaged {
                 "wantsDeepColorDrawing",
             ] {
                 types[name] = nil
+                let name = "\(name)."
+                for key in types.keys where key.hasPrefix(name) {
+                    types[key] = nil
+                }
             }
         #endif
         return types
@@ -627,6 +635,7 @@ extension UILabel {
                 "color",
                 "drawsLetterpress",
                 "drawsUnderline",
+                "enablesMarqueeWhenAncestorFocused",
                 "lineSpacing",
                 "marqueeEnabled",
                 "marqueeRunning",
@@ -661,6 +670,8 @@ extension UITextField {
         types["leftViewMode"] = .uiTextFieldViewMode
         types["rightViewMode"] = .uiTextFieldViewMode
         types["minimumFontSize"] = .cgFloat
+        types["passwordRules"] = .uiTextInputPasswordRules
+        types["textContentType"] = .uiTextContentType
         for (name, type) in dragAndDropOptions {
             types[name] = type
         }
@@ -722,6 +733,18 @@ extension UITextField {
         case "returnKeyType": returnKeyType = value as! UIReturnKeyType
         case "enablesReturnKeyAutomatically": enablesReturnKeyAutomatically = value as! Bool
         case "isSecureTextEntry": isSecureTextEntry = value as! Bool
+        case "passwordRules":
+            #if swift(>=4.1.5) || (!swift(>=4) && swift(>=3.4))
+                // TODO: warn about unavailability
+                if #available(iOS 12.0, *) {
+                    passwordRules = value as? UITextInputPasswordRules
+                }
+            #endif
+        case "textContentType":
+            // TODO: warn about unavailability
+            if #available(iOS 10.0, *) {
+                textContentType = value as? UITextContentType
+            }
         case "smartQuotesType":
             // TODO: warn about unavailability
             if #available(iOS 11.0, *) {
@@ -1266,6 +1289,8 @@ extension UIInputView {
         // Private properties
         #if arch(i386) || arch(x86_64)
             for name in [
+                "assertSizingWithPredictionBar",
+                "backgroundEdgeInsets",
                 "contentRatio",
                 "leftContentViewSize",
                 "rightContentViewSize",
@@ -1356,6 +1381,7 @@ extension UIWebView {
     open override class var expressionTypes: [String: RuntimeType] {
         var types = super.expressionTypes
         types["baseURL"] = .url
+        types["delegate"] = RuntimeType(UIWebViewDelegate.self)
         types["htmlString"] = .string
         types["request"] = .urlRequest
         types["paginationMode"] = .uiWebPaginationMode
@@ -1419,6 +1445,7 @@ extension WKWebView {
         types["fileURL"] = .url
         types["readAccessURL"] = .url
         types["htmlString"] = .string
+        types["navigationDelegate"] = RuntimeType(WKNavigationDelegate.self)
         types["request"] = .urlRequest
         types["uiDelegate"] = RuntimeType(WKUIDelegate.self)
         types["UIDelegate"] = nil // TODO: find a way to automate this renaming

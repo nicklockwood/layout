@@ -305,6 +305,89 @@ public extension RuntimeType {
         "bezel": .bezel,
         "roundedRect": .roundedRect,
     ] as [String: UITextBorderStyle])
+    @objc static let uiTextContentType: RuntimeType = {
+        if #available(iOS 10.0, *) {
+            var contentTypes = [
+                "name": .name,
+                "namePrefix": .namePrefix,
+                "givenName": .givenName,
+                "middleName": .middleName,
+                "familyName": .familyName,
+                "nameSuffix": .nameSuffix,
+                "nickname": .nickname,
+                "jobTitle": .jobTitle,
+                "organizationName": .organizationName,
+                "location": .location,
+                "fullStreetAddress": .fullStreetAddress,
+                "streetAddressLine1": .streetAddressLine1,
+                "streetAddressLine2": .streetAddressLine2,
+                "addressCity": .addressCity,
+                "addressState": .addressState,
+                "addressCityAndState": .addressCityAndState,
+                "sublocality": .sublocality,
+                "countryName": .countryName,
+                "postalCode": .postalCode,
+                "telephoneNumber": .telephoneNumber,
+                "emailAddress": .emailAddress,
+                "URL": .URL,
+                "creditCardNumber": .creditCardNumber,
+                // Compatibility
+                "username": .name,
+                "password": .name,
+                "newPassword": .name,
+                "oneTimeCode": .name,
+            ] as [String: UITextContentType]
+            if #available(iOS 11.0, *) {
+                contentTypes["username"] = .username
+                contentTypes["password"] = .password
+            }
+            #if swift(>=4.1.5) || (!swift(>=4) && swift(>=3.4))
+                if #available(iOS 12.0, *) {
+                    contentTypes["newPassword"] = .newPassword
+                    contentTypes["oneTimeCode"] = .oneTimeCode
+                }
+            #endif
+            return RuntimeType(contentTypes)
+        }
+        return RuntimeType(Set([
+            "name",
+            "namePrefix",
+            "givenName",
+            "middleName",
+            "familyName",
+            "nameSuffix",
+            "nickname",
+            "jobTitle",
+            "organizationName",
+            "location",
+            "fullStreetAddress",
+            "streetAddressLine1",
+            "streetAddressLine2",
+            "addressCity",
+            "addressState",
+            "addressCityAndState",
+            "sublocality",
+            "countryName",
+            "postalCode",
+            "telephoneNumber",
+            "emailAddress",
+            "URL",
+            "creditCardNumber",
+            "username",
+            "password",
+            "newPassword",
+            "oneTimeCode",
+        ]))
+    }()
+    @objc static let uiTextInputPasswordRules: RuntimeType = {
+        #if swift(>=4.1.5) || (!swift(>=4) && swift(>=3.4))
+            if #available(iOS 12.0, *) {
+                // TODO: allow configuration with descriptor String?
+                return RuntimeType(UITextInputPasswordRules.self)
+            }
+        #endif
+        return .any
+    }()
     @objc static let uiTextFieldViewMode = RuntimeType([
         "never": .never,
         "whileEditing": .whileEditing,

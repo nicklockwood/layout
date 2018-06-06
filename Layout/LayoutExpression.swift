@@ -654,8 +654,7 @@ struct LayoutExpression {
             return nil
         }
         var symbols = expression.symbols
-        for symbol in ["font", "textColor", "textAlignment", "lineBreakMode",
-                       "titleColor", "titleLabel.font"]
+        for symbol in ["font", "textColor", "textAlignment", "lineBreakMode", "titleColor", "titleLabel.font"]
             where node.viewExpressionTypes[symbol] != nil {
             symbols.insert(symbol)
         }

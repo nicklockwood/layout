@@ -399,6 +399,7 @@ extension UITabBarController {
 
     open override class var expressionTypes: [String: RuntimeType] {
         var types = super.expressionTypes
+        types["delegate"] = RuntimeType(UITabBarControllerDelegate.self)
         types["selectedIndex"] = .int
         types["viewControllers"] = .array(of: UIViewController.self)
         types["customizableViewControllers"] = .array(of: UIViewController.self)
