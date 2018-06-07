@@ -249,6 +249,7 @@ struct UIntOptionSet: OptionSet {
             }
             preconditionFailure("UIAccessibilityTraitTabBar is not available")
         }
+
         static let none = UIAccessibilityTraitNone
         static let button = UIAccessibilityTraitButton
         static let link = UIAccessibilityTraitLink
@@ -279,16 +280,17 @@ struct UIntOptionSet: OptionSet {
 
         static let noIntrinsicMetric = UIViewNoIntrinsicMetric
 
-        func bringSubviewToFront(_ subview: UIView) {
+        @nonobjc func bringSubviewToFront(_ subview: UIView) {
             bringSubview(toFront: subview)
         }
     }
 
     extension UIViewController {
-        func addChild(_ child: UIViewController) {
+        @nonobjc func addChild(_ child: UIViewController) {
             addChildViewController(child)
         }
-        func removeFromParent() {
+
+        @nonobjc func removeFromParent() {
             removeFromParentViewController()
         }
     }

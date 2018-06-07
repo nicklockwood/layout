@@ -1,5 +1,10 @@
 # Change Log
 
+## [0.6.26](https://github.com/schibsted/layout/releases/tag/0.6.26) (2018-06-07)
+
+- Now supports building with Swift 4.2 in Xcode 10 beta
+- Fixed a layout regression in version 0.6.20 for nested auto-sized views
+
 ## [0.6.25](https://github.com/schibsted/layout/releases/tag/0.6.25) (2018-06-06)
 
 - Now supports Swift 3.4 or 4.1.5 in Xcode 10 beta (Swift 4.2 is not yet supported)

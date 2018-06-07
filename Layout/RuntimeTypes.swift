@@ -151,7 +151,7 @@ public extension RuntimeType {
         type.caster = { value in
             if let values = value as? [UIAccessibilityTraits] {
                 #if swift(>=4.2)
-                    return UIAccessibilityTraits(rawValue: values.map { $0.rawValue}.reduce(0 as UInt64) { $0 + $1 })
+                    return UIAccessibilityTraits(rawValue: values.map { $0.rawValue }.reduce(0 as UInt64) { $0 + $1 })
                 #else
                     return values.reduce(0) { $0 + $1 }
                 #endif

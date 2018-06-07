@@ -22,7 +22,6 @@ class UIKitSymbols: XCTestCase {
         let classes = objc_copyClassList(&classCount)
         var names = ["SKView"] // Doesn't load otherwise for some reason
         for cls in UnsafeBufferPointer(start: classes, count: Int(classCount)) {
-            let cls: AnyClass = cls!
             if class_getSuperclass(cls) != nil,
                 cls.isSubclass(of: UIView.self) || cls.isSubclass(of: UIViewController.self) {
                 let name = NSStringFromClass(cls)
