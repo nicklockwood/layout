@@ -2581,10 +2581,10 @@ public class LayoutNode: NSObject {
 
     /// Re-evaluates all expressions for the node and its children
     private func update(animated: Bool) {
+        if _updateLock == 0, _view is UITableViewCell || _view is UICollectionViewCell {
+            _view?.layoutIfNeeded()
+        }
         attempt {
-            if _updateLock == 0 {
-                _view?.layoutIfNeeded()
-            }
             try updateValues(animated: animated)
             try updateFrame()
         }
