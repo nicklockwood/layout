@@ -65,6 +65,72 @@ public extension RuntimeType {
         ] as [String: UIntOptionSet])
     }()
 
+    @objc static let caLayerContentsGravity: RuntimeType = {
+        #if swift(>=4.2)
+            return RuntimeType([
+                "center": .center,
+                "top": .top,
+                "bottom": .bottom,
+                "left": .left,
+                "right": .right,
+                "topLeft": .topLeft,
+                "topRight": .topRight,
+                "bottomLeft": .bottomLeft,
+                "bottomRight": .bottomRight,
+                "resize": .resize,
+                "resizeAspect": .resizeAspect,
+                "resizeAspectFill": .resizeAspectFill,
+            ] as [String: CALayerContentsGravity])
+        #else
+            return RuntimeType([
+                "center",
+                "top",
+                "bottom",
+                "left",
+                "right",
+                "topLeft",
+                "topRight",
+                "bottomLeft",
+                "bottomRight",
+                "resize",
+                "resizeAspect",
+                "resizeAspectFill",
+            ] as Set<String>)
+        #endif
+    }()
+
+    @objc static let caMediaTimingFillMode: RuntimeType = {
+        #if swift(>=4.2)
+            return RuntimeType([
+                "backwards": .backwards,
+                "forwards": .forwards,
+                "both": .both,
+                "removed": .removed,
+            ] as [String: CAMediaTimingFillMode])
+        #else
+            return RuntimeType([
+                "backwards",
+                "forwards",
+                "both",
+                "removed",
+            ] as Set<String>)
+        #endif
+    }()
+
+    @objc static let caLayerContentsFilter: RuntimeType = {
+        #if swift(>=4.2)
+            return RuntimeType([
+                "nearest": .nearest,
+                "linear": .linear,
+            ] as [String: CALayerContentsFilter])
+        #else
+            return RuntimeType([
+                "nearest",
+                "linear",
+            ] as Set<String>)
+        #endif
+    }()
+
     // MARK: UIKit
 
     @objc static let uiColor = RuntimeType(UIColor.self)
