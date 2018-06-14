@@ -625,6 +625,7 @@ extension UILabel {
         types["textAlignment"] = .nsTextAlignment
         types["lineBreakMode"] = .nsLineBreakMode
         types["baselineAdjustment"] = .uiBaselineAdjustment
+        types["enablesMarqueeWhenAncestorFocused"] = .bool
 
         #if arch(i386) || arch(x86_64)
             // Private properties
@@ -635,7 +636,6 @@ extension UILabel {
                 "color",
                 "drawsLetterpress",
                 "drawsUnderline",
-                "enablesMarqueeWhenAncestorFocused",
                 "lineSpacing",
                 "marqueeEnabled",
                 "marqueeRunning",
@@ -649,6 +649,18 @@ extension UILabel {
             }
         #endif
         return types
+    }
+
+    open override func setValue(_ value: Any, forExpression name: String) throws {
+        if #available(iOS 12.0, *) {} else {
+            switch name {
+            case "enablesMarqueeWhenAncestorFocused":
+                return // does nothing
+            default:
+                break
+            }
+        }
+        try super.setValue(value, forExpression: name)
     }
 }
 
