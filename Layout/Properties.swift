@@ -17,7 +17,7 @@ extension NSObject {
         var allProperties = [String: RuntimeType]()
         func addProperty(_ name: String, _ type: RuntimeType) {
             allProperties[name] = type
-            switch type.type {
+            switch type.kind {
             case let .struct(type):
                 switch type {
                 case "CGPoint":
@@ -101,7 +101,7 @@ extension NSObject {
                     guard let type = RuntimeType(objCType: objCType) else {
                         continue
                     }
-                    if case let .any(type) = type.type, type is Bool.Type,
+                    if case let .any(type) = type.kind, type is Bool.Type,
                         let attrib = attribs.first(where: { $0.hasPrefix("Gis") }) {
                         name = String(attrib.unicodeScalars.dropFirst())
                     }
@@ -144,7 +144,7 @@ extension NSObject {
                 guard let type = RuntimeType(objCType: objCType) else {
                     continue
                 }
-                if case let .any(type) = type.type, type is Bool.Type,
+                if case let .any(type) = type.kind, type is Bool.Type,
                     instancesRespond(to: Selector(isName)) {
                     name = isName
                 }
@@ -228,7 +228,7 @@ extension NSObject {
             guard responds(to: selector) else {
                 return false
             }
-            switch type.type {
+            switch type.kind {
             case let .any(type):
                 let method = class_getMethodImplementation(Swift.type(of: self), selector)
                 switch type {

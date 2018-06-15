@@ -171,8 +171,8 @@ extension UIView: LayoutManaged {
     @objc open class var bodyExpression: String? {
         let types = cachedExpressionTypes
         for key in ["attributedText", "attributedTitle", "text", "title"] {
-            if let type = types[key], case let .any(kind) = type.type,
-                kind is String.Type || kind is NSAttributedString.Type {
+            if let type = types[key], case let .any(subtype) = type.kind,
+                subtype is String.Type || subtype is NSAttributedString.Type {
                 return key
             }
         }

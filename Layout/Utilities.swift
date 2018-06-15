@@ -109,12 +109,10 @@ struct UIntOptionSet: OptionSet {
     }
 }
 
-#if !swift(>=4.1)
+#if !swift(>=3.4)
 
-    extension Sequence {
-        func compactMap<T>(_ transform: (Element) throws -> T?) rethrows -> [T] {
-            return try flatMap { try transform($0).map { [$0] } ?? [] }
-        }
+    extension UIFont {
+        typealias Weight = UIFontWeight
     }
 
 #endif
@@ -136,10 +134,6 @@ struct UIntOptionSet: OptionSet {
         static let foregroundColor = NSForegroundColorAttributeName
         static let font = NSFontAttributeName
         static let paragraphStyle = NSParagraphStyleAttributeName
-    }
-
-    extension UIFont {
-        typealias Weight = UIFontWeight
     }
 
     extension UIFont.Weight {
@@ -217,6 +211,16 @@ struct UIntOptionSet: OptionSet {
             self.init(number)
         }
     }
+
+#endif
+
+#if !swift(>=4.1)
+
+extension Sequence {
+    func compactMap<T>(_ transform: (Element) throws -> T?) rethrows -> [T] {
+        return try flatMap { try transform($0).map { [$0] } ?? [] }
+    }
+}
 
 #endif
 

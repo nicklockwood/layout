@@ -1221,7 +1221,7 @@ public class LayoutNode: NSObject {
                 case let .unavailable(reason):
                     throw SymbolError(fatal: "\(_class).\(symbol) is not available\(reason.map { ". \($0)" } ?? "")", for: symbol)
                 }
-                if case let .any(kind) = type.type, kind is CGFloat.Type {
+                if case let .any(subtype) = type.kind, subtype is CGFloat.Type {
                     switch symbol {
                     case "contentSize.width":
                         expression = LayoutExpression(contentWidthExpression: string, for: self)
@@ -2798,7 +2798,7 @@ public class LayoutNode: NSObject {
         }
         try LayoutError.wrap({
             for (name, type) in viewExpressionTypes where expressions[name] == nil {
-                if case let .protocol(proto) = type.type, owner.conforms(to: proto),
+                if case let .protocol(proto) = type.kind, owner.conforms(to: proto),
                     name == "delegate" || name == "dataSource" ||
                     name.hasSuffix("Delegate") || name.hasSuffix("DataSource") {
                     try self._view?.setValue(owner, forExpression: name)

@@ -35,7 +35,7 @@ class RuntimeTypeTests: XCTestCase {
 
     func testCGImageType() {
         let runtimeType = RuntimeType(CGImage.self)
-        guard case let .pointer(name) = runtimeType.type else {
+        guard case let .pointer(name) = runtimeType.kind else {
             XCTFail()
             return
         }
@@ -45,7 +45,7 @@ class RuntimeTypeTests: XCTestCase {
 
     func testCGColorType() {
         let runtimeType = RuntimeType(CGColor.self)
-        guard case let .pointer(name) = runtimeType.type else {
+        guard case let .pointer(name) = runtimeType.kind else {
             XCTFail()
             return
         }
@@ -55,7 +55,7 @@ class RuntimeTypeTests: XCTestCase {
 
     func testCGPathType() {
         let runtimeType = RuntimeType(CGPath.self)
-        guard case let .pointer(name) = runtimeType.type else {
+        guard case let .pointer(name) = runtimeType.kind else {
             XCTFail()
             return
         }
@@ -65,7 +65,7 @@ class RuntimeTypeTests: XCTestCase {
 
     func testCGRectType() {
         let runtimeType = RuntimeType(CGRect.self)
-        guard case let .any(type) = runtimeType.type else {
+        guard case let .any(type) = runtimeType.kind else {
             XCTFail()
             return
         }
@@ -75,7 +75,7 @@ class RuntimeTypeTests: XCTestCase {
 
     func testProtocolType() {
         let runtimeType = RuntimeType(UITableViewDelegate.self)
-        guard case .protocol = runtimeType.type else {
+        guard case .protocol = runtimeType.kind else {
             XCTFail()
             return
         }
@@ -85,7 +85,7 @@ class RuntimeTypeTests: XCTestCase {
     func testDynamicProtocolType() {
         let type: Any.Type = UITableViewDelegate.self
         let runtimeType = RuntimeType(type)
-        guard case .protocol = runtimeType.type else {
+        guard case .protocol = runtimeType.kind else {
             XCTFail()
             return
         }
@@ -94,7 +94,7 @@ class RuntimeTypeTests: XCTestCase {
 
     func testArrayType() {
         let runtimeType = RuntimeType([Int].self)
-        guard case .array = runtimeType.type else {
+        guard case .array = runtimeType.kind else {
             XCTFail()
             return
         }
@@ -104,7 +104,7 @@ class RuntimeTypeTests: XCTestCase {
     func testDynamicArrayType() {
         let type: Any.Type = [Int].self
         let runtimeType = RuntimeType(type)
-        guard case .array = runtimeType.type else {
+        guard case .array = runtimeType.kind else {
             XCTFail()
             return
         }
@@ -116,7 +116,7 @@ class RuntimeTypeTests: XCTestCase {
             XCTFail()
             return
         }
-        guard case let .array(subtype) = runtimeType.type else {
+        guard case let .array(subtype) = runtimeType.kind else {
             XCTFail()
             return
         }
@@ -129,7 +129,7 @@ class RuntimeTypeTests: XCTestCase {
             XCTFail()
             return
         }
-        guard case let .array(subtype) = runtimeType.type else {
+        guard case let .array(subtype) = runtimeType.kind else {
             XCTFail()
             return
         }
@@ -142,7 +142,7 @@ class RuntimeTypeTests: XCTestCase {
             XCTFail()
             return
         }
-        guard case .array = runtimeType.type else {
+        guard case .array = runtimeType.kind else {
             XCTFail()
             return
         }
@@ -154,7 +154,7 @@ class RuntimeTypeTests: XCTestCase {
             XCTFail()
             return
         }
-        guard case let .any(type) = runtimeType.type else {
+        guard case let .any(type) = runtimeType.kind else {
             XCTFail()
             return
         }
@@ -167,7 +167,7 @@ class RuntimeTypeTests: XCTestCase {
             XCTFail()
             return
         }
-        guard case let .any(type) = runtimeType.type else {
+        guard case let .any(type) = runtimeType.kind else {
             XCTFail()
             return
         }
@@ -177,7 +177,7 @@ class RuntimeTypeTests: XCTestCase {
 
     func testClassType() {
         let runtimeType = RuntimeType(class: NSIndexSet.self)
-        guard case let .class(cls) = runtimeType.type else {
+        guard case let .class(cls) = runtimeType.kind else {
             XCTFail()
             return
         }
@@ -187,7 +187,7 @@ class RuntimeTypeTests: XCTestCase {
 
     func testEnumType() {
         let runtimeType = RuntimeType.nsLineBreakMode
-        guard case let .enum(type, values) = runtimeType.type else {
+        guard case let .options(type, values) = runtimeType.kind else {
             XCTFail()
             return
         }
@@ -247,4 +247,85 @@ class RuntimeTypeTests: XCTestCase {
         XCTAssertNotNil(runtimeType.cast([[5]]))
         XCTAssertNotNil(runtimeType.cast([5]) as? [[Int]]) // Inner values is array-ified
     }
+
+    func testCastEnum() {
+        let runtimeType = RuntimeType.nsLineBreakMode
+        XCTAssertNotNil(runtimeType.cast(NSLineBreakMode.byClipping) as? NSLineBreakMode)
+        XCTAssertNotNil(runtimeType.cast(NSLineBreakMode.byClipping.rawValue) as? NSLineBreakMode)
+        XCTAssertNil(runtimeType.cast("byClipping") as? NSLineBreakMode)
+    }
+
+    private enum NonRawRepresentableEnum {
+        case foo, bar
+    }
+
+    func testCastNonRawRepresentableEnum() {
+        let runtimeType = RuntimeType(NonRawRepresentableEnum.self, ["foo": .foo, "bar": .bar])
+        XCTAssertNotNil(runtimeType.cast(NonRawRepresentableEnum.foo) as? NonRawRepresentableEnum)
+        XCTAssertNil(runtimeType.cast("foo") as? NonRawRepresentableEnum)
+    }
+
+    private struct TestStruct {
+        let foo: Int
+    }
+
+    private enum NonHashableEnum: RawRepresentable {
+        case foo, bar
+
+        var rawValue: RuntimeTypeTests.TestStruct {
+            return TestStruct(foo: 0)
+        }
+
+        init?(rawValue: RuntimeTypeTests.TestStruct) {
+            switch rawValue.foo {
+            case 0:
+                self = .foo
+            case 1:
+                self = .bar
+            default:
+                return nil
+            }
+        }
+    }
+
+    func testCastNonHashableEnum() {
+        let runtimeType = RuntimeType(NonHashableEnum.self, ["foo": .foo, "bar": .bar])
+        XCTAssertNotNil(runtimeType.cast(NonHashableEnum.foo) as? NonHashableEnum)
+        XCTAssertNotNil(runtimeType.cast(TestStruct(foo: 0)) as? NonHashableEnum)
+        XCTAssertNil(runtimeType.cast(TestStruct(foo: 2)) as? NonHashableEnum)
+        XCTAssertNil(runtimeType.cast("foo") as? NonHashableEnum)
+    }
+
+    private enum NonRawRepresentableOrHashableEnum {
+        case foo, bar(Int)
+    }
+
+    func testCastNonRawRepresentableOrHashableEnum() {
+        let runtimeType = RuntimeType(NonRawRepresentableOrHashableEnum.self, ["foo": .foo, "bar": .bar(0)])
+        XCTAssertNotNil(runtimeType.cast(NonRawRepresentableOrHashableEnum.foo) as? NonRawRepresentableOrHashableEnum)
+        XCTAssertNil(runtimeType.cast("foo") as? NonRawRepresentableOrHashableEnum)
+    }
+
+    func testCastOptionSet() {
+        let runtimeType = RuntimeType.uiRectEdge
+        XCTAssertNotNil(runtimeType.cast(UIRectEdge.top) as? UIRectEdge)
+        XCTAssertNotNil(runtimeType.cast([UIRectEdge.top, UIRectEdge.left]) as? UIRectEdge)
+        XCTAssertNotNil(runtimeType.cast(UIRectEdge.top.union(UIRectEdge.left)) as? UIRectEdge)
+        XCTAssertNotNil(runtimeType.cast(UIRectEdge.top.rawValue) as? UIRectEdge)
+        XCTAssertNotNil(runtimeType.cast(UIRectEdge.top.rawValue + UIRectEdge.left.rawValue) as? UIRectEdge)
+        XCTAssertNil(runtimeType.cast("top") as? UIRectEdge)
+    }
+
+    #if swift(>=4.2)
+
+        func testCastRawRepresentable() {
+            let runtimeType = RuntimeType.uiScrollView_DecelerationRate
+            XCTAssertNotNil(runtimeType.cast(UIScrollView.DecelerationRate.fast) as? UIScrollView.DecelerationRate)
+            XCTAssertNotNil(runtimeType.cast(UIScrollView.DecelerationRate.fast.rawValue) as? UIScrollView.DecelerationRate)
+            XCTAssertNotNil(runtimeType.cast(15 as CGFloat) as? UIScrollView.DecelerationRate)
+            XCTAssertNotNil(runtimeType.cast(15) as? UIScrollView.DecelerationRate)
+            XCTAssertNil(runtimeType.cast("fast") as? UIScrollView.DecelerationRate)
+        }
+
+    #endif
 }

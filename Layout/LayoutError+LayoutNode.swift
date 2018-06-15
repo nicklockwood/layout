@@ -73,9 +73,7 @@ private func staticPropertyMatches(for key: String) -> [String]? {
     guard !head.isEmpty, let type = RuntimeType.type(named: head) else {
         return nil
     }
-    switch type.type {
-    case let .enum(_, values):
-        return bestMatches(for: tail, in: Set(values.keys))
+    switch type.kind {
     case let .options(_, values):
         return bestMatches(for: tail, in: Set(values.keys))
     case let .any(type as NSObject.Type):

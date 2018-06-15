@@ -350,12 +350,12 @@ struct LayoutExpression {
     }
 
     private init?(anyExpression: String,
-                  type: RuntimeType,
-                  nullable: Bool = false,
-                  constants: @escaping (String) -> Any? = { _ in nil },
-                  pureSymbols: (AnyExpression.Symbol) -> AnyExpression.SymbolEvaluator? = { _ in nil },
-                  impureSymbols: (AnyExpression.Symbol) -> AnyExpression.SymbolEvaluator? = { _ in nil },
-                  for node: LayoutNode) {
+          type: RuntimeType,
+          nullable: Bool = false,
+          constants: @escaping (String) -> Any? = { _ in nil },
+          pureSymbols: (AnyExpression.Symbol) -> AnyExpression.SymbolEvaluator? = { _ in nil },
+          impureSymbols: (AnyExpression.Symbol) -> AnyExpression.SymbolEvaluator? = { _ in nil },
+          for node: LayoutNode) {
         do {
             self.init(
                 anyExpression: try parseExpression(anyExpression),
@@ -396,9 +396,7 @@ struct LayoutExpression {
                 return nil
             }
             guard let value: Any = {
-                switch type.type {
-                case let .enum(_, values):
-                    return values[tail]
+                switch type.kind {
                 case let .options(_, values):
                     return values[tail]
                 case let .any(type as NSObject.Type):
@@ -477,7 +475,8 @@ struct LayoutExpression {
                                 return nil
                             }
                             return macroFn
-                        } else if let value = try constants(key) ?? node.constantValue(forSymbol: key) ?? staticConstant(for: key) {
+                        } else if let value = try constants(key) ?? type.values[key] ??
+                            node.constantValue(forSymbol: key) ?? staticConstant(for: key) {
                             allConstants[name] = value
                             return nil
                         } else if circular {
@@ -1143,26 +1142,6 @@ struct LayoutExpression {
         )
     }
 
-    init?(enumExpression: String, type: RuntimeType, for node: LayoutNode) {
-        guard case let .enum(_, values) = type.type else { preconditionFailure() }
-        self.init(
-            anyExpression: enumExpression,
-            type: type,
-            constants: { name in values[name] },
-            for: node
-        )
-    }
-
-    init?(optionsExpression: String, type: RuntimeType, for node: LayoutNode) {
-        guard case let .options(_, values) = type.type else { preconditionFailure() }
-        self.init(
-            anyExpression: optionsExpression,
-            type: type,
-            constants: { name in values[name] },
-            for: node
-        )
-    }
-
     init?(selectorExpression: String, for node: LayoutNode) {
         guard let expression = LayoutExpression(stringExpression: selectorExpression, for: node) else {
             return nil
@@ -1190,7 +1169,7 @@ struct LayoutExpression {
                         var invalidType: RuntimeType?
                         while let _parent = parent {
                             if let type = _parent._parameters[name] {
-                                switch type.type {
+                                switch type.kind {
                                 case let .any(subtype):
                                     switch subtype {
                                     case is String.Type,
@@ -1247,7 +1226,7 @@ struct LayoutExpression {
     }
 
     init?(expression: String, type: RuntimeType, for node: LayoutNode) {
-        switch type.type {
+        switch type.kind {
         case let .any(subtype):
             switch subtype {
             case is String.Type, is NSString.Type:
@@ -1271,12 +1250,8 @@ struct LayoutExpression {
             }
         case let .class(subtype):
             self.init(classExpression: expression, class: subtype, for: node)
-        case .struct:
+        case .struct, .options:
             self.init(anyExpression: expression, type: type, nullable: false, for: node)
-        case .enum:
-            self.init(enumExpression: expression, type: type, for: node)
-        case .options:
-            self.init(optionsExpression: expression, type: type, for: node)
         case .pointer("CGColor"):
             self.init(colorExpression: expression, type: type, for: node)
         case .pointer("CGImage"):
