@@ -170,58 +170,6 @@ struct UIntOptionSet: OptionSet {
         static let fittingSizeLevel = UILayoutPriorityFittingSizeLevel
     }
 
-    extension Int64 {
-        init?(exactly number: NSNumber) {
-            self.init(exactly: Double(number))
-        }
-    }
-
-    extension Double {
-        init(truncating number: NSNumber) {
-            self.init(number)
-        }
-    }
-
-    extension CGFloat {
-        init(truncating number: NSNumber) {
-            self.init(number)
-        }
-    }
-
-    extension Float {
-        init(truncating number: NSNumber) {
-            self.init(number)
-        }
-    }
-
-    extension Int {
-        init(truncating number: NSNumber) {
-            self.init(number)
-        }
-    }
-
-    extension UInt {
-        init(truncating number: NSNumber) {
-            self.init(number)
-        }
-    }
-
-    extension Bool {
-        init(truncating number: NSNumber) {
-            self.init(number)
-        }
-    }
-
-#endif
-
-#if !swift(>=4.1)
-
-extension Sequence {
-    func compactMap<T>(_ transform: (Element) throws -> T?) rethrows -> [T] {
-        return try flatMap { try transform($0).map { [$0] } ?? [] }
-    }
-}
-
 #endif
 
 #if !swift(>=4.2)
