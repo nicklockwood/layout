@@ -3,7 +3,7 @@
 import Foundation
 
 /// The current LayoutTool version
-let version = "0.6.26"
+let version = "0.6.27"
 
 extension String {
     var inDefault: String { return "\u{001B}[39m\(self)" }

@@ -350,12 +350,12 @@ struct LayoutExpression {
     }
 
     private init?(anyExpression: String,
-          type: RuntimeType,
-          nullable: Bool = false,
-          constants: @escaping (String) -> Any? = { _ in nil },
-          pureSymbols: (AnyExpression.Symbol) -> AnyExpression.SymbolEvaluator? = { _ in nil },
-          impureSymbols: (AnyExpression.Symbol) -> AnyExpression.SymbolEvaluator? = { _ in nil },
-          for node: LayoutNode) {
+                  type: RuntimeType,
+                  nullable: Bool = false,
+                  constants: @escaping (String) -> Any? = { _ in nil },
+                  pureSymbols: (AnyExpression.Symbol) -> AnyExpression.SymbolEvaluator? = { _ in nil },
+                  impureSymbols: (AnyExpression.Symbol) -> AnyExpression.SymbolEvaluator? = { _ in nil },
+                  for node: LayoutNode) {
         do {
             self.init(
                 anyExpression: try parseExpression(anyExpression),

@@ -322,7 +322,7 @@ public class RuntimeType: NSObject {
         let rawType = RuntimeType(T.RawValue.self)
         caster = { value in
             (value as? T) ?? rawType.cast(value).flatMap {
-                T.init(rawValue: $0 as! T.RawValue)
+                T(rawValue: $0 as! T.RawValue)
             }
         }
         availability = .available
@@ -355,7 +355,7 @@ public class RuntimeType: NSObject {
                 return values.reduce([]) { (lhs: T, rhs: T) -> T in lhs.union(rhs) }
             }
             return (value as? T) ?? rawType.cast(value).flatMap {
-                T.init(rawValue: $0 as! T.RawValue)
+                T(rawValue: $0 as! T.RawValue)
             }
         }
         availability = .available

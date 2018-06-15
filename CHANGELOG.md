@@ -1,9 +1,18 @@
 # Change Log
 
+## [0.6.27](https://github.com/schibsted/layout/releases/tag/0.6.27) (2018-06-15)
+
+- Fixed all compiler warnings in Xcode 10 beta
+- Added support for new CoreAnimation enum types in iOS 12
+- Added support for iOS 12 UIScrollView.DecelerationRate type
+- Added support for iOS 12 UILabel.enablesMarqueeWhenAncestorFocused property
+- Layout now allows raw values to be used for enum or OptionSet expressions, which helps with backwards compatibility
+
 ## [0.6.26](https://github.com/schibsted/layout/releases/tag/0.6.26) (2018-06-07)
 
 - Now supports building with Swift 4.2 in Xcode 10 beta
 - Fixed a layout regression in version 0.6.20 for nested auto-sized views
+- Layout now requires Xcode 9.3 or higher
 
 ## [0.6.25](https://github.com/schibsted/layout/releases/tag/0.6.25) (2018-06-06)
 
