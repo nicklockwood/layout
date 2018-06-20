@@ -180,7 +180,6 @@ public class LayoutNode: NSObject {
     private var _observingFrame = false
     private func _stopObservingFrame() {
         if _observingFrame {
-            removeObserver(self, forKeyPath: "_view.translatesAutoresizingMaskIntoConstraints")
             removeObserver(self, forKeyPath: "_view.frame")
             removeObserver(self, forKeyPath: "_view.bounds")
             _observingFrame = false
@@ -217,7 +216,6 @@ public class LayoutNode: NSObject {
             _observingContentSizeCategory = true
         }
         if !_observingFrame {
-            addObserver(self, forKeyPath: "_view.translatesAutoresizingMaskIntoConstraints", options: [.new, .old], context: nil)
             addObserver(self, forKeyPath: "_view.frame", options: .new, context: nil)
             addObserver(self, forKeyPath: "_view.bounds", options: .new, context: nil)
             _observingFrame = true
@@ -274,25 +272,12 @@ public class LayoutNode: NSObject {
         change: [NSKeyValueChangeKey: Any]?,
         context _: UnsafeMutableRawPointer?
     ) {
-        guard _setupComplete, _updateLock == 0, _evaluating.isEmpty,
-            let view = _view, let new = change?[.newKey] else {
+        guard root._setupComplete, root._updateLock == 0, root._evaluating.isEmpty,
+            let view = _view, !view.bounds.size.isNearlyEqual(to: _previousBounds.size) else {
             return
         }
-        switch new {
-        case is CGRect:
-            if !view.bounds.size.isNearlyEqual(to: _previousBounds.size) {
-                if root._setupComplete, root._updateLock == 0, root._evaluating.isEmpty {
-                    root.update()
-                    _previousBounds = view.bounds
-                }
-            }
-        case let useAutoresizing as Bool:
-            if useAutoresizing != change?[.oldKey] as? Bool {
-                update()
-            }
-        default:
-            preconditionFailure()
-        }
+        root.update()
+        _previousBounds = view.bounds
     }
 
     @objc private func contentSizeCategoryChanged() {
