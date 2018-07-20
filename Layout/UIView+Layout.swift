@@ -1376,14 +1376,41 @@ extension UIRefreshControl {
 }
 
 extension UIVisualEffectView {
+    open override class func create(with node: LayoutNode) throws -> UIVisualEffectView {
+        let defaultStyle = RuntimeType.uiBlurEffect_Style.values["regular"]! as! UIBlurEffect.Style
+        var effect = try node.value(forExpression: "effect") as? UIVisualEffect
+        let style = try node.value(forExpression: "effect.style") as? UIBlurEffect.Style
+        if effect == nil {
+            effect = UIBlurEffect(style: style ?? defaultStyle)
+        } else if let style = style {
+            switch effect {
+            case nil, is UIBlurEffect:
+                effect = UIBlurEffect(style: style)
+            case is UIVibrancyEffect:
+                effect = UIVibrancyEffect(blurEffect: UIBlurEffect(style: style))
+            case let effect:
+                throw LayoutError.message("\(type(of: effect)) does not have a style property")
+            }
+        }
+        return self.init(effect: effect)
+    }
+
     open override class var expressionTypes: [String: RuntimeType] {
         var types = super.expressionTypes
+        for (key, type) in UIView.cachedExpressionTypes {
+            types["contentView.\(key)"] = type
+        }
         #if arch(i386) || arch(x86_64)
-            // Private property
+            // Private properties
             types["backgroundEffects"] = nil
             types["contentEffects"] = nil
         #endif
         return types
+    }
+
+    open override func didInsertChildNode(_ node: LayoutNode, at index: Int) {
+        // Insert child views into `contentView` instead of directly
+        contentView.didInsertChildNode(node, at: index)
     }
 }
 

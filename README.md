@@ -54,6 +54,7 @@ Layout is a native Swift framework for implementing iOS user interfaces using XM
     - [UIStackView](#uistackview)
     - [UITableView](#uitableview)
     - [UICollectionView](#uicollectionview)
+    - [UIVisualEffectView](#uivisualeffectview)
     - [UIWebView](#uiwebview)
     - [WKWebView](#wkwebview)
     - [UITabBarController](#uitabbarcontroller)
@@ -1507,6 +1508,7 @@ The following views and view controllers have all been tested and are known to w
 * UITextView
 * UIView
 * UIViewController
+* UIVisualEffectView
 * UIWebView
 * WKWebView
 
@@ -1926,6 +1928,48 @@ Dynamic collection cell size calculation is also supported. To enable this, just
 Layout does not currently support using XML to define supplementary `UICollectionReusableView` instances, but this will be added in future.
 
 Layout supports the use of `UICollectionViewController`, with the same caveats as for `UITableViewController`.
+
+
+## UIVisualEffectView
+
+`UIVisualEffectView` has an `effect` property of type `UIVisualEffect`. `UIVisualEffect` is an abstract base class that is not used directly - instead you would typically set the effect to be either a `UIBlurEffect` or a `UIVibrancyEffect` (which itself contains a `UIBlurEffect`).
+
+The `effect` property can be set programmatically, or by passing a `UIVisualEffect` instance into your `LayoutNode` as a constant or state variable:
+
+
+```swift
+loadLayout(
+    named: "MyLayout.xml",
+    constants: [
+        "blurEffect": UIBlurEffect(style: .regular),
+    ]
+)
+```
+
+```xml
+<UICollectionView
+    effect="blurEffect"
+>
+```
+
+For convenience, Layout also allows you to configure the effect directly using expressions. To configure the effect use the `UIBlurEffect(style)` or `UIVibrancyEffect(style)` constructor functions inside the `effect` expression as follows:
+
+```xml
+<UICollectionView
+    effect="UIVibrancyEffect(light)"
+>
+```
+
+The `style` argument is of type `UIBlurEffectStyle`, and  is supported for both `UIBlurEffect` and `UIVibrancyEffect`. You can set the style using a constant or state variable, or it can be set to one of the following built-in values:
+
+* extraLight
+* light
+* dark
+* extraDark
+* regular
+* prominent
+
+**Note:** You can also use this solution for setting the `UITableView.separatorEffect` property, or any other property of type `UIVisualEffect` that is exposed in a custom view or controller. 
 
 
 ## UIWebView

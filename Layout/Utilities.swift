@@ -350,13 +350,8 @@ struct UIntOptionSet: OptionSet {
         typealias DisplayMode = UISplitViewControllerDisplayMode
     }
 
-#endif
-
-#if swift(>=4.2)
-
-    // Workaround for https://bugs.swift.org/browse/SR-7879
-    extension UIEdgeInsets {
-        static let zero = UIEdgeInsets()
+    extension UIBlurEffect {
+        typealias Style = UIBlurEffectStyle
     }
 
 #endif

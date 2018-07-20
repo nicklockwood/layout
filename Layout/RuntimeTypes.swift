@@ -1199,4 +1199,38 @@ public extension RuntimeType {
 
     @objc static var uiSplitViewControllerDisplayMode: RuntimeType { return uiSplitViewController_DisplayMode }
     @objc static var uiSplitViewControllerPrimaryEdge: RuntimeType { return uiSplitViewController_PrimaryEdge }
+
+    // MARK: UIVisualEffectView
+
+    @objc static let uiBlurEffect_Style: RuntimeType = {
+        let extraDark: UIBlurEffect.Style
+        let regular: UIBlurEffect.Style
+        let prominent: UIBlurEffect.Style
+        if #available(iOS 10.0, *) {
+            #if os(tvOS)
+                extraDark = .extraDark
+            #else
+                extraDark = .dark
+            #endif
+            regular = .regular
+            prominent = .prominent
+        } else {
+            extraDark = .dark
+            regular = .light
+            prominent = .extraLight
+        }
+        return RuntimeType([
+            "extraLight": .extraLight,
+            "light": .light,
+            "dark": .dark,
+            // TODO: is there any way to warn when using these on an unsupported OS version?
+            "extraDark": extraDark,
+            "regular": regular,
+            "prominent": prominent,
+        ] as [String: UIBlurEffect.Style])
+    }()
+
+    // Deprecated
+
+    @objc static var uiBlurEffectStyle: RuntimeType { return uiBlurEffect_Style }
 }

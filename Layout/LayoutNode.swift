@@ -1102,6 +1102,10 @@ public class LayoutNode: NSObject {
             // TODO: disallow setting view properties directly if type is a UIViewController
             symbols.formUnion(validKeys(in: UIView.expressionTypes))
         }
+        if type.swiftType == UIVisualEffect.self {
+            // TODO: any way to generalize this?
+            symbols.formUnion(RuntimeType.uiBlurEffect_Style.values.keys)
+        }
         symbols.formUnion(type.values.keys)
         // TODO: basing the search on type is not especially effective because
         // you can use symbols of other types inside an expression, but if we

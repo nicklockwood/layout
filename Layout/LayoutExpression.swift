@@ -1142,6 +1142,45 @@ struct LayoutExpression {
         )
     }
 
+    init?(visualEffectExpression: String, for node: LayoutNode) {
+        let constants = RuntimeType.uiBlurEffect_Style.values
+        let defaultStyle = constants["regular"] as! UIBlurEffect.Style
+        let functions: [AnyExpression.Symbol: AnyExpression.SymbolEvaluator] = [
+            .function("UIBlurEffect", arity: 0): { _ in
+                UIBlurEffect(style: defaultStyle)
+            },
+            .function("UIBlurEffect", arity: 1): { args in
+                guard let style = args[0] as? UIBlurEffect.Style else {
+                    throw Expression.Error.message("\(Swift.type(of: args[0])) is not compatible with expected type \(UIBlurEffect.Style.self)")
+                }
+                return UIBlurEffect(style: style)
+            },
+            .function("UIVibrancyEffect", arity: 0): { _ in
+                UIVibrancyEffect(blurEffect: UIBlurEffect(style: defaultStyle))
+            },
+            .function("UIVibrancyEffect", arity: 1): { args in
+                let blurEffect: UIBlurEffect
+                switch args[0] {
+                case let style as UIBlurEffect.Style:
+                    blurEffect = UIBlurEffect(style: style)
+                case let blur as UIBlurEffect:
+                    blurEffect = blur
+                default:
+                    throw Expression.Error.message("\(Swift.type(of: args[0])) is not compatible with expected type \(UIBlurEffect.self)")
+                }
+                return UIVibrancyEffect(blurEffect: blurEffect)
+            },
+        ]
+        self.init(
+            anyExpression: visualEffectExpression,
+            type: RuntimeType(UIVisualEffect.self),
+            nullable: true,
+            constants: { constants[$0] },
+            pureSymbols: { functions[$0] },
+            for: node
+        )
+    }
+
     init?(selectorExpression: String, for node: LayoutNode) {
         guard let expression = LayoutExpression(stringExpression: selectorExpression, for: node) else {
             return nil
@@ -1245,6 +1284,8 @@ struct LayoutExpression {
                 self.init(urlExpression: expression, for: node)
             case is URLRequest.Type, is NSURLRequest.Type:
                 self.init(urlRequestExpression: expression, for: node)
+            case is UIVisualEffect.Type:
+                self.init(visualEffectExpression: expression, for: node)
             default:
                 self.init(anyExpression: expression, type: type, nullable: false, for: node)
             }
