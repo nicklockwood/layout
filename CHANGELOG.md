@@ -1,5 +1,12 @@
 # Change Log
 
+## [0.6.28](https://github.com/schibsted/layout/releases/tag/0.6.28) (2018-07-20)
+
+- Improved support for UIVisualEffectView (see README for details)
+- Improved error messaging for misspelled function names in expressions
+- Fixed spurious 'Unknown property X of UILabel in Y' error message
+- Fixed infinite layout loop bug
+
 ## [0.6.27](https://github.com/schibsted/layout/releases/tag/0.6.27) (2018-06-15)
 
 - Fixed all compiler warnings in Xcode 10 beta
