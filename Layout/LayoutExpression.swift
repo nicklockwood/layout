@@ -517,8 +517,13 @@ struct LayoutExpression {
                         let string: String
                         if "'\"".contains(name.first ?? " ") {
                             string = String(name.dropFirst().dropLast())
-                        } else if let value = (try constants(key) ?? node.constantValue(forSymbol: key) ?? staticConstant(for: key)) as? String {
+                        } else if let value = (try constants(key) ?? node.constantValue(forSymbol: key) ?? staticConstant(for: key)) {
+                            guard let value = value as? String else {
+                                return nil
+                            }
                             string = value
+                        } else if name != "[]" {
+                            throw SymbolError("Unknown function \(key)()", for: key)
                         } else {
                             return nil
                         }

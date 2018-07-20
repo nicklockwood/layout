@@ -1846,7 +1846,7 @@ public class LayoutNode: NSObject {
                 if viewControllerClass != nil, viewControllerExpressionTypes[symbol] != nil {
                     fallback = { [unowned self] in
                         guard let viewController = self._viewController else {
-                            throw SymbolError("Undefined symbol \(symbol)", for: symbol)
+                            throw SymbolError("Unknown property \(symbol)", for: symbol)
                         }
                         return try viewController.value(forSymbol: symbol)
                     }
@@ -1858,14 +1858,14 @@ public class LayoutNode: NSObject {
                             return value
                         }
                         guard let view = self._view else {
-                            throw SymbolError("Undefined symbol \(symbol)", for: symbol)
+                            throw SymbolError("Unknown property \(symbol)", for: symbol)
                         }
                         return try view.value(forSymbol: symbol)
                     }
                 } else {
                     fallback = { [unowned self] in
                         guard let view = self._view else {
-                            throw SymbolError("Undefined symbol \(symbol)", for: symbol)
+                            throw SymbolError("Unknown property \(symbol)", for: symbol)
                         }
                         return try view.value(forSymbol: symbol)
                     }
@@ -1918,7 +1918,7 @@ public class LayoutNode: NSObject {
                     default:
                         getter = {
                             // TODO: should we allow view properties to be referenced?
-                            throw SymbolError("Undefined symbol \(tail)", for: symbol)
+                            throw SymbolError("Unknown property \(tail)", for: symbol)
                         }
                     }
                 case "previous" where layoutSymbols.contains(tail):
