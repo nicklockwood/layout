@@ -272,7 +272,8 @@ public class LayoutNode: NSObject {
         change: [NSKeyValueChangeKey: Any]?,
         context _: UnsafeMutableRawPointer?
     ) {
-        guard root._setupComplete, root._updateLock == 0, root._evaluating.isEmpty,
+        guard _setupComplete, _updateLock == 0, _evaluating.isEmpty,
+            root._setupComplete, root._updateLock == 0, root._evaluating.isEmpty,
             let view = _view, !view.bounds.size.isNearlyEqual(to: _previousBounds.size) else {
             return
         }
