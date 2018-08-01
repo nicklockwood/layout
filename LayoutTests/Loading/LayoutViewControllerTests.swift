@@ -39,4 +39,22 @@ class LayoutViewControllerTests: XCTestCase {
         XCTAssertNil(viewController.layoutDidLoadLayoutNode)
         XCTAssertEqual(viewController.layoutDidLoadLayoutNodeCallCount, 0)
     }
+
+    func testLoadedLayoutDoesNotRetainItself() throws {
+        weak var controller: TestLayoutViewController?
+        weak var view: UIView?
+        weak var node: LayoutNode?
+        try autoreleasepool {
+            let vc = TestLayoutViewController()
+            vc.loadLayout(withContentsOfURL: try url(forXml: "LayoutDidLoad_Valid"))
+            node = vc.layoutNode
+            XCTAssertNotNil(node)
+            view = node?.view
+            XCTAssertNotNil(view)
+            controller = vc
+        }
+        XCTAssertNil(controller)
+        XCTAssertNil(view)
+        XCTAssertNil(node)
+    }
 }

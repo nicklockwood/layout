@@ -565,6 +565,24 @@ class LayoutNodeTests: XCTestCase {
 
     // MARK: memory leaks
 
+    func testLayoutNodeDoesNotRetainItself() throws {
+        weak var controller: UIViewController?
+        weak var view: UIView?
+        weak var node: LayoutNode?
+        try autoreleasepool {
+            let vc = UIViewController()
+            controller = vc
+            let _node = LayoutNode(view: UIView.self)
+            node = _node
+            view = _node.view
+            XCTAssertNotNil(view)
+            try _node.mount(in: vc)
+        }
+        XCTAssertNil(controller)
+        XCTAssertNil(view)
+        XCTAssertNil(node)
+    }
+
     func testLayoutWhereChildReferencesParentIsReleased() {
         let child = LayoutNode(id: "bar", expressions: [
             "backgroundColor": "parent.backgroundColor",
