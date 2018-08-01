@@ -10,7 +10,6 @@ extension CATransform3D: Equatable {
 }
 
 class GeometryExpressionTests: XCTestCase {
-
     // MARK: CGPoint
 
     func testGetContentOffset() {

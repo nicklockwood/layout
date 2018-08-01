@@ -9,7 +9,6 @@ private class TestViewController: UIViewController, LayoutLoading {
 }
 
 class LayoutMountingTests: XCTestCase {
-
     // MARK: mounting view in view controller
 
     func testMountUnitializedViewNodeInInitializedViewController() throws {

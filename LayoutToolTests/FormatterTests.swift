@@ -3,7 +3,6 @@
 import XCTest
 
 class FormatterTests: XCTestCase {
-
     // MARK: Invalid expressions
 
     func testMalformedExpression() {

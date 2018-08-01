@@ -4,7 +4,6 @@ import XCTest
 @testable import Layout
 
 class LayoutFrameTests: XCTestCase {
-
     // MARK: Frame/view consistency
 
     func testLayoutFrameMatchesView() {

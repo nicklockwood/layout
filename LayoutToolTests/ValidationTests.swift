@@ -3,7 +3,6 @@
 import XCTest
 
 class ValidationTests: XCTestCase {
-
     // MARK: XML validation
 
     func testMissingClosingChevron() {

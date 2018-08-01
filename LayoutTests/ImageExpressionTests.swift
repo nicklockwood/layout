@@ -5,7 +5,6 @@ import XCTest
 @testable import TestFramework
 
 class ImageExpressionTests: XCTestCase {
-
     // MARK: Image constants
 
     func testImageConstant() {

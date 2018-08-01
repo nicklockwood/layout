@@ -22,7 +22,6 @@ private class TestViewController: UIViewController {
 }
 
 class LayoutNodeTests: XCTestCase {
-
     // MARK: Expression errors
 
     func testInvalidExpression() {
@@ -590,8 +589,8 @@ class LayoutNodeTests: XCTestCase {
             let vc = UIViewController()
             let _node = LayoutNode(view: UIView.self, children: [
                 LayoutNode(view: UILabel.self, expressions: [
-                    "attributedText": "Hello World"
-                ])
+                    "attributedText": "Hello World",
+                ]),
             ])
             root = _node
             child = _node.children.first

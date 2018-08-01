@@ -20,7 +20,6 @@ private class TestObject: NSObject {
 }
 
 class PropertiesTests: XCTestCase {
-
     // MARK: Property types
 
     func testPropertyType() {

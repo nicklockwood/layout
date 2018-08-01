@@ -70,7 +70,8 @@ func enumerateFiles(withInputURL inputURL: URL,
                     concurrent: Bool = true,
                     block: @escaping (URL, URL) throws -> () throws -> Void) -> [Error] {
     guard let resourceValues = try? inputURL.resourceValues(
-        forKeys: Set([.isDirectoryKey, .isAliasFileKey, .isSymbolicLinkKey])) else {
+        forKeys: Set([.isDirectoryKey, .isAliasFileKey, .isSymbolicLinkKey])
+    ) else {
         if FileManager.default.fileExists(atPath: inputURL.path) {
             return [FormatError.reading("failed to read attributes for \(inputURL.path)")]
         }
@@ -131,7 +132,8 @@ func enumerateFiles(withInputURL inputURL: URL,
                 }
             }
             guard let files = try? manager.contentsOfDirectory(
-                at: inputURL, includingPropertiesForKeys: keys, options: .skipsHiddenFiles) else {
+                at: inputURL, includingPropertiesForKeys: keys, options: .skipsHiddenFiles
+            ) else {
                 onComplete { throw FormatError.reading("failed to read contents of directory at \(inputURL.path)") }
                 return
             }

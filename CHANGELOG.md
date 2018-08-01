@@ -1,5 +1,10 @@
 # Change Log
 
+## [0.6.29](https://github.com/schibsted/layout/releases/tag/0.6.29) (2018-08-01)
+
+- Fixed retain cycles in LayoutExpression and LayoutNode that caused nodes and views to be leaked
+- Referencing `top/left/bottom/right/etc` of another node by id now works correctly when `useLegacyLayoutMode = false`
+
 ## [0.6.28](https://github.com/schibsted/layout/releases/tag/0.6.28) (2018-07-20)
 
 - Improved support for UIVisualEffectView (see README for details)

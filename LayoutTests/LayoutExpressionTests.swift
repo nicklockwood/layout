@@ -32,7 +32,6 @@ func makeLayout(
 }
 
 class LayoutExpressionTests: XCTestCase {
-
     // MARK: Expression parsing
 
     func testParseExpressionWithoutBraces() {

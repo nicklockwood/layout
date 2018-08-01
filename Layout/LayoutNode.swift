@@ -457,7 +457,8 @@ public class LayoutNode: NSObject {
     /// Test if the specified expression is valid for a given view or view controller class
     /// NOTE: only used by UIDesigner - should we deprecate this?
     public static func isValidExpressionName(
-        _ name: String, for viewOrViewControllerClass: AnyClass) -> Bool {
+        _ name: String, for viewOrViewControllerClass: AnyClass
+    ) -> Bool {
         switch name {
         case "top", "left", "leading", "trailing",
              "bottom", "right", "width", "height",
@@ -2181,7 +2182,7 @@ public class LayoutNode: NSObject {
                                     return try node.map {
                                         try self.cgFloatValue(forSymbol: "parent.height")
                                             - $0.cgFloatValue(forSymbol: "top")
-                                        } ?? 0
+                                    } ?? 0
                                 default:
                                     return try node?.value(forSymbol: tail) ?? 0
                                 }

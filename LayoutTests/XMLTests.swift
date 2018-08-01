@@ -4,7 +4,6 @@ import XCTest
 @testable import Layout
 
 class XMLTests: XCTestCase {
-
     // MARK: Malformed XML
 
     func testEmptyXML() {

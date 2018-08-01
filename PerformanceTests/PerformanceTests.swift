@@ -11,7 +11,6 @@ private let nodeCount: Int = {
 }()
 
 class PerformanceTests: XCTestCase {
-
     // MARK: Create and mount
 
     private func createNodes(_ count: Int) -> LayoutNode {

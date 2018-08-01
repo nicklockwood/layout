@@ -7,7 +7,6 @@ import UIKit
 import WebKit
 
 public extension RuntimeType {
-
     // MARK: Swift
 
     @objc static let any = RuntimeType(Any.self)
