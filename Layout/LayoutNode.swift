@@ -1922,7 +1922,7 @@ public class LayoutNode: NSObject {
                             throw SymbolError("Unknown property \(tail)", for: symbol)
                         }
                     }
-                case "previous" where layoutSymbols.contains(tail):
+                case "previous":
                     switch tail {
                     case "trailing" where _isRightToLeftLayout:
                         getter = { [unowned self] in
@@ -1937,7 +1937,7 @@ public class LayoutNode: NSObject {
                                         - $0.cgFloatValue(forSymbol: "left")
                                 } ?? 0
                             default:
-                                return try self.previousVisible?.value(forSymbol: "trailing") ?? 0
+                                return try self.previousVisible?.value(forSymbol: tail) ?? 0
                             }
                         }
                     case "trailing" where !_isRightToLeftLayout,
@@ -1949,7 +1949,7 @@ public class LayoutNode: NSObject {
                                  "leading" where !self._isRightToLeftLayout:
                                 return try self.previousVisible?.maxXValue() ?? 0
                             default:
-                                return try self.previousVisible?.value(forSymbol: "trailing") ?? 0
+                                return try self.previousVisible?.value(forSymbol: tail) ?? 0
                             }
                         }
                     case "leading" where _isRightToLeftLayout:
@@ -1962,7 +1962,21 @@ public class LayoutNode: NSObject {
                             case "trailing":
                                 return try self.previousVisible?.maxXValue() ?? 0
                             default:
-                                return try self.previousVisible?.value(forSymbol: "leading") ?? 0
+                                return try self.previousVisible?.value(forSymbol: tail) ?? 0
+                            }
+                        }
+                    case "leading" where !_isRightToLeftLayout,
+                         "left" where !_useLegacyLayoutMode:
+                        getter = { [unowned self] in
+                            switch self._evaluating.last ?? "" {
+                            case "right" where !self._useLegacyLayoutMode,
+                                 "trailing" where !self._isRightToLeftLayout:
+                                return try self.previousVisible.map {
+                                    try self.cgFloatValue(forSymbol: "parent.width")
+                                        - $0.cgFloatValue(forSymbol: "left")
+                                } ?? 0
+                            default:
+                                return try self.previousVisible?.value(forSymbol: tail) ?? 0
                             }
                         }
                     case "bottom" where !_useLegacyLayoutMode:
@@ -1971,19 +1985,35 @@ public class LayoutNode: NSObject {
                             case "top":
                                 return try self.previousVisible?.maxYValue() ?? 0
                             default:
-                                return try self.previousVisible?.value(forSymbol: "bottom") ?? 0
+                                return try self.previousVisible?.value(forSymbol: tail) ?? 0
                             }
                         }
-                    default:
+                    case "top" where !_useLegacyLayoutMode:
+                        getter = { [unowned self] in
+                            switch self._evaluating.last ?? "" {
+                            case "bottom":
+                                return try self.previousVisible.map {
+                                    try self.cgFloatValue(forSymbol: "parent.height")
+                                        - $0.cgFloatValue(forSymbol: "top")
+                                } ?? 0
+                            default:
+                                return try self.previousVisible?.value(forSymbol: tail) ?? 0
+                            }
+                        }
+                    case "center":
+                        getter = { [unowned self] in
+                            try self.previousVisible?.value(forSymbol: tail) ?? CGPoint.zero
+                        }
+                    case _ where layoutSymbols.contains(tail):
                         getter = { [unowned self] in
                             try self.previousVisible?.value(forSymbol: tail) ?? 0
                         }
+                    default:
+                        getter = { [unowned self] in
+                            try self.previous?.value(forSymbol: tail) as Any
+                        }
                     }
-                case "previous":
-                    getter = { [unowned self] in
-                        try self.previous?.value(forSymbol: tail) as Any
-                    }
-                case "next" where layoutSymbols.contains(tail):
+                case "next":
                     switch tail {
                     case "trailing" where _isRightToLeftLayout:
                         getter = { [unowned self] in
@@ -1998,7 +2028,7 @@ public class LayoutNode: NSObject {
                                         - $0.cgFloatValue(forSymbol: "left")
                                 } ?? 0
                             default:
-                                return try self.nextVisible?.value(forSymbol: "trailing") ?? 0
+                                return try self.nextVisible?.value(forSymbol: tail) ?? 0
                             }
                         }
                     case "trailing" where !_isRightToLeftLayout,
@@ -2010,7 +2040,7 @@ public class LayoutNode: NSObject {
                                  "leading" where !self._isRightToLeftLayout:
                                 return try self.nextVisible?.maxXValue() ?? 0
                             default:
-                                return try self.nextVisible?.value(forSymbol: "trailing") ?? 0
+                                return try self.nextVisible?.value(forSymbol: tail) ?? 0
                             }
                         }
                     case "leading" where _isRightToLeftLayout:
@@ -2023,7 +2053,21 @@ public class LayoutNode: NSObject {
                             case "trailing":
                                 return try self.nextVisible?.maxXValue() ?? 0
                             default:
-                                return try self.nextVisible?.value(forSymbol: "leading") ?? 0
+                                return try self.nextVisible?.value(forSymbol: tail) ?? 0
+                            }
+                        }
+                    case "leading" where !_isRightToLeftLayout,
+                         "left" where !_useLegacyLayoutMode:
+                        getter = { [unowned self] in
+                            switch self._evaluating.last ?? "" {
+                            case "right" where !self._useLegacyLayoutMode,
+                                 "trailing" where !self._isRightToLeftLayout:
+                                return try self.nextVisible.map {
+                                    try self.cgFloatValue(forSymbol: "parent.width")
+                                        - $0.cgFloatValue(forSymbol: "left")
+                                } ?? 0
+                            default:
+                                return try self.nextVisible?.value(forSymbol: tail) ?? 0
                             }
                         }
                     case "bottom" where !_useLegacyLayoutMode:
@@ -2032,17 +2076,33 @@ public class LayoutNode: NSObject {
                             case "top":
                                 return try self.nextVisible?.maxYValue() ?? 0
                             default:
-                                return try self.nextVisible?.value(forSymbol: "bottom") ?? 0
+                                return try self.nextVisible?.value(forSymbol: tail) ?? 0
                             }
                         }
-                    default:
+                    case "top" where !_useLegacyLayoutMode:
+                        getter = { [unowned self] in
+                            switch self._evaluating.last ?? "" {
+                            case "bottom":
+                                return try self.nextVisible.map {
+                                    try self.cgFloatValue(forSymbol: "parent.height")
+                                        - $0.cgFloatValue(forSymbol: "top")
+                                } ?? 0
+                            default:
+                                return try self.nextVisible?.value(forSymbol: tail) ?? 0
+                            }
+                        }
+                    case "center":
+                        getter = { [unowned self] in
+                            try self.nextVisible?.value(forSymbol: tail) ?? CGPoint.zero
+                        }
+                    case _ where layoutSymbols.contains(tail):
                         getter = { [unowned self] in
                             try self.nextVisible?.value(forSymbol: tail) ?? 0
                         }
-                    }
-                case "next":
-                    getter = { [unowned self] in
-                        try self.next?.value(forSymbol: tail) as Any
+                    default:
+                        getter = { [unowned self] in
+                            try self.next?.value(forSymbol: tail) as Any
+                        }
                     }
                 case "strings":
                     getter = { [unowned self] in
@@ -2050,56 +2110,93 @@ public class LayoutNode: NSObject {
                     }
                 case let head where head.hasPrefix("#"):
                     let id = String(head.dropFirst())
-                    if let node = self.node(withID: id) {
+                    weak var node = self.node(withID: id)
+                    if node != nil {
                         switch tail {
                         case "trailing" where _isRightToLeftLayout:
-                            getter = { [unowned self] in
+                            getter = { [unowned self, weak node] in
                                 switch self._evaluating.last ?? "" {
                                 case "left",
                                      "right" where self._useLegacyLayoutMode:
-                                    return try node.value(forSymbol: "left")
+                                    return try node?.value(forSymbol: "left") ?? 0
                                 case "leading":
-                                    return try self.cgFloatValue(forSymbol: "parent.width")
-                                        - node.cgFloatValue(forSymbol: "left")
+                                    return try node.map {
+                                        try self.cgFloatValue(forSymbol: "parent.width")
+                                            - $0.cgFloatValue(forSymbol: "left")
+                                    } ?? 0
                                 default:
-                                    return try node.value(forSymbol: "trailing")
+                                    return try node?.value(forSymbol: tail) ?? 0
                                 }
                             }
                         case "trailing" where !_isRightToLeftLayout,
                              "right" where !_useLegacyLayoutMode:
-                            getter = { [unowned self] in
+                            getter = { [unowned self, weak node] in
                                 switch self._evaluating.last ?? "" {
                                 case "left",
                                      "right" where self._useLegacyLayoutMode,
                                      "leading" where !self._isRightToLeftLayout:
-                                    return try node.maxXValue()
+                                    return try node?.maxXValue() ?? 0
                                 default:
-                                    return try node.value(forSymbol: "trailing")
+                                    return try node?.value(forSymbol: tail) ?? 0
                                 }
                             }
                         case "leading" where _isRightToLeftLayout:
-                            getter = { [unowned self] in
+                            getter = { [unowned self, weak node] in
                                 switch self._evaluating.last ?? "" {
                                 case "left",
                                      "right" where self._useLegacyLayoutMode,
                                      "trailing":
-                                    return try node.maxXValue()
+                                    return try node?.maxXValue() ?? 0
                                 default:
-                                    return try node.value(forSymbol: "leading")
+                                    return try node?.value(forSymbol: tail) ?? 0
+                                }
+                            }
+                        case "leading" where !_isRightToLeftLayout,
+                             "left" where !_useLegacyLayoutMode:
+                            getter = { [unowned self, weak node] in
+                                switch self._evaluating.last ?? "" {
+                                case "right" where !self._useLegacyLayoutMode,
+                                     "trailing" where !self._isRightToLeftLayout:
+                                    return try self.nextVisible.map {
+                                        try self.cgFloatValue(forSymbol: "parent.width")
+                                            - $0.cgFloatValue(forSymbol: "left")
+                                    } ?? 0
+                                default:
+                                    return try node?.value(forSymbol: tail) ?? 0
                                 }
                             }
                         case "bottom" where !_useLegacyLayoutMode:
-                            getter = { [unowned self] in
+                            getter = { [unowned self, weak node] in
                                 switch self._evaluating.last ?? "" {
                                 case "top":
-                                    return try node.maxYValue()
+                                    return try node?.maxYValue() ?? 0
                                 default:
-                                    return try node.value(forSymbol: "bottom")
+                                    return try node?.value(forSymbol: tail) ?? 0
                                 }
                             }
+                        case "top" where !_useLegacyLayoutMode:
+                            getter = { [unowned self, weak node] in
+                                switch self._evaluating.last ?? "" {
+                                case "bottom":
+                                    return try node.map {
+                                        try self.cgFloatValue(forSymbol: "parent.height")
+                                            - $0.cgFloatValue(forSymbol: "top")
+                                        } ?? 0
+                                default:
+                                    return try node?.value(forSymbol: tail) ?? 0
+                                }
+                            }
+                        case "center":
+                            getter = { [weak node] in
+                                try node?.value(forSymbol: tail) ?? CGPoint.zero
+                            }
+                        case _ where layoutSymbols.contains(tail):
+                            getter = { [weak node] in
+                                try node?.value(forSymbol: tail) ?? 0
+                            }
                         default:
-                            getter = {
-                                try node.value(forSymbol: tail)
+                            getter = { [weak node] in
+                                try node?.value(forSymbol: tail) as Any
                             }
                         }
                     } else {
