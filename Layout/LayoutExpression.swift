@@ -263,7 +263,7 @@ struct LayoutExpression {
             type: .cgFloat,
             impureSymbols: { symbol in
                 if case .postfix("%") = symbol {
-                    return { anyArgs in
+                    return { [unowned node] anyArgs in
                         guard let value = anyArgs[0] as? Double else {
                             throw Expression.Error.message("Type mismatch")
                         }
@@ -298,7 +298,9 @@ struct LayoutExpression {
             for: "parent.containerSize.\(prop)", in: node,
             impureSymbols: { symbol in
                 if case .variable("auto") = symbol {
-                    return { _ in try node.doubleValue(forSymbol: sizeProp) }
+                    return { [unowned node] _ in
+                        try node.doubleValue(forSymbol: sizeProp)
+                    }
                 }
                 return nil
             }
@@ -327,7 +329,9 @@ struct LayoutExpression {
             for: "containerSize.\(prop)", in: node,
             impureSymbols: { symbol in
                 if case .variable("auto") = symbol {
-                    return { _ in try node.doubleValue(forSymbol: sizeProp) }
+                    return { [unowned node] _ in
+                        try node.doubleValue(forSymbol: sizeProp)
+                    }
                 }
                 return nil
             }
@@ -668,7 +672,7 @@ struct LayoutExpression {
         var previousHTMLString = ""
         var previousAttributedString = NSAttributedString()
         self.init(
-            evaluate: {
+            evaluate: { [unowned node] in
                 var parts = [Any]() // String or NSAttributedString
                 var htmlString = ""
                 func appendPart(_ part: Any) {

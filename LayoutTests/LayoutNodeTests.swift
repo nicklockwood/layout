@@ -583,6 +583,24 @@ class LayoutNodeTests: XCTestCase {
         XCTAssertNil(node)
     }
 
+    func testLayoutTreeDoesNotContainCycles() throws {
+        weak var root: LayoutNode?
+        weak var child: LayoutNode?
+        try autoreleasepool {
+            let vc = UIViewController()
+            let _node = LayoutNode(view: UIView.self, children: [
+                LayoutNode(view: UILabel.self, expressions: [
+                    "attributedText": "Hello World"
+                ])
+            ])
+            root = _node
+            child = _node.children.first
+            try _node.mount(in: vc)
+        }
+        XCTAssertNil(root)
+        XCTAssertNil(child)
+    }
+
     func testLayoutWhereChildReferencesParentIsReleased() {
         let child = LayoutNode(id: "bar", expressions: [
             "backgroundColor": "parent.backgroundColor",
