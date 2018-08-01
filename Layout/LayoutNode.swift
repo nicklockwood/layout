@@ -2051,8 +2051,56 @@ public class LayoutNode: NSObject {
                 case let head where head.hasPrefix("#"):
                     let id = String(head.dropFirst())
                     if let node = self.node(withID: id) {
-                        getter = { [unowned node] in
-                            try node.value(forSymbol: tail) as Any
+                        switch tail {
+                        case "trailing" where _isRightToLeftLayout:
+                            getter = { [unowned self] in
+                                switch self._evaluating.last ?? "" {
+                                case "left",
+                                     "right" where self._useLegacyLayoutMode:
+                                    return try node.value(forSymbol: "left")
+                                case "leading":
+                                    return try self.cgFloatValue(forSymbol: "parent.width")
+                                        - node.cgFloatValue(forSymbol: "left")
+                                default:
+                                    return try node.value(forSymbol: "trailing")
+                                }
+                            }
+                        case "trailing" where !_isRightToLeftLayout,
+                             "right" where !_useLegacyLayoutMode:
+                            getter = { [unowned self] in
+                                switch self._evaluating.last ?? "" {
+                                case "left",
+                                     "right" where self._useLegacyLayoutMode,
+                                     "leading" where !self._isRightToLeftLayout:
+                                    return try node.maxXValue()
+                                default:
+                                    return try node.value(forSymbol: "trailing")
+                                }
+                            }
+                        case "leading" where _isRightToLeftLayout:
+                            getter = { [unowned self] in
+                                switch self._evaluating.last ?? "" {
+                                case "left",
+                                     "right" where self._useLegacyLayoutMode,
+                                     "trailing":
+                                    return try node.maxXValue()
+                                default:
+                                    return try node.value(forSymbol: "leading")
+                                }
+                            }
+                        case "bottom" where !_useLegacyLayoutMode:
+                            getter = { [unowned self] in
+                                switch self._evaluating.last ?? "" {
+                                case "top":
+                                    return try node.maxYValue()
+                                default:
+                                    return try node.value(forSymbol: "bottom")
+                                }
+                            }
+                        default:
+                            getter = {
+                                try node.value(forSymbol: tail)
+                            }
                         }
                     } else {
                         getter = {

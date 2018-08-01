@@ -35,8 +35,8 @@
         <!-- Second column -->
         <UIView
             backgroundColor="colors.blue"
-            height="width / 2"
-            left="width + 15"
+            height="width / (isToggled ? 1 : 2)"
+            left="#first.right + 15"
             width="#first.width"
         />
         <UIView
