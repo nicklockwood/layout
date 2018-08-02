@@ -711,7 +711,7 @@ public class LayoutNode: NSObject {
     }
 
     /// The root node of this layout tree (unretained)
-    private var _root: LayoutNode?
+    private weak var _root: LayoutNode?
     public var root: LayoutNode {
         if _root == nil {
             _root = parent?.root ?? self
