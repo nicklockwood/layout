@@ -1,5 +1,9 @@
 # Change Log
 
+## [0.6.30](https://github.com/schibsted/layout/releases/tag/0.6.30) (2018-08-02)
+
+- Fixed a retain cycle that caused LayoutNodes to leak after a bounds change or scroll event
+
 ## [0.6.29](https://github.com/schibsted/layout/releases/tag/0.6.29) (2018-08-01)
 
 - Fixed retain cycles in LayoutExpression and LayoutNode that caused nodes and views to be leaked
