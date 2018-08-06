@@ -104,8 +104,9 @@ func enumerateFiles(withInputURL inputURL: URL,
                    outputURL: URL?,
                    options: FileOptions,
                    block: @escaping (URL, URL) throws -> () throws -> Void) {
+        let inputURL = inputURL.standardizedFileURL
         for excludedURL in excludedURLs {
-            if inputURL.absoluteString.hasPrefix(excludedURL.absoluteString) {
+            if inputURL.absoluteString.hasPrefix(excludedURL.standardizedFileURL.absoluteString) {
                 return
             }
         }

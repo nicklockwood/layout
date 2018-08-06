@@ -255,8 +255,8 @@ class LayoutLoader {
     ) {
         _dataTask?.cancel()
         _dataTask = nil
-        _originalURL = xmlURL
-        _xmlURL = xmlURL
+        _originalURL = xmlURL.standardizedFileURL
+        _xmlURL = _originalURL
         _strings = nil
 
         func processLayoutData(_ data: Data) throws {
@@ -272,6 +272,7 @@ class LayoutLoader {
 
         // If it's a bundle resource url, replace with equivalent source url
         if xmlURL.isFileURL {
+            let xmlURL = xmlURL.standardizedFileURL
             let bundlePath = Bundle.main.bundleURL.absoluteString
             if xmlURL.absoluteString.hasPrefix(bundlePath) {
                 if _projectDirectory == nil, let relativeTo = relativeTo,
@@ -430,11 +431,11 @@ class LayoutLoader {
     }
 
     private func _findProjectDirectory(at path: String) -> URL? {
-        if let projectDirectory = _projectDirectory, path.hasPrefix(projectDirectory.path) {
+        var url = URL(fileURLWithPath: path).standardizedFileURL
+        if let projectDirectory = _projectDirectory,
+            url.absoluteString.hasPrefix(projectDirectory.absoluteString) {
             return projectDirectory
         }
-
-        var url = URL(fileURLWithPath: path).standardizedFileURL
         if !url.hasDirectoryPath {
             url.deleteLastPathComponent()
         }
@@ -458,7 +459,10 @@ class LayoutLoader {
         usingCache: Bool
     ) throws -> URL? {
         if let filePath = sourcePaths[path], FileManager.default.fileExists(atPath: filePath) {
-            return URL(fileURLWithPath: filePath)
+            let url = URL(fileURLWithPath: filePath).standardizedFileURL
+            if url.absoluteString.hasPrefix(directory.absoluteString) {
+                return url
+            }
         }
         guard let files = try? FileManager.default.contentsOfDirectory(atPath: directory.path) else {
             return nil
