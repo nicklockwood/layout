@@ -112,6 +112,8 @@ extension NSObject {
                     addProperty(name, type)
                 }
             }
+
+            free(properties)
         }
         // Gather setter methods
         var numberOfMethods: CUnsignedInt = 0
@@ -151,6 +153,7 @@ extension NSObject {
                 addProperty(name, type)
             }
             ctype.deallocate()
+            free(methods)
         }
         // Accessibility properties (TODO: find a way to automate this)
         if conforms(to: UIAccessibilityIdentification.self) ||
