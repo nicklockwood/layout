@@ -2385,7 +2385,7 @@ public class LayoutNode: NSObject {
             if !child.widthDependsOnParent {
                 var left: CGFloat = 0
                 if !child.value(forSymbol: "left", dependsOn: "parent.width"),
-                    !child.value(forSymbol: "top", dependsOn: "parent.containerSize.width") {
+                    !child.value(forSymbol: "left", dependsOn: "parent.containerSize.width") {
                     left = try child.cgFloatValue(forSymbol: "left")
                 }
                 size.width = try max(size.width, left + child.cgFloatValue(forSymbol: "width"))
