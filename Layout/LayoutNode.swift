@@ -1481,7 +1481,6 @@ public class LayoutNode: NSObject {
     }
 
     private func expressionIsConstant(_ name: String) -> Bool {
-        assert(hasExpression(name))
         attempt { try setUpExpression(for: name) }
         if let expression = _layoutExpressions[name] ??
             _viewControllerExpressions[name] ?? _viewExpressions[name] {
