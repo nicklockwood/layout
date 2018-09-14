@@ -172,6 +172,12 @@ struct UIntOptionSet: OptionSet {
 
 #endif
 
+#if !swift(>=4.1.5)
+
+    typealias UIScrollViewDecelerationRate = CGFloat
+
+#endif
+
 #if !swift(>=4.2)
 
     extension UIContentSizeCategory {
@@ -315,13 +321,28 @@ struct UIntOptionSet: OptionSet {
     }
 
     extension UIScrollView {
+        typealias DecelerationRate = UIScrollViewDecelerationRate
         typealias IndicatorStyle = UIScrollViewIndicatorStyle
         typealias IndexDisplayMode = UIScrollViewIndexDisplayMode
         typealias KeyboardDismissMode = UIScrollViewKeyboardDismissMode
     }
 
+    extension UIScrollViewDecelerationRate {
+        static let fast = UIScrollViewDecelerationRateFast
+        static let normal = UIScrollViewDecelerationRateNormal
+    }
+
     extension UICollectionView {
         typealias ScrollDirection = UICollectionViewScrollDirection
+    }
+
+    extension UICollectionViewFlowLayout {
+        static var automaticSize: CGSize {
+            if #available(iOS 10, *) {
+                return UICollectionViewFlowLayoutAutomaticSize
+            }
+            preconditionFailure("UICollectionViewFlowLayoutAutomaticSize is not available")
+        }
     }
 
     extension UIStackView {

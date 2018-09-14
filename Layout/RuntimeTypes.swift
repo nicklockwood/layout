@@ -790,20 +790,10 @@ public extension RuntimeType {
         ] as [String: Int])
     }()
 
-    @objc static let uiScrollView_DecelerationRate: RuntimeType = {
-        #if swift(>=4.2)
-            return RuntimeType([
-                "normal": .normal,
-                "fast": .fast,
-            ] as [String: UIScrollView.DecelerationRate])
-        #else
-            return RuntimeType([
-                "normal": UIScrollViewDecelerationRateNormal,
-                "fast": UIScrollViewDecelerationRateFast,
-            ] as [String: CGFloat])
-        #endif
-    }()
-
+    @objc static let uiScrollView_DecelerationRate = RuntimeType([
+        "normal": .normal,
+        "fast": .fast,
+    ] as [String: UIScrollView.DecelerationRate])
     @objc static let uiScrollView_IndicatorStyle = RuntimeType([
         "default": .default,
         "black": .black,

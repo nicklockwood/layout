@@ -20,11 +20,7 @@ extension UICollectionViewLayout {
             flowLayout.estimatedItemSize = flowLayout.itemSize
         }
         if #available(iOS 10.0, *) {
-            #if swift(>=4.2)
-                flowLayout.itemSize = UICollectionViewFlowLayout.automaticSize
-            #else
-                flowLayout.itemSize = UICollectionViewFlowLayoutAutomaticSize
-            #endif
+            flowLayout.itemSize = UICollectionViewFlowLayout.automaticSize
         } else {
             flowLayout.itemSize = CGSize(width: UIView.noIntrinsicMetric, height: UIView.noIntrinsicMetric)
         }
