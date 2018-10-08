@@ -61,6 +61,13 @@ func urlFromString(_ path: String, relativeTo baseURL: URL? = nil) -> URL {
     }
 }
 
+// Internal API for overriding built-in methods
+func replace(_ sela: Selector, of classa: AnyClass, with selb: Selector, of classb: AnyClass? = nil) {
+    let swizzledMethod = class_getInstanceMethod(classb ?? classa, selb)!
+    let originalMethod = class_getInstanceMethod(classa, sela)!
+    method_exchangeImplementations(originalMethod, swizzledMethod)
+}
+
 // MARK: Approximate equality
 
 private let precision: CGFloat = 0.001

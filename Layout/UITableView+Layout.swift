@@ -2,10 +2,42 @@
 
 import UIKit
 
+private class LayoutTableView: UITableView {
+    open override var intrinsicContentSize: CGSize {
+        guard layoutNode != nil else {
+            return super.intrinsicContentSize
+        }
+        return CGSize(
+            width: contentSize.width + contentInset.left + contentInset.right,
+            height: contentSize.height + contentInset.top + contentInset.bottom
+        )
+    }
+
+    open override var contentSize: CGSize {
+        didSet {
+            if oldValue != contentSize, let layoutNode = layoutNode {
+                layoutNode.contentSizeChanged()
+            }
+        }
+    }
+}
+
 extension UITableView: LayoutBacked {
     open override class func create(with node: LayoutNode) throws -> UITableView {
         let style = try node.value(forExpression: "style") as? UITableView.Style ?? .plain
-        let tableView = self.init(frame: .zero, style: style)
+        let tableView: UITableView = {
+            if self == UITableView.self {
+                return LayoutTableView(frame: .zero, style: style)
+            } else {
+                if !isSubclass(of: LayoutTableView.self) {
+                    var sel = #selector(getter: intrinsicContentSize)
+                    replace(sel, of: self, with: sel, of: LayoutTableView.self)
+                    sel = #selector(getter: contentSize)
+                    replace(sel, of: self, with: sel, of: LayoutTableView.self)
+                }
+                return self.init(frame: .zero, style: style)
+            }
+        }()
         tableView.enableAutoSizing()
         return tableView
     }
@@ -126,24 +158,6 @@ extension UITableView: LayoutBacked {
             tableHeaderView = nil
         } else if view == tableFooterView {
             tableFooterView = nil
-        }
-    }
-
-    open override var intrinsicContentSize: CGSize {
-        guard layoutNode != nil else {
-            return super.intrinsicContentSize
-        }
-        return CGSize(
-            width: contentSize.width + contentInset.left + contentInset.right,
-            height: contentSize.height + contentInset.top + contentInset.bottom
-        )
-    }
-
-    open override var contentSize: CGSize {
-        didSet {
-            if oldValue != contentSize, let layoutNode = layoutNode {
-                layoutNode.contentSizeChanged()
-            }
         }
     }
 
@@ -418,11 +432,31 @@ extension UITableView {
     }
 }
 
+private class LayoutTableViewHeaderFooterView: UITableViewHeaderFooterView {
+    // TODO: it looks like UITableView doesn't use this for auto-sizing sections header/footer - remove it?
+    open override func sizeThatFits(_ size: CGSize) -> CGSize {
+        if let layoutNode = layoutNode {
+            let height = (try? layoutNode.doubleValue(forSymbol: "height")) ?? 0
+            return CGSize(width: size.width, height: CGFloat(height))
+        }
+        return super.sizeThatFits(size)
+    }
+}
+
 extension UITableViewHeaderFooterView: LayoutBacked {
     open override class func create(with node: LayoutNode) throws -> UITableViewHeaderFooterView {
         let reuseIdentifier = try node.value(forExpression: "reuseIdentifier") as? String
-        let view = self.init() // Workaround for `self.init(reuseIdentifier:)` causing build failure
-        view.setValue(reuseIdentifier, forKey: "reuseIdentifier")
+        let view: UITableViewHeaderFooterView = {
+            if self == UITableViewHeaderFooterView.self {
+                return LayoutTableViewHeaderFooterView(reuseIdentifier: reuseIdentifier)
+            } else {
+                if !isSubclass(of: LayoutTableViewHeaderFooterView.self) {
+                    let sel = #selector(sizeThatFits(_:))
+                    replace(sel, of: self, with: sel, of: LayoutTableViewHeaderFooterView.self)
+                }
+                return self.init(reuseIdentifier: reuseIdentifier)
+            }
+        }()
         if node.expressions.keys.contains(where: { $0.hasPrefix("backgroundView.") }),
             !node.expressions.keys.contains("backgroundView") {
             // Add a background view if required
@@ -489,8 +523,9 @@ extension UITableViewHeaderFooterView: LayoutBacked {
             height: textLabel?.intrinsicContentSize.height ?? UIView.noIntrinsicMetric
         )
     }
+}
 
-    // TODO: it looks like UITableView doesn't use this for auto-sizing sections header/footer - remove it?
+private class LayoutTableViewCell: UITableViewCell {
     open override func sizeThatFits(_ size: CGSize) -> CGSize {
         if let layoutNode = layoutNode {
             let height = (try? layoutNode.doubleValue(forSymbol: "height")) ?? 0
@@ -504,7 +539,17 @@ extension UITableViewCell: LayoutBacked {
     open override class func create(with node: LayoutNode) throws -> UITableViewCell {
         let style = try node.value(forExpression: "style") as? UITableViewCell.CellStyle ?? .default
         let reuseIdentifier = try node.value(forExpression: "reuseIdentifier") as? String
-        let cell = self.init(style: style, reuseIdentifier: reuseIdentifier)
+        let cell: UITableViewCell = {
+            if self == UITableViewCell.self {
+                return LayoutTableViewCell(style: style, reuseIdentifier: reuseIdentifier)
+            } else {
+                if !isSubclass(of: LayoutTableViewCell.self) {
+                    let sel = #selector(sizeThatFits(_:))
+                    replace(sel, of: self, with: sel, of: LayoutTableViewCell.self)
+                }
+                return self.init(style: style, reuseIdentifier: reuseIdentifier)
+            }
+        }()
         if node.expressions.keys.contains(where: { $0.hasPrefix("backgroundView.") }),
             !node.expressions.keys.contains("backgroundView") {
             // Add a backgroundView view if required
@@ -600,13 +645,5 @@ extension UITableViewCell: LayoutBacked {
     open override func didInsertChildNode(_ node: LayoutNode, at index: Int) {
         // Insert child views into `contentView` instead of directly
         contentView.didInsertChildNode(node, at: index)
-    }
-
-    open override func sizeThatFits(_ size: CGSize) -> CGSize {
-        if let layoutNode = layoutNode {
-            let height = (try? layoutNode.doubleValue(forSymbol: "height")) ?? 0
-            return CGSize(width: size.width, height: CGFloat(height))
-        }
-        return super.sizeThatFits(size)
     }
 }
