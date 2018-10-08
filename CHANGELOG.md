@@ -1,5 +1,11 @@
 # Change Log
 
+## [0.6.31](https://github.com/schibsted/layout/releases/tag/0.6.31) (2018-10-08)
+
+- Fixed a bug that caused table cells in projects using Layout to collapse on iOS 12
+- Fixed a spurious assertion when using an undefined parameter
+- Fixed accidental sharing of reload cache between projects with same name
+
 ## [0.6.30](https://github.com/schibsted/layout/releases/tag/0.6.30) (2018-08-02)
 
 - Fixed a retain cycle that caused LayoutNodes to leak after a bounds change or scroll event
