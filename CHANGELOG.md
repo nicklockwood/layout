@@ -1,5 +1,9 @@
 # Change Log
 
+## [0.6.32](https://github.com/schibsted/layout/releases/tag/0.6.32) (2018-10-10)
+
+- Fixed table cell sizing bug caused by the previous fix
+
 ## [0.6.31](https://github.com/schibsted/layout/releases/tag/0.6.31) (2018-10-08)
 
 - Fixed a bug that caused table cells in projects using Layout to collapse on iOS 12
