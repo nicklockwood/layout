@@ -3024,11 +3024,7 @@ private var viewSwizzled = false
 extension UIView {
     fileprivate static func _swizzle() {
         guard !viewSwizzled else { return }
-        let originalSelector = #selector(layoutSubviews)
-        let swizzledSelector = #selector(layout_layoutSubviews)
-        let originalMethod = class_getInstanceMethod(self, originalSelector)!
-        let swizzledMethod = class_getInstanceMethod(self, swizzledSelector)!
-        method_exchangeImplementations(originalMethod, swizzledMethod)
+        replace(#selector(layoutSubviews), of: self, with: #selector(layout_layoutSubviews))
         viewSwizzled = true
     }
 

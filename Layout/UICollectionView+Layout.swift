@@ -48,6 +48,27 @@ private class LayoutCollectionView: UICollectionView {
     }
 }
 
+private var swizzled = NSMutableSet()
+
+private extension UICollectionView {
+    @objc var layout_intrinsicContentSize: CGSize {
+        guard layoutNode != nil else {
+            return self.layout_intrinsicContentSize
+        }
+        return CGSize(
+            width: contentSize.width + contentInset.left + contentInset.right,
+            height: contentSize.height + contentInset.top + contentInset.bottom
+        )
+    }
+
+    @objc func layout_setContentSize(_ size: CGSize) {
+        layout_setContentSize(size)
+        if size != contentSize, let layoutNode = layoutNode {
+            layoutNode.contentSizeChanged()
+        }
+    }
+}
+
 extension UICollectionView: LayoutBacked {
     open override class func create(with node: LayoutNode) throws -> UICollectionView {
         // UICollectionView cannot be created with a nil collectionViewLayout
@@ -59,11 +80,12 @@ extension UICollectionView: LayoutBacked {
             if self == UICollectionView.self {
                 return LayoutCollectionView(frame: .zero, collectionViewLayout: layout)
             } else {
-                if !isSubclass(of: LayoutCollectionView.self) {
-                    var sel = #selector(getter: intrinsicContentSize)
-                    replace(sel, of: self, with: sel, of: LayoutCollectionView.self)
-                    sel = #selector(getter: contentSize)
-                    replace(sel, of: self, with: sel, of: LayoutCollectionView.self)
+                if !isSubclass(of: LayoutCollectionView.self), !swizzled.contains(self) {
+                    replace(#selector(getter: intrinsicContentSize), of: self,
+                            with: #selector(getter: layout_intrinsicContentSize))
+                    replace(#selector(setter: contentSize), of: self,
+                            with: #selector(layout_setContentSize(_:)))
+                    swizzled.add(self)
                 }
                 return self.init(frame: .zero, collectionViewLayout: layout)
             }
@@ -270,11 +292,13 @@ extension UICollectionView {
             }
             if cellClass == UICollectionViewCell.self {
                 cellClass = LayoutCollectionViewCell.self
-            } else if !cellClass.isSubclass(of: LayoutCollectionViewCell.self) {
-                var sel = #selector(getter: intrinsicContentSize)
-                replace(sel, of: cellClass, with: sel, of: LayoutCollectionViewCell.self)
-                sel = #selector(sizeThatFits(_:))
-                replace(sel, of: cellClass, with: sel, of: LayoutCollectionViewCell.self)
+            } else if !cellClass.isSubclass(of: LayoutCollectionViewCell.self),
+                !swizzled.contains(cellClass) {
+                replace(#selector(getter: intrinsicContentSize), of: cellClass,
+                        with: #selector(getter: layout_intrinsicContentSize))
+                replace(#selector(sizeThatFits(_:)), of: cellClass,
+                        with: #selector(UICollectionViewCell.layout_sizeThatFits(_:)))
+                swizzled.add(cellClass)
             }
             register(cellClass, forCellWithReuseIdentifier: identifier)
             registerLayoutData(.success(layout, state, merge(constants)), forCellReuseIdentifier: identifier)
@@ -363,6 +387,23 @@ private class LayoutCollectionViewCell: UICollectionViewCell {
             return CGSize(width: size.width, height: CGFloat(height))
         }
         return super.sizeThatFits(size)
+    }
+}
+
+private extension UICollectionViewCell {
+    @objc var layout_intrinsicContentSize: CGSize {
+        guard let layoutNode = layoutNode, layoutNode.children.isEmpty else {
+            return self.layout_intrinsicContentSize
+        }
+        return CGSize(width: UIView.noIntrinsicMetric, height: 44)
+    }
+
+    @objc func layout_sizeThatFits(_ size: CGSize) -> CGSize {
+        if let layoutNode = layoutNode {
+            let height = (try? layoutNode.doubleValue(forSymbol: "height")) ?? 0
+            return CGSize(width: size.width, height: CGFloat(height))
+        }
+        return self.layout_sizeThatFits(size)
     }
 }
 

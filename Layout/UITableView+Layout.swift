@@ -22,6 +22,27 @@ private class LayoutTableView: UITableView {
     }
 }
 
+private var swizzled = NSMutableSet()
+
+private extension UITableView {
+    @objc var layout_intrinsicContentSize: CGSize {
+        guard layoutNode != nil else {
+            return self.layout_intrinsicContentSize
+        }
+        return CGSize(
+            width: contentSize.width + contentInset.left + contentInset.right,
+            height: contentSize.height + contentInset.top + contentInset.bottom
+        )
+    }
+
+    @objc func layout_setContentSize(_ size: CGSize) {
+        layout_setContentSize(size)
+        if size != contentSize, let layoutNode = layoutNode {
+            layoutNode.contentSizeChanged()
+        }
+    }
+}
+
 extension UITableView: LayoutBacked {
     open override class func create(with node: LayoutNode) throws -> UITableView {
         let style = try node.value(forExpression: "style") as? UITableView.Style ?? .plain
@@ -29,11 +50,12 @@ extension UITableView: LayoutBacked {
             if self == UITableView.self {
                 return LayoutTableView(frame: .zero, style: style)
             } else {
-                if !isSubclass(of: LayoutTableView.self) {
-                    var sel = #selector(getter: intrinsicContentSize)
-                    replace(sel, of: self, with: sel, of: LayoutTableView.self)
-                    sel = #selector(getter: contentSize)
-                    replace(sel, of: self, with: sel, of: LayoutTableView.self)
+                if !isSubclass(of: LayoutTableView.self), !swizzled.contains(self) {
+                    replace(#selector(getter: intrinsicContentSize), of: self,
+                            with: #selector(getter: layout_intrinsicContentSize))
+                    replace(#selector(setter: contentSize), of: self,
+                            with: #selector(layout_setContentSize(_:)))
+                    swizzled.add(self)
                 }
                 return self.init(frame: .zero, style: style)
             }
@@ -443,6 +465,16 @@ private class LayoutTableViewHeaderFooterView: UITableViewHeaderFooterView {
     }
 }
 
+private extension UITableViewHeaderFooterView {
+    @objc func layout_sizeThatFits(_ size: CGSize) -> CGSize {
+        if let layoutNode = layoutNode {
+            let height = (try? layoutNode.doubleValue(forSymbol: "height")) ?? 0
+            return CGSize(width: size.width, height: CGFloat(height))
+        }
+        return self.layout_sizeThatFits(size)
+    }
+}
+
 extension UITableViewHeaderFooterView: LayoutBacked {
     open override class func create(with node: LayoutNode) throws -> UITableViewHeaderFooterView {
         let reuseIdentifier = try node.value(forExpression: "reuseIdentifier") as? String
@@ -450,9 +482,10 @@ extension UITableViewHeaderFooterView: LayoutBacked {
             if self == UITableViewHeaderFooterView.self {
                 return LayoutTableViewHeaderFooterView(reuseIdentifier: reuseIdentifier)
             } else {
-                if !isSubclass(of: LayoutTableViewHeaderFooterView.self) {
-                    let sel = #selector(sizeThatFits(_:))
-                    replace(sel, of: self, with: sel, of: LayoutTableViewHeaderFooterView.self)
+                if !isSubclass(of: LayoutTableViewHeaderFooterView.self), !swizzled.contains(self) {
+                    replace(#selector(sizeThatFits(_:)), of: self,
+                            with: #selector(layout_sizeThatFits(_:)))
+                    swizzled.add(self)
                 }
                 return self.init(reuseIdentifier: reuseIdentifier)
             }
@@ -535,6 +568,16 @@ private class LayoutTableViewCell: UITableViewCell {
     }
 }
 
+private extension UITableViewCell {
+    @objc func layout_sizeThatFits(_ size: CGSize) -> CGSize {
+        if let layoutNode = layoutNode {
+            let height = (try? layoutNode.doubleValue(forSymbol: "height")) ?? 0
+            return CGSize(width: size.width, height: CGFloat(height))
+        }
+        return self.layout_sizeThatFits(size)
+    }
+}
+
 extension UITableViewCell: LayoutBacked {
     open override class func create(with node: LayoutNode) throws -> UITableViewCell {
         let style = try node.value(forExpression: "style") as? UITableViewCell.CellStyle ?? .default
@@ -543,9 +586,10 @@ extension UITableViewCell: LayoutBacked {
             if self == UITableViewCell.self {
                 return LayoutTableViewCell(style: style, reuseIdentifier: reuseIdentifier)
             } else {
-                if !isSubclass(of: LayoutTableViewCell.self) {
-                    let sel = #selector(sizeThatFits(_:))
-                    replace(sel, of: self, with: sel, of: LayoutTableViewCell.self)
+                if !isSubclass(of: LayoutTableViewCell.self), !swizzled.contains(self) {
+                    replace(#selector(sizeThatFits(_:)), of: self,
+                            with: #selector(layout_sizeThatFits(_:)))
+                    swizzled.add(self)
                 }
                 return self.init(style: style, reuseIdentifier: reuseIdentifier)
             }

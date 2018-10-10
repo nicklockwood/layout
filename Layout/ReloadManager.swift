@@ -34,11 +34,8 @@ class ReloadManager {
                 // Swizzle UIResponder.keyCommands so we can handle Cmd-R correctly
                 // regardless of which view or controller currently has focus
                 // (Don't worry, this code is only included in simulator builds)
-                let originalSelector = #selector(getter: UIResponder.keyCommands)
-                let swizzledSelector = #selector(UIResponder.layout_keyCommands)
-                let originalMethod = class_getInstanceMethod(UIResponder.self, originalSelector)!
-                let swizzledMethod = class_getInstanceMethod(UIResponder.self, swizzledSelector)!
-                method_exchangeImplementations(originalMethod, swizzledMethod)
+                replace(#selector(getter: UIResponder.keyCommands), of: UIResponder.self,
+                        with: #selector(UIResponder.layout_keyCommands))
                 UIResponder.handlerInstalled = true
             }
 
