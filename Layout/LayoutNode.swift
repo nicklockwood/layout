@@ -2531,6 +2531,26 @@ public class LayoutNode: NSObject {
         return nil
     }
 
+    private func computeMaxWidth() throws -> CGFloat? {
+        if let explicitWidth = try computeExplicitWidth() {
+            return explicitWidth
+        }
+        // TODO: less hacky solution
+        if value(forSymbol: "width", dependsOn: "inferredSize.width") {
+            for symbol in _evaluating {
+                if value(forSymbol: "width", dependsOn: symbol) {
+                    return nil
+                }
+            }
+            let prevEvaluating = _evaluating
+            _evaluating = ["__maxSize"]
+            let width = try value(forSymbol: "width") as! CGFloat
+            _evaluating = prevEvaluating
+            return width
+        }
+        return nil
+    }
+
     private func computeExplicitHeight() throws -> CGFloat? {
         if !_evaluating.contains("height"),
             !_evaluating.contains("width") || !value(forSymbol: "height", dependsOn: "width") {
@@ -2593,8 +2613,11 @@ public class LayoutNode: NSObject {
         }
         // Try intrinsic size
         var size = intrinsicSize
+        if _evaluating.contains("__maxSize") {
+            return size
+        }
         if size.width != UIView.noIntrinsicMetric || size.height != UIView.noIntrinsicMetric {
-            let explicitWidth = try computeExplicitWidth()
+            let explicitWidth = try computeMaxWidth()
             if let explicitWidth = explicitWidth {
                 size.width = explicitWidth
             }
