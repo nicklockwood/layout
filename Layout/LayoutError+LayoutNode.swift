@@ -135,7 +135,7 @@ func bestMatches(for symbol: String, in suggestions: Set<String>) -> [String] {
                 lowercaseString.hasPrefix("\(lowercasedSymbol).") else {
                 return nil
             }
-            return (string, levenshtein(string.lowercased(), lowercasedSymbol))
+            return (string, levenshtein(lowercaseString, lowercasedSymbol))
         }
         // Sort by Levenshtein distance
         .sorted { $0.1 < $1.1 }
