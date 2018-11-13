@@ -1,4 +1,4 @@
-//  Copyright Â© 2017 Schibsted. All rights reserved.
+//  Copyright © 2017 Schibsted. All rights reserved.
 
 import UIKit
 
@@ -65,6 +65,25 @@ public extension LayoutLoading {
                 self.layoutError(error)
             }
             completion?(error)
+        }
+    }
+
+    /// Load xml data
+    func loadLayout(
+        withData data: Data,
+        state: Any = (),
+        constants: [String: Any]...,
+        completion: ((LayoutError?) -> Void)? = nil
+        ) {
+        ReloadManager.addObserver(self)
+        do {
+            let layout = try loader.loadLayoutNode(fromData: data, state: state, constants: merge(constants))
+            self.layoutNode = layout
+        }
+        catch {
+            let layErr = LayoutError(error)
+            self.layoutError(layErr)
+            completion?(layErr)
         }
     }
 

@@ -1,4 +1,4 @@
-//  Copyright Â© 2017 Schibsted. All rights reserved.
+//  Copyright © 2017 Schibsted. All rights reserved.
 
 import Foundation
 
@@ -140,6 +140,23 @@ class LayoutLoader {
 
     // MARK: LayoutNode loading
 
+    /// Loads a XML layout from passed-in data
+    public func loadLayoutNode(
+        fromData: Data,
+        state: Any = (),
+        constants: [String: Any] = [:]
+    ) throws -> LayoutNode {
+        _state = state
+        _constants = constants
+
+        let layout = try loadLayout(data: fromData)
+        return try LayoutNode(
+            layout: layout,
+            state: state,
+            constants: constants
+        )
+    }
+
     /// Loads a named XML layout file from the app resources folder
     public func loadLayoutNode(
         named: String,
@@ -219,6 +236,37 @@ class LayoutLoader {
     }
 
     // MARK: Layout loading
+
+    public func loadLayout(
+        data: Data
+    ) throws -> Layout {
+        assert(Thread.isMainThread)
+        _dataTask?.cancel()
+        _dataTask = nil
+        _originalURL = nil
+        _xmlURL = nil
+        _strings = nil
+
+        var _layout: Layout?
+        var _error: Error?
+        do {
+            let layout = try Layout(xmlData: data)
+            layout.processTemplates() {
+                layout, error in
+                _layout = layout
+                _error = error
+            }
+        } catch {
+            throw LayoutError(error, in: "<passed-in Data>")
+        }
+        if let error = _error {
+            throw error
+        }
+        guard let layout = _layout else {
+            throw LayoutError("Unable to load Layout from data. It may depend on a remote template. Try using loadLayout(withContentsOfURL:) instead")
+        }
+        return layout
+    }
 
     public func loadLayout(
         named: String,
