@@ -1,5 +1,10 @@
 # Change Log
 
+## [0.6.33](https://github.com/schibsted/layout/releases/tag/0.6.33) (2018-11-16)
+
+- Fixed a race condition caused when an `@IBOutlet` setter calls `update()` or `setState()` on the `LayoutNode` that set it
+- Added a fix for `width="min(auto, fixedSize)"` expressions
+
 ## [0.6.32](https://github.com/schibsted/layout/releases/tag/0.6.32) (2018-10-10)
 
 - Fixed table cell sizing bug caused by the previous fix
