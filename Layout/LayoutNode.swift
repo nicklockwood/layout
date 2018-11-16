@@ -2928,6 +2928,7 @@ public class LayoutNode: NSObject {
             if viewController != nil {
                 expectedType = "UIViewController, \(expectedType)"
             }
+            _updateLock += 1
             if type.matches(LayoutNode.self) {
                 if type.matches(self) {
                     owner.setValue(self, forKey: outlet)
@@ -2950,6 +2951,7 @@ public class LayoutNode: NSObject {
                     expectedType = "\(_class)"
                 }
             }
+            _updateLock -= 1
             if !didMatch {
                 throw LayoutError("outlet \(outlet) of \(owner.classForCoder) is not a \(expectedType)", for: self)
             }
