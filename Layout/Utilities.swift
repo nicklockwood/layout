@@ -65,7 +65,20 @@ func urlFromString(_ path: String, relativeTo baseURL: URL? = nil) -> URL {
 func replace(_ sela: Selector, of cls: AnyClass, with selb: Selector) {
     let swizzledMethod = class_getInstanceMethod(cls, selb)!
     let originalMethod = class_getInstanceMethod(cls, sela)!
+    let inheritedImplementation = class_getInstanceMethod(class_getSuperclass(cls), sela)
+        .map(method_getImplementation)
+    if method_getImplementation(originalMethod) == inheritedImplementation {
+        let types = method_getTypeEncoding(originalMethod)
+        class_addMethod(cls, sela, method_getImplementation(swizzledMethod), types)
+        return
+    }
     method_exchangeImplementations(originalMethod, swizzledMethod)
+}
+
+func imp(of sela: Selector, of cls: AnyClass, matches selb: Selector) -> Bool {
+    let impa = class_getInstanceMethod(cls, sela).map(method_getImplementation)
+    let impb = class_getInstanceMethod(cls, selb).map(method_getImplementation)
+    return impa == impb
 }
 
 // MARK: Approximate equality

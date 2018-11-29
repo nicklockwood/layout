@@ -27,6 +27,10 @@ private var swizzled = NSMutableSet()
 private extension UITableView {
     @objc var layout_intrinsicContentSize: CGSize {
         guard layoutNode != nil else {
+            if imp(of: #selector(getter: intrinsicContentSize), of: type(of: self),
+                   matches: #selector(getter: self.layout_intrinsicContentSize)) {
+                return super.intrinsicContentSize
+            }
             return self.layout_intrinsicContentSize
         }
         return CGSize(
@@ -36,7 +40,12 @@ private extension UITableView {
     }
 
     @objc func layout_setContentSize(_ size: CGSize) {
-        layout_setContentSize(size)
+        if imp(of: #selector(setter: contentSize), of: type(of: self),
+               matches: #selector(self.layout_setContentSize(_:))) {
+            super.contentSize = size
+        } else {
+            layout_setContentSize(size)
+        }
         if size != contentSize, let layoutNode = layoutNode {
             layoutNode.contentSizeChanged()
         }
@@ -471,7 +480,12 @@ private extension UITableViewHeaderFooterView {
             let height = (try? layoutNode.doubleValue(forSymbol: "height")) ?? 0
             return CGSize(width: size.width, height: CGFloat(height))
         }
-        return self.layout_sizeThatFits(size)
+        if imp(of: #selector(sizeThatFits(_:)), of: type(of: self),
+               matches: #selector(self.layout_sizeThatFits(_:))) {
+            return super.sizeThatFits(size)
+        } else {
+            return self.layout_sizeThatFits(size)
+        }
     }
 }
 
@@ -574,7 +588,12 @@ private extension UITableViewCell {
             let height = (try? layoutNode.doubleValue(forSymbol: "height")) ?? 0
             return CGSize(width: size.width, height: CGFloat(height))
         }
-        return self.layout_sizeThatFits(size)
+        if imp(of: #selector(sizeThatFits(_:)), of: type(of: self),
+               matches: #selector(self.layout_sizeThatFits(_:))) {
+            return super.sizeThatFits(size)
+        } else {
+            return self.layout_sizeThatFits(size)
+        }
     }
 }
 

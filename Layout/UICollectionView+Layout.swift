@@ -53,6 +53,10 @@ private var swizzled = NSMutableSet()
 private extension UICollectionView {
     @objc var layout_intrinsicContentSize: CGSize {
         guard layoutNode != nil else {
+            if imp(of: #selector(getter: intrinsicContentSize), of: type(of: self),
+                   matches: #selector(getter: self.layout_intrinsicContentSize)) {
+                return super.intrinsicContentSize
+            }
             return self.layout_intrinsicContentSize
         }
         return CGSize(
@@ -62,7 +66,12 @@ private extension UICollectionView {
     }
 
     @objc func layout_setContentSize(_ size: CGSize) {
-        layout_setContentSize(size)
+        if imp(of: #selector(setter: contentSize), of: type(of: self),
+               matches: #selector(self.layout_setContentSize(_:))) {
+            super.contentSize = size
+        } else {
+            layout_setContentSize(size)
+        }
         if size != contentSize, let layoutNode = layoutNode {
             layoutNode.contentSizeChanged()
         }
