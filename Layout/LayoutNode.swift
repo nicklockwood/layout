@@ -29,7 +29,7 @@ public class LayoutNode: NSObject {
     /// These should be added as child view controllers to the node's parent view controller
     /// Accessing this property will instantiate the view hierarchy if it doesn't already exist
     public var viewControllers: [UIViewController] {
-        guard let viewController = viewController else {
+        guard let viewController = _viewController else {
             return children.flatMap { $0.viewControllers }
         }
         return [viewController]
