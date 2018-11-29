@@ -85,6 +85,14 @@ public class LayoutNode: NSObject {
     var _macros: [String: String]
     var rootURL: URL?
 
+    // Same as viewControllers, but won't instantiate uninitialized controllers
+    private var _viewControllers: [UIViewController] {
+        guard let viewController = _viewController else {
+            return children.flatMap { $0._viewControllers }
+        }
+        return [viewController]
+    }
+
     private var _managed: LayoutManaged? {
         return _viewController ?? _view
     }
@@ -832,7 +840,7 @@ public class LayoutNode: NSObject {
             return
         }
         _view?.removeFromSuperview()
-        for controller in viewControllers {
+        for controller in _viewControllers {
             controller.removeFromParent()
         }
     }
@@ -2833,7 +2841,7 @@ public class LayoutNode: NSObject {
             return
         }
         unbind()
-        for controller in viewControllers {
+        for controller in _viewControllers {
             controller.removeFromParent()
         }
         _view?.removeFromSuperview()
