@@ -79,6 +79,7 @@ extension CALayer: LayoutConfigurable {
                 "doublePosition",
                 "flipsHorizontalAxis",
                 "hitTestsAsOpaque",
+                "hitTestsContentsAlphaChannel",
                 "inheritsTiming",
                 "invertsShadow",
                 "isFlipped",

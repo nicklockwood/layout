@@ -1,13 +1,13 @@
 //  Copyright © 2017 Schibsted. All rights reserved.
 
-import XCTest
-import UIKit
-import GLKit
 import AVKit
+import GLKit
+import MapKit
 import SceneKit
 import SpriteKit
-import MapKit
+import UIKit
 import WebKit
+import XCTest
 
 @testable import Layout
 

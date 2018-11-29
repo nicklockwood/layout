@@ -1,5 +1,11 @@
 # Change Log
 
+## [0.6.34](https://github.com/schibsted/layout/releases/tag/0.6.34) (2018-11-29)
+
+- Fixed a crash when using UITableView or UICollectionView subclasses
+- Fixed a bug with incorrect table cell layout (related to the crashing issue)
+- Fixed a bug where view hierarchy was re-initialized during unmounting
+
 ## [0.6.33](https://github.com/schibsted/layout/releases/tag/0.6.33) (2018-11-16)
 
 - Fixed a race condition caused when an `@IBOutlet` setter calls `update()` or `setState()` on the `LayoutNode` that set it

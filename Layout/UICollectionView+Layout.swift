@@ -67,7 +67,7 @@ private extension UICollectionView {
 
     @objc func layout_setContentSize(_ size: CGSize) {
         if imp(of: #selector(setter: contentSize), of: type(of: self),
-               matches: #selector(self.layout_setContentSize(_:))) {
+               matches: #selector(layout_setContentSize(_:))) {
             super.contentSize = size
         } else {
             layout_setContentSize(size)
@@ -412,7 +412,7 @@ private extension UICollectionViewCell {
             let height = (try? layoutNode.doubleValue(forSymbol: "height")) ?? 0
             return CGSize(width: size.width, height: CGFloat(height))
         }
-        return self.layout_sizeThatFits(size)
+        return layout_sizeThatFits(size)
     }
 }
 

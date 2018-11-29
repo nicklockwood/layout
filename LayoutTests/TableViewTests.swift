@@ -1,7 +1,7 @@
 //  Copyright © 2017 Schibsted. All rights reserved.
 
-import XCTest
 import UIKit
+import XCTest
 @testable import Layout
 
 class TableViewController: UIViewController, LayoutLoading, UITableViewDataSource, UITableViewDelegate {

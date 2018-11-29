@@ -41,7 +41,7 @@ private extension UITableView {
 
     @objc func layout_setContentSize(_ size: CGSize) {
         if imp(of: #selector(setter: contentSize), of: type(of: self),
-               matches: #selector(self.layout_setContentSize(_:))) {
+               matches: #selector(layout_setContentSize(_:))) {
             super.contentSize = size
         } else {
             layout_setContentSize(size)
@@ -481,10 +481,10 @@ private extension UITableViewHeaderFooterView {
             return CGSize(width: size.width, height: CGFloat(height))
         }
         if imp(of: #selector(sizeThatFits(_:)), of: type(of: self),
-               matches: #selector(self.layout_sizeThatFits(_:))) {
+               matches: #selector(layout_sizeThatFits(_:))) {
             return super.sizeThatFits(size)
         } else {
-            return self.layout_sizeThatFits(size)
+            return layout_sizeThatFits(size)
         }
     }
 }
@@ -589,10 +589,10 @@ private extension UITableViewCell {
             return CGSize(width: size.width, height: CGFloat(height))
         }
         if imp(of: #selector(sizeThatFits(_:)), of: type(of: self),
-               matches: #selector(self.layout_sizeThatFits(_:))) {
+               matches: #selector(layout_sizeThatFits(_:))) {
             return super.sizeThatFits(size)
         } else {
-            return self.layout_sizeThatFits(size)
+            return layout_sizeThatFits(size)
         }
     }
 }

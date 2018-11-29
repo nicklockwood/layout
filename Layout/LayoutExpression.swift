@@ -1,7 +1,7 @@
 //  Copyright © 2017 Schibsted. All rights reserved.
 
-import UIKit
 import Foundation
+import UIKit
 
 func clearLayoutExpressionCache() {
     _colorCache.removeAll()

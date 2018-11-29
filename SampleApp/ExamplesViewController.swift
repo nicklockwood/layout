@@ -1,7 +1,7 @@
 //  Copyright © 2017 Schibsted. All rights reserved.
 
-import UIKit
 import Layout
+import UIKit
 
 class ExamplesViewController: UIViewController, LayoutLoading, UITabBarControllerDelegate {
     private var selectedTab = 0

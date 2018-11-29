@@ -1,8 +1,8 @@
 //  Copyright © 2017 Schibsted. All rights reserved.
 
-import UIKit
 import Layout
 import ObjectiveC
+import UIKit
 
 private let validClasses: [String] = {
     var classCount: UInt32 = 0
