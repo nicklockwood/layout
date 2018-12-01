@@ -402,7 +402,12 @@ private class LayoutCollectionViewCell: UICollectionViewCell {
 private extension UICollectionViewCell {
     @objc var layout_intrinsicContentSize: CGSize {
         guard let layoutNode = layoutNode, layoutNode.children.isEmpty else {
-            return self.layout_intrinsicContentSize
+            if imp(of: #selector(getter: intrinsicContentSize), of: type(of: self),
+                   matches: #selector(getter: self.layout_intrinsicContentSize)) {
+                return super.intrinsicContentSize
+            } else {
+                return self.layout_intrinsicContentSize
+            }
         }
         return CGSize(width: UIView.noIntrinsicMetric, height: 44)
     }
@@ -412,7 +417,12 @@ private extension UICollectionViewCell {
             let height = (try? layoutNode.doubleValue(forSymbol: "height")) ?? 0
             return CGSize(width: size.width, height: CGFloat(height))
         }
-        return layout_sizeThatFits(size)
+        if imp(of: #selector(sizeThatFits(_:)), of: type(of: self),
+               matches: #selector(layout_sizeThatFits(_:))) {
+            return super.sizeThatFits(size)
+        } else {
+            return layout_sizeThatFits(size)
+        }
     }
 }
 
