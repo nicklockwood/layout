@@ -1,5 +1,9 @@
 # Change Log
 
+## [0.6.35](https://github.com/schibsted/layout/releases/tag/0.6.35) (2018-12-01)
+
+- Fixed infinite recursion bug in UICollectionViewCell layout
+
 ## [0.6.34](https://github.com/schibsted/layout/releases/tag/0.6.34) (2018-11-29)
 
 - Fixed a crash when using UITableView or UICollectionView subclasses
