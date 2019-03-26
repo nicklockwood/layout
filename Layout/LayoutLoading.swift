@@ -138,7 +138,7 @@ public extension LayoutLoading where Self: UIViewController {
 
 public extension LayoutLoading {
     /// Default layoutDidLoad(_:) implementation - does nothing
-    public func layoutDidLoad(_: LayoutNode) {}
+    func layoutDidLoad(_: LayoutNode) {}
 
     /// Default layoutString implementation - bubbles request up to the first responder
     /// that will handle it, or dynamically loads localized string  from Localizable.strings
