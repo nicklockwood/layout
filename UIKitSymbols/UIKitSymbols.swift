@@ -150,7 +150,7 @@ class UIKitSymbols: XCTestCase {
             "UIZoomViewController",
         ]
         names = names.filter { name in
-            return whitelist.contains { name.hasPrefix($0) } &&
+            whitelist.contains { name.hasPrefix($0) } &&
                 !blacklist.contains { name.hasPrefix($0) }
         }
         names += [

@@ -66,7 +66,7 @@ func rename(_ old: String, to new: String, in xml: [XMLNode]) -> [XMLNode] {
         case .node(var name, var attributes, let children):
             for (key, value) in attributes {
                 var isString = false
-                if value.contains("{") && value.contains("}") {
+                if value.contains("{"), value.contains("}") {
                     isString = true // May not actually be a string, but we can parse it as one
                 } else if attributeIsString(key, inNode: $0) ?? stringExpressions.contains(key) {
                     isString = true

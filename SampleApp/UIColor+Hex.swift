@@ -3,7 +3,7 @@
 import UIKit
 
 public extension UIColor {
-    public convenience init?(hexString: String) {
+    convenience init?(hexString: String) {
         if hexString.hasPrefix("#") {
             var string = String(hexString.dropFirst())
             switch string.count {

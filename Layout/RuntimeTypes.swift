@@ -451,6 +451,7 @@ public extension RuntimeType {
             "oneTimeCode",
         ]))
     }()
+
     @objc static let uiTextInputPasswordRules: RuntimeType = {
         #if swift(>=4.1.5) || (!swift(>=4) && swift(>=3.4))
             if #available(iOS 12.0, *) {
@@ -460,6 +461,7 @@ public extension RuntimeType {
         #endif
         return .any
     }()
+
     @objc static let uiTextSmartQuotesType: RuntimeType = {
         if #available(iOS 11.0, *) {
             return RuntimeType([
@@ -841,6 +843,7 @@ public extension RuntimeType {
             "slow": 2,
         ] as [String: Int])
     }()
+
     @objc static let uiCollectionViewFlowLayout_SectionInsetReference: RuntimeType = {
         if #available(iOS 11.0, *) {
             #if swift(>=4.2)
@@ -1135,6 +1138,7 @@ public extension RuntimeType {
             "current": IntOptionSet(rawValue: 2),
         ] as [String: IntOptionSet])
     }()
+
     @objc static let uiImagePickerController_SourceType = RuntimeType([
         "photoLibrary": .photoLibrary,
         "camera": .camera,

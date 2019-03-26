@@ -1,5 +1,9 @@
 # Change Log
 
+## [0.6.36](https://github.com/schibsted/layout/releases/tag/0.6.36) (2019-03-26)
+
+- Updated for Xcode 10.2
+
 ## [0.6.35](https://github.com/schibsted/layout/releases/tag/0.6.35) (2018-12-01)
 
 - Fixed infinite recursion bug in UICollectionViewCell layout

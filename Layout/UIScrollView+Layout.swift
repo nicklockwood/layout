@@ -75,7 +75,7 @@ extension UIScrollView {
                 x: round(contentOffset.x / frame.size.width) * frame.width - contentInset.left,
                 y: round(contentOffset.y / frame.size.height) * frame.height - contentInset.top
             )
-            guard !offset.x.isNaN && !offset.y.isNaN else { return }
+            guard !offset.x.isNaN, !offset.y.isNaN else { return }
             contentOffset = offset
         }
     }

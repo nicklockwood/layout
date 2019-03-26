@@ -297,9 +297,9 @@ class FontExpressionTests: XCTestCase {
         for familyName in UIFont.familyNames {
             for weightKey in RuntimeType.uiFont_Weight.values.keys {
                 let expression = LayoutExpression(fontExpression: "\(familyName) \(weightKey)", for: node)
-                let expected = UIFont.fontNames(forFamilyName: familyName).filter({
+                let expected = UIFont.fontNames(forFamilyName: familyName).filter {
                     $0.lowercased().contains("-\(weightKey.lowercased())")
-                })
+                }
                 if !expected.isEmpty {
                     let name = try! (expression!.evaluate() as! UIFont).fontName
                     XCTAssertTrue(expected.contains(name), "\(expected) does not contain \(name)")

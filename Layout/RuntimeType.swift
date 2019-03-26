@@ -238,7 +238,7 @@ public class RuntimeType: NSObject {
         self.init(.class(`class`))
     }
 
-    @nonobjc public convenience init<T>(array type: Array<T>.Type) {
+    @nonobjc public convenience init<T>(array type: [T].Type) {
         self.init(.array(RuntimeType(type)))
     }
 

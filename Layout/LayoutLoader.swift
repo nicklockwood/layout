@@ -312,7 +312,7 @@ class LayoutLoader {
             do {
                 let data = try Data(contentsOf: _xmlURL)
                 try processLayoutData(data)
-            } catch let error {
+            } catch {
                 completion(nil, LayoutError(error))
             }
             return
@@ -334,7 +334,7 @@ class LayoutLoader {
                         return
                     }
                     try processLayoutData(data)
-                } catch let error {
+                } catch {
                     completion(nil, LayoutError(error))
                 }
             }

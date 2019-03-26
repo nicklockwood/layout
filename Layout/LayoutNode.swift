@@ -198,6 +198,7 @@ public class LayoutNode: NSObject {
     private var _shouldObserveInsets: Bool {
         return viewControllerClass != nil || parent == nil
     }
+
     private func _stopObservingInsets() {
         if #available(iOS 11.0, *), _observingInsets {
             removeObserver(self, forKeyPath: "_view.safeAreaInsets")

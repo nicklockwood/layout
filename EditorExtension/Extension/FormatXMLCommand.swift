@@ -37,7 +37,7 @@ class FormatXMLCommand: NSObject, XCSourceEditorCommand {
             invocation.buffer.selections.add(updatedSelectionRange)
 
             return completionHandler(nil)
-        } catch let error {
+        } catch {
             return completionHandler(NSError(
                 domain: "Layout",
                 code: 0,
