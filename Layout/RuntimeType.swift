@@ -559,7 +559,7 @@ func sanitizedTypeName(_ typeName: String) -> String {
             head.append(char)
             break
         }
-        head += char.lowercased()
+        head += String(char.lowercased())
     }
     return String(head + tail).replacingOccurrences(of: ".", with: "_")
 }
