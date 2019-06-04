@@ -1136,7 +1136,7 @@ extension ArraySlice: _SwiftArray {
     }
 
     static func cast(_ value: Any) -> Any? {
-        return (AnyExpression.arrayCast(value) as [Element]?).map(self.init)
+        return AnyExpression.arrayCast(value) as [Element]?
     }
 }
 
