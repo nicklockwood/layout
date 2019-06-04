@@ -1,5 +1,9 @@
 # Change Log
 
+## [0.6.37](https://github.com/schibsted/layout/releases/tag/0.6.37) (2019-06-04)
+
+- Updated for Xcode 11 beta
+
 ## [0.6.36](https://github.com/schibsted/layout/releases/tag/0.6.36) (2019-03-26)
 
 - Updated for Xcode 10.2
