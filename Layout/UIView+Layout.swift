@@ -1441,7 +1441,7 @@ extension UIWebView {
     @nonobjc private var baseURL: URL? {
         get { return objc_getAssociatedObject(self, &baseURLKey) as? URL }
         set {
-            let url = baseURL.flatMap { $0.absoluteString.isEmpty ? nil : $0 }
+            let url = newValue.flatMap { $0.absoluteString.isEmpty ? nil : $0 }
             objc_setAssociatedObject(self, &baseURLKey, url, .OBJC_ASSOCIATION_RETAIN)
         }
     }
@@ -1505,7 +1505,7 @@ extension WKWebView {
     @nonobjc private var readAccessURL: URL? {
         get { return objc_getAssociatedObject(self, &readAccessURLKey) as? URL }
         set {
-            let url = readAccessURL.flatMap { $0.absoluteString.isEmpty ? nil : $0 }
+            let url = newValue.flatMap { $0.absoluteString.isEmpty ? nil : $0 }
             objc_setAssociatedObject(self, &readAccessURLKey, url, .OBJC_ASSOCIATION_RETAIN)
         }
     }
@@ -1513,7 +1513,7 @@ extension WKWebView {
     @nonobjc private var baseURL: URL? {
         get { return objc_getAssociatedObject(self, &baseURLKey) as? URL }
         set {
-            let url = baseURL.flatMap { $0.absoluteString.isEmpty ? nil : $0 }
+            let url = newValue.flatMap { $0.absoluteString.isEmpty ? nil : $0 }
             objc_setAssociatedObject(self, &baseURLKey, url, .OBJC_ASSOCIATION_RETAIN)
         }
     }
