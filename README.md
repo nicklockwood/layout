@@ -1,5 +1,5 @@
-[![Travis](https://img.shields.io/travis/schibsted/layout.svg)](https://travis-ci.org/schibsted/layout)
-[![Coveralls](https://coveralls.io/repos/github/schibsted/layout/badge.svg)](https://coveralls.io/github/schibsted/layout)
+[![Travis](https://img.shields.io/travis/nicklockwood/layout.svg)](https://travis-ci.org/schibsted/layout)
+[![Coveralls](https://coveralls.io/repos/github/nicklockwood/layout/badge.svg)](https://coveralls.io/github/schibsted/layout)
 [![Platform](https://img.shields.io/cocoapods/p/Layout.svg?style=flat)](http://cocoadocs.org/docsets/Layout)
 [![Swift](https://img.shields.io/badge/swift-5.1-orange.svg?style=flat)](https://developer.apple.com/swift)
 [![Swift](https://img.shields.io/badge/swift-4.2-red.svg?style=flat)](https://developer.apple.com/swift)

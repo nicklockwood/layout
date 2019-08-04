@@ -1,5 +1,9 @@
 # Change Log
 
+## [0.6.38](https://github.com/schibsted/layout/releases/tag/0.6.38) (2019-08-04)
+
+- Fixed crash when using UITableView or UICollectionView in iOS 13
+
 ## [0.6.37](https://github.com/schibsted/layout/releases/tag/0.6.37) (2019-06-04)
 
 - Updated for Xcode 11 beta
