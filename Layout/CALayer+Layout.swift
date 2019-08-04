@@ -98,6 +98,7 @@ extension CALayer: LayoutConfigurable {
                 "sortsSublayers",
                 "stateTransitions",
                 "states",
+                "unsafeUnretainedDelegate",
                 "velocityStretch",
                 "wantsExtendedDynamicRangeContent",
             ] {

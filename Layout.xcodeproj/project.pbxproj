@@ -855,7 +855,9 @@
 				01DA95551EABC1E300868113 /* Products */,
 				01DA95851EABFF5F00868113 /* Frameworks */,
 			);
+			indentWidth = 4;
 			sourceTree = "<group>";
+			tabWidth = 4;
 		};
 		01DA95551EABC1E300868113 /* Products */ = {
 			isa = PBXGroup;
@@ -1281,6 +1283,7 @@
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				English,
 				en,
 				Base,
 			);
