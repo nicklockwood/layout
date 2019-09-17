@@ -1,4 +1,4 @@
-//  Copyright © 2017 Schibsted. All rights reserved.
+//  Copyright Â© 2017 Schibsted. All rights reserved.
 
 import UIKit
 
@@ -68,24 +68,24 @@ public extension LayoutLoading {
         }
     }
 
-    /// Load xml data
-    func loadLayout(
-        withData data: Data,
-        state: Any = (),
-        constants: [String: Any]...,
-        completion: ((LayoutError?) -> Void)? = nil
-        ) {
-        ReloadManager.addObserver(self)
-        do {
-            let layout = try loader.loadLayoutNode(fromData: data, state: state, constants: merge(constants))
-            self.layoutNode = layout
-        }
-        catch {
-            let layErr = LayoutError(error)
-            self.layoutError(layErr)
-            completion?(layErr)
-        }
-    }
+	/// Load xml data
+	func loadLayout(
+		withData data: Data,
+		state: Any = (),
+		constants: [String: Any]...,
+		completion: ((LayoutError?) -> Void)? = nil
+		) {
+		ReloadManager.addObserver(self)
+		do {
+			let layout = try loader.loadLayoutNode(fromData: data, state: state, constants: merge(constants))
+			self.layoutNode = layout
+		}
+		catch {
+			let layErr = LayoutError(error)
+			self.layoutError(layErr)
+			completion?(layErr)
+		}
+	}
 
     /// Reload the previously loaded xml file
     func reloadLayout(withCompletion completion: ((LayoutError?) -> Void)? = nil) {
@@ -157,7 +157,7 @@ public extension LayoutLoading where Self: UIViewController {
 
 public extension LayoutLoading {
     /// Default layoutDidLoad(_:) implementation - does nothing
-    public func layoutDidLoad(_: LayoutNode) {}
+    func layoutDidLoad(_: LayoutNode) {}
 
     /// Default layoutString implementation - bubbles request up to the first responder
     /// that will handle it, or dynamically loads localized string  from Localizable.strings
