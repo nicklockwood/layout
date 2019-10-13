@@ -1,5 +1,10 @@
 # Change Log
 
+## [0.7.0](https://github.com/schibsted/layout/releases/tag/0.7.0) (2019-10-13)
+
+- Removed deprecated UIWebView integration (Apple is now rejecting apps that use UIWebView)
+- Fixed deprecation warnings in Xcode 11.1
+
 ## [0.6.38](https://github.com/schibsted/layout/releases/tag/0.6.38) (2019-08-04)
 
 - Fixed crash when using UITableView or UICollectionView in iOS 13
