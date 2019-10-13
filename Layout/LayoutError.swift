@@ -167,8 +167,8 @@ public enum LayoutError: Error, Hashable, CustomStringConvertible {
         }
     }
 
-    public var hashValue: Int {
-        return description.hashValue
+    public func hash(into hasher: inout Hasher) {
+        description.hash(into: &hasher)
     }
 
     public static func == (lhs: LayoutError, rhs: LayoutError) -> Bool {
