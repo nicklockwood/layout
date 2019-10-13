@@ -2,7 +2,7 @@
 //  Expression.swift
 //  Expression
 //
-//  Version 0.12.11
+//  Version 0.13.0
 //
 //  Created by Nick Lockwood on 15/09/2016.
 //  Copyright © 2016 Nick Lockwood. All rights reserved.
@@ -44,9 +44,7 @@ public final class Expression: CustomStringConvertible {
     public typealias SymbolEvaluator = (_ args: [Double]) throws -> Double
 
     /// Type representing the arity (number of arguments) accepted by a function
-    public enum Arity: ExpressibleByIntegerLiteral, CustomStringConvertible, Equatable {
-        public typealias IntegerLiteralType = Int
-
+    public enum Arity: ExpressibleByIntegerLiteral, CustomStringConvertible, Hashable {
         /// An exact number of arguments
         case exactly(Int)
 
@@ -70,6 +68,10 @@ public final class Expression: CustomStringConvertible {
                 return "at least \(value) argument\(value == 1 ? "" : "s")"
             }
         }
+
+        /// No-op Hashable implementation
+        /// Required to support custom Equatable implementation
+        public func hash(into _: inout Hasher) {}
 
         /// Equatable implementation
         /// Note: this works more like a contains() function if
@@ -148,32 +150,6 @@ public final class Expression: CustomStringConvertible {
                 return "array \(escapedName)[]"
             }
         }
-
-        /// Required by the Hashable protocol
-        public var hashValue: Int {
-            return name.hashValue
-        }
-
-        /// Equatable implementation
-        public static func == (lhs: Symbol, rhs: Symbol) -> Bool {
-            switch (lhs, rhs) {
-            case let (.variable(lhs), .variable(rhs)),
-                 let (.infix(lhs), .infix(rhs)),
-                 let (.prefix(lhs), .prefix(rhs)),
-                 let (.postfix(lhs), .postfix(rhs)),
-                 let (.array(lhs), .array(rhs)):
-                return lhs == rhs
-            case let (.function(lhs), .function(rhs)):
-                return lhs == rhs
-            case (.variable, _),
-                 (.infix, _),
-                 (.prefix, _),
-                 (.postfix, _),
-                 (.function, _),
-                 (.array, _):
-                return false
-            }
-        }
     }
 
     /// Runtime error when parsing or evaluating an expression
@@ -234,28 +210,6 @@ public final class Expression: CustomStringConvertible {
                 return "\(description.prefix(1).uppercased())\(description.dropFirst()) expects \(arity)"
             case let .arrayBounds(symbol, index):
                 return "Index \(Expression.stringify(index)) out of bounds for \(symbol)"
-            }
-        }
-
-        /// Equatable implementation
-        public static func == (lhs: Error, rhs: Error) -> Bool {
-            switch (lhs, rhs) {
-            case let (.message(lhs), .message(rhs)),
-                 let (.unexpectedToken(lhs), .unexpectedToken(rhs)),
-                 let (.missingDelimiter(lhs), .missingDelimiter(rhs)):
-                return lhs == rhs
-            case let (.undefinedSymbol(lhs), .undefinedSymbol(rhs)),
-                 let (.arityMismatch(lhs), .arityMismatch(rhs)):
-                return lhs == rhs
-            case let (.arrayBounds(lhs), .arrayBounds(rhs)):
-                return lhs == rhs
-            case (.message, _),
-                 (.unexpectedToken, _),
-                 (.missingDelimiter, _),
-                 (.undefinedSymbol, _),
-                 (.arityMismatch, _),
-                 (.arrayBounds, _):
-                return false
             }
         }
     }
@@ -1047,18 +1001,18 @@ private extension UnicodeScalarView {
     }
 
     mutating func scanCharacter(_ character: UnicodeScalar) -> Bool {
-        return scanCharacter({ $0 == character }) != nil
+        return scanCharacter { $0 == character } != nil
     }
 
     mutating func scanToEndOfToken() -> String? {
-        return scanCharacters({
+        return scanCharacters {
             switch $0 {
             case " ", "\t", "\n", "\r":
                 return false
             default:
                 return true
             }
-        })
+        }
     }
 
     mutating func skipWhitespace() -> Bool {
@@ -1114,7 +1068,7 @@ private extension UnicodeScalarView {
         func scanExponent() -> String? {
             let start = self
             if let e = scanCharacter({ $0 == "e" || $0 == "E" }) {
-                let sign = scanCharacter({ $0 == "-" || $0 == "+" }) ?? ""
+                let sign = scanCharacter { $0 == "-" || $0 == "+" } ?? ""
                 if let exponent = scanInteger() {
                     return e + sign + exponent
                 }
@@ -1266,14 +1220,14 @@ private extension UnicodeScalarView {
                 case "r":
                     string += "\r"
                 case "u" where scanCharacter("{"):
-                    let hex = scanCharacters({
+                    let hex = scanCharacters {
                         switch $0 {
                         case "0" ... "9", "A" ... "F", "a" ... "f":
                             return true
                         default:
                             return false
                         }
-                    }) ?? ""
+                    } ?? ""
                     guard scanCharacter("}") else {
                         guard let junk = scanToEndOfToken() else {
                             return .error(.missingDelimiter("}"), string)
@@ -1330,9 +1284,14 @@ private extension UnicodeScalarView {
                         let rhs = stack[i + 2]
                         if rhs.isOperand {
                             if stack.count > i + 3 {
-                                let rhs = stack[i + 3]
-                                guard !rhs.isOperand, case let .symbol(.infix(op2), _, _) = rhs,
-                                    Expression.operator(symbol.name, takesPrecedenceOver: op2) else {
+                                switch stack[i + 3] {
+                                case let .symbol(.infix(op2), _, _),
+                                     let .symbol(.prefix(op2), _, _),
+                                     let .symbol(.postfix(op2), _, _):
+                                    if !Expression.operator(symbol.name, takesPrecedenceOver: op2) {
+                                        fallthrough
+                                    }
+                                default:
                                     try collapseStack(from: i + 2)
                                     return
                                 }
