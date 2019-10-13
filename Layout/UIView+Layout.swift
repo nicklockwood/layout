@@ -1410,56 +1410,6 @@ extension UIVisualEffectView {
     }
 }
 
-private var baseURLKey = 1
-
-extension UIWebView {
-    open override class var expressionTypes: [String: RuntimeType] {
-        var types = super.expressionTypes
-        types["baseURL"] = .url
-        types["delegate"] = RuntimeType(UIWebViewDelegate.self)
-        types["htmlString"] = .string
-        types["request"] = .urlRequest
-        types["paginationMode"] = .uiWebPaginationMode
-        types["paginationBreakingMode"] = .uiWebPaginationBreakingMode
-        for (key, type) in UIScrollView.expressionTypes {
-            types["scrollView.\(key)"] = type
-        }
-        // TODO: support loading data
-        // TODO: support inline html
-
-        #if arch(i386) || arch(x86_64)
-            // Private
-            types["detectsPhoneNumbers"] = nil
-        #endif
-        return types
-    }
-
-    open override class var bodyExpression: String? {
-        return "htmlString"
-    }
-
-    @nonobjc private var baseURL: URL? {
-        get { return objc_getAssociatedObject(self, &baseURLKey) as? URL }
-        set {
-            let url = newValue.flatMap { $0.absoluteString.isEmpty ? nil : $0 }
-            objc_setAssociatedObject(self, &baseURLKey, url, .OBJC_ASSOCIATION_RETAIN)
-        }
-    }
-
-    open override func setValue(_ value: Any, forExpression name: String) throws {
-        switch name {
-        case "baseURL":
-            baseURL = value as? URL
-        case "htmlString":
-            loadHTMLString(value as! String, baseURL: baseURL)
-        case "request":
-            loadRequest(value as! URLRequest)
-        default:
-            try super.setValue(value, forExpression: name)
-        }
-    }
-}
-
 private var readAccessURLKey = 1
 
 extension WKWebView {

@@ -976,25 +976,6 @@ public extension RuntimeType {
     @objc static var uiTableViewStyle: RuntimeType { return uiTableView_Style }
     @objc static var uiTableViewSeparatorInsetReference: RuntimeType { return uiTableView_SeparatorInsetReference }
 
-    // MARK: UIWebView
-
-    @objc static let uiWebView_PaginationMode = RuntimeType([
-        "unpaginated": .unpaginated,
-        "leftToRight": .leftToRight,
-        "topToBottom": .topToBottom,
-        "bottomToTop": .bottomToTop,
-        "rightToLeft": .rightToLeft,
-    ] as [String: UIWebView.PaginationMode])
-    @objc static let uiWebView_PaginationBreakingMode = RuntimeType([
-        "page": .page,
-        "column": .column,
-    ] as [String: UIWebView.PaginationBreakingMode])
-
-    // Deprecated
-
-    @objc static var uiWebPaginationMode: RuntimeType { return uiWebView_PaginationMode }
-    @objc static var uiWebPaginationBreakingMode: RuntimeType { return uiWebView_PaginationBreakingMode }
-
     // MARK: WebKit
 
     @objc static let wkAudiovisualMediaTypes: RuntimeType = {

@@ -370,11 +370,6 @@ struct UIntOptionSet: OptionSet {
         typealias Distribution = UIStackViewDistribution
     }
 
-    extension UIWebView {
-        typealias PaginationMode = UIWebPaginationMode
-        typealias PaginationBreakingMode = UIWebPaginationBreakingMode
-    }
-
     extension UIAlertController {
         typealias Style = UIAlertControllerStyle
     }
