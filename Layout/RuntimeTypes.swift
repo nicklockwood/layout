@@ -64,71 +64,32 @@ public extension RuntimeType {
         ] as [String: UIntOptionSet])
     }()
 
-    @objc static let caLayerContentsGravity: RuntimeType = {
-        #if swift(>=4.2)
-            return RuntimeType([
-                "center": .center,
-                "top": .top,
-                "bottom": .bottom,
-                "left": .left,
-                "right": .right,
-                "topLeft": .topLeft,
-                "topRight": .topRight,
-                "bottomLeft": .bottomLeft,
-                "bottomRight": .bottomRight,
-                "resize": .resize,
-                "resizeAspect": .resizeAspect,
-                "resizeAspectFill": .resizeAspectFill,
-            ] as [String: CALayerContentsGravity])
-        #else
-            return RuntimeType([
-                "center",
-                "top",
-                "bottom",
-                "left",
-                "right",
-                "topLeft",
-                "topRight",
-                "bottomLeft",
-                "bottomRight",
-                "resize",
-                "resizeAspect",
-                "resizeAspectFill",
-            ] as Set<String>)
-        #endif
-    }()
+    @objc static let caLayerContentsGravity = RuntimeType([
+        "center": .center,
+        "top": .top,
+        "bottom": .bottom,
+        "left": .left,
+        "right": .right,
+        "topLeft": .topLeft,
+        "topRight": .topRight,
+        "bottomLeft": .bottomLeft,
+        "bottomRight": .bottomRight,
+        "resize": .resize,
+        "resizeAspect": .resizeAspect,
+        "resizeAspectFill": .resizeAspectFill,
+    ] as [String: CALayerContentsGravity])
 
-    @objc static let caMediaTimingFillMode: RuntimeType = {
-        #if swift(>=4.2)
-            return RuntimeType([
-                "backwards": .backwards,
-                "forwards": .forwards,
-                "both": .both,
-                "removed": .removed,
-            ] as [String: CAMediaTimingFillMode])
-        #else
-            return RuntimeType([
-                "backwards",
-                "forwards",
-                "both",
-                "removed",
-            ] as Set<String>)
-        #endif
-    }()
+    @objc static let caMediaTimingFillMode = RuntimeType([
+        "backwards": .backwards,
+        "forwards": .forwards,
+        "both": .both,
+        "removed": .removed,
+    ] as [String: CAMediaTimingFillMode])
 
-    @objc static let caLayerContentsFilter: RuntimeType = {
-        #if swift(>=4.2)
-            return RuntimeType([
-                "nearest": .nearest,
-                "linear": .linear,
-            ] as [String: CALayerContentsFilter])
-        #else
-            return RuntimeType([
-                "nearest",
-                "linear",
-            ] as Set<String>)
-        #endif
-    }()
+    @objc static let caLayerContentsFilter = RuntimeType([
+        "nearest": .nearest,
+        "linear": .linear,
+    ] as [String: CALayerContentsFilter])
 
     // MARK: UIKit
 
@@ -215,11 +176,7 @@ public extension RuntimeType {
         ] as [String: UIAccessibilityTraits]))
         type.caster = { value in
             if let values = value as? [UIAccessibilityTraits] {
-                #if swift(>=4.2)
-                    return UIAccessibilityTraits(rawValue: values.map { $0.rawValue }.reduce(0 as UInt64) { $0 + $1 })
-                #else
-                    return values.reduce(0) { $0 + $1 }
-                #endif
+                return UIAccessibilityTraits(rawValue: values.map { $0.rawValue }.reduce(0 as UInt64) { $0 + $1 })
             }
             return value as? UIAccessibilityTraits
         }
@@ -413,12 +370,10 @@ public extension RuntimeType {
                 contentTypes["username"] = .username
                 contentTypes["password"] = .password
             }
-            #if swift(>=4.1.5) || (!swift(>=4) && swift(>=3.4))
-                if #available(iOS 12.0, *) {
-                    contentTypes["newPassword"] = .newPassword
-                    contentTypes["oneTimeCode"] = .oneTimeCode
-                }
-            #endif
+            if #available(iOS 12.0, *) {
+                contentTypes["newPassword"] = .newPassword
+                contentTypes["oneTimeCode"] = .oneTimeCode
+            }
             return RuntimeType(contentTypes)
         }
         return RuntimeType(Set([
@@ -453,12 +408,10 @@ public extension RuntimeType {
     }()
 
     @objc static let uiTextInputPasswordRules: RuntimeType = {
-        #if swift(>=4.1.5) || (!swift(>=4) && swift(>=3.4))
-            if #available(iOS 12.0, *) {
-                // TODO: allow configuration with descriptor String?
-                return RuntimeType(UITextInputPasswordRules.self)
-            }
-        #endif
+        if #available(iOS 12.0, *) {
+            // TODO: allow configuration with descriptor String?
+            return RuntimeType(UITextInputPasswordRules.self)
+        }
         return .any
     }()
 
@@ -772,17 +725,12 @@ public extension RuntimeType {
 
     @objc static let uiScrollView_ContentInsetAdjustmentBehavior: RuntimeType = {
         if #available(iOS 11.0, *) {
-            #if swift(>=4.2)
-                typealias ContentInsetAdjustmentBehavior = UIScrollView.ContentInsetAdjustmentBehavior
-            #else
-                typealias ContentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentBehavior
-            #endif
             return RuntimeType([
                 "automatic": .automatic,
                 "scrollableAxes": .scrollableAxes,
                 "never": .never,
                 "always": .always,
-            ] as [String: ContentInsetAdjustmentBehavior])
+            ] as [String: UIScrollView.ContentInsetAdjustmentBehavior])
         }
         return RuntimeType([
             "automatic": 0,
@@ -826,16 +774,11 @@ public extension RuntimeType {
     ] as [String: UICollectionView.ScrollDirection])
     @objc static let uiCollectionView_ReorderingCadence: RuntimeType = {
         if #available(iOS 11.0, *) {
-            #if swift(>=4.2)
-                typealias ReorderingCadence = UICollectionView.ReorderingCadence
-            #else
-                typealias ReorderingCadence = UICollectionViewReorderingCadence
-            #endif
             return RuntimeType([
                 "immediate": .immediate,
                 "fast": .fast,
                 "slow": .slow,
-            ] as [String: ReorderingCadence])
+            ] as [String: UICollectionView.ReorderingCadence])
         }
         return RuntimeType([
             "immediate": 0,
@@ -846,16 +789,11 @@ public extension RuntimeType {
 
     @objc static let uiCollectionViewFlowLayout_SectionInsetReference: RuntimeType = {
         if #available(iOS 11.0, *) {
-            #if swift(>=4.2)
-                typealias SectionInsetReference = UICollectionViewFlowLayout.SectionInsetReference
-            #else
-                typealias SectionInsetReference = UICollectionViewFlowLayoutSectionInsetReference
-            #endif
             return RuntimeType([
                 "fromContentInset": .fromContentInset,
                 "fromSafeArea": .fromSafeArea,
                 "fromLayoutMargins": .fromLayoutMargins,
-            ] as [String: SectionInsetReference])
+            ] as [String: UICollectionViewFlowLayout.SectionInsetReference])
         }
         return RuntimeType([
             "fromContentInset": 0,
@@ -955,15 +893,10 @@ public extension RuntimeType {
     ] as [String: UITableView.Style])
     @objc static let uiTableView_SeparatorInsetReference: RuntimeType = {
         if #available(iOS 11.0, *) {
-            #if swift(>=4.2)
-                typealias SeparatorInsetReference = UITableView.SeparatorInsetReference
-            #else
-                typealias SeparatorInsetReference = UITableViewSeparatorInsetReference
-            #endif
             return RuntimeType([
                 "fromCellEdges": .fromCellEdges,
                 "fromAutomaticInsets": .fromAutomaticInsets,
-            ] as [String: SeparatorInsetReference])
+            ] as [String: UITableView.SeparatorInsetReference])
         }
         return RuntimeType([
             "fromCellEdges": 0,
@@ -1063,17 +996,12 @@ public extension RuntimeType {
 
     @objc static let uiCloudSharingController_PermissionOptions: RuntimeType = {
         if #available(iOS 10.0, *) {
-            #if swift(>=4.2)
-                typealias PermissionOptions = UICloudSharingController.PermissionOptions
-            #else
-                typealias PermissionOptions = UICloudSharingPermissionOptions
-            #endif
             return RuntimeType([
                 "allowPublic": .allowPublic,
                 "allowPrivate": .allowPrivate,
                 "allowReadOnly": .allowReadOnly,
                 "allowReadWrite": .allowReadWrite,
-            ] as [String: PermissionOptions])
+            ] as [String: UICloudSharingController.PermissionOptions])
         }
         return RuntimeType([
             "allowPublic": 0,
@@ -1104,15 +1032,10 @@ public extension RuntimeType {
     ] as [String: UIImagePickerController.CameraFlashMode])
     @objc static let uiImagePickerController_ImageURLExportPreset: RuntimeType = {
         if #available(iOS 11.0, *) {
-            #if swift(>=4.2)
-                typealias ImageURLExportPreset = UIImagePickerController.ImageURLExportPreset
-            #else
-                typealias ImageURLExportPreset = UIImagePickerControllerImageURLExportPreset
-            #endif
             return RuntimeType([
                 "compatible": .compatible,
                 "current": .current,
-            ] as [String: ImageURLExportPreset])
+            ] as [String: UIImagePickerController.ImageURLExportPreset])
         }
         return RuntimeType([
             "compatible": IntOptionSet(rawValue: 1),
@@ -1153,15 +1076,10 @@ public extension RuntimeType {
     ] as [String: UISplitViewController.DisplayMode])
     @objc static let uiSplitViewController_PrimaryEdge: RuntimeType = {
         if #available(iOS 11.0, *) {
-            #if swift(>=4.2)
-                typealias PrimaryEdge = UISplitViewController.PrimaryEdge
-            #else
-                typealias PrimaryEdge = UISplitViewControllerPrimaryEdge
-            #endif
             return RuntimeType([
                 "leading": .leading,
                 "trailing": .trailing,
-            ] as [String: PrimaryEdge])
+            ] as [String: UISplitViewController.PrimaryEdge])
         }
         return RuntimeType([
             "leading": 0,

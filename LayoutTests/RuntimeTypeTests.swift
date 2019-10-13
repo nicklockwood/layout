@@ -315,16 +315,12 @@ class RuntimeTypeTests: XCTestCase {
         XCTAssertNil(runtimeType.cast("top") as? UIRectEdge)
     }
 
-    #if swift(>=4.2)
-
-        func testCastRawRepresentable() {
-            let runtimeType = RuntimeType.uiScrollView_DecelerationRate
-            XCTAssertNotNil(runtimeType.cast(UIScrollView.DecelerationRate.fast) as? UIScrollView.DecelerationRate)
-            XCTAssertNotNil(runtimeType.cast(UIScrollView.DecelerationRate.fast.rawValue) as? UIScrollView.DecelerationRate)
-            XCTAssertNotNil(runtimeType.cast(15 as CGFloat) as? UIScrollView.DecelerationRate)
-            XCTAssertNotNil(runtimeType.cast(15) as? UIScrollView.DecelerationRate)
-            XCTAssertNil(runtimeType.cast("fast") as? UIScrollView.DecelerationRate)
-        }
-
-    #endif
+    func testCastRawRepresentable() {
+        let runtimeType = RuntimeType.uiScrollView_DecelerationRate
+        XCTAssertNotNil(runtimeType.cast(UIScrollView.DecelerationRate.fast) as? UIScrollView.DecelerationRate)
+        XCTAssertNotNil(runtimeType.cast(UIScrollView.DecelerationRate.fast.rawValue) as? UIScrollView.DecelerationRate)
+        XCTAssertNotNil(runtimeType.cast(15 as CGFloat) as? UIScrollView.DecelerationRate)
+        XCTAssertNotNil(runtimeType.cast(15) as? UIScrollView.DecelerationRate)
+        XCTAssertNil(runtimeType.cast("fast") as? UIScrollView.DecelerationRate)
+    }
 }

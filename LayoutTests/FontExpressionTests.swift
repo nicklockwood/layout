@@ -15,18 +15,12 @@ class FontExpressionTests: XCTestCase {
         XCTAssertEqual(try expression?.evaluate() as? UIFont, expected)
     }
 
-    #if swift(>=4)
-
-        // Only works in Swift 4+ where UIFont.Weight is a distinct type, not CGFloat
-
-        func testBoldWeight() {
-            let node = LayoutNode()
-            let expression = LayoutExpression(fontExpression: "{UIFont.Weight.bold}", for: node)
-            let expected = UIFont.systemFont(ofSize: UIFont.defaultSize, weight: .bold)
-            XCTAssertEqual(try expression?.evaluate() as? UIFont, expected)
-        }
-
-    #endif
+    func testBoldWeight() {
+        let node = LayoutNode()
+        let expression = LayoutExpression(fontExpression: "{UIFont.Weight.bold}", for: node)
+        let expected = UIFont.systemFont(ofSize: UIFont.defaultSize, weight: .bold)
+        XCTAssertEqual(try expression?.evaluate() as? UIFont, expected)
+    }
 
     func testBoldTrait() {
         let node = LayoutNode()

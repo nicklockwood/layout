@@ -2444,13 +2444,8 @@ public class LayoutNode: NSObject {
             contentInset.right = try cgFloatValue(forSymbol: "contentInset.right")
         }
         if #available(iOS 11.0, *) {
-            #if swift(>=4.2)
-                typealias ContentInsetAdjustmentBehavior = UIScrollView.ContentInsetAdjustmentBehavior
-            #else
-                typealias ContentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentBehavior
-            #endif
             let contentInsetAdjustmentBehavior = try value(forSymbol: "contentInsetAdjustmentBehavior") as!
-                ContentInsetAdjustmentBehavior
+                UIScrollView.ContentInsetAdjustmentBehavior
             switch contentInsetAdjustmentBehavior {
             case .automatic, .scrollableAxes:
                 var contentInset = contentInset

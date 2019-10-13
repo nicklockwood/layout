@@ -746,12 +746,10 @@ extension UITextField {
         case "enablesReturnKeyAutomatically": enablesReturnKeyAutomatically = value as! Bool
         case "isSecureTextEntry": isSecureTextEntry = value as! Bool
         case "passwordRules":
-            #if swift(>=4.1.5) || (!swift(>=4) && swift(>=3.4))
-                // TODO: warn about unavailability
-                if #available(iOS 12.0, *) {
-                    passwordRules = value as? UITextInputPasswordRules
-                }
-            #endif
+            // TODO: warn about unavailability
+            if #available(iOS 12.0, *) {
+                passwordRules = value as? UITextInputPasswordRules
+            }
         case "textContentType":
             // TODO: warn about unavailability
             if #available(iOS 10.0, *) {
@@ -1410,6 +1408,7 @@ extension UIVisualEffectView {
     }
 }
 
+private var baseURLKey = 1
 private var readAccessURLKey = 1
 
 extension WKWebView {

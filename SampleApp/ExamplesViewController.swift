@@ -8,16 +8,6 @@ class ExamplesViewController: UIViewController, LayoutLoading, UITabBarControlle
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        // Swift 3.x compatibility
-        #if swift(>=4.2)
-            let foregroundColorKey = NSAttributedString.Key.foregroundColor
-        #elseif swift(>=4)
-            let foregroundColorKey = NSAttributedStringKey.foregroundColor
-        #else
-            let foregroundColorKey = NSForegroundColorAttributeName
-        #endif
-
         loadLayout(
             named: "Examples.xml",
             constants: [
@@ -32,7 +22,7 @@ class ExamplesViewController: UIViewController, LayoutLoading, UITabBarControlle
                 // Used in text example
                 "attributedString": NSAttributedString(
                     string: "attributed string",
-                    attributes: [foregroundColorKey: UIColor.red]
+                    attributes: [NSAttributedString.Key.foregroundColor: UIColor.red]
                 ),
                 "uppercased": { (args: [Any]) throws -> Any in
                     guard let string = args.first as? String else {
