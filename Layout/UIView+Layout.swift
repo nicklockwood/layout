@@ -278,6 +278,19 @@ extension UIView: LayoutManaged {
         }
     }
 
+    // Set expression value from string
+    @objc open func setStringValue(_ value: String, forExpression name: String) throws {
+        guard let typ = type(of: self).cachedExpressionTypes[name],
+            let node = _layoutNode,
+            let exp = LayoutExpression(expression: value, type: typ, for: node)
+        else {
+            return
+        }
+
+        let res = try exp.evaluate()
+        try setValue(res, forExpression: name)
+    }
+
     /// Get symbol value
     @objc open func value(forSymbol name: String) throws -> Any {
         switch name {
