@@ -68,6 +68,25 @@ public extension LayoutLoading {
         }
     }
 
+	/// Load xml data
+	func loadLayout(
+		withData data: Data,
+		state: Any = (),
+		constants: [String: Any]...,
+		completion: ((LayoutError?) -> Void)? = nil
+		) {
+		ReloadManager.addObserver(self)
+		do {
+			let layout = try loader.loadLayoutNode(fromData: data, state: state, constants: merge(constants))
+			self.layoutNode = layout
+		}
+		catch {
+			let layErr = LayoutError(error)
+			self.layoutError(layErr)
+			completion?(layErr)
+		}
+	}
+
     /// Reload the previously loaded xml file
     func reloadLayout(withCompletion completion: ((LayoutError?) -> Void)? = nil) {
         loader.reloadLayoutNode { layoutNode, error in
