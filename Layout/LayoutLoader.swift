@@ -399,109 +399,101 @@ class LayoutLoader {
     }
 }
 
-#if arch(i386) || arch(x86_64)
+// MARK: Only applicable when running in the simulator
 
-    // MARK: Only applicable when running in the simulator
+private var layoutSettings: [String: Any] {
+    get { return UserDefaults.standard.dictionary(forKey: "com.Layout") ?? [:] }
+    set { UserDefaults.standard.set(newValue, forKey: "com.Layout") }
+}
 
-    private var layoutSettings: [String: Any] {
-        get { return UserDefaults.standard.dictionary(forKey: "com.Layout") ?? [:] }
-        set { UserDefaults.standard.set(newValue, forKey: "com.Layout") }
-    }
-
-    private var _projectDirectory: URL? {
-        didSet {
-            let path = _projectDirectory?.path
-            if path != layoutSettings["projectDirectory"] as? String {
-                sourcePaths.removeAll()
-                layoutSettings["projectDirectory"] = path
-            }
+private var _projectDirectory: URL? {
+    didSet {
+        let path = _projectDirectory?.path
+        if path != layoutSettings["projectDirectory"] as? String {
+            sourcePaths.removeAll()
+            layoutSettings["projectDirectory"] = path
         }
     }
+}
 
-    private var _sourcePaths: [String: String] = {
-        layoutSettings["sourcePaths"] as? [String: String] ?? [:]
-    }()
+private var _sourcePaths: [String: String] = {
+    layoutSettings["sourcePaths"] as? [String: String] ?? [:]
+}()
 
-    private var sourcePaths: [String: String] {
-        get { return _sourcePaths }
-        set {
-            _sourcePaths = newValue
-            layoutSettings["sourcePaths"] = _sourcePaths
+private var sourcePaths: [String: String] {
+    get { return _sourcePaths }
+    set {
+        _sourcePaths = newValue
+        layoutSettings["sourcePaths"] = _sourcePaths
+    }
+}
+
+private func _findProjectDirectory(at path: String) -> URL? {
+    guard isLiveReloadEnabled else { return nil }
+    var url = URL(fileURLWithPath: path).standardizedFileURL
+    if let projectDirectory = _projectDirectory,
+        url.absoluteString.hasPrefix(projectDirectory.absoluteString) {
+        return projectDirectory
+    }
+    if !url.hasDirectoryPath {
+        url.deleteLastPathComponent()
+    }
+    while !url.absoluteString.isEmpty {
+        if let files = try? FileManager.default.contentsOfDirectory(
+            at: url,
+            includingPropertiesForKeys: nil,
+            options: []
+        ), files.contains(where: { ["xcodeproj", "xcworkspace"].contains($0.pathExtension) }) {
+            return url
+        }
+        url.deleteLastPathComponent()
+    }
+    return nil
+}
+
+private func _findSourceURL(
+    forRelativePath path: String,
+    in directory: URL,
+    ignoring: [URL],
+    usingCache: Bool
+) throws -> URL? {
+    guard isLiveReloadEnabled else { return nil }
+    
+    if let filePath = sourcePaths[path], FileManager.default.fileExists(atPath: filePath) {
+        let url = URL(fileURLWithPath: filePath).standardizedFileURL
+        if url.absoluteString.hasPrefix(directory.absoluteString) {
+            return url
         }
     }
-
-    private func _findProjectDirectory(at path: String) -> URL? {
-        var url = URL(fileURLWithPath: path).standardizedFileURL
-        if let projectDirectory = _projectDirectory,
-            url.absoluteString.hasPrefix(projectDirectory.absoluteString) {
-            return projectDirectory
-        }
-        if !url.hasDirectoryPath {
-            url.deleteLastPathComponent()
-        }
-        while !url.absoluteString.isEmpty {
-            if let files = try? FileManager.default.contentsOfDirectory(
-                at: url,
-                includingPropertiesForKeys: nil,
-                options: []
-            ), files.contains(where: { ["xcodeproj", "xcworkspace"].contains($0.pathExtension) }) {
-                return url
-            }
-            url.deleteLastPathComponent()
-        }
+    guard let files = try? FileManager.default.contentsOfDirectory(atPath: directory.path) else {
         return nil
     }
-
-    private func _findSourceURL(
-        forRelativePath path: String,
-        in directory: URL,
-        ignoring: [URL],
-        usingCache: Bool
-    ) throws -> URL? {
-        if let filePath = sourcePaths[path], FileManager.default.fileExists(atPath: filePath) {
-            let url = URL(fileURLWithPath: filePath).standardizedFileURL
-            if url.absoluteString.hasPrefix(directory.absoluteString) {
-                return url
-            }
+    var ignoring = ignoring
+    if files.contains(layoutIgnoreFile) {
+        ignoring += try LayoutError.wrap {
+            try parseIgnoreFile(directory.appendingPathComponent(layoutIgnoreFile))
         }
-        guard let files = try? FileManager.default.contentsOfDirectory(atPath: directory.path) else {
-            return nil
+    }
+    var parts = path.components(separatedBy: "/")
+    if parts[0] == "" {
+        parts.removeFirst()
+    }
+    var results = [URL]()
+    for file in files where
+        file != "build" && !file.hasPrefix(".") && ![
+            ".build", ".app", ".framework", ".xcodeproj", ".xcassets"
+        ].contains(where: { file.hasSuffix($0) }) {
+        let directory = directory.appendingPathComponent(file)
+        if ignoring.contains(directory) {
+            continue
         }
-        var ignoring = ignoring
-        if files.contains(layoutIgnoreFile) {
-            ignoring += try LayoutError.wrap {
-                try parseIgnoreFile(directory.appendingPathComponent(layoutIgnoreFile))
-            }
-        }
-        var parts = path.components(separatedBy: "/")
-        if parts[0] == "" {
-            parts.removeFirst()
-        }
-        var results = [URL]()
-        for file in files where
-            file != "build" && !file.hasPrefix(".") && ![
-                ".build", ".app", ".framework", ".xcodeproj", ".xcassets"
-            ].contains(where: { file.hasSuffix($0) }) {
-            let directory = directory.appendingPathComponent(file)
-            if ignoring.contains(directory) {
+        if file == parts[0] {
+            if parts.count == 1 {
+                results.append(directory) // Not actually a directory
                 continue
             }
-            if file == parts[0] {
-                if parts.count == 1 {
-                    results.append(directory) // Not actually a directory
-                    continue
-                }
-                try _findSourceURL(
-                    forRelativePath: parts.dropFirst().joined(separator: "/"),
-                    in: directory,
-                    ignoring: ignoring,
-                    usingCache: false
-                ).map {
-                    results.append($0)
-                }
-            }
             try _findSourceURL(
-                forRelativePath: path,
+                forRelativePath: parts.dropFirst().joined(separator: "/"),
                 in: directory,
                 ignoring: ignoring,
                 usingCache: false
@@ -509,31 +501,33 @@ class LayoutLoader {
                 results.append($0)
             }
         }
-        guard results.count <= 1 else {
-            throw LayoutError.multipleMatches(results, for: path)
+        try _findSourceURL(
+            forRelativePath: path,
+            in: directory,
+            ignoring: ignoring,
+            usingCache: false
+        ).map {
+            results.append($0)
         }
-        if usingCache, let url = results.first {
-            _setSourceURL(url, for: path)
-        }
-        return results.first
     }
-
-    private func _setSourceURL(_ sourceURL: URL, for path: String) {
-        guard sourceURL.isFileURL else {
-            preconditionFailure()
-        }
-        sourcePaths[path] = sourceURL.path
+    guard results.count <= 1 else {
+        throw LayoutError.multipleMatches(results, for: path)
     }
-
-    private func _clearSourceURLs() {
-        sourcePaths.removeAll()
+    if usingCache, let url = results.first {
+        _setSourceURL(url, for: path)
     }
+    return results.first
+}
 
-#else
+private func _setSourceURL(_ sourceURL: URL, for path: String) {
+    guard isLiveReloadEnabled else { return }
+    guard sourceURL.isFileURL else {
+        preconditionFailure()
+    }
+    sourcePaths[path] = sourceURL.path
+}
 
-    private func _findProjectDirectory(at _: String) -> URL? { return nil }
-    private func _findSourceURL(forRelativePath _: String, in _: URL, ignoring _: [URL], usingCache _: Bool) throws -> URL? { return nil }
-    private func _setSourceURL(_: URL, for _: String) {}
-    private func _clearSourceURLs() {}
-
-#endif
+private func _clearSourceURLs() {
+    guard isLiveReloadEnabled else { return }
+    sourcePaths.removeAll()
+}

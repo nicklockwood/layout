@@ -51,7 +51,7 @@ extension CALayer: LayoutConfigurable {
             }
         }
 
-        #if arch(i386) || arch(x86_64)
+        if isLiveReloadEnabled {
             // Private properties
             for name in [
                 "acceleratesDrawing",
@@ -107,7 +107,7 @@ extension CALayer: LayoutConfigurable {
                     types[key] = nil
                 }
             }
-        #endif
+        }
         return types
     }
 }

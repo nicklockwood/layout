@@ -1392,14 +1392,14 @@ public class LayoutNode: NSObject {
             try self.bindActions()
         }
 
-        #if arch(i386) || arch(x86_64)
+        if isLiveReloadEnabled {
 
             // Validate expressions
             for error in redundantExpressionErrors() {
                 throw error
             }
 
-        #endif
+        }
     }
 
     // MARK: symbols
@@ -1575,34 +1575,27 @@ public class LayoutNode: NSObject {
         self.viewControllerClass.map { $0.cachedExpressionTypes } ?? [:]
     }()
 
-    #if arch(i386) || arch(x86_64)
+    private lazy var deprecatedSymbols: [String: String] = {
+        self._class.deprecatedSymbols
+    }()
 
-        private lazy var deprecatedSymbols: [String: String] = {
-            self._class.deprecatedSymbols
-        }()
-
-        private func handleDeprecation(for symbol: String) {
-            let alternative: String
-            if let _alternative = deprecatedSymbols[symbol] {
-                alternative = _alternative
-            } else if _class is UIViewController.Type,
-                // TODO: disallow setting view properties directly if type is a UIViewController
-                _viewExpressions[symbol] != nil, _viewControllerExpressions[symbol] == nil {
-                alternative = "view.\(symbol)"
-            } else {
-                return
-            }
-            _unhandledWarnings.append(
-                "\(_class).\(symbol) is deprecated\(alternative.isEmpty ? "" : ". Use \(alternative) instead")"
-            )
-            bubbleUnhandledErrors()
+    private func handleDeprecation(for symbol: String) {
+        guard isLiveReloadEnabled else { return }
+        let alternative: String
+        if let _alternative = deprecatedSymbols[symbol] {
+            alternative = _alternative
+        } else if _class is UIViewController.Type,
+            // TODO: disallow setting view properties directly if type is a UIViewController
+            _viewExpressions[symbol] != nil, _viewControllerExpressions[symbol] == nil {
+            alternative = "view.\(symbol)"
+        } else {
+            return
         }
-
-    #else
-
-        private func handleDeprecation(for _: String) {}
-
-    #endif
+        _unhandledWarnings.append(
+            "\(_class).\(symbol) is deprecated\(alternative.isEmpty ? "" : ". Use \(alternative) instead")"
+        )
+        bubbleUnhandledErrors()
+    }
 
     private func value(forSymbol name: String, dependsOn symbol: String) -> Bool {
         var checking = [String]()
@@ -2880,7 +2873,7 @@ public class LayoutNode: NSObject {
             }
         }
 
-        #if arch(i386) || arch(x86_64)
+        if isLiveReloadEnabled {
 
             let viewsAndOutlets = viewsAndOutlets ?? NSMutableSet()
 
@@ -2909,7 +2902,7 @@ public class LayoutNode: NSObject {
                 }
             }
 
-        #endif
+        }
 
         if let outlet = outlet {
             let propertyTypes: [String: RuntimeType]

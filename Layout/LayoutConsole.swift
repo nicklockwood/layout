@@ -48,11 +48,7 @@ public struct LayoutConsole {
     }
 }
 
-#if arch(i386) || arch(x86_64)
-    private let reloadMessage = "Press ⌘R or Tap to Reload"
-#else
-    private let reloadMessage = "Tap to Reload"
-#endif
+private let reloadMessage = isLiveReloadEnabled ? "Press ⌘R or Tap to Reload" : "Tap to Reload"
 
 private class LayoutErrorView: UIView, LayoutLoading {
     private var error: LayoutError?

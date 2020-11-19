@@ -104,7 +104,7 @@ extension UIView: LayoutManaged {
                 types[key] = nil
             }
         }
-        #if arch(i386) || arch(x86_64)
+        if isLiveReloadEnabled {
             for name in [
                 "allowsBaselineOffsetApproximation",
                 "animationInfo",
@@ -147,7 +147,7 @@ extension UIView: LayoutManaged {
                     types[key] = nil
                 }
             }
-        #endif
+        }
         return types
     }
 
@@ -371,7 +371,7 @@ extension UIImageView {
         var types = super.expressionTypes
         types["animationImages"] = .array(of: .uiImage)
         types["highlightedAnimationImages"] = .array(of: .uiImage)
-        #if arch(i386) || arch(x86_64)
+        if isLiveReloadEnabled {
             // Private properties
             for name in [
                 "adjustsImageWhenAncestorFocused",
@@ -381,7 +381,7 @@ extension UIImageView {
             ] {
                 types[name] = nil
             }
-        #endif
+        }
         return types
     }
 
@@ -441,7 +441,7 @@ extension UIControl {
             types[name] = .selector
         }
 
-        #if arch(i386) || arch(x86_64)
+        if isLiveReloadEnabled {
             // Private properties
             for name in [
                 "adPrivacyData",
@@ -449,7 +449,7 @@ extension UIControl {
             ] {
                 types[name] = nil
             }
-        #endif
+        }
         return types
     }
 
@@ -542,14 +542,14 @@ extension UIButton {
         }
         // Private properties
         types["lineBreakMode"] = nil
-        #if arch(i386) || arch(x86_64)
+        if isLiveReloadEnabled {
             for name in [
                 "autosizesToFit",
                 "showPressFeedback",
             ] {
                 types[name] = nil
             }
-        #endif
+        }
         return types
     }
 
@@ -627,7 +627,7 @@ extension UILabel {
         types["baselineAdjustment"] = .uiBaselineAdjustment
         types["enablesMarqueeWhenAncestorFocused"] = .bool
 
-        #if arch(i386) || arch(x86_64)
+        if isLiveReloadEnabled {
             // Private properties
             for name in [
                 "adjustsLetterSpacingToFitWidth",
@@ -647,7 +647,7 @@ extension UILabel {
             ] {
                 types[name] = nil
             }
-        #endif
+        }
         return types
     }
 
@@ -688,7 +688,7 @@ extension UITextField {
             types[name] = type
         }
 
-        #if arch(i386) || arch(x86_64)
+        if isLiveReloadEnabled {
             // Private properties
             for name in [
                 "animating",
@@ -731,7 +731,7 @@ extension UITextField {
                     types[key] = nil
                 }
             }
-        #endif
+        }
         return types
     }
 
@@ -793,7 +793,7 @@ extension UITextView {
             types[name] = type
         }
 
-        #if arch(i386) || arch(x86_64)
+        if isLiveReloadEnabled {
             // Private properties
             for name in [
                 "becomesEditableWithGestures",
@@ -813,7 +813,7 @@ extension UITextView {
                     types[key] = nil
                 }
             }
-        #endif
+        }
         return types
     }
 
@@ -864,7 +864,7 @@ extension UISearchBar {
             types[name] = type
         }
 
-        #if arch(i386) || arch(x86_64)
+        if isLiveReloadEnabled {
             // Private properties
             for name in [
                 "centerPlaceholder",
@@ -883,7 +883,7 @@ extension UISearchBar {
                     types[key] = nil
                 }
             }
-        #endif
+        }
         return types
     }
 
@@ -958,7 +958,7 @@ extension UISegmentedControl: TitleTextAttributes {
             types["\(segment)ContentPositionAdjustment.vertical"] = .cgFloat
         }
 
-        #if arch(i386) || arch(x86_64)
+        if isLiveReloadEnabled {
             // Private properties
             for name in [
                 "aloneContentPositionAdjustment",
@@ -979,7 +979,7 @@ extension UISegmentedControl: TitleTextAttributes {
                     types[key] = nil
                 }
             }
-        #endif
+        }
         return types
     }
 
@@ -1141,7 +1141,7 @@ extension UIActivityIndicatorView {
         types["isAnimating"] = .bool
         types["activityIndicatorViewStyle"] = .uiActivityIndicatorViewStyle
 
-        #if arch(i386) || arch(x86_64)
+        if isLiveReloadEnabled {
             // Private properties
             for name in [
                 "animationDuration",
@@ -1166,7 +1166,7 @@ extension UIActivityIndicatorView {
                     types[key] = nil
                 }
             }
-        #endif
+        }
         return types
     }
 
@@ -1195,10 +1195,10 @@ extension UISwitch {
     open override class var expressionTypes: [String: RuntimeType] {
         var types = super.expressionTypes
 
-        #if arch(i386) || arch(x86_64)
+        if isLiveReloadEnabled {
             // Private
             types["visualElement"] = nil
-        #endif
+        }
         return types
     }
 
@@ -1261,10 +1261,10 @@ extension UIProgressView {
         var types = super.expressionTypes
         types["progressViewStyle"] = .uiProgressViewStyle
 
-        #if arch(i386) || arch(x86_64)
+        if isLiveReloadEnabled {
             // Private
             types["barStyle"] = nil
-        #endif
+        }
         return types
     }
 
@@ -1293,7 +1293,7 @@ extension UIInputView {
         // Read-only properties
         types["inputViewStyle"] = nil
         // Private properties
-        #if arch(i386) || arch(x86_64)
+        if isLiveReloadEnabled {
             for name in [
                 "assertSizingWithPredictionBar",
                 "backgroundEdgeInsets",
@@ -1307,7 +1307,7 @@ extension UIInputView {
                     types[key] = nil
                 }
             }
-        #endif
+        }
         return types
     }
 }
@@ -1317,7 +1317,7 @@ extension UIDatePicker {
         var types = super.expressionTypes
         types["datePickerMode"] = .uiDatePickerMode
 
-        #if arch(i386) || arch(x86_64)
+        if isLiveReloadEnabled {
             // Private properties
             for name in [
                 "highlightsToday",
@@ -1326,7 +1326,7 @@ extension UIDatePicker {
             ] {
                 types[name] = nil
             }
-        #endif
+        }
         return types
     }
 
@@ -1345,10 +1345,10 @@ extension UIRefreshControl {
         var types = super.expressionTypes
         types["isRefreshing"] = .bool
 
-        #if arch(i386) || arch(x86_64)
+        if isLiveReloadEnabled {
             // Private property
             types["refreshControlState"] = nil
-        #endif
+        }
         return types
     }
 
@@ -1394,11 +1394,11 @@ extension UIVisualEffectView {
         for (key, type) in UIView.cachedExpressionTypes {
             types["contentView.\(key)"] = type
         }
-        #if arch(i386) || arch(x86_64)
+        if isLiveReloadEnabled {
             // Private properties
             types["backgroundEffects"] = nil
             types["contentEffects"] = nil
-        #endif
+        }
         return types
     }
 

@@ -28,7 +28,7 @@ class ReloadManager {
         }
         boxes.append(ObserverBox(observer: observer))
 
-        #if arch(i386) || arch(x86_64)
+        if isLiveReloadEnabled {
 
             if !UIResponder.handlerInstalled {
                 // Swizzle UIResponder.keyCommands so we can handle Cmd-R correctly
@@ -39,7 +39,7 @@ class ReloadManager {
                 UIResponder.handlerInstalled = true
             }
 
-        #endif
+        }
     }
 
     static func reload(hard: Bool) {
@@ -53,33 +53,29 @@ class ReloadManager {
     }
 }
 
-#if arch(i386) || arch(x86_64)
+private extension UIResponder {
+    static var handlerInstalled = false
 
-    private extension UIResponder {
-        static var handlerInstalled = false
-
-        @objc func layout_keyCommands() -> [UIKeyCommand]? {
-            return (layout_keyCommands() ?? []) + [
-                UIKeyCommand(
-                    input: "r",
-                    modifierFlags: .command,
-                    action: #selector(layout_reloadLayout)
-                ),
-                UIKeyCommand(
-                    input: "r",
-                    modifierFlags: [.command, .alternate],
-                    action: #selector(layout_hardReloadLayout)
-                ),
-            ]
-        }
-
-        @objc private func layout_reloadLayout() {
-            ReloadManager.reload(hard: false)
-        }
-
-        @objc private func layout_hardReloadLayout() {
-            ReloadManager.reload(hard: true)
-        }
+    @objc func layout_keyCommands() -> [UIKeyCommand]? {
+        return (layout_keyCommands() ?? []) + [
+            UIKeyCommand(
+                input: "r",
+                modifierFlags: .command,
+                action: #selector(layout_reloadLayout)
+            ),
+            UIKeyCommand(
+                input: "r",
+                modifierFlags: [.command, .alternate],
+                action: #selector(layout_hardReloadLayout)
+            ),
+        ]
     }
 
-#endif
+    @objc private func layout_reloadLayout() {
+        ReloadManager.reload(hard: false)
+    }
+
+    @objc private func layout_hardReloadLayout() {
+        ReloadManager.reload(hard: true)
+    }
+}
