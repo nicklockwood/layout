@@ -258,6 +258,10 @@ You can reload your XML files at any time by pressing Cmd-R in the simulator (no
 
 The live reloading feature, combined with the graceful handling of errors, means that it should be possible to do most of your interface development without needing to recompile the app.
 
+To enable the live reloading feature, add a command line argument `-LayoutLiveReloadEnabled`.
+
+![Screenshot](CommandLineArgument-LayoutLiveReloadEnabled.png?raw=true)
+
 
 ## Debugging
 
