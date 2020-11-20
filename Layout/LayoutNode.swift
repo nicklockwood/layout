@@ -1392,14 +1392,14 @@ public class LayoutNode: NSObject {
             try self.bindActions()
         }
 
-        #if arch(i386) || arch(x86_64)
+        if isLiveReloadEnabled {
 
             // Validate expressions
             for error in redundantExpressionErrors() {
                 throw error
             }
 
-        #endif
+        }
     }
 
     // MARK: symbols
@@ -1575,34 +1575,27 @@ public class LayoutNode: NSObject {
         self.viewControllerClass.map { $0.cachedExpressionTypes } ?? [:]
     }()
 
-    #if arch(i386) || arch(x86_64)
+    private lazy var deprecatedSymbols: [String: String] = {
+        self._class.deprecatedSymbols
+    }()
 
-        private lazy var deprecatedSymbols: [String: String] = {
-            self._class.deprecatedSymbols
-        }()
-
-        private func handleDeprecation(for symbol: String) {
-            let alternative: String
-            if let _alternative = deprecatedSymbols[symbol] {
-                alternative = _alternative
-            } else if _class is UIViewController.Type,
-                // TODO: disallow setting view properties directly if type is a UIViewController
-                _viewExpressions[symbol] != nil, _viewControllerExpressions[symbol] == nil {
-                alternative = "view.\(symbol)"
-            } else {
-                return
-            }
-            _unhandledWarnings.append(
-                "\(_class).\(symbol) is deprecated\(alternative.isEmpty ? "" : ". Use \(alternative) instead")"
-            )
-            bubbleUnhandledErrors()
+    private func handleDeprecation(for symbol: String) {
+        guard isLiveReloadEnabled else { return }
+        let alternative: String
+        if let _alternative = deprecatedSymbols[symbol] {
+            alternative = _alternative
+        } else if _class is UIViewController.Type,
+            // TODO: disallow setting view properties directly if type is a UIViewController
+            _viewExpressions[symbol] != nil, _viewControllerExpressions[symbol] == nil {
+            alternative = "view.\(symbol)"
+        } else {
+            return
         }
-
-    #else
-
-        private func handleDeprecation(for _: String) {}
-
-    #endif
+        _unhandledWarnings.append(
+            "\(_class).\(symbol) is deprecated\(alternative.isEmpty ? "" : ". Use \(alternative) instead")"
+        )
+        bubbleUnhandledErrors()
+    }
 
     private func value(forSymbol name: String, dependsOn symbol: String) -> Bool {
         var checking = [String]()
@@ -2848,10 +2841,11 @@ public class LayoutNode: NSObject {
     /// Binds the node to the specified owner but doesn't attach the view or view controller(s)
     /// Note: thrown error is always a LayoutError
     public func bind(to owner: NSObject) throws {
-        try _bind(to: owner, with: nil)
+        var viewsAndOutlets = NSMutableSet()
+        try _bind(to: owner, with: &viewsAndOutlets)
     }
 
-    private func _bind(to owner: NSObject, with viewsAndOutlets: NSMutableSet?) throws {
+    private func _bind(to owner: NSObject, with viewsAndOutlets: inout NSMutableSet) throws {
         guard _owner == nil || _owner == owner || _owner == _viewController else {
             throw LayoutError("Cannot re-bind an already bound node.", for: self)
         }
@@ -2880,10 +2874,8 @@ public class LayoutNode: NSObject {
             }
         }
 
-        #if arch(i386) || arch(x86_64)
-
-            let viewsAndOutlets = viewsAndOutlets ?? NSMutableSet()
-
+        if isLiveReloadEnabled {
+            
             // Check if this view controller instance has already been used
             if let controller = viewController {
                 if viewsAndOutlets.contains(controller) {
@@ -2909,7 +2901,7 @@ public class LayoutNode: NSObject {
                 }
             }
 
-        #endif
+        }
 
         if let outlet = outlet {
             let propertyTypes: [String: RuntimeType]
@@ -2970,7 +2962,7 @@ public class LayoutNode: NSObject {
             }
             try bindActions()
             for child in children {
-                try child._bind(to: owner, with: viewsAndOutlets)
+                try child._bind(to: owner, with: &viewsAndOutlets)
             }
         }, for: self)
         try throwUnhandledError()

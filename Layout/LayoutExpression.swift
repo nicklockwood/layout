@@ -143,14 +143,14 @@ private func stringToAsset(_ string: String) throws -> (name: String, bundle: Bu
             _bundle = bundle
         }
 
-        #if arch(i386) || arch(x86_64)
+        if isLiveReloadEnabled {
             if match != nil, match != framework {
                 throw Expression.Error.message("Multiple matches for bundle with \(bundleDescription(identifier))")
             }
             match = _bundle
-        #else
+        } else {
             return (parts[1], _bundle, nil)
-        #endif
+        }
     }
     for _bundle in Bundle.allBundles {
         let name = _bundle.infoDictionary?[kCFBundleNameKey as String] as? String
@@ -158,15 +158,15 @@ private func stringToAsset(_ string: String) throws -> (name: String, bundle: Bu
             continue
         }
 
-        #if arch(i386) || arch(x86_64)
+        if isLiveReloadEnabled {
             if match != nil, match != _bundle {
                 throw Expression.Error.message("Multiple matches for bundle with \(bundleDescription(identifier))")
             }
             match = _bundle
-        #else
+        } else {
             match = _bundle
             return (parts[1], match, nil)
-        #endif
+        }
     }
     if let match = match {
         return (parts[1], match, nil)
@@ -1202,7 +1202,7 @@ struct LayoutExpression {
     }
 
     init?(outletExpression: String, for node: LayoutNode) {
-        #if arch(i386) || arch(x86_64)
+        if isLiveReloadEnabled {
             // Pre-validate expression so we can produce more useful errors
             if let parts = try? parseStringExpression(outletExpression) {
                 for part in parts {
@@ -1253,7 +1253,7 @@ struct LayoutExpression {
                     }
                 }
             }
-        #endif
+        }
         guard let expression = LayoutExpression(stringExpression: outletExpression, for: node) else {
             return nil
         }

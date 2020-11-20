@@ -100,7 +100,7 @@ extension UITableView: LayoutBacked {
             types[name] = .unavailable()
         }
 
-        #if arch(i386) || arch(x86_64)
+        if isLiveReloadEnabled {
             // Private properties
             for name in [
                 "countStringInsignificantRowCount",
@@ -119,7 +119,7 @@ extension UITableView: LayoutBacked {
                     types[key] = nil
                 }
             }
-        #endif
+        }
         return types
     }
 
@@ -545,14 +545,14 @@ extension UITableViewHeaderFooterView: LayoutBacked {
         ] {
             types[name] = nil
         }
-        #if arch(i386) || arch(x86_64)
+        if isLiveReloadEnabled {
             for name in [
                 "floating",
                 "maxTitleWidth",
             ] {
                 types[name] = nil
             }
-        #endif
+        }
         return types
     }
 
@@ -656,7 +656,7 @@ extension UITableViewCell: LayoutBacked {
         types["lineBreakMode"] = nil
         types["textAlignment"] = nil
         types["textColor"] = nil
-        #if arch(i386) || arch(x86_64)
+        if isLiveReloadEnabled {
             for name in [
                 "accessoryAction",
                 "bottomShadowColor",
@@ -684,7 +684,7 @@ extension UITableViewCell: LayoutBacked {
             ] {
                 types[name] = nil
             }
-        #endif
+        }
         return types
     }
 

@@ -2,6 +2,14 @@
 
 import UIKit
 
+var isLiveReloadEnabled: Bool {
+    #if arch(i386) || arch(x86_64)
+    return ProcessInfo.processInfo.arguments.contains("-LayoutLiveReloadEnabled")
+    #else
+    return false
+    #endif
+}
+
 // Flatten an array of dictionaries
 func merge(_ dictionaries: [[String: Any]]) -> [String: Any] {
     var result = [String: Any]()

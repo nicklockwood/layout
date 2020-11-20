@@ -165,13 +165,10 @@ public class RuntimeType: NSObject {
     }
 
     static func unavailable(_ reason: String? = nil) -> RuntimeType? {
-        #if arch(i386) || arch(x86_64)
-            let type = RuntimeType(String.self)
-            type.availability = .unavailable(reason: reason)
-            return type
-        #else
-            return nil
-        #endif
+        guard isLiveReloadEnabled else { return nil }
+        let type = RuntimeType(String.self)
+        type.availability = .unavailable(reason: reason)
+        return type
     }
 
     public var isAvailable: Bool {
