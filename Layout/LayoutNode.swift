@@ -2841,10 +2841,11 @@ public class LayoutNode: NSObject {
     /// Binds the node to the specified owner but doesn't attach the view or view controller(s)
     /// Note: thrown error is always a LayoutError
     public func bind(to owner: NSObject) throws {
-        try _bind(to: owner, with: nil)
+        var viewsAndOutlets = NSMutableSet()
+        try _bind(to: owner, with: &viewsAndOutlets)
     }
 
-    private func _bind(to owner: NSObject, with viewsAndOutlets: NSMutableSet?) throws {
+    private func _bind(to owner: NSObject, with viewsAndOutlets: inout NSMutableSet) throws {
         guard _owner == nil || _owner == owner || _owner == _viewController else {
             throw LayoutError("Cannot re-bind an already bound node.", for: self)
         }
@@ -2874,9 +2875,7 @@ public class LayoutNode: NSObject {
         }
 
         if isLiveReloadEnabled {
-
-            let viewsAndOutlets = viewsAndOutlets ?? NSMutableSet()
-
+            
             // Check if this view controller instance has already been used
             if let controller = viewController {
                 if viewsAndOutlets.contains(controller) {
@@ -2963,7 +2962,7 @@ public class LayoutNode: NSObject {
             }
             try bindActions()
             for child in children {
-                try child._bind(to: owner, with: viewsAndOutlets)
+                try child._bind(to: owner, with: &viewsAndOutlets)
             }
         }, for: self)
         try throwUnhandledError()
